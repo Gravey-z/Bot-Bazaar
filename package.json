@@ -12,7 +12,7 @@
     "build:contract": "node scripts/rust-toolchain.mjs build",
     "typecheck": "corepack pnpm build:packages && corepack pnpm -r typecheck",
     "test:unit": "corepack pnpm build:packages && corepack pnpm --filter @bot-bazaar/worker build && node --test tests/configuration/*.test.mjs tests/boundaries/*.test.mjs tests/commands/*.test.mjs apps/worker/test/*.test.mjs",
-    "test:contract": "corepack pnpm test:sandbox",
+    "test:contract": "node scripts/rust-toolchain.mjs unit && corepack pnpm test:sandbox",
     "test:sandbox": "node scripts/rust-toolchain.mjs test",
     "toolchain:build": "docker build --platform linux/amd64 -f Dockerfile.toolchain -t bot-bazaar-toolchain:1.93.0-near0.22.0 .",
     "check:rust": "node scripts/rust-toolchain.mjs check",

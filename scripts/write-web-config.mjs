@@ -13,7 +13,6 @@ export async function writeWebConfig(
   outputFile,
   environment = process.env,
 ) {
-  // Remove the previous output first so a failed validation cannot reuse stale settings.
   await rm(outputFile, { force: true });
   let local = {};
   try {
@@ -24,7 +23,6 @@ export async function writeWebConfig(
     }
   }
   const env = { ...local, ...environment };
-  // Never serialize process.env or a whole .env file into public assets.
   const config = parsePublicConfig({
     networkId: env.NEAR_NETWORK_ID,
     contractId: env.NEAR_CONTRACT_ID,

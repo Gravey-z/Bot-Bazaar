@@ -16,6 +16,7 @@ const build = [
 ];
 const tasks = {
   build: [build],
+  unit: [["cargo", "test", "-p", "bot-bazaar-market", "--lib", "--locked"]],
   test: [
     build,
     [
@@ -32,6 +33,18 @@ const tasks = {
   ],
   check: [
     ["cargo", "fmt", "--all", "--", "--check"],
+    [
+      "cargo",
+      "clippy",
+      "-p",
+      "bot-bazaar-market",
+      "--lib",
+      "--tests",
+      "--locked",
+      "--",
+      "-D",
+      "warnings",
+    ],
     [
       "cargo",
       "near",
@@ -58,13 +71,12 @@ const tasks = {
 const task = process.argv[2];
 if (!Object.hasOwn(tasks, task)) {
   console.error(
-    "Usage: node scripts/rust-toolchain.mjs <build|test|check|format>",
+    "Usage: node scripts/rust-toolchain.mjs <build|unit|test|check|format>",
   );
   process.exit(1);
 }
 
 for (const command of tasks[task]) {
-  // Argument arrays preserve Windows paths containing spaces without a shell.
   const result = spawnSync(
     "docker",
     [
