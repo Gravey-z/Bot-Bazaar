@@ -1,0 +1,16 @@
+[package]
+name = "sandbox-tests"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.93"
+publish = false
+
+[[test]]
+name = "sandbox"
+path = "sandbox.rs"
+
+[dev-dependencies]
+anyhow = "=1.0.104"
+near-workspaces = "=0.23.0"
+serde_json = "=1.0.154"
+tokio = { version = "=1.54.1", features = ["macros", "rt-multi-thread"] }

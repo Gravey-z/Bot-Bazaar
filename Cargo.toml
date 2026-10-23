@@ -1,0 +1,13 @@
+[workspace]
+members = ["contracts/market", "tests/sandbox"]
+resolver = "3"
+
+[profile.release]
+codegen-units = 1
+opt-level = "z"
+lto = true
+panic = "abort"
+overflow-checks = true
+
+[profile.dev]
+debug = 0
