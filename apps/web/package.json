@@ -4,8 +4,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "ng serve",
-    "build": "eslint src ../../packages/shared/src ../../packages/chain/src --max-warnings 0 && ng build",
+    "dev": "node ../../scripts/write-web-config.mjs && ng serve",
+    "build": "node ../../scripts/write-web-config.mjs && eslint src ../../packages/shared/src ../../packages/chain/src --max-warnings 0 && ng build",
     "typecheck": "ngc -p tsconfig.json --noEmit"
   },
   "dependencies": {

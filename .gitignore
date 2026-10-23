@@ -1,11 +1,9 @@
 .env
 .env.*
-!.env.example
-
-# Rust build output
 /target/
 
-# Workspace dependencies and generated TypeScript/Angular output
 node_modules/
 dist/
 .angular/
+
+/apps/web/public/config.json
