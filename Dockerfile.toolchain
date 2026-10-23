@@ -1,0 +1,15 @@
+FROM rust:1.93.0-bookworm@sha256:d0a4aa3ca2e1088ac0c81690914a0d810f2eee188197034edf366ed010a2b382
+
+COPY rust-toolchain.toml /toolchain/rust-toolchain.toml
+WORKDIR /toolchain
+RUN rustup show active-toolchain
+
+RUN curl --fail --location --retry 3 \
+      https://github.com/near/cargo-near/releases/download/cargo-near-v0.22.0/cargo-near-x86_64-unknown-linux-gnu.tar.gz \
+      --output /tmp/cargo-near.tar.gz \
+    && echo "9429064e30a427e96523f539cb255f3688d2345e5000d7d4e4873a8247247d1a  /tmp/cargo-near.tar.gz" | sha256sum --check \
+    && tar -xzf /tmp/cargo-near.tar.gz -C /tmp \
+    && install /tmp/cargo-near-x86_64-unknown-linux-gnu/cargo-near /usr/local/cargo/bin/cargo-near \
+    && rm -rf /tmp/cargo-near.tar.gz /tmp/cargo-near-x86_64-unknown-linux-gnu
+
+WORKDIR /workspace
