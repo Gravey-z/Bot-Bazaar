@@ -1,6 +1,7 @@
 use std::path::Path;
 
 use anyhow::{Context, Result};
+use near_workspaces::types::NearToken;
 use serde_json::json;
 
 #[tokio::test]
@@ -29,6 +30,17 @@ async fn market_initialization() -> Result<()> {
         .into_result()
         .expect_err("Only the contract account may initialize the market");
     assert!(unauthorized.to_string().contains("private"));
+
+    let attached_deposit = contract
+        .call("new")
+        .args_json(json!({}))
+        .deposit(NearToken::from_yoctonear(1))
+        .transact()
+        .await?;
+    let attached_deposit = attached_deposit
+        .into_result()
+        .expect_err("Initialization must reject an attached deposit");
+    assert!(attached_deposit.to_string().contains("deposit"));
 
     contract
         .call("new")

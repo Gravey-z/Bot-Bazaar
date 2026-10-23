@@ -3,14 +3,17 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
+  "exports": {},
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "start": "node dist/index.js"
+    "start": "node dist/index.js",
+    "test:signer": "node --test test/*.test.mjs"
   },
   "dependencies": {
     "@bot-bazaar/chain": "workspace:*",
-    "@bot-bazaar/shared": "workspace:*"
+    "@bot-bazaar/shared": "workspace:*",
+    "near-api-js": "7.3.1"
   },
   "devDependencies": {
     "@types/node": "24.19.2"

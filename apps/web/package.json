@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "ng serve",
-    "build": "ng build",
+    "build": "eslint src ../../packages/shared/src ../../packages/chain/src --max-warnings 0 && ng build",
     "typecheck": "ngc -p tsconfig.json --noEmit"
   },
   "dependencies": {

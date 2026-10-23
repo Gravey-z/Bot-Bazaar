@@ -1,0 +1,7 @@
+README.md
+pnpm-lock.yaml
+Cargo.lock
+node_modules/
+target/
+**/dist/
+**/.angular/
