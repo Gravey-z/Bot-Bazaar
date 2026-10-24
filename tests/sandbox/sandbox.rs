@@ -1,6 +1,7 @@
 use std::path::Path;
 
 mod admin;
+mod listings;
 mod registration;
 mod storage;
 

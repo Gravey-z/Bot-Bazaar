@@ -3,12 +3,14 @@ use near_sdk::{AccountId, PanicOnDefault, env, near, require};
 mod admin;
 mod cleanup;
 mod initialization;
+mod listings;
 mod registration;
 pub mod state;
 mod views;
 
 pub use admin::PauseResult;
 pub use cleanup::ExpireResult;
+pub use listings::ListingResult;
 pub use views::*;
 
 pub use initialization::MerchantControllers;

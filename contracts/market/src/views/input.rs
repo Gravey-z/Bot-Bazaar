@@ -63,6 +63,7 @@ pub(crate) fn valid_input(bytes: &[u8], keys: &[&str]) -> bool {
         && keys.iter().all(|key| {
             fields.get(*key).is_some_and(|value| {
                 value.is_string()
+                    || (*key == "active" && value.is_boolean())
                     || (matches!(*key, "after_id" | "expected_revision") && value.is_null())
                     || (*key == "offer_ids"
                         && value

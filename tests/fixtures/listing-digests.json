@@ -1,0 +1,41 @@
+[
+  {
+    "args": {
+      "merchant_id": "rex",
+      "resource": "crystal",
+      "unit_price": "7",
+      "quantity": "7",
+      "active": true,
+      "expected_version": "1",
+      "action_id": "1"
+    },
+    "canonical": "{\"args\":{\"action_id\":\"1\",\"active\":true,\"expected_version\":\"1\",\"merchant_id\":\"rex\",\"quantity\":\"7\",\"resource\":\"crystal\",\"unit_price\":\"7\"},\"method\":\"set_listing\"}",
+    "sha256": "3fce6ebef844b51a9bf3c3a6845c258dea2edc92ba36671dcbdcd2d650fc7390"
+  },
+  {
+    "args": {
+      "merchant_id": "luna",
+      "resource": "herb",
+      "unit_price": "3",
+      "quantity": "0",
+      "active": false,
+      "expected_version": "2",
+      "action_id": "2"
+    },
+    "canonical": "{\"args\":{\"action_id\":\"2\",\"active\":false,\"expected_version\":\"2\",\"merchant_id\":\"luna\",\"quantity\":\"0\",\"resource\":\"herb\",\"unit_price\":\"3\"},\"method\":\"set_listing\"}",
+    "sha256": "44d25510edf8d334f630cb062b8b752c197f0519772675a03fb7ea99f1b443db"
+  },
+  {
+    "args": {
+      "merchant_id": "bolt",
+      "resource": "iron",
+      "unit_price": "100",
+      "quantity": "100",
+      "active": true,
+      "expected_version": "18446744073709551615",
+      "action_id": "18446744073709551615"
+    },
+    "canonical": "{\"args\":{\"action_id\":\"18446744073709551615\",\"active\":true,\"expected_version\":\"18446744073709551615\",\"merchant_id\":\"bolt\",\"quantity\":\"100\",\"resource\":\"iron\",\"unit_price\":\"100\"},\"method\":\"set_listing\"}",
+    "sha256": "5435cc1d828a998f1a21871d401ce8606118d8caf18aa9976508049ef2478b66"
+  }
+]
