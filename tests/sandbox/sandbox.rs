@@ -1,6 +1,7 @@
 use std::path::Path;
 
 mod admin;
+mod registration;
 mod storage;
 
 use anyhow::{Context, Result};

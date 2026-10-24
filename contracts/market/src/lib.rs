@@ -3,6 +3,7 @@ use near_sdk::{AccountId, PanicOnDefault, env, near, require};
 mod admin;
 mod cleanup;
 mod initialization;
+mod registration;
 pub mod state;
 mod views;
 
