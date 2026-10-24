@@ -28,8 +28,9 @@ impl Listing {
     }
 }
 
-#[near_sdk::near(serializers = [borsh])]
+#[near_sdk::near(serializers = [borsh, json])]
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
 pub enum MerchantMethod {
     SetListing,
     ProposeTrade,
@@ -82,8 +83,9 @@ impl ActionSequence {
     }
 }
 
-#[near_sdk::near(serializers = [borsh])]
-#[derive(Debug, PartialEq, Eq)]
+#[near_sdk::near(serializers = [borsh, json])]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
 pub enum OfferStatus {
     Pending,
     Accepted,
@@ -118,8 +120,9 @@ pub struct Offer {
     pub proposal_action: ActionRef,
 }
 
-#[near_sdk::near(serializers = [borsh])]
-#[derive(Debug, PartialEq, Eq)]
+#[near_sdk::near(serializers = [borsh, json])]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
 pub enum TradeKind {
     PlayerPurchase,
     MerchantTrade,

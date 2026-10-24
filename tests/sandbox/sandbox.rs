@@ -7,6 +7,191 @@ use near_workspaces::operations::Function;
 use near_workspaces::types::NearToken;
 use serde_json::json;
 
+#[tokio::test]
+async fn public_market_views() -> Result<()> {
+    let worker = near_workspaces::sandbox().await?;
+    let contract = worker.dev_deploy(&wasm()?).await?;
+    let uninitialized = contract.view("get_market_state").args_json(json!({})).await;
+    assert!(uninitialized.is_err());
+    assert!(contract.view_state().await?.is_empty());
+    contract
+        .call("initialize_market")
+        .args_json(json!({
+            "owner_account_id":contract.id(),
+            "merchant_controllers":{"rex":"rex.testnet","luna":"luna.testnet","bolt":"bolt.testnet"}
+        }))
+        .transact()
+        .await?
+        .into_result()?;
+    let before = contract.view_state().await?;
+    let snapshot: serde_json::Value = contract
+        .view("get_market_state")
+        .args_json(json!({}))
+        .await?
+        .json()?;
+    assert_eq!(snapshot["market_revision"], "1");
+    assert!(snapshot["block_height"].as_str().unwrap().parse::<u64>()? > 0);
+    assert!(
+        snapshot["block_timestamp_ns"]
+            .as_str()
+            .unwrap()
+            .parse::<u64>()?
+            > 0
+    );
+    let market = &snapshot["data"];
+    assert_eq!(market["api_version"], "1.0.0");
+    assert_eq!(market["economy_version"], "1");
+    assert_eq!(market["contract_account_id"], contract.id().as_str());
+    assert_eq!(market["owner_account_id"], contract.id().as_str());
+    assert_eq!(market["total_issued_gold"], "550");
+    assert_eq!(
+        market["resource_supply"],
+        json!({"crystal":"29","wood":"25","herb":"26","iron":"24"})
+    );
+    assert_eq!(
+        market["limits"],
+        json!({
+            "max_players":"1000","starter_gold":"100","max_actor_gold":"1000000",
+            "max_actor_resource":"1000","max_trade_quantity":"100","max_listing_quantity":"100",
+            "max_unit_price":"100","max_total_price":"10000","max_pending_offers_per_merchant":"8",
+            "max_offer_lifetime_ns":"600000000000","max_page_size":"50",
+            "retained_trade_limit":"100","retained_terminal_offer_limit":"100","max_expire_batch":"24"
+        })
+    );
+    for (index, id) in ["rex", "luna", "bolt"].into_iter().enumerate() {
+        let merchant: serde_json::Value = contract
+            .view("get_merchant")
+            .args_json(json!({"merchant_id":id}))
+            .await?
+            .json()?;
+        assert_eq!(merchant["data"], market["merchants"][index]);
+        assert_eq!(merchant["data"]["last_action_id"], "0");
+        assert!(merchant["data"]["last_action"].is_null());
+    }
+    let player: serde_json::Value = contract
+        .view("get_player")
+        .args_json(json!({"account_id":"missing.testnet"}))
+        .await?
+        .json()?;
+    assert!(player["data"].is_null());
+    for id in ["1", "18446744073709551615"] {
+        let offer: serde_json::Value = contract
+            .view("get_offer")
+            .args_json(json!({"offer_id":id}))
+            .await?
+            .json()?;
+        assert_eq!(offer["data"], json!({"kind":"not_found","offer_id":id}));
+    }
+    let page_args = json!({"after_id":null,"limit":"50","expected_revision":"1"});
+    for method in ["get_recent_trades", "get_offers_for_merchant"] {
+        let mut args = page_args.clone();
+        if method == "get_offers_for_merchant" {
+            args["merchant_id"] = json!("rex");
+            args["status"] = json!("all");
+        }
+        let result: serde_json::Value = contract
+            .view(method)
+            .args_json(args.clone())
+            .await?
+            .json()?;
+        assert_eq!(
+            result["data"],
+            json!({"items":[],"next_after_id":null,"has_more":false,"history_gap":false,"pruned_through":"0"})
+        );
+        args["after_id"] = json!("18446744073709551615");
+        let result: serde_json::Value = contract
+            .view(method)
+            .args_json(args.clone())
+            .await?
+            .json()?;
+        assert_eq!(result["data"]["next_after_id"], "18446744073709551615");
+        args["expected_revision"] = json!("2");
+        let error = contract.view(method).args_json(args).await.unwrap_err();
+        assert!(
+            format!("{error:?}").contains("BB:E_STALE_SNAPSHOT"),
+            "{error:?}"
+        );
+    }
+    let invalid = [
+        ("get_market_state", json!({"extra":"x"})),
+        ("get_market_state", json!([])),
+        ("get_player", json!({"account_id":"INVALID!"})),
+        (
+            "get_player",
+            json!({"account_id":"player.testnet","extra":"x"}),
+        ),
+        ("get_merchant", json!({"merchant_id":"other"})),
+        ("get_merchant", json!({"merchant_id":{"rex":null}})),
+        ("get_offer", json!({"offer_id":"0"})),
+        ("get_offer", json!({"offer_id":1})),
+        ("get_offer", json!({"offer_id":"01"})),
+        ("get_offer", json!({"offer_id":"-1"})),
+        ("get_offer", json!({"offer_id":"+1"})),
+        ("get_offer", json!({"offer_id":" 1"})),
+        ("get_offer", json!({"offer_id":"18446744073709551616"})),
+        (
+            "get_recent_trades",
+            json!({"after_id":null,"limit":"0","expected_revision":null}),
+        ),
+        (
+            "get_recent_trades",
+            json!({"after_id":null,"limit":"51","expected_revision":null}),
+        ),
+        (
+            "get_recent_trades",
+            json!({"after_id":null,"limit":"18446744073709551615","expected_revision":null}),
+        ),
+        (
+            "get_recent_trades",
+            json!({"limit":"1","expected_revision":null}),
+        ),
+        ("get_recent_trades", json!({"after_id":null,"limit":"1"})),
+        (
+            "get_recent_trades",
+            json!({"after_id":null,"limit":"1","expected_revision":null,"extra":"x"}),
+        ),
+        (
+            "get_offers_for_merchant",
+            json!({"merchant_id":"rex","status":"unknown","after_id":null,"limit":"1","expected_revision":null}),
+        ),
+        (
+            "get_offers_for_merchant",
+            json!({"merchant_id":"rex","after_id":null,"limit":"1","expected_revision":null}),
+        ),
+    ];
+    for (method, args) in invalid {
+        assert!(
+            contract.view(method).args_json(args.clone()).await.is_err(),
+            "{method}: {args}"
+        );
+    }
+    assert!(
+        contract
+            .view("get_offer")
+            .args(br#"{"offer_id":"1","offer_id":"2"}"#.to_vec())
+            .await
+            .is_err()
+    );
+    assert!(
+        contract
+            .view("get_market_state")
+            .args(b"null".to_vec())
+            .await
+            .is_err()
+    );
+    let caller = worker.dev_create_account().await?;
+    let public_call = caller
+        .call(contract.id(), "get_market_state")
+        .args_json(json!({}))
+        .transact()
+        .await?
+        .into_result()?;
+    let public_state: serde_json::Value = public_call.json()?;
+    assert_eq!(public_state["data"], *market);
+    assert_eq!(contract.view_state().await?, before);
+    Ok(())
+}
+
 fn assert_seed(bytes: &[u8], owner: &str, controllers: [&str; 3]) -> Result<()> {
     let state = borsh::from_slice::<MarketState>(bytes)?;
     assert_eq!(state.owner_account_id.as_str(), owner);

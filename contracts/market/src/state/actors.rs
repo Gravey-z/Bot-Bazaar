@@ -1,15 +1,13 @@
 use near_sdk::AccountId;
 
-use near_sdk::serde::{Deserialize, Serialize};
-
 use super::{
     ActionSequence, Listing, MAX_ACTOR_GOLD, MAX_ACTOR_RESOURCE, StateError, checked_credit,
     checked_debit,
 };
 
-#[near_sdk::near(serializers = [borsh])]
-#[derive(Deserialize, Serialize, Clone, Copy, Debug, PartialEq, Eq)]
-#[serde(crate = "near_sdk::serde", rename_all = "snake_case")]
+#[near_sdk::near(serializers = [borsh, json])]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
 pub enum MerchantId {
     Rex,
     Luna,
@@ -28,9 +26,9 @@ impl MerchantId {
     }
 }
 
-#[near_sdk::near(serializers = [borsh])]
-#[derive(Deserialize, Serialize, Clone, Copy, Debug, PartialEq, Eq)]
-#[serde(crate = "near_sdk::serde", rename_all = "snake_case")]
+#[near_sdk::near(serializers = [borsh, json])]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
 pub enum Resource {
     Crystal,
     Wood,
@@ -51,14 +49,9 @@ impl Resource {
     }
 }
 
-#[near_sdk::near(serializers = [borsh])]
-#[derive(Deserialize, Serialize, Clone, Debug, PartialEq, Eq)]
-#[serde(
-    crate = "near_sdk::serde",
-    tag = "kind",
-    rename_all = "snake_case",
-    deny_unknown_fields
-)]
+#[near_sdk::near(serializers = [borsh, json])]
+#[derive(Clone, Debug, PartialEq, Eq)]
+#[serde(tag = "kind", rename_all = "snake_case", deny_unknown_fields)]
 pub enum Actor {
     Player { account_id: AccountId },
     Merchant { merchant_id: MerchantId },

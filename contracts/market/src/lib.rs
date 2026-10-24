@@ -2,6 +2,9 @@ use near_sdk::{AccountId, PanicOnDefault, env, near, require};
 
 mod initialization;
 pub mod state;
+mod views;
+
+pub use views::*;
 
 pub use initialization::MerchantControllers;
 use initialization::{initialized_state, parse_initialization_input};
