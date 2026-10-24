@@ -1,9 +1,11 @@
 use near_sdk::{AccountId, PanicOnDefault, env, near, require};
 
+mod cleanup;
 mod initialization;
 pub mod state;
 mod views;
 
+pub use cleanup::ExpireResult;
 pub use views::*;
 
 pub use initialization::MerchantControllers;

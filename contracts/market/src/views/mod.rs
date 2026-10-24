@@ -1,4 +1,4 @@
-mod input;
+pub(crate) mod input;
 mod types;
 pub use input::Decimal;
 pub use types::*;
@@ -17,7 +17,7 @@ pub enum OfferFilter {
 }
 
 impl Market {
-    fn snapshot<T>(&self, data: T) -> Snapshot<T> {
+    pub(crate) fn snapshot<T>(&self, data: T) -> Snapshot<T> {
         Snapshot {
             market_revision: U64(self.market.market_revision),
             block_height: U64(env::block_height()),

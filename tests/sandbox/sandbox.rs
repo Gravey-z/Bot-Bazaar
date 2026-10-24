@@ -1,5 +1,7 @@
 use std::path::Path;
 
+mod storage;
+
 use anyhow::{Context, Result};
 use bot_bazaar_market::state::{MarketState, MerchantId, Resource};
 use near_sdk::borsh;

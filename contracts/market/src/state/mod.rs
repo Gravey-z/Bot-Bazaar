@@ -1,5 +1,6 @@
 mod actors;
 mod records;
+mod storage;
 
 pub use actors::*;
 pub use records::*;
@@ -21,6 +22,18 @@ pub const MAX_PAGE_SIZE: u64 = 50;
 pub const MAX_EXPIRE_BATCH: u64 = 24;
 pub const MAX_OFFER_LIFETIME_NS: u64 = 600_000_000_000;
 
+pub fn storage_funding_required(
+    storage_bytes: u64,
+    byte_cost: near_sdk::NearToken,
+) -> Result<near_sdk::NearToken, StateError> {
+    let stake = u128::from(storage_bytes)
+        .checked_mul(byte_cost.as_yoctonear())
+        .ok_or(StateError::Overflow)?;
+    let headroom = stake.div_ceil(4);
+    let total = stake.checked_add(headroom).ok_or(StateError::Overflow)?;
+    Ok(near_sdk::NearToken::from_yoctonear(total))
+}
+
 #[derive(Debug, PartialEq, Eq)]
 pub enum StateError {
     Overflow,
@@ -31,6 +44,12 @@ pub enum StateError {
     ActionUsed,
     ActionGap,
     InvalidControllers,
+    AlreadyRegistered,
+    PlayerCapacity,
+    OfferCapacity,
+    InvalidRecord,
+    InvalidTransition,
+    InvalidBatch,
 }
 
 pub fn checked_credit(value: u64, amount: u64, maximum: u64) -> Result<u64, StateError> {
