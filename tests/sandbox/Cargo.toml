@@ -10,6 +10,8 @@ name = "sandbox"
 path = "sandbox.rs"
 
 [dev-dependencies]
+bot-bazaar-market = { path = "../../contracts/market" }
+near-sdk = { version = "=5.29.1", features = ["unit-testing"] }
 anyhow = "=1.0.104"
 near-workspaces = "=0.23.0"
 serde_json = "=1.0.154"

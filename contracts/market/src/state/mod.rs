@@ -30,6 +30,7 @@ pub enum StateError {
     InvalidTrade,
     ActionUsed,
     ActionGap,
+    InvalidControllers,
 }
 
 pub fn checked_credit(value: u64, amount: u64, maximum: u64) -> Result<u64, StateError> {

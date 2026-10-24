@@ -6,7 +6,7 @@ rust-version = "1.93"
 publish = false
 
 [lib]
-crate-type = ["cdylib"]
+crate-type = ["cdylib", "rlib"]
 
 [dependencies]
 near-sdk = "=5.29.1"

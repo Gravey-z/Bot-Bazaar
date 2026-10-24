@@ -3077,6 +3077,8 @@ name = "sandbox-tests"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "bot-bazaar-market",
+ "near-sdk",
  "near-workspaces",
  "serde_json",
  "tokio",
