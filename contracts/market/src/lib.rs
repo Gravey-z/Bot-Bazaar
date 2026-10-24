@@ -4,6 +4,7 @@ mod admin;
 mod cleanup;
 mod initialization;
 mod listings;
+mod purchases;
 mod registration;
 pub mod state;
 mod views;

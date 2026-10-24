@@ -2,6 +2,7 @@ use std::path::Path;
 
 mod admin;
 mod listings;
+mod purchases;
 mod registration;
 mod storage;
 
