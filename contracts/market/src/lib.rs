@@ -1,10 +1,12 @@
 use near_sdk::{AccountId, PanicOnDefault, env, near, require};
 
+mod admin;
 mod cleanup;
 mod initialization;
 pub mod state;
 mod views;
 
+pub use admin::PauseResult;
 pub use cleanup::ExpireResult;
 pub use views::*;
 

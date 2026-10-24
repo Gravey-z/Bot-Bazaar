@@ -50,6 +50,7 @@ pub enum StateError {
     InvalidRecord,
     InvalidTransition,
     InvalidBatch,
+    MarketPaused,
 }
 
 pub fn checked_credit(value: u64, amount: u64, maximum: u64) -> Result<u64, StateError> {

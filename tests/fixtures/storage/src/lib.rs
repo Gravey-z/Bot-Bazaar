@@ -2,6 +2,28 @@ use bot_bazaar_market::state::*;
 use near_sdk::{PanicOnDefault, near, require};
 
 #[cfg(target_arch = "wasm32")]
+#[unsafe(no_mangle)]
+pub extern "C" fn forward_admin() {
+    near_sdk::env::setup_panic_hook();
+    let input: near_sdk::serde_json::Value =
+        near_sdk::serde_json::from_slice(&near_sdk::env::input().unwrap()).unwrap();
+    let target = input["contract_id"].as_str().unwrap().parse().unwrap();
+    let method = input["method"].as_str().unwrap().to_owned();
+    require!(
+        matches!(method.as_str(), "pause_market" | "resume_market"),
+        "invalid fixture method"
+    );
+    let _ = near_sdk::Promise::new(target)
+        .function_call(
+            method,
+            b"{}".to_vec(),
+            near_sdk::NearToken::from_yoctonear(0),
+            near_sdk::Gas::from_tgas(30),
+        )
+        .as_return();
+}
+
+#[cfg(target_arch = "wasm32")]
 fn invoke(method: fn(&mut StorageFixture, u64)) {
     near_sdk::env::setup_panic_hook();
     let input: near_sdk::serde_json::Value =

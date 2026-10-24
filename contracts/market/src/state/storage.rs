@@ -18,7 +18,15 @@ impl RetainedIds {
 }
 
 impl MarketState {
+    pub fn ensure_running(&self) -> Result<(), StateError> {
+        if self.paused {
+            return Err(StateError::MarketPaused);
+        }
+        Ok(())
+    }
+
     pub fn add_player(&mut self, account_id: AccountId) -> Result<(), StateError> {
+        self.ensure_running()?;
         if self.players.contains_key(&account_id) {
             return Err(StateError::AlreadyRegistered);
         }
@@ -38,6 +46,7 @@ impl MarketState {
     }
 
     pub fn insert_pending_offer(&mut self, offer: Offer) -> Result<(), StateError> {
+        self.ensure_running()?;
         if offer.offer_id != self.offer_ids.next_id()
             || self.offers.contains_key(&offer.offer_id)
             || offer.status != OfferStatus::Pending
@@ -83,6 +92,9 @@ impl MarketState {
         now: u64,
         settled_trade_id: Option<u64>,
     ) -> Result<(), StateError> {
+        if status == OfferStatus::Accepted {
+            self.ensure_running()?;
+        }
         let offer = self
             .offers
             .get(&offer_id)
@@ -131,6 +143,7 @@ impl MarketState {
     }
 
     pub fn append_trade(&mut self, trade: Trade) -> Result<(), StateError> {
+        self.ensure_running()?;
         if trade.trade_id != self.trade_ids.next_id() || self.trades.contains_key(&trade.trade_id) {
             return Err(StateError::InvalidRecord);
         }

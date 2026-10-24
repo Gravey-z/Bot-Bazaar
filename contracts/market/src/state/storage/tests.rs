@@ -3,6 +3,65 @@ use crate::initialization::{MerchantControllers, initialized_state};
 use near_sdk::{NearToken, borsh, env, test_utils::VMContextBuilder, testing_env};
 
 #[test]
+fn pause_blocks_economic_storage_changes_but_allows_cancellation_and_expiry() {
+    let mut state = state();
+    for id in 1..=3 {
+        state
+            .insert_pending_offer(offer(id, MerchantId::Rex, MerchantId::Luna, 100))
+            .unwrap();
+    }
+    state.paused = true;
+    let before = borsh::to_vec(&state).unwrap();
+    assert_eq!(
+        state.add_player("player.testnet".parse().unwrap()),
+        Err(StateError::MarketPaused)
+    );
+    assert_eq!(
+        state.insert_pending_offer(offer(4, MerchantId::Luna, MerchantId::Bolt, 100)),
+        Err(StateError::MarketPaused)
+    );
+    assert_eq!(state.append_trade(trade(1)), Err(StateError::MarketPaused));
+    assert_eq!(
+        state.close_offer(1, OfferStatus::Accepted, 99, Some(1)),
+        Err(StateError::MarketPaused)
+    );
+    assert_eq!(borsh::to_vec(&state).unwrap(), before);
+    assert!(
+        state
+            .players
+            .get(&"player.testnet".parse::<AccountId>().unwrap())
+            .is_none()
+    );
+    assert!(state.trades.get(&1).is_none());
+    assert!(state.offers.get(&4).is_none());
+    assert_eq!(state.offers.get(&1).unwrap().status, OfferStatus::Pending);
+    state
+        .close_offer(1, OfferStatus::Cancelled, 99, None)
+        .unwrap();
+    assert_eq!(state.offers.get(&1).unwrap().closed_at_ns, Some(99));
+    assert_eq!(
+        state.expire_offers(&[2, 3], 100).unwrap(),
+        (vec![2, 3], vec![])
+    );
+    assert!(state.paused);
+    assert!(
+        state
+            .merchants
+            .iter()
+            .all(|merchant| merchant.pending_offer_count == 0)
+    );
+    state.paused = false;
+    state.add_player("player.testnet".parse().unwrap()).unwrap();
+    state
+        .insert_pending_offer(offer(4, MerchantId::Rex, MerchantId::Bolt, 200))
+        .unwrap();
+    state.append_trade(trade(1)).unwrap();
+    state
+        .close_offer(4, OfferStatus::Accepted, 100, Some(1))
+        .unwrap();
+}
+
+#[test]
 fn allocation_and_issuance_overflow_leave_storage_unchanged() {
     let mut state = state();
     state.total_issued_gold = u64::MAX;
