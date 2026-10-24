@@ -3,6 +3,46 @@ use near_sdk::{PanicOnDefault, near, require};
 
 #[cfg(target_arch = "wasm32")]
 #[unsafe(no_mangle)]
+pub extern "C" fn shift_stock() {
+    near_sdk::env::setup_panic_hook();
+    let input: near_sdk::serde_json::Value =
+        near_sdk::serde_json::from_slice(&near_sdk::env::input().unwrap()).unwrap();
+    let merchant_id: MerchantId =
+        near_sdk::serde_json::from_value(input["merchant_id"].clone()).unwrap();
+    let resource: Resource = near_sdk::serde_json::from_value(input["resource"].clone()).unwrap();
+    let new_stock = input["new_stock"].as_u64().unwrap();
+    let mut fixture: StorageFixture = near_sdk::env::state_read().unwrap();
+    let merchant = &fixture.market.merchants[merchant_id.index()];
+    let old_stock = merchant.balances.inventory.amount(resource);
+    let listing = merchant.listings[resource.index()]
+        .after_stock_change(old_stock, new_stock)
+        .unwrap();
+    let mut balances = merchant.balances;
+    if new_stock > old_stock {
+        balances
+            .inventory
+            .credit(resource, new_stock - old_stock)
+            .unwrap();
+    } else {
+        balances
+            .inventory
+            .debit(resource, old_stock - new_stock)
+            .unwrap();
+    }
+    let revision = if old_stock == new_stock {
+        fixture.market.market_revision
+    } else {
+        checked_increment(fixture.market.market_revision).unwrap()
+    };
+    let merchant = &mut fixture.market.merchants[merchant_id.index()];
+    merchant.balances = balances;
+    merchant.listings[resource.index()] = listing;
+    fixture.market.market_revision = revision;
+    near_sdk::env::state_write(&fixture);
+}
+
+#[cfg(target_arch = "wasm32")]
+#[unsafe(no_mangle)]
 pub extern "C" fn forward_purchase() {
     near_sdk::env::setup_panic_hook();
     let input: near_sdk::serde_json::Value =

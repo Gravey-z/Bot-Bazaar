@@ -1,6 +1,7 @@
 use std::path::Path;
 
 mod admin;
+mod listing_consistency;
 mod listings;
 mod purchases;
 mod registration;

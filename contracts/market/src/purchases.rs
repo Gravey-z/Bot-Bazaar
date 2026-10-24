@@ -2,7 +2,7 @@ use crate::{
     Decimal, Market, MarketExt, Snapshot, TradeView,
     state::{
         Actor, MAX_QUANTITY, MAX_TOTAL_PRICE, MerchantId, Resource, StateError, Trade, TradeKind,
-        checked_debit, checked_increment, checked_trade_total,
+        checked_increment, checked_trade_total,
     },
     views::input::validate_input,
 };
@@ -85,11 +85,9 @@ impl Market {
             .inventory
             .debit(resource, quantity.0)
             .unwrap_or_else(|error| balance_failure(error, "BB:E_INSUFFICIENT_STOCK"));
-        listing.quantity = checked_debit(listing.quantity, quantity.0)
+        listing = listing
+            .after_purchase(quantity.0, merchant.balances.inventory.amount(resource))
             .unwrap_or_else(|error| balance_failure(error, "BB:E_INSUFFICIENT_LISTED_QUANTITY"));
-        listing.active = listing.quantity > 0;
-        listing.version = checked_increment(listing.version)
-            .unwrap_or_else(|_| env::panic_str("BB:E_ARITHMETIC_OVERFLOW"));
         let revision = checked_increment(self.market.market_revision)
             .unwrap_or_else(|_| env::panic_str("BB:E_ARITHMETIC_OVERFLOW"));
         let trade = Trade {

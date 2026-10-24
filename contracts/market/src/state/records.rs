@@ -1,5 +1,6 @@
 use super::{
-    Actor, MAX_QUANTITY, MAX_UNIT_PRICE, MerchantId, Resource, StateError, checked_increment,
+    Actor, MAX_ACTOR_RESOURCE, MAX_QUANTITY, MAX_UNIT_PRICE, MerchantId, Resource, StateError,
+    checked_debit, checked_increment,
 };
 
 #[near_sdk::near(serializers = [borsh])]
@@ -12,6 +13,42 @@ pub struct Listing {
 }
 
 impl Listing {
+    pub fn after_stock_change(
+        &self,
+        previous_stock: u64,
+        new_stock: u64,
+    ) -> Result<Self, StateError> {
+        if previous_stock > MAX_ACTOR_RESOURCE || new_stock > MAX_ACTOR_RESOURCE {
+            return Err(StateError::LimitExceeded);
+        }
+        Self::new(self.unit_price, self.quantity, self.active)?;
+        if self.quantity > previous_stock || self.version == 0 {
+            return Err(StateError::InvalidListing);
+        }
+        if previous_stock == new_stock {
+            return Ok(*self);
+        }
+        let quantity = self.quantity.min(new_stock);
+        Ok(Self {
+            quantity,
+            active: self.active && quantity > 0,
+            version: checked_increment(self.version)?,
+            ..*self
+        })
+    }
+
+    pub fn after_purchase(&self, quantity: u64, previous_stock: u64) -> Result<Self, StateError> {
+        if !self.active || !(1..=MAX_QUANTITY).contains(&quantity) {
+            return Err(StateError::InvalidListing);
+        }
+        let new_stock = checked_debit(previous_stock, quantity)?;
+        let remaining = checked_debit(self.quantity, quantity)?;
+        let mut listing = self.after_stock_change(previous_stock, new_stock)?;
+        listing.quantity = remaining;
+        listing.active = remaining > 0;
+        Ok(listing)
+    }
+
     pub fn new(unit_price: u64, quantity: u64, active: bool) -> Result<Self, StateError> {
         if !(1..=MAX_UNIT_PRICE).contains(&unit_price)
             || quantity > MAX_QUANTITY
