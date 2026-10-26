@@ -2,6 +2,7 @@ use near_sdk::{AccountId, PanicOnDefault, env, near, require};
 
 mod acceptance;
 mod admin;
+mod cancellation;
 mod cleanup;
 mod initialization;
 mod listings;

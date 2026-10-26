@@ -379,6 +379,19 @@ async fn public_proposals_fill_all_pending_slots_and_cleanup_releases_capacity()
             .contains("BB:E_OFFER_EXPIRED")
     );
     assert_eq!(contract.view_state().await?, before_expired_acceptance);
+    let expired_cancellation = bolt
+        .call(contract.id(), "cancel_trade")
+        .args_json(json!({"offer_id":"9","action_id":"5"}))
+        .transact()
+        .await?;
+    assert!(
+        expired_cancellation
+            .into_result()
+            .unwrap_err()
+            .to_string()
+            .contains("BB:E_OFFER_EXPIRED")
+    );
+    assert_eq!(contract.view_state().await?, before_expired_acceptance);
     let cleanup: Value = rex
         .call(contract.id(), "expire_offers")
         .args_json(json!({"offer_ids":["9"]}))
@@ -395,6 +408,19 @@ async fn public_proposals_fill_all_pending_slots_and_cleanup_releases_capacity()
         .await?;
     assert!(
         expired
+            .into_result()
+            .unwrap_err()
+            .to_string()
+            .contains("BB:E_OFFER_EXPIRED")
+    );
+    assert_eq!(contract.view_state().await?, after_cleanup);
+    let expired_cancellation = bolt
+        .call(contract.id(), "cancel_trade")
+        .args_json(json!({"offer_id":"9","action_id":"5"}))
+        .transact()
+        .await?;
+    assert!(
+        expired_cancellation
             .into_result()
             .unwrap_err()
             .to_string()

@@ -3,6 +3,23 @@ use near_sdk::{PanicOnDefault, near, require};
 
 #[cfg(target_arch = "wasm32")]
 #[unsafe(no_mangle)]
+pub extern "C" fn forward_cancellation() {
+    near_sdk::env::setup_panic_hook();
+    let input: near_sdk::serde_json::Value =
+        near_sdk::serde_json::from_slice(&near_sdk::env::input().unwrap()).unwrap();
+    let target = input["contract_id"].as_str().unwrap().parse().unwrap();
+    let _ = near_sdk::Promise::new(target)
+        .function_call(
+            "cancel_trade".to_owned(),
+            near_sdk::serde_json::to_vec(&input["args"]).unwrap(),
+            near_sdk::NearToken::from_yoctonear(0),
+            near_sdk::Gas::from_tgas(30),
+        )
+        .as_return();
+}
+
+#[cfg(target_arch = "wasm32")]
+#[unsafe(no_mangle)]
 pub extern "C" fn forward_acceptance() {
     near_sdk::env::setup_panic_hook();
     let input: near_sdk::serde_json::Value =
