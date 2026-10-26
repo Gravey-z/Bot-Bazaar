@@ -77,3 +77,6 @@ pub(crate) fn validate_input(keys: &[&str]) {
     let bytes = env::input().unwrap_or_default();
     require!(valid_input(&bytes, keys), "BB:E_INVALID_ARGUMENT");
 }
+
+#[cfg(test)]
+mod tests;

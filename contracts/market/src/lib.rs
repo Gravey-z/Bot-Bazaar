@@ -14,6 +14,9 @@ mod registration;
 pub mod state;
 mod views;
 
+#[cfg(test)]
+mod coverage;
+
 pub use acceptance::SettlementResult;
 pub use admin::PauseResult;
 pub use cleanup::ExpireResult;
