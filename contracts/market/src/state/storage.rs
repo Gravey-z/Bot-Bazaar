@@ -142,12 +142,17 @@ impl MarketState {
         Ok(())
     }
 
-    pub fn append_trade(&mut self, trade: Trade) -> Result<(), StateError> {
+    pub(crate) fn validate_trade_append(&self, trade: &Trade) -> Result<(), StateError> {
         self.ensure_running()?;
         if trade.trade_id != self.trade_ids.next_id() || self.trades.contains_key(&trade.trade_id) {
             return Err(StateError::InvalidRecord);
         }
         checked_increment(self.trade_ids.next_id())?;
+        Ok(())
+    }
+
+    pub fn append_trade(&mut self, trade: Trade) -> Result<(), StateError> {
+        self.validate_trade_append(&trade)?;
         self.trade_ids.allocate()?;
         if let Some(evicted) = self.trade_history_ids.append(trade.trade_id) {
             self.trades.remove(&evicted);

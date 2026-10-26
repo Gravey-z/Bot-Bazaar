@@ -365,6 +365,20 @@ async fn public_proposals_fill_all_pending_slots_and_cleanup_releases_capacity()
     );
     extra["expires_at_ns"] = json!((now + 500_000_000_000).to_string());
     rejected(&contract, &bolt, extra.clone(), "BB:E_OFFER_CAPACITY").await?;
+    let before_expired_acceptance = contract.view_state().await?;
+    let expired = rex
+        .call(contract.id(), "accept_trade")
+        .args_json(json!({"offer_id":"9","action_id":"5"}))
+        .transact()
+        .await?;
+    assert!(
+        expired
+            .into_result()
+            .unwrap_err()
+            .to_string()
+            .contains("BB:E_OFFER_EXPIRED")
+    );
+    assert_eq!(contract.view_state().await?, before_expired_acceptance);
     let cleanup: Value = rex
         .call(contract.id(), "expire_offers")
         .args_json(json!({"offer_ids":["9"]}))
@@ -373,6 +387,20 @@ async fn public_proposals_fill_all_pending_slots_and_cleanup_releases_capacity()
         .into_result()?
         .json()?;
     assert_eq!(cleanup["data"]["expired_offer_ids"], json!(["9"]));
+    let after_cleanup = contract.view_state().await?;
+    let expired = rex
+        .call(contract.id(), "accept_trade")
+        .args_json(json!({"offer_id":"9","action_id":"5"}))
+        .transact()
+        .await?;
+    assert!(
+        expired
+            .into_result()
+            .unwrap_err()
+            .to_string()
+            .contains("BB:E_OFFER_EXPIRED")
+    );
+    assert_eq!(contract.view_state().await?, after_cleanup);
     let created: Value = bolt
         .call(contract.id(), "propose_trade")
         .args_json(extra)

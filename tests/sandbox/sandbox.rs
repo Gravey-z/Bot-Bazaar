@@ -1,5 +1,6 @@
 use std::path::Path;
 
+mod acceptance;
 mod admin;
 mod listing_consistency;
 mod listings;
