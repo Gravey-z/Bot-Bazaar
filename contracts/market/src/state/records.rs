@@ -107,13 +107,18 @@ impl ActionSequence {
         checked_increment(self.last_action_id)
     }
 
-    pub fn record(&mut self, action: LastAction) -> Result<(), StateError> {
-        if action.action_id <= self.last_action_id {
+    pub fn validate_next(&self, action_id: u64) -> Result<(), StateError> {
+        if action_id <= self.last_action_id {
             return Err(StateError::ActionUsed);
         }
-        if action.action_id != self.next_action_id()? {
+        if action_id != self.next_action_id()? {
             return Err(StateError::ActionGap);
         }
+        Ok(())
+    }
+
+    pub fn record(&mut self, action: LastAction) -> Result<(), StateError> {
+        self.validate_next(action.action_id)?;
         self.last_action_id = action.action_id;
         self.last_action = Some(action);
         Ok(())

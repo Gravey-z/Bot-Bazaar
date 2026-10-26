@@ -6,3 +6,12 @@ export {
   listingActionDigest,
 } from "./listing-action.js";
 export type { ListingActionArgs } from "./listing-action.js";
+export {
+  canonicalMerchantAction,
+  merchantActionDigest,
+} from "./merchant-action.js";
+export type {
+  MerchantAction,
+  ProposalActionArgs,
+  OfferActionArgs,
+} from "./merchant-action.js";

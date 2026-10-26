@@ -76,15 +76,7 @@ impl Market {
             "BB:E_UNAUTHORIZED"
         );
         require!(!self.market.paused, "BB:E_MARKET_PAUSED");
-        require!(
-            action_id.0 > merchant.actions.last_action_id(),
-            "BB:E_ACTION_USED"
-        );
-        let next_action = merchant
-            .actions
-            .next_action_id()
-            .unwrap_or_else(|_| env::panic_str("BB:E_ARITHMETIC_OVERFLOW"));
-        require!(action_id.0 == next_action, "BB:E_ACTION_GAP");
+        crate::actions::validate_action(&merchant.actions, action_id.0);
         let current = merchant.listings[resource.index()];
         require!(current.version == expected_version.0, "BB:E_STALE_LISTING");
         require!(

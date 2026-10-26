@@ -32,15 +32,7 @@ impl Market {
         }
         let now = env::block_timestamp();
         require!(now < offer.expires_at_ns, "BB:E_OFFER_EXPIRED");
-        require!(
-            action_id.0 > merchant.actions.last_action_id(),
-            "BB:E_ACTION_USED"
-        );
-        let next_action = merchant
-            .actions
-            .next_action_id()
-            .unwrap_or_else(|_| env::panic_str("BB:E_ARITHMETIC_OVERFLOW"));
-        require!(action_id.0 == next_action, "BB:E_ACTION_GAP");
+        crate::actions::validate_action(&merchant.actions, action_id.0);
         let revision = checked_increment(self.market.market_revision)
             .unwrap_or_else(|_| env::panic_str("BB:E_ARITHMETIC_OVERFLOW"));
         let canonical = canonical_json(

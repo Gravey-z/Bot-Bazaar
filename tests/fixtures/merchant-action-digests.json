@@ -1,0 +1,82 @@
+[
+  {
+    "method": "set_listing",
+    "args": {
+      "merchant_id": "rex",
+      "resource": "crystal",
+      "unit_price": "7",
+      "quantity": "7",
+      "active": true,
+      "expected_version": "1",
+      "action_id": "1"
+    },
+    "canonical": "{\"args\":{\"action_id\":\"1\",\"active\":true,\"expected_version\":\"1\",\"merchant_id\":\"rex\",\"quantity\":\"7\",\"resource\":\"crystal\",\"unit_price\":\"7\"},\"method\":\"set_listing\"}",
+    "sha256": "3fce6ebef844b51a9bf3c3a6845c258dea2edc92ba36671dcbdcd2d650fc7390"
+  },
+  {
+    "method": "propose_trade",
+    "args": {
+      "proposer": "rex",
+      "buyer": "rex",
+      "seller": "luna",
+      "resource": "crystal",
+      "quantity": "4",
+      "total_price": "24",
+      "expires_at_ns": "121000000000",
+      "action_id": "1"
+    },
+    "canonical": "{\"args\":{\"action_id\":\"1\",\"buyer\":\"rex\",\"expires_at_ns\":\"121000000000\",\"proposer\":\"rex\",\"quantity\":\"4\",\"resource\":\"crystal\",\"seller\":\"luna\",\"total_price\":\"24\"},\"method\":\"propose_trade\"}",
+    "sha256": "6e28048f7a7f2fbcf727138c431816a198e6e7685aa59cfec39b9effcd3a6a7b"
+  },
+  {
+    "method": "propose_trade",
+    "args": {
+      "proposer": "luna",
+      "buyer": "rex",
+      "seller": "luna",
+      "resource": "iron",
+      "quantity": "1",
+      "total_price": "100",
+      "expires_at_ns": "18446744073709551615",
+      "action_id": "9007199254740993"
+    },
+    "canonical": "{\"args\":{\"action_id\":\"9007199254740993\",\"buyer\":\"rex\",\"expires_at_ns\":\"18446744073709551615\",\"proposer\":\"luna\",\"quantity\":\"1\",\"resource\":\"iron\",\"seller\":\"luna\",\"total_price\":\"100\"},\"method\":\"propose_trade\"}",
+    "sha256": "6e51cc3e29e8a931da49e5755dcd4ebec592dab5db05365ff0a85e8a2837de57"
+  },
+  {
+    "method": "accept_trade",
+    "args": {
+      "offer_id": "1",
+      "action_id": "1"
+    },
+    "canonical": "{\"args\":{\"action_id\":\"1\",\"offer_id\":\"1\"},\"method\":\"accept_trade\"}",
+    "sha256": "bde105b0cc7ff308deda8ef1d4af84d41ec5797ada6a378c1b0ed83ecb980bed"
+  },
+  {
+    "method": "cancel_trade",
+    "args": {
+      "offer_id": "1",
+      "action_id": "2"
+    },
+    "canonical": "{\"args\":{\"action_id\":\"2\",\"offer_id\":\"1\"},\"method\":\"cancel_trade\"}",
+    "sha256": "5ec99f132183ed3bbe8e14d94fdaa86f4dc2c6d033cae1419d4ea81d81d20ab6"
+  },
+  {
+    "method": "cancel_trade",
+    "args": {
+      "offer_id": "1",
+      "action_id": "1"
+    },
+    "canonical": "{\"args\":{\"action_id\":\"1\",\"offer_id\":\"1\"},\"method\":\"cancel_trade\"}",
+    "sha256": "d62c19cf3a79813c547035e7004627fa47de59d877dca6408064e3b5900b9a03"
+  },
+  {
+    "method": "accept_trade",
+    "args": {
+      "offer_id": "18446744073709551615",
+      "action_id": "18446744073709551615"
+    },
+    "canonical": "{\"args\":{\"action_id\":\"18446744073709551615\",\"offer_id\":\"18446744073709551615\"},\"method\":\"accept_trade\"}",
+    "sha256": "95d575350d10f053c3eb67dedb71ef66cd86fc2d1218fb18c46fa2e930d254f6"
+  }
+]
