@@ -8,7 +8,7 @@ use crate::{
 };
 use near_sdk::{env, near, require};
 
-fn balance_failure(error: StateError, insufficient: &str) -> ! {
+pub(crate) fn balance_failure(error: StateError, insufficient: &str) -> ! {
     match error {
         StateError::InsufficientBalance => env::panic_str(insufficient),
         StateError::LimitExceeded => env::panic_str("BB:E_BALANCE_CAP"),

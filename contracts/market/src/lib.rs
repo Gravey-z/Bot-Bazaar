@@ -4,6 +4,7 @@ mod admin;
 mod cleanup;
 mod initialization;
 mod listings;
+mod proposals;
 mod purchases;
 mod registration;
 pub mod state;
@@ -12,6 +13,7 @@ mod views;
 pub use admin::PauseResult;
 pub use cleanup::ExpireResult;
 pub use listings::ListingResult;
+pub use proposals::OfferResult;
 pub use views::*;
 
 pub use initialization::MerchantControllers;
