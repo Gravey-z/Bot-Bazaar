@@ -22,9 +22,15 @@ impl Market {
                 StateError::Overflow => env::panic_str("BB:E_ARITHMETIC_OVERFLOW"),
                 _ => env::panic_str("BB:E_INVALID_ARGUMENT:inconsistent offer storage"),
             });
-        self.snapshot(ExpireResult {
+        let changed = !expired.is_empty();
+        let result = ExpireResult {
             expired_offer_ids: expired.into_iter().map(U64).collect(),
             ignored_offer_ids: ignored.into_iter().map(U64).collect(),
-        })
+        };
+        if changed {
+            self.event_snapshot("expire_offers", result)
+        } else {
+            self.snapshot(result)
+        }
     }
 }

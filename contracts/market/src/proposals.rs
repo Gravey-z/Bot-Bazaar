@@ -145,7 +145,7 @@ impl Market {
             .record(action)
             .unwrap_or_else(|_| env::panic_str("BB:E_INVALID_ARGUMENT:invalid action sequence"));
         self.market.market_revision = revision;
-        self.snapshot(result)
+        self.event_snapshot("propose_trade", result)
     }
 }
 

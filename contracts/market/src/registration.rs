@@ -37,7 +37,7 @@ impl Market {
             .players
             .get(&account_id)
             .expect("registered player exists");
-        self.snapshot(player.into())
+        self.event_snapshot("register_player", player.into())
     }
 }
 

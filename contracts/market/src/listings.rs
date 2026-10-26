@@ -128,17 +128,20 @@ impl Market {
             version,
         };
         self.market.market_revision = revision;
-        self.snapshot(ListingResult {
-            listing: ListingView {
-                merchant_id,
-                resource,
-                unit_price: U64(unit_price.0),
-                quantity: U64(quantity.0),
-                active,
-                version: U64(version),
+        self.event_snapshot(
+            "set_listing",
+            ListingResult {
+                listing: ListingView {
+                    merchant_id,
+                    resource,
+                    unit_price: U64(unit_price.0),
+                    quantity: U64(quantity.0),
+                    active,
+                    version: U64(version),
+                },
+                action: action_view,
             },
-            action: action_view,
-        })
+        )
     }
 }
 

@@ -125,7 +125,7 @@ impl Market {
         merchant.balances = seller;
         merchant.listings[resource.index()] = listing;
         self.market.market_revision = revision;
-        self.snapshot(result)
+        self.event_snapshot("buy_from_merchant", result)
     }
 }
 

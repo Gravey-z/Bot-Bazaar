@@ -5,6 +5,7 @@ mod actions;
 mod admin;
 mod cancellation;
 mod cleanup;
+mod events;
 mod initialization;
 mod listings;
 mod proposals;
@@ -57,6 +58,8 @@ impl Market {
                     }
                     _ => env::panic_str("BB:E_INVALID_ARGUMENT:invalid fixed seed"),
                 });
-        Self { market }
+        let contract = Self { market };
+        events::emit("initialize_market", &contract.market_snapshot());
+        contract
     }
 }

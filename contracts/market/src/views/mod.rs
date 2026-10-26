@@ -64,10 +64,8 @@ fn retained_ids(index: &RetainedIds) -> impl Iterator<Item = &u64> {
     })
 }
 
-#[near]
 impl Market {
-    pub fn get_market_state(&self) -> Snapshot<MarketView> {
-        validate_input(&[]);
+    pub(crate) fn market_snapshot(&self) -> Snapshot<MarketView> {
         let state = &self.market;
         self.snapshot(MarketView {
             api_version: "1.0.0".to_owned(),
@@ -85,6 +83,14 @@ impl Market {
             trades_pruned_through: U64(state.trades_pruned_through),
             limits: Limits::default(),
         })
+    }
+}
+
+#[near]
+impl Market {
+    pub fn get_market_state(&self) -> Snapshot<MarketView> {
+        validate_input(&[]);
+        self.market_snapshot()
     }
 
     pub fn get_player(&self, account_id: AccountId) -> Snapshot<Option<PlayerView>> {

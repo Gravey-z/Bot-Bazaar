@@ -184,6 +184,7 @@ async fn storage_capacity_rollover_and_public_cleanup() -> Result<()> {
         .into_result()?;
     let gas = cleanup.total_gas_burnt.as_gas();
     let result: Value = cleanup.json()?;
+    super::events::assert_event(&cleanup, "expire_offers", caller.id().as_str(), &result)?;
     assert_eq!(result["market_revision"], "2");
     let mut expected = vec![json!("312")];
     expected.extend((302..=311).map(|id| json!(id.to_string())));

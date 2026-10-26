@@ -21,7 +21,19 @@ impl Market {
             self.market.paused = paused;
             self.market.market_revision = revision;
         }
-        self.snapshot(PauseResult { paused, changed })
+        let result = PauseResult { paused, changed };
+        if changed {
+            self.event_snapshot(
+                if paused {
+                    "pause_market"
+                } else {
+                    "resume_market"
+                },
+                result,
+            )
+        } else {
+            self.snapshot(result)
+        }
     }
 }
 
