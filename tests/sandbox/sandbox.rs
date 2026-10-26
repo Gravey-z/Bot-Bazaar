@@ -4,6 +4,7 @@ mod acceptance;
 mod actions;
 mod admin;
 mod cancellation;
+mod coverage;
 mod events;
 mod listing_consistency;
 mod listings;
