@@ -16,6 +16,8 @@ mod views;
 
 #[cfg(test)]
 mod coverage;
+#[cfg(test)]
+mod economics;
 
 pub use acceptance::SettlementResult;
 pub use admin::PauseResult;

@@ -5,6 +5,7 @@ mod actions;
 mod admin;
 mod cancellation;
 mod coverage;
+mod economics;
 mod events;
 mod listing_consistency;
 mod listings;
