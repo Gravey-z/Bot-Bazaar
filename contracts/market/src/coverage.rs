@@ -159,6 +159,86 @@ fn pending(market: &mut Market, proposer: MerchantId) {
 }
 
 #[test]
+fn live_cleanup_one_nanosecond_before_expiry_preserves_acceptance_and_cancellation() {
+    let deadline = 121_000_000_000;
+    for (method, caller, action, expected) in [
+        ("accept_trade", "luna.testnet", "1", OfferStatus::Accepted),
+        ("cancel_trade", "rex.testnet", "2", OfferStatus::Cancelled),
+    ] {
+        let mut market = market();
+        pending(&mut market, MerchantId::Rex);
+        let cleanup = json!({"offer_ids":["1"]});
+        context(
+            "attacker.testnet",
+            "attacker.testnet",
+            &cleanup,
+            deadline - 1,
+        );
+        let before = borsh::to_vec(&market.market).unwrap();
+        let offer = borsh::to_vec(market.market.offers.get(&1).unwrap()).unwrap();
+        let ignored = invoke(&mut market, "expire_offers", &cleanup);
+        assert_eq!(ignored["data"]["ignored_offer_ids"], json!(["1"]));
+        assert_eq!(borsh::to_vec(&market.market).unwrap(), before);
+        assert_eq!(
+            borsh::to_vec(market.market.offers.get(&1).unwrap()).unwrap(),
+            offer
+        );
+        assert!(get_logs().is_empty());
+        let input = json!({"offer_id":"1","action_id":action});
+        context(caller, caller, &input, deadline - 1);
+        invoke(&mut market, method, &input);
+        assert_eq!(market.market.offers.get(&1).unwrap().status, expected);
+        assert_eq!(market.market.market_revision, 3);
+    }
+}
+
+#[test]
+fn expiry_at_and_after_deadline_rejects_both_roles_and_paused_cleanup_cannot_revive_offer() {
+    let deadline = 121_000_000_000;
+    for now in [deadline, deadline + 1] {
+        let mut market = market();
+        pending(&mut market, MerchantId::Rex);
+        for (method, caller, action) in [
+            ("accept_trade", "luna.testnet", "1"),
+            ("cancel_trade", "rex.testnet", "2"),
+        ] {
+            let input = json!({"offer_id":"1","action_id":action});
+            context(caller, caller, &input, now);
+            reject(&mut market, method, &input, "BB:E_OFFER_EXPIRED");
+        }
+        context("owner.testnet", "owner.testnet", &json!({}), now);
+        market.pause_market();
+        let cleanup = json!({"offer_ids":["1"]});
+        context("attacker.testnet", "attacker.testnet", &cleanup, now);
+        let result = invoke(&mut market, "expire_offers", &cleanup);
+        assert_eq!(result["data"]["expired_offer_ids"], json!(["1"]));
+        assert_eq!(
+            market.market.offers.get(&1).unwrap().status,
+            OfferStatus::Expired
+        );
+        assert!(market.market.paused);
+        assert_eq!(market.market.merchants[0].actions.last_action_id(), 1);
+        assert_eq!(market.market.merchants[1].actions.last_action_id(), 0);
+        let revision = market.market.market_revision;
+        context("attacker.testnet", "attacker.testnet", &cleanup, now);
+        let result = invoke(&mut market, "expire_offers", &cleanup);
+        assert_eq!(result["data"]["ignored_offer_ids"], json!(["1"]));
+        assert_eq!(market.market.market_revision, revision);
+        assert!(get_logs().is_empty());
+        context("owner.testnet", "owner.testnet", &json!({}), now);
+        market.resume_market();
+        for (method, caller, action) in [
+            ("accept_trade", "luna.testnet", "1"),
+            ("cancel_trade", "rex.testnet", "2"),
+        ] {
+            let input = json!({"offer_id":"1","action_id":action});
+            context(caller, caller, &input, now);
+            reject(&mut market, method, &input, "BB:E_OFFER_EXPIRED");
+        }
+    }
+}
+
+#[test]
 fn every_mutation_rejects_missing_extra_duplicate_and_malformed_request_envelopes() {
     let mut market = market();
     for method in [

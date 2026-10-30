@@ -3,6 +3,7 @@ use std::path::Path;
 mod acceptance;
 mod actions;
 mod admin;
+mod adversarial;
 mod cancellation;
 mod coverage;
 mod economics;

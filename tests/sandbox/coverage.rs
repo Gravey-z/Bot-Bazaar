@@ -45,7 +45,7 @@ async fn snapshot(contract: &Contract, accounts: &[&Account]) -> Result<GameSnap
     })
 }
 
-async fn reject(
+pub(super) async fn reject(
     contract: &Contract,
     accounts: &[&Account],
     caller: &Account,
