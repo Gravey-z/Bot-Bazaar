@@ -136,6 +136,70 @@ async fn storage_capacity_rollover_and_public_cleanup() -> Result<()> {
     assert_eq!(page["data"]["history_gap"], true);
 
     let caller = worker.dev_create_account().await?;
+    // Full retained indexes must remain usable through the public maximum
+    // page size. Signed view calls also expose receipt gas without mutation.
+    let mut terminal_ids: Vec<u64> = (202..=304).collect();
+    terminal_ids.extend(309..=312);
+    for (method, expected_ids, extra) in [
+        (
+            "get_recent_trades",
+            (201..=300).collect::<Vec<_>>(),
+            json!({}),
+        ),
+        (
+            "get_offers_for_merchant",
+            terminal_ids,
+            json!({"merchant_id":"luna","status":"terminal"}),
+        ),
+    ] {
+        let mut cursor = Value::Null;
+        let mut all_ids = Vec::new();
+        for page_index in 0..expected_ids.len().div_ceil(50) + 1 {
+            let mut args = json!({"after_id":cursor,"limit":"50","expected_revision":"1"});
+            args.as_object_mut()
+                .unwrap()
+                .extend(extra.as_object().unwrap().clone());
+            let receipt = caller
+                .call(contract.id(), method)
+                .args_json(args)
+                .gas(near_workspaces::types::Gas::from_tgas(30))
+                .transact()
+                .await?
+                .into_result()?;
+            let gas = receipt.total_gas_burnt.as_gas();
+            let bytes = receipt.raw_bytes()?.len();
+            let page: Value = receipt.json()?;
+            let rows = page["data"]["items"].as_array().unwrap();
+            let remaining = expected_ids.len().saturating_sub(page_index * 50);
+            assert_eq!(rows.len(), remaining.min(50));
+            assert_eq!(page["data"]["has_more"], remaining > 50);
+            let id_field = if method == "get_recent_trades" {
+                "trade_id"
+            } else {
+                "offer_id"
+            };
+            all_ids.extend(
+                rows.iter()
+                    .map(|row| row[id_field].as_str().unwrap().parse::<u64>().unwrap()),
+            );
+            cursor = page["data"]["next_after_id"].clone();
+            assert_eq!(contract.view_state().await?, before);
+            assert!(receipt.logs().is_empty());
+            assert!(gas < 30_000_000_000_000);
+            println!(
+                "LIMIT_PAGE method={method} page={page_index} rows={} bytes={bytes} gas={gas}",
+                rows.len()
+            );
+        }
+        assert_eq!(all_ids, expected_ids);
+        let mut oversized = json!({"after_id":null,"limit":"51","expected_revision":"1"});
+        oversized
+            .as_object_mut()
+            .unwrap()
+            .extend(extra.as_object().unwrap().clone());
+        assert!(contract.view(method).args_json(oversized).await.is_err());
+        assert_eq!(contract.view_state().await?, before);
+    }
     for args in [
         json!({"offer_ids":[]}),
         json!({"offer_ids":["302","302"]}),
@@ -178,7 +242,7 @@ async fn storage_capacity_rollover_and_public_cleanup() -> Result<()> {
     let cleanup = caller
         .call(contract.id(), "expire_offers")
         .args_json(json!({"offer_ids":ids.clone()}))
-        .max_gas()
+        .gas(near_workspaces::types::Gas::from_tgas(30))
         .transact()
         .await?
         .into_result()?;
@@ -254,7 +318,7 @@ async fn storage_capacity_rollover_and_public_cleanup() -> Result<()> {
         "CLEANUP max_input=24 expired=11 gas={gas} storage_after={}",
         contract.view_account().await?.storage_usage
     );
-    assert!(gas < 300_000_000_000_000);
+    assert!(gas < 30_000_000_000_000);
     assert!(
         !production
             .windows(b"fill_players".len())

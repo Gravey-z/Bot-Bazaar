@@ -40,6 +40,7 @@ const tasks = {
       "--locked",
       "--",
       "--nocapture",
+      "--test-threads=2",
     ],
   ],
   check: [

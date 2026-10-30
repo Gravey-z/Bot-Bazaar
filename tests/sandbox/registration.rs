@@ -292,13 +292,21 @@ async fn public_registration_final_slot_and_permanent_grant_after_history_evicti
         .into_result()?;
     let last = worker.dev_create_account().await?;
     let extra = worker.dev_create_account().await?;
-    let result: Value = last
+    let storage_before_last = contract.view_account().await?.storage_usage;
+    let final_registration = last
         .call(contract.id(), "register_player")
         .args_json(json!({}))
+        .gas(near_workspaces::types::Gas::from_tgas(30))
         .transact()
         .await?
-        .into_result()?
-        .json()?;
+        .into_result()?;
+    let gas = final_registration.total_gas_burnt.as_gas();
+    let result: Value = final_registration.json()?;
+    let storage_delta = contract.view_account().await?.storage_usage - storage_before_last;
+    assert!(gas < 30_000_000_000_000);
+    println!(
+        "LIMIT_REGISTRATION players=1000 issued_gold=100550 gas={gas} added_bytes={storage_delta}"
+    );
     assert_eq!(result["data"]["gold"], "100");
     assert_eq!(result["market_revision"], "2");
     let market: Value = contract

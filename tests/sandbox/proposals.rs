@@ -363,7 +363,7 @@ async fn public_proposals_fill_all_pending_slots_and_cleanup_releases_capacity()
         now >= expiry,
         "sandbox time {now} did not reach expiry {expiry}"
     );
-    extra["expires_at_ns"] = json!((now + 500_000_000_000).to_string());
+    extra["expires_at_ns"] = json!((now + 30_000_000_000).to_string());
     rejected(&contract, &bolt, extra.clone(), "BB:E_OFFER_CAPACITY").await?;
     let before_expired_acceptance = contract.view_state().await?;
     let expired = rex
@@ -447,5 +447,62 @@ async fn public_proposals_fill_all_pending_slots_and_cleanup_releases_capacity()
         }
     }
     println!("PROPOSAL_CAPACITY pending=12 per_merchant=8 cleanup_released=1 next_offer_id=14");
+    // Exercise maximum useful cleanup work: all 12 pending offers expire,
+    // while the rest of the 24-ID request is terminal or nonexistent.
+    worker.fast_forward(400).await?;
+    let now = market(&contract).await?["block_timestamp_ns"]
+        .as_str()
+        .unwrap()
+        .parse::<u64>()?;
+    assert!(
+        now >= created["data"]["offer"]["expires_at_ns"]
+            .as_str()
+            .unwrap()
+            .parse::<u64>()?
+    );
+    let cleanup = rex
+        .call(contract.id(), "expire_offers")
+        .args_json(json!({"offer_ids":(1..=24).map(|id|id.to_string()).collect::<Vec<_>>()}))
+        .gas(near_workspaces::types::Gas::from_tgas(30))
+        .transact()
+        .await?
+        .into_result()?;
+    let gas = cleanup.total_gas_burnt.as_gas();
+    let result: Value = cleanup.json()?;
+    assert_eq!(
+        result["data"]["expired_offer_ids"]
+            .as_array()
+            .unwrap()
+            .len(),
+        12
+    );
+    assert_eq!(
+        result["data"]["ignored_offer_ids"]
+            .as_array()
+            .unwrap()
+            .len(),
+        12
+    );
+    assert_eq!(result["market_revision"], "16");
+    let raw = contract.view_state().await?;
+    let state: MarketState = borsh::from_slice(raw.get(b"STATE".as_slice()).unwrap())?;
+    assert!(state.pending_offer_ids.iter().all(Option::is_none));
+    assert!(
+        state
+            .merchants
+            .iter()
+            .all(|merchant| merchant.pending_offer_count == 0)
+    );
+    let repeated = rex
+        .call(contract.id(), "expire_offers")
+        .args_json(json!({"offer_ids":(1..=24).map(|id|id.to_string()).collect::<Vec<_>>()}))
+        .gas(near_workspaces::types::Gas::from_tgas(30))
+        .transact()
+        .await?
+        .into_result()?;
+    assert!(repeated.logs().is_empty());
+    assert_eq!(contract.view_state().await?, raw);
+    assert!(gas < 30_000_000_000_000);
+    println!("LIMIT_CLEANUP input=24 expired=12 ignored=12 gas={gas}");
     Ok(())
 }
