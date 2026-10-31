@@ -11,7 +11,10 @@ export class DiscoveryLoop {
     private readonly observer: DiscoveryObserver,
     private readonly onError: () => void = () => {},
     private readonly intervalMs = 3000,
-    private readonly onObserved: (state: DiscoveryState) => void = () => {},
+    private readonly onObserved: (
+      state: DiscoveryState,
+      signal: AbortSignal,
+    ) => void | Promise<void> = () => {},
   ) {
     if (!Number.isSafeInteger(intervalMs) || intervalMs < 1)
       throw new Error("invalid discovery interval");
@@ -26,7 +29,7 @@ export class DiscoveryLoop {
       try {
         const state = await this.observer.poll(this.abort.signal);
         if (!this.abort.signal.aborted) {
-          this.onObserved(state);
+          await this.onObserved(state, this.abort.signal);
           this.status = "ready";
         }
       } catch {

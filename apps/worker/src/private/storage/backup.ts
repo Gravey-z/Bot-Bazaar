@@ -91,7 +91,7 @@ export async function verifyBackup(directory: string): Promise<Manifest> {
         deployment["identity"] === identityJson(manifest.identity) &&
           deployment["observed_revision"] === manifest.observedRevision &&
           deployment["observed_height"] === manifest.observedHeight &&
-          deployment["recovery_required"] === 1 &&
+          [0, 1].includes(Number(deployment["recovery_required"])) &&
           db.prepare("SELECT count(*) AS n FROM merchants").get()!["n"] === 3,
         "backup checkpoint mismatch",
       );

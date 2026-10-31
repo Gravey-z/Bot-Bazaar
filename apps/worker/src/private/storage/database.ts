@@ -24,6 +24,9 @@ import type {
   MerchantId,
   MerchantAction,
   ReceiptStatus,
+  FinalizedBlock,
+  Merchant,
+  Offer,
 } from "@bot-bazaar/chain";
 import type { MerchantMethod, PreparedMerchantCall } from "../chain-adapter.js";
 import {
@@ -261,6 +264,137 @@ export class WorkerStore {
   }
   get available(): boolean {
     return !this.closed && !this.failed;
+  }
+  requireRecovery(): void {
+    this.write(() => {
+      this.run("UPDATE deployment SET recovery_required=1 WHERE singleton=1");
+    });
+  }
+  completeRecovery(
+    sessionId: string,
+    checkpoints: readonly Merchant[],
+    closeInterruptedTurns = false,
+  ): void {
+    this.write(() => {
+      requireStorage(
+        this.checkpoint()["feed_generation"] === sessionId &&
+          checkpoints.length === 3 &&
+          new Set(checkpoints.map((row) => row.merchant_id)).size === 3 &&
+          this.unresolvedIntents().length === 0 &&
+          this.unprovenOfferDependencies().length === 0,
+        "recovery boundary changed or work unresolved",
+      );
+      requireStorage(
+        !this.one(
+          "SELECT business_key FROM scheduler_inputs WHERE disposition='quarantined'",
+        ),
+        "quarantined activity requires reconciliation",
+      );
+      for (const row of checkpoints) {
+        const old = this.merchantCheckpoint(row.merchant_id);
+        requireStorage(
+          old["last_action_id"] === null ||
+            (old["last_action_id"] === row.last_action_id &&
+              old["last_action_digest"] ===
+                (row.last_action?.args_sha256 ?? null)),
+          "unexplained merchant action checkpoint",
+        );
+        this.run(
+          "UPDATE merchants SET last_action_id=?,last_action_digest=? WHERE merchant_id=?",
+          row.last_action_id,
+          row.last_action?.args_sha256 ?? null,
+          row.merchant_id,
+        );
+      }
+      // Never retry a model turn interrupted by a process crash or refund its slot.
+      if (closeInterruptedTurns) {
+        this.run(
+          "DELETE FROM merchant_locks WHERE kind='controller' AND EXISTS(SELECT 1 FROM scheduler_turns t WHERE t.job_id=merchant_locks.job_id AND t.merchant_id=merchant_locks.merchant_id AND t.status='running')",
+        );
+        this.run(
+          "UPDATE scheduler_turns SET status='skipped' WHERE status='running'",
+        );
+      }
+      this.run("UPDATE deployment SET recovery_required=0 WHERE singleton=1");
+    });
+  }
+  confirmActionCheckpoint(
+    intentId: string,
+    observed: Merchant,
+    block: FinalizedBlock,
+    offer?: Offer,
+  ): void {
+    id(intentId);
+    this.write(() => {
+      const row = this.getIntent(intentId),
+        attempt = this.attempt(intentId),
+        action = observed.last_action;
+      requireStorage(
+        row &&
+          attempt &&
+          ["signed", "submitted", "unknown"].includes(String(row["status"])) &&
+          row["merchant_id"] === observed.merchant_id &&
+          action &&
+          action.action_id === row["action_id"] &&
+          action.method === row["method"] &&
+          action.args_sha256 === row["args_digest"],
+        "action checkpoint does not prove intent",
+      );
+      const old = this.merchantCheckpoint(observed.merchant_id);
+      requireStorage(
+        (old["last_action_id"] === null ||
+          BigInt(String(old["last_action_id"])) <= BigInt(action.action_id)) &&
+          (old["last_action_id"] !== action.action_id ||
+            old["last_action_digest"] === action.args_sha256),
+        "checkpoint proof would rewind or conflict with action history",
+      );
+      const evidence = json({
+        kind: "action_checkpoint",
+        evidence_incomplete: true,
+        offer_evidence_available:
+          action.offer_id === null || offer !== undefined,
+        transaction_hash: null,
+        signed_transaction_hash: attempt["tx_hash"],
+        merchant_id: observed.merchant_id,
+        action,
+        block,
+      });
+      this.run(
+        "UPDATE attempts SET evidence_json=?,updated_at=? WHERE intent_id=?",
+        evidence,
+        Date.now(),
+        intentId,
+      );
+      this.run(
+        "UPDATE intents SET status='confirmed',offer_id=coalesce(?,offer_id),updated_at=? WHERE id=?",
+        action.offer_id,
+        Date.now(),
+        intentId,
+      );
+      this.run(
+        "UPDATE merchants SET last_action_id=?,last_action_digest=?,latest_success=? WHERE merchant_id=?",
+        action.action_id,
+        action.args_sha256,
+        evidence,
+        observed.merchant_id,
+      );
+      if (offer) {
+        this.run(
+          "INSERT INTO offers VALUES(?,?,?,?,?,?) ON CONFLICT(offer_id) DO UPDATE SET status=excluded.status,cleanup_ack=max(offers.cleanup_ack,excluded.cleanup_ack),updated_at=excluded.updated_at",
+          offer.offer_id,
+          row["job_id"]!,
+          offer.status,
+          offer.expires_at_ns,
+          Number(offer.status === "accepted" || offer.status === "cancelled"),
+          Date.now(),
+        );
+        if (action.method === "accept_trade" && offer.status === "accepted")
+          this.scheduler.settlement(String(row["job_id"]), offer.offer_id, [
+            offer.buyer,
+            offer.seller,
+          ]);
+      }
+    });
   }
   discoveryState(): DiscoveryState | null {
     const row = this.one(
@@ -719,6 +853,11 @@ export class WorkerStore {
       `SELECT intents.*,attempts.tx_hash,attempts.signed_json FROM intents LEFT JOIN attempts ON attempts.intent_id=intents.id WHERE status IN ${unresolved} ORDER BY created_at,id LIMIT 3`,
     );
   }
+  unprovenOfferDependencies(): Row[] {
+    return this.all(
+      "SELECT intents.id,intents.offer_id FROM intents JOIN attempts ON attempts.intent_id=intents.id WHERE intents.status='confirmed' AND json_extract(attempts.evidence_json,'$.kind')='action_checkpoint' AND json_extract(attempts.evidence_json,'$.offer_evidence_available')=0 LIMIT 3",
+    );
+  }
   saveSigned(
     intentId: string,
     prepared: PreparedMerchantCall,
@@ -1044,7 +1183,7 @@ export class WorkerStore {
       // Only resolved jobs are eligible. Protect every unresolved intent and lock.
       const eligible = `job_id IN (SELECT id FROM jobs WHERE status IN ${terminals})`;
       this.run(
-        `DELETE FROM intents WHERE ${eligible} AND status IN ('confirmed','failed','abandoned') AND (updated_at<? OR id IN (SELECT id FROM intents WHERE ${eligible} AND status IN ('confirmed','failed','abandoned') ORDER BY updated_at DESC,id DESC LIMIT -1 OFFSET 10000))`,
+        `DELETE FROM intents WHERE ${eligible} AND NOT EXISTS(SELECT 1 FROM attempts WHERE intent_id=intents.id AND json_extract(evidence_json,'$.offer_evidence_available')=0) AND status IN ('confirmed','failed','abandoned') AND (updated_at<? OR id IN (SELECT id FROM intents WHERE ${eligible} AND status IN ('confirmed','failed','abandoned') ORDER BY updated_at DESC,id DESC LIMIT -1 OFFSET 10000))`,
         now - 30 * 86400000,
       );
       this.run(

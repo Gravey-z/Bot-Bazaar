@@ -8,6 +8,7 @@ import { MarketClient, createRpcTransport } from "@bot-bazaar/chain";
 import { DiscoveryObserver } from "./private/discovery/observer.js";
 import { DiscoveryLoop } from "./private/discovery/loop.js";
 import { Scheduler } from "./private/scheduling/scheduler.js";
+import { CrashSafeProcessor } from "./private/recovery/processor.js";
 
 const config = (() => {
   try {
@@ -82,6 +83,14 @@ const schedule = () => {
 };
 // Resume inbox transfer even when live discovery is intentionally offline.
 schedule();
+const recovery = new CrashSafeProcessor(
+  store,
+  new MarketClient(
+    config.public.contractId,
+    createRpcTransport(config.public.rpcUrl),
+  ),
+);
+let recoveryRead = false;
 const discovery = config.discoveryEnabled
   ? new DiscoveryLoop(
       new DiscoveryObserver(
@@ -97,7 +106,13 @@ const discovery = config.discoveryEnabled
         );
       },
       3000,
-      schedule,
+      async (_state, signal) => {
+        if (!recoveryRead || store.unresolvedIntents().length > 0) {
+          await recovery.recover(signal);
+          recoveryRead = true;
+        }
+        if (!signal.aborted) schedule();
+      },
     )
   : undefined;
 
