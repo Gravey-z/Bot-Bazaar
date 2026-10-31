@@ -1,4 +1,4 @@
-export const schemaVersion = 3;
+export const schemaVersion = 4;
 
 // Only fixed, application-owned column names are passed here.
 const u64 = (name: string) => `${name} TEXT CHECK (${name} IS NULL OR
@@ -133,4 +133,24 @@ CREATE UNIQUE INDEX one_root_proposal ON scheduler_mutations(job_id,merchant_id)
 CREATE UNIQUE INDEX one_root_listing ON scheduler_mutations(job_id,merchant_id) WHERE method='set_listing';
 CREATE INDEX scheduler_input_jobs ON scheduler_inputs(job_id,seq);
 PRAGMA user_version=3;
+`;
+
+export const retrySchema = `
+CREATE TABLE retry_state (
+ singleton INTEGER PRIMARY KEY CHECK(singleton=1), epoch INTEGER NOT NULL DEFAULT 0,
+ high_water_ms INTEGER NOT NULL DEFAULT 0, clock_blocked INTEGER NOT NULL DEFAULT 0 CHECK(clock_blocked IN (0,1))
+) STRICT;
+INSERT INTO retry_state(singleton) VALUES(1);
+CREATE TABLE provider_attempts (
+ id TEXT PRIMARY KEY, turn_id TEXT NOT NULL REFERENCES scheduler_turns(id),
+ job_id TEXT NOT NULL REFERENCES jobs(id), merchant_id TEXT NOT NULL REFERENCES merchants(merchant_id),
+ session_id TEXT NOT NULL, epoch INTEGER NOT NULL, provider TEXT NOT NULL, model TEXT NOT NULL, prompt_version TEXT NOT NULL,
+ started_at INTEGER NOT NULL, deadline INTEGER NOT NULL,
+ status TEXT NOT NULL CHECK(status IN ('pending','succeeded','failed','unknown')),
+ reason TEXT, late_ignored INTEGER NOT NULL DEFAULT 0 CHECK(late_ignored IN (0,1)), retry_of TEXT REFERENCES provider_attempts(id)
+) STRICT;
+CREATE UNIQUE INDEX one_pending_provider_turn ON provider_attempts(turn_id) WHERE status='pending';
+CREATE INDEX provider_window ON provider_attempts(started_at);
+CREATE INDEX provider_turn_history ON provider_attempts(turn_id,started_at);
+PRAGMA user_version=4;
 `;

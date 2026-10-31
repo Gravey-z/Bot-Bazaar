@@ -14,7 +14,7 @@ import {
 } from "node:fs";
 import { isAbsolute, join } from "node:path";
 import { createHash, randomUUID } from "node:crypto";
-import { discoverySchema, schedulingSchema } from "./schema.js";
+import { discoverySchema, schedulingSchema, retrySchema } from "./schema.js";
 import { requireStorage } from "./validation.js";
 
 // Migration runs only after ownership, deployment identity and integrity checks.
@@ -23,10 +23,7 @@ export function migrateDiscovery(db: DatabaseSync, root: string): void {
   const version = Number(
     db.prepare("PRAGMA user_version").get()!["user_version"],
   );
-  requireStorage(
-    version === 1 || version === 2,
-    "unsupported migration source",
-  );
+  requireStorage([1, 2, 3].includes(version), "unsupported migration source");
   requireStorage(
     isAbsolute(root),
     "absolute migration backup directory required",
@@ -130,7 +127,8 @@ export function migrateDiscovery(db: DatabaseSync, root: string): void {
   db.exec("BEGIN IMMEDIATE");
   try {
     if (version === 1) db.exec(discoverySchema);
-    db.exec(schedulingSchema);
+    if (version <= 2) db.exec(schedulingSchema);
+    db.exec(retrySchema);
     db.exec("COMMIT");
   } catch (error) {
     db.exec("ROLLBACK");

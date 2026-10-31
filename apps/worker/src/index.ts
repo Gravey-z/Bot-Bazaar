@@ -9,6 +9,7 @@ import { DiscoveryObserver } from "./private/discovery/observer.js";
 import { DiscoveryLoop } from "./private/discovery/loop.js";
 import { Scheduler } from "./private/scheduling/scheduler.js";
 import { CrashSafeProcessor } from "./private/recovery/processor.js";
+import { readBackoff } from "./private/retries/backoff.js";
 
 const config = (() => {
   try {
@@ -71,7 +72,8 @@ const backupTimer = setInterval(
 );
 backupTimer.unref();
 const scheduler = new Scheduler(store);
-let schedulingStatus: "ready" | "unavailable" = "ready";
+let schedulingStatus: "ready" | "unavailable" | "waiting_for_recovery" =
+  "waiting_for_recovery";
 const schedule = () => {
   try {
     scheduler.tick();
@@ -81,8 +83,7 @@ const schedule = () => {
     console.error("Worker scheduling unavailable; unfinished work retained");
   }
 };
-// Resume inbox transfer even when live discovery is intentionally offline.
-schedule();
+// Startup recovery precedes admission of new scheduling work.
 const recovery = new CrashSafeProcessor(
   store,
   new MarketClient(
@@ -91,6 +92,8 @@ const recovery = new CrashSafeProcessor(
   ),
 );
 let recoveryRead = false;
+let recoveryFailures = 0,
+  nextRecoveryAt = 0;
 const discovery = config.discoveryEnabled
   ? new DiscoveryLoop(
       new DiscoveryObserver(
@@ -107,11 +110,37 @@ const discovery = config.discoveryEnabled
       },
       3000,
       async (_state, signal) => {
-        if (!recoveryRead || store.unresolvedIntents().length > 0) {
-          await recovery.recover(signal);
+        if (
+          !recoveryRead ||
+          ((store.unresolvedIntents().length > 0 ||
+            store.unprovenOfferDependencies().length > 0 ||
+            recovery.last.reasons.includes(
+              "verification_or_storage_unavailable",
+            )) &&
+            performance.now() >= nextRecoveryAt)
+        ) {
+          const report = await recovery.recover(signal);
           recoveryRead = true;
+          if (
+            report.unresolved !== 0 ||
+            report.reasons.includes("verification_or_storage_unavailable")
+          ) {
+            recoveryFailures++;
+            nextRecoveryAt = performance.now() + readBackoff(recoveryFailures);
+          } else {
+            recoveryFailures = 0;
+            nextRecoveryAt = 0;
+          }
         }
-        if (!signal.aborted) schedule();
+        if (
+          !signal.aborted &&
+          recoveryRead &&
+          store.unresolvedIntents().length === 0 &&
+          store.unprovenOfferDependencies().length === 0 &&
+          !recovery.last.reasons.includes("verification_or_storage_unavailable")
+        )
+          schedule();
+        else schedulingStatus = "waiting_for_recovery";
       },
     )
   : undefined;
@@ -159,10 +188,11 @@ server.listen(config.port, config.host, () => {
 
 const shutdown = () => {
   clearInterval(backupTimer);
+  const stopped = discovery?.stop();
   server.close(() => {
     void (async () => {
       await backupCycle;
-      await discovery?.stop();
+      await stopped;
       await store.close();
     })().catch(() => {
       process.exitCode = 1;

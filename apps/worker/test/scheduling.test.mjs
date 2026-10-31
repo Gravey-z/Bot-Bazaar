@@ -467,7 +467,7 @@ test("v2 migration preserves discovery observations and produces a verifiable v2
   await f.store.close();
   const db = new DatabaseSync(join(f.dataDir, "worker.sqlite"));
   db.exec(
-    "DROP TABLE scheduler_mutations;DROP TABLE scheduler_turns;DROP TABLE scheduler_sources;DROP TABLE scheduler_inputs;DROP TABLE scheduler_roots;DROP TABLE scheduler_state;PRAGMA user_version=2;",
+    "DROP TABLE provider_attempts;DROP TABLE retry_state;DROP TABLE scheduler_mutations;DROP TABLE scheduler_turns;DROP TABLE scheduler_sources;DROP TABLE scheduler_inputs;DROP TABLE scheduler_roots;DROP TABLE scheduler_state;PRAGMA user_version=2;",
   );
   db.close();
   await f.reopen();

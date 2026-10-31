@@ -124,7 +124,7 @@ test(
         recovery: "required",
         backup: "verified",
         discovery: "disabled",
-        scheduling: "ready",
+        scheduling: "waiting_for_recovery",
       });
       assert.equal(
         (await fetch(`http://127.0.0.1:${port}/unknown`)).status,

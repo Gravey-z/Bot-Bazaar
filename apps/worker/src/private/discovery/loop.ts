@@ -1,11 +1,13 @@
 import type { DiscoveryObserver } from "./observer.js";
 import type { DiscoveryState } from "./types.js";
+import { readBackoff } from "../retries/backoff.js";
 
 export class DiscoveryLoop {
   private readonly abort = new AbortController();
   private timer: ReturnType<typeof setTimeout> | undefined;
   private active: Promise<void> | undefined;
   private started = false;
+  private failures = 0;
   status: "starting" | "ready" | "unavailable" | "stopped" = "starting";
   constructor(
     private readonly observer: DiscoveryObserver,
@@ -31,15 +33,24 @@ export class DiscoveryLoop {
         if (!this.abort.signal.aborted) {
           await this.onObserved(state, this.abort.signal);
           this.status = "ready";
+          this.failures = 0;
         }
       } catch {
         if (!this.abort.signal.aborted) {
           this.status = "unavailable";
+          this.failures++;
           this.onError();
         }
       } finally {
         if (!this.abort.signal.aborted) {
-          this.timer = setTimeout(() => this.run(), this.intervalMs);
+          this.timer = setTimeout(
+            () => this.run(),
+            readBackoff(
+              this.failures,
+              this.intervalMs,
+              Math.max(this.intervalMs, 30000),
+            ),
+          );
           this.timer.unref();
         }
       }

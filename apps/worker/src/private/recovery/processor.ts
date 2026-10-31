@@ -19,6 +19,8 @@ import {
   StorageError,
 } from "../storage/validation.js";
 import { readPrepared } from "./proof.js";
+import { SafetyClock } from "../retries/clock.js";
+import { assertRuntimePermission } from "../near-signer.js";
 import type {
   ContinuityAttestation,
   ContinuityVerifier,
@@ -30,6 +32,7 @@ export class CrashSafeProcessor {
   private busy = false;
   private authorizedSession: string | undefined;
   private recoveredSession = false;
+  private readonly clock: SafetyClock;
   last: RecoveryReport = {
     kind: "blocked",
     reasons: ["recovery_required"],
@@ -40,7 +43,9 @@ export class CrashSafeProcessor {
     private readonly client: MarketClient,
     private readonly adapter?: MerchantChainAdapter,
     private readonly verifyContinuity?: ContinuityVerifier,
-  ) {}
+  ) {
+    this.clock = new SafetyClock(() => store.retry.blockClock(Date.now()));
+  }
   private context() {
     return {
       sessionId: String(this.store.checkpoint()["feed_generation"]),
@@ -62,6 +67,7 @@ export class CrashSafeProcessor {
     );
   }
   private gate(): void {
+    this.clock.now();
     requireStorage(
       this.store.available &&
         this.authorizedSession === this.context().sessionId &&
@@ -71,11 +77,23 @@ export class CrashSafeProcessor {
   }
   async execute(
     input: Intent,
+    assertDecisionCurrent: () => void = () => {},
   ): Promise<{ kind: "submitted" | "unknown"; transactionHash: string }> {
     requireStorage(!this.busy, "transaction processor busy");
     this.gate();
+    assertDecisionCurrent();
     requireStorage(this.adapter, "runtime signer is not configured");
     input = { ...input, args: createMarketCall(input.method, input.args).args };
+    const externalGuard = assertDecisionCurrent;
+    assertDecisionCurrent = () => {
+      externalGuard();
+      if (input.decisionId && this.store.retry.attempt(input.decisionId))
+        this.store.retry.assertDecisionCurrent(
+          input.decisionId,
+          this.clock.now(),
+        );
+    };
+    assertDecisionCurrent();
     requireStorage(
       !this.store.getIntent(input.id),
       "existing intent must be reconciled; never sign a replacement",
@@ -88,10 +106,103 @@ export class CrashSafeProcessor {
         input.merchantId,
         input.method,
         input.args as CallInput<MerchantMethod>,
+        async (key) => {
+          this.gate();
+          assertDecisionCurrent();
+          const { reader, market } = await this.client.verifyDeployment(
+            this.store.identity,
+          );
+          const actor = market.data.merchants.find(
+            (row) => row.merchant_id === input.merchantId,
+          )!;
+          const fields = input.args as Record<string, unknown>;
+          requireStorage(
+            !market.data.paused ||
+              input.method === "cancel_trade" ||
+              input.method === "expire_offers",
+            "market paused before signing",
+          );
+          requireStorage(
+            input.method === "expire_offers" ||
+              BigInt(String(fields["action_id"])) ===
+                BigInt(actor.last_action_id) + 1n,
+            "action changed before signing",
+          );
+          if (input.method === "set_listing") {
+            const listing = actor.listings.find(
+              (row) => row.resource === fields["resource"],
+            );
+            requireStorage(
+              listing?.version === fields["expected_version"] &&
+                BigInt(String(fields["quantity"])) <=
+                  BigInt(
+                    (actor.inventory as Record<string, string>)[
+                      String(fields["resource"])
+                    ]!,
+                  ),
+              "listing state changed before signing",
+            );
+          }
+          if (input.method === "propose_trade") {
+            const buyer = market.data.merchants.find(
+                (row) => row.merchant_id === fields["buyer"],
+              )!,
+              seller = market.data.merchants.find(
+                (row) => row.merchant_id === fields["seller"],
+              )!;
+            requireStorage(
+              BigInt(buyer.gold) >= BigInt(String(fields["total_price"])) &&
+                BigInt(
+                  (seller.inventory as Record<string, string>)[
+                    String(fields["resource"])
+                  ]!,
+                ) >= BigInt(String(fields["quantity"])) &&
+                BigInt(String(fields["expires_at_ns"])) >
+                  BigInt(reader.block.timestampNs),
+              "proposal state changed before signing",
+            );
+          }
+          if (
+            input.method === "accept_trade" ||
+            input.method === "cancel_trade"
+          ) {
+            const lookup = await reader.getOffer(String(fields["offer_id"]));
+            requireStorage(
+              lookup.data.kind === "found" &&
+                lookup.data.offer.status === "pending" &&
+                BigInt(lookup.data.offer.expires_at_ns) >
+                  BigInt(reader.block.timestampNs) &&
+                (input.method === "accept_trade"
+                  ? lookup.data.offer.counterparty
+                  : lookup.data.offer.proposer) === input.merchantId,
+              "offer changed before signing",
+            );
+          }
+          const latestKey = await reader.getAccessKey(
+            this.store.identity.controllers[input.merchantId],
+            key.publicKey,
+          );
+          assertRuntimePermission(
+            latestKey.permission,
+            this.store.identity.contractId,
+          );
+          requireStorage(
+            latestKey.nonce === key.nonce,
+            "key nonce changed before signing",
+          );
+          this.gate();
+          assertDecisionCurrent();
+          requireStorage(
+            Number(this.store.getJob(input.jobId)?.["deadline"]) >
+              this.clock.now(),
+            "decision window expired before signing",
+          );
+        },
       );
       this.gate();
+      assertDecisionCurrent();
       this.store.saveSigned(input.id, prepared);
-      return await this.submitSigned(input.id);
+      return await this.submitSigned(input.id, assertDecisionCurrent);
     } catch {
       this.authorizedSession = undefined;
       try {
@@ -117,7 +228,7 @@ export class CrashSafeProcessor {
       this.busy = false;
     }
   }
-  private async submitSigned(intentId: string) {
+  private async submitSigned(intentId: string, guard: () => void = () => {}) {
     id(intentId);
     requireStorage(
       this.adapter &&
@@ -150,6 +261,14 @@ export class CrashSafeProcessor {
       "journal identity mismatch",
     );
     const { market } = await this.client.verifyDeployment(this.store.identity);
+    this.clock.now();
+    requireStorage(
+      prepared.method === "cancel_trade" ||
+        prepared.method === "expire_offers" ||
+        Number(this.store.getJob(String(row["job_id"]))?.["deadline"]) >
+          Date.now(),
+      "decision window expired before broadcast",
+    );
     requireStorage(
       !market.data.paused ||
         prepared.method === "cancel_trade" ||
@@ -166,6 +285,15 @@ export class CrashSafeProcessor {
     );
     // This durable marker precedes every network submission. A crash after it is
     // indistinguishable from a submitted call; recovery queries, never replaces.
+    guard();
+    if (
+      row["decision_id"] &&
+      this.store.retry.attempt(String(row["decision_id"]))
+    )
+      this.store.retry.assertDecisionCurrent(
+        String(row["decision_id"]),
+        this.clock.now(),
+      );
     this.store.markBroadcast(intentId, "unknown");
     try {
       const result = await this.adapter.submit(prepared);
@@ -435,6 +563,7 @@ export class CrashSafeProcessor {
         );
         this.authorizedSession = this.context().sessionId;
         this.recoveredSession = true;
+        this.clock.rebase();
       }
       return (this.last = {
         kind: reasons.size ? "blocked" : "ready",

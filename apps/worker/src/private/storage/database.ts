@@ -34,8 +34,10 @@ import {
   schemaVersion,
   discoverySchema,
   schedulingSchema,
+  retrySchema,
 } from "./schema.js";
 import { SchedulerRepository } from "../scheduling/repository.js";
+import { RetryRepository } from "../retries/repository.js";
 import { migrateDiscovery } from "./migration.js";
 import type {
   DiscoveryCommit,
@@ -91,6 +93,7 @@ export class WorkerStore {
   readonly path: string;
   readonly identity: DeploymentIdentity;
   readonly scheduler: SchedulerRepository;
+  readonly retry: RetryRepository;
 
   constructor(options: StoreOptions) {
     const expected = identityJson(options.identity);
@@ -152,7 +155,9 @@ export class WorkerStore {
         requireStorage(version === 0, "unexpected initial schema");
         this.db.exec("BEGIN IMMEDIATE");
         try {
-          this.db.exec(schema + discoverySchema + schedulingSchema);
+          this.db.exec(
+            schema + discoverySchema + schedulingSchema + retrySchema,
+          );
           this.db
             .prepare(
               "INSERT INTO deployment(singleton,identity,policy_version,feed_generation,created_at) VALUES(1,?,?,?,?)",
@@ -171,7 +176,7 @@ export class WorkerStore {
         }
       } else
         requireStorage(
-          version === 1 || version === 2 || version === schemaVersion,
+          [1, 2, 3, schemaVersion].includes(version),
           "unsupported database schema; do not recreate it",
         );
       requireStorage(
@@ -210,6 +215,10 @@ export class WorkerStore {
     this.scheduler = new SchedulerRepository(this.db, expected, (operation) =>
       this.write(operation, true),
     );
+    this.retry = new RetryRepository(this.db, (operation, admission = false) =>
+      this.write(operation, admission),
+    );
+    this.retry.invalidate("restart");
   }
   private one(sql: string, ...args: SQLInputValue[]): Row | undefined {
     return this.db.prepare(sql).get(...args);
@@ -267,6 +276,7 @@ export class WorkerStore {
   }
   requireRecovery(): void {
     this.write(() => {
+      this.retry.invalidateInTransaction("recovery");
       this.run("UPDATE deployment SET recovery_required=1 WHERE singleton=1");
     });
   }
@@ -276,6 +286,7 @@ export class WorkerStore {
     closeInterruptedTurns = false,
   ): void {
     this.write(() => {
+      this.retry.reconcileClockInTransaction(Date.now());
       requireStorage(
         this.checkpoint()["feed_generation"] === sessionId &&
           checkpoints.length === 3 &&
@@ -431,6 +442,8 @@ export class WorkerStore {
       "invalid discovery batch",
     );
     this.write(() => {
+      if (state.market.data.paused)
+        this.retry.invalidateInTransaction("paused");
       const previous = this.discoveryState(),
         checkpoint = this.checkpoint();
       requireStorage(

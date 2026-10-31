@@ -111,6 +111,10 @@ export class MerchantChainAdapter {
     merchantId: MerchantId,
     method: M,
     args: CallInput<M>,
+    beforeSign?: (snapshot: {
+      publicKey: string;
+      nonce: string;
+    }) => void | Promise<void>,
   ): Promise<PreparedMerchantCall<M>> {
     requireState(
       Object.hasOwn(this.credentials, merchantId),
@@ -193,6 +197,7 @@ export class MerchantChainAdapter {
     try {
       // No credential is requested until deployment, role, pause and key checks pass.
       const secretKey = await credential.loadSecretKey();
+      await beforeSign?.({ publicKey: credential.publicKey, nonce: key.nonce });
       signed = await signRestrictedTransaction({
         networkId: this.identity.networkId,
         controllerId: account,

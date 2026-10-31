@@ -51,7 +51,7 @@ export async function verifyBackup(directory: string): Promise<Manifest> {
       await readFile(manifestPath, "utf8"),
     ) as Manifest;
     requireStorage(
-      [1, 2, schemaVersion].includes(manifest.schema) &&
+      [1, 2, 3, schemaVersion].includes(manifest.schema) &&
         Array.isArray(manifest.artifacts) &&
         manifest.artifacts.length === 0 &&
         Number.isSafeInteger(manifest.capturedAt) &&
