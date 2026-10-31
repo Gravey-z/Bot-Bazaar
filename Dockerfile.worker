@@ -1,0 +1,24 @@
+FROM node:24.16.0-bookworm-slim@sha256:2c87ef9bd3c6a3bd4b472b4bec2ce9d16354b0c574f736c476489d09f560a203 AS build
+WORKDIR /workspace
+RUN corepack enable
+
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml tsconfig.base.json ./
+COPY apps/worker/package.json apps/worker/tsconfig.json ./apps/worker/
+COPY packages/shared/package.json packages/shared/tsconfig.json ./packages/shared/
+COPY packages/chain/package.json packages/chain/tsconfig.json ./packages/chain/
+RUN corepack pnpm install --frozen-lockfile --filter @bot-bazaar/worker...
+
+COPY apps/worker/src ./apps/worker/src
+COPY packages/shared/src ./packages/shared/src
+COPY packages/chain/src ./packages/chain/src
+RUN corepack pnpm build:packages \
+    && corepack pnpm --filter @bot-bazaar/worker build \
+    && corepack pnpm --filter @bot-bazaar/worker deploy --legacy --prod /out
+
+FROM node:24.16.0-bookworm-slim@sha256:2c87ef9bd3c6a3bd4b472b4bec2ce9d16354b0c574f736c476489d09f560a203 AS runtime
+ENV NODE_ENV=production
+WORKDIR /app
+COPY --from=build --chown=node:node /out ./
+USER node
+EXPOSE 3001
+CMD ["node", "dist/index.js"]

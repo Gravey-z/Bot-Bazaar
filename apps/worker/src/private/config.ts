@@ -1,5 +1,6 @@
 import { ConfigurationError, parsePublicConfig } from "@bot-bazaar/shared";
 import type { PublicConfig } from "@bot-bazaar/shared";
+import { parseStorageConfig } from "./storage/config.js";
 
 type ProviderConfig =
   | { readonly kind: "disabled" }
@@ -14,6 +15,7 @@ export interface WorkerConfig {
   readonly host: string;
   readonly port: number;
   readonly provider: ProviderConfig;
+  readonly storage: ReturnType<typeof parseStorageConfig>;
 }
 
 function required(
@@ -72,5 +74,6 @@ export function parseWorkerConfig(
     host,
     port: Number(port),
     provider: Object.freeze(provider),
+    storage: Object.freeze(parseStorageConfig(env, publicConfig.contractId)),
   });
 }

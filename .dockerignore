@@ -1,0 +1,26 @@
+# Worker and Rust builds never need local credentials or runtime state.
+.git
+**/node_modules
+**/dist
+**/.angular
+target
+.env
+.env.*
+**/.env
+**/.env.*
+**/*.env
+**/*.env.*
+**/.near-credentials
+**/.near
+**/.aws
+**/.codex
+**/.agents
+**/*.pem
+**/*.key
+**/*.sqlite*
+**/*.db
+**/*.db-*
+data
+backups
+deploy/omv7/data
+deploy/omv7/backups

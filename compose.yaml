@@ -1,0 +1,51 @@
+name: bot-bazaar
+services:
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile.worker
+    image: bot-bazaar-worker:local
+    container_name: bot-bazaar-worker
+    init: true
+    restart: unless-stopped
+    stop_grace_period: 30s
+    user: "${BAZAAR_UID:-1000}:${BAZAAR_GID:-1000}"
+    env_file:
+      - ./deploy/omv7/worker.env
+    environment:
+      HOST: 0.0.0.0
+      PORT: "3001"
+      WORKER_DATA_DIR: /var/data
+    ports:
+      - "${BAZAAR_BIND_IP:-127.0.0.1}:${BAZAAR_PORT:-3001}:3001"
+    volumes:
+      - type: bind
+        source: ${BAZAAR_DATA_DIR:?Set BAZAAR_DATA_DIR to an existing absolute local OMV7 directory}
+        target: /var/data
+        bind:
+          create_host_path: false
+    read_only: true
+    tmpfs:
+      - /tmp:size=64m,mode=1777
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    pids_limit: 128
+    mem_limit: 1g
+    cpus: 1.0
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: "3"
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "const s=require('node:net').connect(3001,'127.0.0.1',()=>{s.end();process.exit(0)});s.setTimeout(2000,()=>process.exit(1));s.on('error',()=>process.exit(1));"
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s

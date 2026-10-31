@@ -7,3 +7,14 @@ dist/
 .angular/
 
 /apps/web/public/config.json
+
+/deploy/omv7/compose.env
+/deploy/omv7/worker.env
+/data/
+/backups/
+*.sqlite
+*.sqlite-*
+*.db
+*.db-*
+
+/deploy/

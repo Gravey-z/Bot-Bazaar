@@ -18,6 +18,13 @@ const env = {
   HOST: "127.0.0.1",
   PORT: "3001",
   MODEL_PROVIDER: "disabled",
+  WORKER_DATA_DIR: path.join(os.tmpdir(), "bazaar-config-test"),
+  WORKER_POLICY_VERSION: "v1",
+  NEAR_OWNER_ID: "market.testnet",
+  NEAR_EXPECTED_CODE_HASH: "CcU8qzpFzXy9BstkGqLCnK7Uxam8tymqZyaDK92nzYkW",
+  REX_CONTROLLER_ID: "rex-bazaar.testnet",
+  LUNA_CONTROLLER_ID: "luna-bazaar.testnet",
+  BOLT_CONTROLLER_ID: "bolt-bazaar.testnet",
 };
 
 test("worker exits before listening on missing or mainnet configuration, with sanitized errors", () => {
@@ -55,7 +62,12 @@ test(
       path.join(os.tmpdir(), "bot-bazaar-worker-env-"),
     );
     const envFile = path.join(directory, ".env");
-    const settings = { ...env, PORT: String(port) };
+    const settings = {
+      ...env,
+      PORT: String(port),
+      WORKER_DATA_DIR: directory,
+      WORKER_INITIALIZE_DATABASE: "true",
+    };
     const names = [
       "NEAR_NETWORK_ID",
       "NEAR_CONTRACT_ID",
@@ -65,6 +77,14 @@ test(
       "HOST",
       "PORT",
       "MODEL_PROVIDER",
+      "WORKER_DATA_DIR",
+      "WORKER_INITIALIZE_DATABASE",
+      "WORKER_POLICY_VERSION",
+      "NEAR_OWNER_ID",
+      "NEAR_EXPECTED_CODE_HASH",
+      "REX_CONTROLLER_ID",
+      "LUNA_CONTROLLER_ID",
+      "BOLT_CONTROLLER_ID",
     ];
     await writeFile(
       envFile,
@@ -96,7 +116,12 @@ test(
       }
       assert.ok(response, "Worker must listen after configuration validation");
       assert.equal(response.status, 503);
-      assert.deepEqual(await response.json(), { status: "not_ready" });
+      assert.deepEqual(await response.json(), {
+        status: "not_ready",
+        database: "ready",
+        recovery: "required",
+        backup: "verified",
+      });
       assert.equal(
         (await fetch(`http://127.0.0.1:${port}/unknown`)).status,
         404,

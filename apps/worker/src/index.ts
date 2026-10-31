@@ -1,6 +1,9 @@
 import { createServer } from "node:http";
 import { ConfigurationError } from "@bot-bazaar/shared";
 import { parseWorkerConfig } from "./private/config.js";
+import { mkdirSync } from "node:fs";
+import { WorkerStore } from "./private/storage/database.js";
+import { retainBackups } from "./private/storage/backup.js";
 
 const config = (() => {
   try {
@@ -15,10 +18,65 @@ const config = (() => {
   }
 })();
 
+const store = (() => {
+  try {
+    const database = new WorkerStore(config.storage);
+    try {
+      mkdirSync(config.storage.backupDir, { recursive: true, mode: 0o700 });
+    } catch {
+      void database.close();
+      throw new Error("backup directory unavailable");
+    }
+    return database;
+  } catch {
+    console.error(
+      "Worker database unavailable; check configuration, ownership, storage and recovery requirements",
+    );
+    process.exit(1);
+  }
+})();
+let backupFailed = false;
+let backupCycle: Promise<void> | undefined;
+const runBackup = async () => {
+  try {
+    store.prune();
+    await store.backup(config.storage.backupDir);
+    await retainBackups(config.storage.backupDir);
+    backupFailed = false;
+  } catch {
+    backupFailed = true;
+    console.error(
+      "Worker backup failed; new economic work must remain stopped",
+    );
+  }
+};
+const performBackup = (): Promise<void> => {
+  if (backupCycle) return backupCycle;
+  backupCycle = runBackup().finally(() => {
+    backupCycle = undefined;
+  });
+  return backupCycle;
+};
+await performBackup();
+const backupTimer = setInterval(
+  () => {
+    void performBackup();
+  },
+  60 * 60 * 1000,
+);
+backupTimer.unref();
+
 const server = createServer((request, response) => {
   if (request.method === "GET" && request.url === "/health") {
     response.writeHead(503, { "Content-Type": "application/json" });
-    response.end(JSON.stringify({ status: "not_ready" }));
+    response.end(
+      JSON.stringify({
+        status: "not_ready",
+        database: store.available ? "ready" : "unavailable",
+        recovery: "required",
+        backup: backupFailed ? "failed" : "verified",
+      }),
+    );
     return;
   }
 
@@ -31,6 +89,8 @@ server.on("error", () => {
     "Worker could not listen; check HOST/PORT and whether the port is already in use",
   );
   process.exitCode = 1;
+  clearInterval(backupTimer);
+  void store.close();
 });
 
 server.listen(config.port, config.host, () => {
@@ -39,5 +99,16 @@ server.listen(config.port, config.host, () => {
   );
 });
 
-process.once("SIGINT", () => server.close());
-process.once("SIGTERM", () => server.close());
+const shutdown = () => {
+  clearInterval(backupTimer);
+  server.close(() => {
+    void (async () => {
+      await backupCycle;
+      await store.close();
+    })().catch(() => {
+      process.exitCode = 1;
+    });
+  });
+};
+process.once("SIGINT", shutdown);
+process.once("SIGTERM", shutdown);

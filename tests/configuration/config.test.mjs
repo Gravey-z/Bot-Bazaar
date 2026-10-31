@@ -25,6 +25,13 @@ export const workerFixture = {
   HOST: "127.0.0.1",
   PORT: "3001",
   MODEL_PROVIDER: "disabled",
+  WORKER_DATA_DIR: path.join(os.tmpdir(), "bazaar-config-test"),
+  WORKER_POLICY_VERSION: "v1",
+  NEAR_OWNER_ID: "market.testnet",
+  NEAR_EXPECTED_CODE_HASH: "CcU8qzpFzXy9BstkGqLCnK7Uxam8tymqZyaDK92nzYkW",
+  REX_CONTROLLER_ID: "rex-bazaar.testnet",
+  LUNA_CONTROLLER_ID: "luna-bazaar.testnet",
+  BOLT_CONTROLLER_ID: "bolt-bazaar.testnet",
 };
 
 test("public configuration is normalized and immutable", () => {
@@ -135,6 +142,35 @@ test("worker requires explicit provider and listener configuration", () => {
     () => parseWorkerConfig({ ...workerFixture, MODEL_PROVIDER: "other" }),
     /MODEL_PROVIDER/,
   );
+});
+
+test("worker requires durable storage identity and explicit initialization", () => {
+  for (const name of [
+    "WORKER_DATA_DIR",
+    "WORKER_POLICY_VERSION",
+    "NEAR_OWNER_ID",
+    "NEAR_EXPECTED_CODE_HASH",
+    "REX_CONTROLLER_ID",
+    "LUNA_CONTROLLER_ID",
+    "BOLT_CONTROLLER_ID",
+  ])
+    assert.throws(
+      () => parseWorkerConfig({ ...workerFixture, [name]: undefined }),
+      /required/,
+    );
+  assert.equal(parseWorkerConfig(workerFixture).storage.create, false);
+  assert.equal(
+    parseWorkerConfig({ ...workerFixture, WORKER_INITIALIZE_DATABASE: "true" })
+      .storage.create,
+    true,
+  );
+  for (const change of [
+    { WORKER_DATA_DIR: "relative/path" },
+    { WORKER_INITIALIZE_DATABASE: "yes" },
+    { WORKER_BACKUP_DIR: workerFixture.WORKER_DATA_DIR },
+    { REX_CONTROLLER_ID: workerFixture.NEAR_OWNER_ID },
+  ])
+    assert.throws(() => parseWorkerConfig({ ...workerFixture, ...change }));
 });
 
 test("OpenAI mode requires the approved model and a private key without leaking values", () => {
