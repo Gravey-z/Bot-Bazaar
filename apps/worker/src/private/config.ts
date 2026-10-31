@@ -16,6 +16,7 @@ export interface WorkerConfig {
   readonly port: number;
   readonly provider: ProviderConfig;
   readonly storage: ReturnType<typeof parseStorageConfig>;
+  readonly discoveryEnabled: boolean;
 }
 
 function required(
@@ -69,11 +70,17 @@ export function parseWorkerConfig(
   } else {
     throw new ConfigurationError("MODEL_PROVIDER must be disabled or openai");
   }
+  const discovery = env["WORKER_DISCOVERY_ENABLED"] ?? "true";
+  if (!["true", "false"].includes(discovery))
+    throw new ConfigurationError(
+      "WORKER_DISCOVERY_ENABLED must be true or false",
+    );
   return Object.freeze({
     public: publicConfig,
     host,
     port: Number(port),
     provider: Object.freeze(provider),
     storage: Object.freeze(parseStorageConfig(env, publicConfig.contractId)),
+    discoveryEnabled: discovery === "true",
   });
 }

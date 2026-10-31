@@ -51,7 +51,7 @@ export async function verifyBackup(directory: string): Promise<Manifest> {
       await readFile(manifestPath, "utf8"),
     ) as Manifest;
     requireStorage(
-      manifest.schema === schemaVersion &&
+      [1, schemaVersion].includes(manifest.schema) &&
         Array.isArray(manifest.artifacts) &&
         manifest.artifacts.length === 0 &&
         Number.isSafeInteger(manifest.capturedAt) &&
@@ -81,7 +81,7 @@ export async function verifyBackup(directory: string): Promise<Manifest> {
           "ok" &&
           db.prepare("PRAGMA foreign_key_check").all().length === 0 &&
           db.prepare("PRAGMA user_version").get()!["user_version"] ===
-            schemaVersion,
+            manifest.schema,
         "backup integrity failed",
       );
       const deployment = db

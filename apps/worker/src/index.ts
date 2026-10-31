@@ -4,6 +4,9 @@ import { parseWorkerConfig } from "./private/config.js";
 import { mkdirSync } from "node:fs";
 import { WorkerStore } from "./private/storage/database.js";
 import { retainBackups } from "./private/storage/backup.js";
+import { MarketClient, createRpcTransport } from "@bot-bazaar/chain";
+import { DiscoveryObserver } from "./private/discovery/observer.js";
+import { DiscoveryLoop } from "./private/discovery/loop.js";
 
 const config = (() => {
   try {
@@ -65,6 +68,22 @@ const backupTimer = setInterval(
   60 * 60 * 1000,
 );
 backupTimer.unref();
+const discovery = config.discoveryEnabled
+  ? new DiscoveryLoop(
+      new DiscoveryObserver(
+        new MarketClient(
+          config.public.contractId,
+          createRpcTransport(config.public.rpcUrl),
+        ),
+        store,
+      ),
+      () => {
+        console.error(
+          "Worker discovery unavailable; observation checkpoint was not advanced",
+        );
+      },
+    )
+  : undefined;
 
 const server = createServer((request, response) => {
   if (request.method === "GET" && request.url === "/health") {
@@ -75,6 +94,7 @@ const server = createServer((request, response) => {
         database: store.available ? "ready" : "unavailable",
         recovery: "required",
         backup: backupFailed ? "failed" : "verified",
+        discovery: discovery?.status ?? "disabled",
       }),
     );
     return;
@@ -90,10 +110,16 @@ server.on("error", () => {
   );
   process.exitCode = 1;
   clearInterval(backupTimer);
-  void store.close();
+  void (async () => {
+    await discovery?.stop();
+    await store.close();
+  })().catch(() => {
+    process.exitCode = 1;
+  });
 });
 
 server.listen(config.port, config.host, () => {
+  discovery?.start();
   console.info(
     `Bot Bazaar worker scaffold listening on ${config.host}:${config.port}; provider ${config.provider.kind}`,
   );
@@ -104,6 +130,7 @@ const shutdown = () => {
   server.close(() => {
     void (async () => {
       await backupCycle;
+      await discovery?.stop();
       await store.close();
     })().catch(() => {
       process.exitCode = 1;

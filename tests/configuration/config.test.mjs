@@ -25,6 +25,7 @@ export const workerFixture = {
   HOST: "127.0.0.1",
   PORT: "3001",
   MODEL_PROVIDER: "disabled",
+  WORKER_DISCOVERY_ENABLED: "false",
   WORKER_DATA_DIR: path.join(os.tmpdir(), "bazaar-config-test"),
   WORKER_POLICY_VERSION: "v1",
   NEAR_OWNER_ID: "market.testnet",
@@ -171,6 +172,20 @@ test("worker requires durable storage identity and explicit initialization", () 
     { REX_CONTROLLER_ID: workerFixture.NEAR_OWNER_ID },
   ])
     assert.throws(() => parseWorkerConfig({ ...workerFixture, ...change }));
+});
+
+test("read-only discovery defaults on and requires an explicit boolean switch", () => {
+  assert.equal(
+    parseWorkerConfig({ ...workerFixture, WORKER_DISCOVERY_ENABLED: undefined })
+      .discoveryEnabled,
+    true,
+  );
+  assert.equal(parseWorkerConfig(workerFixture).discoveryEnabled, false);
+  assert.throws(
+    () =>
+      parseWorkerConfig({ ...workerFixture, WORKER_DISCOVERY_ENABLED: "yes" }),
+    /WORKER_DISCOVERY_ENABLED/,
+  );
 });
 
 test("OpenAI mode requires the approved model and a private key without leaking values", () => {

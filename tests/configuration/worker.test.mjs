@@ -18,6 +18,7 @@ const env = {
   HOST: "127.0.0.1",
   PORT: "3001",
   MODEL_PROVIDER: "disabled",
+  WORKER_DISCOVERY_ENABLED: "false",
   WORKER_DATA_DIR: path.join(os.tmpdir(), "bazaar-config-test"),
   WORKER_POLICY_VERSION: "v1",
   NEAR_OWNER_ID: "market.testnet",
@@ -77,6 +78,7 @@ test(
       "HOST",
       "PORT",
       "MODEL_PROVIDER",
+      "WORKER_DISCOVERY_ENABLED",
       "WORKER_DATA_DIR",
       "WORKER_INITIALIZE_DATABASE",
       "WORKER_POLICY_VERSION",
@@ -121,6 +123,7 @@ test(
         database: "ready",
         recovery: "required",
         backup: "verified",
+        discovery: "disabled",
       });
       assert.equal(
         (await fetch(`http://127.0.0.1:${port}/unknown`)).status,

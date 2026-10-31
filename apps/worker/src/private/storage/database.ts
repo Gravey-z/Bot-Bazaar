@@ -26,7 +26,13 @@ import type {
   ReceiptStatus,
 } from "@bot-bazaar/chain";
 import type { MerchantMethod, PreparedMerchantCall } from "../chain-adapter.js";
-import { schema, schemaVersion } from "./schema.js";
+import { schema, schemaVersion, discoverySchema } from "./schema.js";
+import { migrateDiscovery } from "./migration.js";
+import type {
+  DiscoveryCommit,
+  DiscoverySignal,
+  DiscoveryState,
+} from "../discovery/types.js";
 import {
   digest,
   id,
@@ -45,6 +51,7 @@ import { createBackup } from "./backup.js";
 type Row = Record<string, string | number | bigint | Uint8Array | null>;
 export interface StoreOptions {
   dataDir: string;
+  backupDir?: string;
   identity: DeploymentIdentity;
   policyVersion: string;
   create?: boolean;
@@ -135,7 +142,7 @@ export class WorkerStore {
         requireStorage(version === 0, "unexpected initial schema");
         this.db.exec("BEGIN IMMEDIATE");
         try {
-          this.db.exec(schema);
+          this.db.exec(schema + discoverySchema);
           this.db
             .prepare(
               "INSERT INTO deployment(singleton,identity,policy_version,feed_generation,created_at) VALUES(1,?,?,?,?)",
@@ -154,7 +161,7 @@ export class WorkerStore {
         }
       } else
         requireStorage(
-          version === schemaVersion,
+          version === 1 || version === schemaVersion,
           "unsupported database schema; do not recreate it",
         );
       requireStorage(
@@ -174,6 +181,11 @@ export class WorkerStore {
           this.all("PRAGMA foreign_key_check").length === 0,
         "database integrity check failed",
       );
+      if (!fresh && version === 1)
+        migrateDiscovery(
+          this.db,
+          options.backupDir ?? join(this.dataDir, "backups"),
+        );
       // Every startup is a recovery boundary; storage alone never enables signing.
       this.db
         .prepare(
@@ -239,6 +251,80 @@ export class WorkerStore {
   }
   get available(): boolean {
     return !this.closed && !this.failed;
+  }
+  discoveryState(): DiscoveryState | null {
+    const row = this.one(
+      "SELECT state_json FROM discovery_state WHERE singleton=1",
+    );
+    return row
+      ? (JSON.parse(String(row["state_json"])) as DiscoveryState)
+      : null;
+  }
+  discoverySignals(): DiscoverySignal[] {
+    return this.all(
+      "SELECT payload_json FROM discovery_signals WHERE handled=0 ORDER BY observed_at,signal_key LIMIT 256",
+    ).map((row) => JSON.parse(String(row["payload_json"])) as DiscoverySignal);
+  }
+  commitDiscovery(batch: DiscoveryCommit): void {
+    // Detach before the transaction; this API receives typed, validated RPC views.
+    const stateJson = json(batch.state, 262144);
+    const state = JSON.parse(stateJson) as DiscoveryState;
+    const signals = batch.signals.map((signal) => ({
+      key: id(signal.key),
+      kind: signal.kind,
+      merchantId: signal.merchantId,
+      payload: json(signal),
+    }));
+    timestamp(state.observedAt);
+    parseU64(state.tradeCursor);
+    requireStorage(
+      state.offers.length <= 112 &&
+        state.trades.length <= 100 &&
+        signals.length <= 215 &&
+        state.market.data.contract_account_id === this.identity.contractId &&
+        state.market.block_height === state.block.height &&
+        state.market.block_timestamp_ns === state.block.timestampNs,
+      "invalid discovery batch",
+    );
+    this.write(() => {
+      const previous = this.discoveryState(),
+        checkpoint = this.checkpoint();
+      requireStorage(
+        (previous?.block.hash ?? null) === batch.previousHash,
+        "discovery checkpoint changed; restart complete read",
+      );
+      requireStorage(
+        (checkpoint["observed_revision"] === null ||
+          BigInt(state.market.market_revision) >=
+            BigInt(String(checkpoint["observed_revision"]))) &&
+          (checkpoint["observed_height"] === null ||
+            BigInt(state.block.height) >=
+              BigInt(String(checkpoint["observed_height"]))) &&
+          (checkpoint["observed_height"] !== state.block.height ||
+            checkpoint["observed_hash"] === state.block.hash),
+        "discovery checkpoint regression or fork",
+      );
+      for (const signal of signals)
+        this.run(
+          "INSERT INTO discovery_signals(signal_key,kind,merchant_id,payload_json,observed_at) VALUES(?,?,?,?,?) ON CONFLICT(signal_key) DO NOTHING",
+          signal.key,
+          signal.kind,
+          signal.merchantId,
+          signal.payload,
+          state.observedAt,
+        );
+      this.run(
+        "INSERT INTO discovery_state VALUES(1,?) ON CONFLICT(singleton) DO UPDATE SET state_json=excluded.state_json",
+        stateJson,
+      );
+      this.run(
+        "UPDATE deployment SET observed_revision=?,observed_height=?,observed_hash=?,observed_at=? WHERE singleton=1",
+        state.market.market_revision,
+        state.block.height,
+        state.block.hash,
+        state.observedAt,
+      );
+    });
   }
   checkpoint(): Row {
     return this.one("SELECT * FROM deployment WHERE singleton=1")!;

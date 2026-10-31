@@ -1,4 +1,4 @@
-export const schemaVersion = 1;
+export const schemaVersion = 2;
 
 // Only fixed, application-owned column names are passed here.
 const u64 = (name: string) => `${name} TEXT CHECK (${name} IS NULL OR
@@ -75,5 +75,22 @@ CREATE INDEX terminal_jobs ON jobs(status,updated_at);
 CREATE INDEX intents_by_job ON intents(job_id,status);
 CREATE INDEX decisions_by_job ON decisions(job_id);
 CREATE INDEX offers_by_job ON offers(job_id);
-PRAGMA user_version=1;
+`;
+
+export const discoverySchema = `
+CREATE TABLE discovery_state (
+  singleton INTEGER PRIMARY KEY CHECK(singleton=1),
+  state_json TEXT NOT NULL CHECK(length(CAST(state_json AS BLOB))<=262144)
+) STRICT;
+CREATE TABLE discovery_signals (
+  signal_key TEXT PRIMARY KEY, kind TEXT NOT NULL CHECK(kind IN ('offer_pending','player_purchase','history_gap')),
+  merchant_id TEXT CHECK(merchant_id IN ('rex','luna','bolt')),
+  payload_json TEXT NOT NULL CHECK(length(CAST(payload_json AS BLOB))<=65536),
+  observed_at INTEGER NOT NULL, handled INTEGER NOT NULL DEFAULT 0 CHECK(handled IN (0,1))
+) STRICT;
+CREATE TRIGGER bound_discovery_signals BEFORE INSERT ON discovery_signals
+  WHEN NOT EXISTS(SELECT 1 FROM discovery_signals WHERE signal_key=NEW.signal_key)
+  AND (SELECT count(*) FROM discovery_signals)>=256
+  BEGIN SELECT RAISE(ABORT,'discovery inbox full'); END;
+PRAGMA user_version=2;
 `;
