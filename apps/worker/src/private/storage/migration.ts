@@ -14,12 +14,19 @@ import {
 } from "node:fs";
 import { isAbsolute, join } from "node:path";
 import { createHash, randomUUID } from "node:crypto";
-import { discoverySchema } from "./schema.js";
+import { discoverySchema, schedulingSchema } from "./schema.js";
 import { requireStorage } from "./validation.js";
 
 // Migration runs only after ownership, deployment identity and integrity checks.
 // VACUUM INTO provides a consistent pre-migration snapshot without changing source.
 export function migrateDiscovery(db: DatabaseSync, root: string): void {
+  const version = Number(
+    db.prepare("PRAGMA user_version").get()!["user_version"],
+  );
+  requireStorage(
+    version === 1 || version === 2,
+    "unsupported migration source",
+  );
   requireStorage(
     isAbsolute(root),
     "absolute migration backup directory required",
@@ -83,14 +90,15 @@ export function migrateDiscovery(db: DatabaseSync, root: string): void {
       snapshot.prepare("PRAGMA integrity_check").get()!["integrity_check"] ===
         "ok" &&
         snapshot.prepare("PRAGMA foreign_key_check").all().length === 0 &&
-        snapshot.prepare("PRAGMA user_version").get()!["user_version"] === 1,
+        snapshot.prepare("PRAGMA user_version").get()!["user_version"] ===
+          version,
       "migration backup integrity failed",
     );
     const row = snapshot
       .prepare("SELECT * FROM deployment WHERE singleton=1")
       .get()!;
     const manifest = {
-      schema: 1,
+      schema: version,
       identity: JSON.parse(String(row["identity"])),
       capturedAt: Date.now(),
       database: {
@@ -121,7 +129,8 @@ export function migrateDiscovery(db: DatabaseSync, root: string): void {
   }
   db.exec("BEGIN IMMEDIATE");
   try {
-    db.exec(discoverySchema);
+    if (version === 1) db.exec(discoverySchema);
+    db.exec(schedulingSchema);
     db.exec("COMMIT");
   } catch (error) {
     db.exec("ROLLBACK");

@@ -1,4 +1,4 @@
-export const schemaVersion = 2;
+export const schemaVersion = 3;
 
 // Only fixed, application-owned column names are passed here.
 const u64 = (name: string) => `${name} TEXT CHECK (${name} IS NULL OR
@@ -93,4 +93,44 @@ CREATE TRIGGER bound_discovery_signals BEFORE INSERT ON discovery_signals
   AND (SELECT count(*) FROM discovery_signals)>=256
   BEGIN SELECT RAISE(ABORT,'discovery inbox full'); END;
 PRAGMA user_version=2;
+`;
+
+export const schedulingSchema = `
+CREATE TABLE scheduler_state (
+ singleton INTEGER PRIMARY KEY CHECK(singleton=1), completed_seq INTEGER NOT NULL DEFAULT 0
+) STRICT;
+INSERT INTO scheduler_state VALUES(1,0);
+CREATE TABLE scheduler_roots (
+ job_id TEXT PRIMARY KEY REFERENCES jobs(id), kind TEXT NOT NULL CHECK(kind IN ('purchase','gap','catchup')),
+ model_calls INTEGER NOT NULL DEFAULT 0 CHECK(model_calls BETWEEN 0 AND 6),
+ mutations INTEGER NOT NULL DEFAULT 0 CHECK(mutations BETWEEN 0 AND 8),
+ first_seq INTEGER, last_seq INTEGER, has_gap INTEGER NOT NULL DEFAULT 0 CHECK(has_gap IN (0,1))
+) STRICT;
+CREATE TABLE scheduler_inputs (
+ seq INTEGER PRIMARY KEY AUTOINCREMENT, business_key TEXT NOT NULL UNIQUE,
+ fingerprint TEXT NOT NULL, payload_json TEXT, job_id TEXT REFERENCES jobs(id),
+ disposition TEXT NOT NULL CHECK(disposition IN ('assigned','quarantined','ignored')),
+ observed_at INTEGER NOT NULL
+) STRICT;
+CREATE TABLE scheduler_sources (
+ source_key TEXT PRIMARY KEY, business_key TEXT NOT NULL REFERENCES scheduler_inputs(business_key)
+) STRICT;
+CREATE TABLE scheduler_turns (
+ id TEXT PRIMARY KEY, job_id TEXT NOT NULL REFERENCES scheduler_roots(job_id),
+ merchant_id TEXT NOT NULL REFERENCES merchants(merchant_id),
+ phase TEXT NOT NULL CHECK(phase IN ('decision','followup')),
+ source_key TEXT NOT NULL, status TEXT NOT NULL CHECK(status IN ('queued','running','completed','skipped')),
+ UNIQUE(job_id,merchant_id,phase,source_key)
+) STRICT;
+CREATE UNIQUE INDEX one_running_merchant_turn ON scheduler_turns(merchant_id) WHERE status='running';
+CREATE UNIQUE INDEX one_followup_per_merchant ON scheduler_turns(job_id,merchant_id) WHERE phase='followup';
+CREATE TABLE scheduler_mutations (
+ intent_id TEXT PRIMARY KEY, turn_id TEXT NOT NULL REFERENCES scheduler_turns(id),
+ method TEXT NOT NULL, args_json TEXT NOT NULL, merchant_id TEXT NOT NULL,
+ job_id TEXT NOT NULL REFERENCES scheduler_roots(job_id)
+) STRICT;
+CREATE UNIQUE INDEX one_root_proposal ON scheduler_mutations(job_id,merchant_id) WHERE method='propose_trade';
+CREATE UNIQUE INDEX one_root_listing ON scheduler_mutations(job_id,merchant_id) WHERE method='set_listing';
+CREATE INDEX scheduler_input_jobs ON scheduler_inputs(job_id,seq);
+PRAGMA user_version=3;
 `;

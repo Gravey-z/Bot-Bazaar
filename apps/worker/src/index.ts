@@ -7,6 +7,7 @@ import { retainBackups } from "./private/storage/backup.js";
 import { MarketClient, createRpcTransport } from "@bot-bazaar/chain";
 import { DiscoveryObserver } from "./private/discovery/observer.js";
 import { DiscoveryLoop } from "./private/discovery/loop.js";
+import { Scheduler } from "./private/scheduling/scheduler.js";
 
 const config = (() => {
   try {
@@ -68,6 +69,19 @@ const backupTimer = setInterval(
   60 * 60 * 1000,
 );
 backupTimer.unref();
+const scheduler = new Scheduler(store);
+let schedulingStatus: "ready" | "unavailable" = "ready";
+const schedule = () => {
+  try {
+    scheduler.tick();
+    schedulingStatus = "ready";
+  } catch {
+    schedulingStatus = "unavailable";
+    console.error("Worker scheduling unavailable; unfinished work retained");
+  }
+};
+// Resume inbox transfer even when live discovery is intentionally offline.
+schedule();
 const discovery = config.discoveryEnabled
   ? new DiscoveryLoop(
       new DiscoveryObserver(
@@ -82,6 +96,8 @@ const discovery = config.discoveryEnabled
           "Worker discovery unavailable; observation checkpoint was not advanced",
         );
       },
+      3000,
+      schedule,
     )
   : undefined;
 
@@ -95,6 +111,7 @@ const server = createServer((request, response) => {
         recovery: "required",
         backup: backupFailed ? "failed" : "verified",
         discovery: discovery?.status ?? "disabled",
+        scheduling: schedulingStatus,
       }),
     );
     return;

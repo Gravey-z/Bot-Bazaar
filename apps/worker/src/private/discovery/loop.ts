@@ -1,4 +1,5 @@
 import type { DiscoveryObserver } from "./observer.js";
+import type { DiscoveryState } from "./types.js";
 
 export class DiscoveryLoop {
   private readonly abort = new AbortController();
@@ -10,6 +11,7 @@ export class DiscoveryLoop {
     private readonly observer: DiscoveryObserver,
     private readonly onError: () => void = () => {},
     private readonly intervalMs = 3000,
+    private readonly onObserved: (state: DiscoveryState) => void = () => {},
   ) {
     if (!Number.isSafeInteger(intervalMs) || intervalMs < 1)
       throw new Error("invalid discovery interval");
@@ -22,8 +24,11 @@ export class DiscoveryLoop {
   private run(): void {
     this.active = (async () => {
       try {
-        await this.observer.poll(this.abort.signal);
-        if (!this.abort.signal.aborted) this.status = "ready";
+        const state = await this.observer.poll(this.abort.signal);
+        if (!this.abort.signal.aborted) {
+          this.onObserved(state);
+          this.status = "ready";
+        }
       } catch {
         if (!this.abort.signal.aborted) {
           this.status = "unavailable";

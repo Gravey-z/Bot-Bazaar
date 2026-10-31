@@ -10,6 +10,8 @@ import { DiscoveryObserver } from "../dist/private/discovery/observer.js";
 import { DiscoveryLoop } from "../dist/private/discovery/loop.js";
 import { verifyBackup } from "../dist/private/storage/backup.js";
 import { captured, fixture } from "./chain-fixture.mjs";
+const dropScheduling =
+  "DROP TABLE scheduler_mutations;DROP TABLE scheduler_turns;DROP TABLE scheduler_sources;DROP TABLE scheduler_inputs;DROP TABLE scheduler_roots;DROP TABLE scheduler_state;";
 
 async function setup(t, options = {}) {
   const root = await mkdtemp(join(tmpdir(), "bazaar-discovery-test-"));
@@ -418,7 +420,8 @@ test("v1 migration preserves jobs/locks with a verifiable pre-migration snapshot
   await f.store.close();
   const db = new DatabaseSync(join(f.root, "worker.sqlite"));
   db.exec(
-    "DROP TABLE discovery_signals; DROP TABLE discovery_state; PRAGMA user_version=1;",
+    dropScheduling +
+      "DROP TABLE discovery_signals; DROP TABLE discovery_state; PRAGMA user_version=1;",
   );
   db.close();
   await f.reopen();
@@ -481,7 +484,8 @@ test("failed pre-migration backup leaves the v1 database and its jobs intact", a
   await f.store.close();
   let db = new DatabaseSync(join(f.root, "worker.sqlite"));
   db.exec(
-    "DROP TABLE discovery_signals; DROP TABLE discovery_state; PRAGMA user_version=1;",
+    dropScheduling +
+      "DROP TABLE discovery_signals; DROP TABLE discovery_state; PRAGMA user_version=1;",
   );
   db.close();
   const blocked = join(f.root, "not-a-directory");

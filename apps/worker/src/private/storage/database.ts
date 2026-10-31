@@ -26,7 +26,13 @@ import type {
   ReceiptStatus,
 } from "@bot-bazaar/chain";
 import type { MerchantMethod, PreparedMerchantCall } from "../chain-adapter.js";
-import { schema, schemaVersion, discoverySchema } from "./schema.js";
+import {
+  schema,
+  schemaVersion,
+  discoverySchema,
+  schedulingSchema,
+} from "./schema.js";
+import { SchedulerRepository } from "../scheduling/repository.js";
 import { migrateDiscovery } from "./migration.js";
 import type {
   DiscoveryCommit,
@@ -81,6 +87,7 @@ export class WorkerStore {
   readonly dataDir: string;
   readonly path: string;
   readonly identity: DeploymentIdentity;
+  readonly scheduler: SchedulerRepository;
 
   constructor(options: StoreOptions) {
     const expected = identityJson(options.identity);
@@ -142,7 +149,7 @@ export class WorkerStore {
         requireStorage(version === 0, "unexpected initial schema");
         this.db.exec("BEGIN IMMEDIATE");
         try {
-          this.db.exec(schema + discoverySchema);
+          this.db.exec(schema + discoverySchema + schedulingSchema);
           this.db
             .prepare(
               "INSERT INTO deployment(singleton,identity,policy_version,feed_generation,created_at) VALUES(1,?,?,?,?)",
@@ -161,7 +168,7 @@ export class WorkerStore {
         }
       } else
         requireStorage(
-          version === 1 || version === schemaVersion,
+          version === 1 || version === 2 || version === schemaVersion,
           "unsupported database schema; do not recreate it",
         );
       requireStorage(
@@ -181,7 +188,7 @@ export class WorkerStore {
           this.all("PRAGMA foreign_key_check").length === 0,
         "database integrity check failed",
       );
-      if (!fresh && version === 1)
+      if (!fresh && version < schemaVersion)
         migrateDiscovery(
           this.db,
           options.backupDir ?? join(this.dataDir, "backups"),
@@ -197,6 +204,9 @@ export class WorkerStore {
       if (error instanceof StorageError) throw error;
       throw new StorageError("cannot acquire ownership or validate database");
     }
+    this.scheduler = new SchedulerRepository(this.db, expected, (operation) =>
+      this.write(operation, true),
+    );
   }
   private one(sql: string, ...args: SQLInputValue[]): Row | undefined {
     return this.db.prepare(sql).get(...args);
@@ -306,12 +316,13 @@ export class WorkerStore {
       );
       for (const signal of signals)
         this.run(
-          "INSERT INTO discovery_signals(signal_key,kind,merchant_id,payload_json,observed_at) VALUES(?,?,?,?,?) ON CONFLICT(signal_key) DO NOTHING",
+          "INSERT INTO discovery_signals(signal_key,kind,merchant_id,payload_json,observed_at) SELECT ?,?,?,?,? WHERE NOT EXISTS(SELECT 1 FROM scheduler_sources WHERE source_key=?) ON CONFLICT(signal_key) DO NOTHING",
           signal.key,
           signal.kind,
           signal.merchantId,
           signal.payload,
           state.observedAt,
+          `view:${signal.key}`,
         );
       this.run(
         "INSERT INTO discovery_state VALUES(1,?) ON CONFLICT(singleton) DO UPDATE SET state_json=excluded.state_json",
@@ -426,6 +437,10 @@ export class WorkerStore {
     id(jobId);
     timestamp(now);
     this.write(() => {
+      requireStorage(
+        !this.one("SELECT job_id FROM scheduler_roots WHERE job_id=?", jobId),
+        "scheduled root requires a turn claim",
+      );
       const row = this.getJob(jobId);
       requireStorage(
         row?.["status"] === "queued" && Number(row["deadline"]) > now,
@@ -532,6 +547,10 @@ export class WorkerStore {
     );
     this.write(() => {
       requireStorage(
+        !this.one("SELECT job_id FROM scheduler_roots WHERE job_id=?", jobId),
+        "scheduled root requires scheduler completion",
+      );
+      requireStorage(
         ["active", "queued"].includes(String(this.getJob(jobId)?.["status"])),
         "job already terminal",
       );
@@ -632,6 +651,7 @@ export class WorkerStore {
     const snapshot = { ...input }; // Arguments above have already been detached/validated.
     this.write(
       () => {
+        this.scheduler.assertIntent(snapshot, argsJson, now);
         const job = this.getJob(snapshot.jobId);
         requireStorage(
           job?.["status"] === "active" && Number(job["deadline"]) > now,
@@ -884,6 +904,20 @@ export class WorkerStore {
             Number(offer.status !== "pending"),
             now,
           );
+          if (offer.status === "accepted") {
+            const trade = (
+              result.data as {
+                trade: {
+                  buyer: { merchant_id: MerchantId };
+                  seller: { merchant_id: MerchantId };
+                };
+              }
+            ).trade;
+            this.scheduler.settlement(String(row["job_id"]), offer.offer_id, [
+              trade.buyer.merchant_id,
+              trade.seller.merchant_id,
+            ]);
+          }
         }
         if (row["method"] === "expire_offers")
           for (const offerId of (result.data as { expired_offer_ids: string[] })
