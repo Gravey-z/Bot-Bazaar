@@ -1,0 +1,2116 @@
+{
+  "source": "NEAR Testnet P2.21, 30 October 2026; public successful receipts and pinned snapshots",
+  "contract_id": "vaultkeeper-bazaar.testnet",
+  "code_hash": "CcU8qzpFzXy9BstkGqLCnK7Uxam8tymqZyaDK92nzYkW",
+  "seed": {
+    "checked_at_utc": "2026-10-30T23:17:46.934Z",
+    "finalized_block": {
+      "hash": "8N18jrtL8BwPJhkKBNM6NHrtu4RBmbygY4mYuRX2NSNa",
+      "height": 275517167,
+      "timestamp_ns": "1793402264766439822"
+    },
+    "contract_account": {
+      "amount": "9997736003072424600000000",
+      "block_hash": "8N18jrtL8BwPJhkKBNM6NHrtu4RBmbygY4mYuRX2NSNa",
+      "block_height": 275517167,
+      "code_hash": "CcU8qzpFzXy9BstkGqLCnK7Uxam8tymqZyaDK92nzYkW",
+      "locked": "0",
+      "storage_paid_at": 0,
+      "storage_usage": 262901
+    },
+    "market": {
+      "market_revision": "1",
+      "block_height": "275517167",
+      "block_timestamp_ns": "1793402264766439822",
+      "data": {
+        "api_version": "1.0.0",
+        "economy_version": "1",
+        "contract_account_id": "vaultkeeper-bazaar.testnet",
+        "owner_account_id": "vaultkeeper-bazaar.testnet",
+        "paused": false,
+        "registered_player_count": "0",
+        "total_issued_gold": "550",
+        "resource_supply": {
+          "crystal": "29",
+          "wood": "25",
+          "herb": "26",
+          "iron": "24"
+        },
+        "merchants": [
+          {
+            "merchant_id": "rex",
+            "controller_account_id": "rex-bazaar.testnet",
+            "gold": "180",
+            "inventory": {
+              "crystal": "15",
+              "wood": "4",
+              "herb": "2",
+              "iron": "10"
+            },
+            "listings": [
+              {
+                "merchant_id": "rex",
+                "resource": "crystal",
+                "unit_price": "4",
+                "quantity": "15",
+                "active": true,
+                "version": "1"
+              },
+              {
+                "merchant_id": "rex",
+                "resource": "wood",
+                "unit_price": "3",
+                "quantity": "2",
+                "active": true,
+                "version": "1"
+              },
+              {
+                "merchant_id": "rex",
+                "resource": "herb",
+                "unit_price": "4",
+                "quantity": "0",
+                "active": false,
+                "version": "1"
+              },
+              {
+                "merchant_id": "rex",
+                "resource": "iron",
+                "unit_price": "5",
+                "quantity": "6",
+                "active": true,
+                "version": "1"
+              }
+            ],
+            "last_action_id": "0",
+            "last_action": null
+          },
+          {
+            "merchant_id": "luna",
+            "controller_account_id": "luna-bazaar.testnet",
+            "gold": "220",
+            "inventory": {
+              "crystal": "12",
+              "wood": "3",
+              "herb": "20",
+              "iron": "2"
+            },
+            "listings": [
+              {
+                "merchant_id": "luna",
+                "resource": "crystal",
+                "unit_price": "6",
+                "quantity": "8",
+                "active": true,
+                "version": "1"
+              },
+              {
+                "merchant_id": "luna",
+                "resource": "wood",
+                "unit_price": "3",
+                "quantity": "1",
+                "active": true,
+                "version": "1"
+              },
+              {
+                "merchant_id": "luna",
+                "resource": "herb",
+                "unit_price": "3",
+                "quantity": "12",
+                "active": true,
+                "version": "1"
+              },
+              {
+                "merchant_id": "luna",
+                "resource": "iron",
+                "unit_price": "6",
+                "quantity": "0",
+                "active": false,
+                "version": "1"
+              }
+            ],
+            "last_action_id": "0",
+            "last_action": null
+          },
+          {
+            "merchant_id": "bolt",
+            "controller_account_id": "bolt-bazaar.testnet",
+            "gold": "150",
+            "inventory": {
+              "crystal": "2",
+              "wood": "18",
+              "herb": "4",
+              "iron": "12"
+            },
+            "listings": [
+              {
+                "merchant_id": "bolt",
+                "resource": "crystal",
+                "unit_price": "7",
+                "quantity": "0",
+                "active": false,
+                "version": "1"
+              },
+              {
+                "merchant_id": "bolt",
+                "resource": "wood",
+                "unit_price": "2",
+                "quantity": "10",
+                "active": true,
+                "version": "1"
+              },
+              {
+                "merchant_id": "bolt",
+                "resource": "herb",
+                "unit_price": "4",
+                "quantity": "2",
+                "active": true,
+                "version": "1"
+              },
+              {
+                "merchant_id": "bolt",
+                "resource": "iron",
+                "unit_price": "5",
+                "quantity": "6",
+                "active": true,
+                "version": "1"
+              }
+            ],
+            "last_action_id": "0",
+            "last_action": null
+          }
+        ],
+        "next_offer_id": "1",
+        "next_trade_id": "1",
+        "offers_pruned_through": "0",
+        "trades_pruned_through": "0",
+        "limits": {
+          "max_players": "1000",
+          "starter_gold": "100",
+          "max_actor_gold": "1000000",
+          "max_actor_resource": "1000",
+          "max_trade_quantity": "100",
+          "max_listing_quantity": "100",
+          "max_unit_price": "100",
+          "max_total_price": "10000",
+          "max_pending_offers_per_merchant": "8",
+          "max_offer_lifetime_ns": "600000000000",
+          "max_page_size": "50",
+          "retained_trade_limit": "100",
+          "retained_terminal_offer_limit": "100",
+          "max_expire_batch": "24"
+        }
+      }
+    },
+    "player": {
+      "market_revision": "1",
+      "block_height": "275517167",
+      "block_timestamp_ns": "1793402264766439822",
+      "data": null
+    },
+    "trades": {
+      "market_revision": "1",
+      "block_height": "275517167",
+      "block_timestamp_ns": "1793402264766439822",
+      "data": {
+        "items": [],
+        "next_after_id": null,
+        "has_more": false,
+        "history_gap": false,
+        "pruned_through": "0"
+      }
+    },
+    "offer": {
+      "market_revision": "1",
+      "block_height": "275517167",
+      "block_timestamp_ns": "1793402264766439822",
+      "data": {
+        "kind": "not_found",
+        "offer_id": "1"
+      }
+    },
+    "keys": {
+      "player-bazaar.testnet": {
+        "block_hash": "8N18jrtL8BwPJhkKBNM6NHrtu4RBmbygY4mYuRX2NSNa",
+        "block_height": 275517167,
+        "nonce": 275515147000000,
+        "permission": "FullAccess"
+      },
+      "rex-bazaar.testnet": {
+        "block_hash": "8N18jrtL8BwPJhkKBNM6NHrtu4RBmbygY4mYuRX2NSNa",
+        "block_height": 275517167,
+        "nonce": 275516337000000,
+        "permission": {
+          "FunctionCall": {
+            "allowance": "100000000000000000000000",
+            "method_names": [
+              "set_listing",
+              "propose_trade",
+              "accept_trade",
+              "cancel_trade",
+              "expire_offers"
+            ],
+            "receiver_id": "vaultkeeper-bazaar.testnet"
+          }
+        }
+      },
+      "luna-bazaar.testnet": {
+        "block_hash": "8N18jrtL8BwPJhkKBNM6NHrtu4RBmbygY4mYuRX2NSNa",
+        "block_height": 275517167,
+        "nonce": 275516342000000,
+        "permission": {
+          "FunctionCall": {
+            "allowance": "100000000000000000000000",
+            "method_names": [
+              "set_listing",
+              "propose_trade",
+              "accept_trade",
+              "cancel_trade",
+              "expire_offers"
+            ],
+            "receiver_id": "vaultkeeper-bazaar.testnet"
+          }
+        }
+      }
+    }
+  },
+  "pending": {
+    "checked_at_utc": "2026-10-30T23:20:11.696Z",
+    "finalized_block": {
+      "hash": "ERyzPd69YyU2A4GkxsH3TZMPvzgn8senq8xdXjG1gHfk",
+      "height": 275517418,
+      "timestamp_ns": "1793402409550668038"
+    },
+    "contract_account": {
+      "amount": "9997736003072424600000000",
+      "block_hash": "ERyzPd69YyU2A4GkxsH3TZMPvzgn8senq8xdXjG1gHfk",
+      "block_height": 275517418,
+      "code_hash": "CcU8qzpFzXy9BstkGqLCnK7Uxam8tymqZyaDK92nzYkW",
+      "locked": "0",
+      "storage_paid_at": 0,
+      "storage_usage": 263382
+    },
+    "market": {
+      "market_revision": "4",
+      "block_height": "275517418",
+      "block_timestamp_ns": "1793402409550668038",
+      "data": {
+        "api_version": "1.0.0",
+        "economy_version": "1",
+        "contract_account_id": "vaultkeeper-bazaar.testnet",
+        "owner_account_id": "vaultkeeper-bazaar.testnet",
+        "paused": false,
+        "registered_player_count": "1",
+        "total_issued_gold": "650",
+        "resource_supply": {
+          "crystal": "29",
+          "wood": "25",
+          "herb": "26",
+          "iron": "24"
+        },
+        "merchants": [
+          {
+            "merchant_id": "rex",
+            "controller_account_id": "rex-bazaar.testnet",
+            "gold": "228",
+            "inventory": {
+              "crystal": "3",
+              "wood": "4",
+              "herb": "2",
+              "iron": "10"
+            },
+            "listings": [
+              {
+                "merchant_id": "rex",
+                "resource": "crystal",
+                "unit_price": "4",
+                "quantity": "3",
+                "active": true,
+                "version": "2"
+              },
+              {
+                "merchant_id": "rex",
+                "resource": "wood",
+                "unit_price": "3",
+                "quantity": "2",
+                "active": true,
+                "version": "1"
+              },
+              {
+                "merchant_id": "rex",
+                "resource": "herb",
+                "unit_price": "4",
+                "quantity": "0",
+                "active": false,
+                "version": "1"
+              },
+              {
+                "merchant_id": "rex",
+                "resource": "iron",
+                "unit_price": "5",
+                "quantity": "6",
+                "active": true,
+                "version": "1"
+              }
+            ],
+            "last_action_id": "1",
+            "last_action": {
+              "action_id": "1",
+              "method": "propose_trade",
+              "args_sha256": "f0f34d7bc682aad77ce5d47563494d9353d0d45283694c6e40aa49c1ebb1b23d",
+              "market_revision": "4",
+              "offer_id": "1",
+              "trade_id": null,
+              "listing_version": null
+            }
+          },
+          {
+            "merchant_id": "luna",
+            "controller_account_id": "luna-bazaar.testnet",
+            "gold": "220",
+            "inventory": {
+              "crystal": "12",
+              "wood": "3",
+              "herb": "20",
+              "iron": "2"
+            },
+            "listings": [
+              {
+                "merchant_id": "luna",
+                "resource": "crystal",
+                "unit_price": "6",
+                "quantity": "8",
+                "active": true,
+                "version": "1"
+              },
+              {
+                "merchant_id": "luna",
+                "resource": "wood",
+                "unit_price": "3",
+                "quantity": "1",
+                "active": true,
+                "version": "1"
+              },
+              {
+                "merchant_id": "luna",
+                "resource": "herb",
+                "unit_price": "3",
+                "quantity": "12",
+                "active": true,
+                "version": "1"
+              },
+              {
+                "merchant_id": "luna",
+                "resource": "iron",
+                "unit_price": "6",
+                "quantity": "0",
+                "active": false,
+                "version": "1"
+              }
+            ],
+            "last_action_id": "0",
+            "last_action": null
+          },
+          {
+            "merchant_id": "bolt",
+            "controller_account_id": "bolt-bazaar.testnet",
+            "gold": "150",
+            "inventory": {
+              "crystal": "2",
+              "wood": "18",
+              "herb": "4",
+              "iron": "12"
+            },
+            "listings": [
+              {
+                "merchant_id": "bolt",
+                "resource": "crystal",
+                "unit_price": "7",
+                "quantity": "0",
+                "active": false,
+                "version": "1"
+              },
+              {
+                "merchant_id": "bolt",
+                "resource": "wood",
+                "unit_price": "2",
+                "quantity": "10",
+                "active": true,
+                "version": "1"
+              },
+              {
+                "merchant_id": "bolt",
+                "resource": "herb",
+                "unit_price": "4",
+                "quantity": "2",
+                "active": true,
+                "version": "1"
+              },
+              {
+                "merchant_id": "bolt",
+                "resource": "iron",
+                "unit_price": "5",
+                "quantity": "6",
+                "active": true,
+                "version": "1"
+              }
+            ],
+            "last_action_id": "0",
+            "last_action": null
+          }
+        ],
+        "next_offer_id": "2",
+        "next_trade_id": "2",
+        "offers_pruned_through": "0",
+        "trades_pruned_through": "0",
+        "limits": {
+          "max_players": "1000",
+          "starter_gold": "100",
+          "max_actor_gold": "1000000",
+          "max_actor_resource": "1000",
+          "max_trade_quantity": "100",
+          "max_listing_quantity": "100",
+          "max_unit_price": "100",
+          "max_total_price": "10000",
+          "max_pending_offers_per_merchant": "8",
+          "max_offer_lifetime_ns": "600000000000",
+          "max_page_size": "50",
+          "retained_trade_limit": "100",
+          "retained_terminal_offer_limit": "100",
+          "max_expire_batch": "24"
+        }
+      }
+    },
+    "player": {
+      "market_revision": "4",
+      "block_height": "275517418",
+      "block_timestamp_ns": "1793402409550668038",
+      "data": {
+        "account_id": "player-bazaar.testnet",
+        "gold": "52",
+        "inventory": {
+          "crystal": "12",
+          "wood": "0",
+          "herb": "0",
+          "iron": "0"
+        }
+      }
+    },
+    "trades": {
+      "market_revision": "4",
+      "block_height": "275517418",
+      "block_timestamp_ns": "1793402409550668038",
+      "data": {
+        "items": [
+          {
+            "trade_id": "1",
+            "kind": "player_purchase",
+            "buyer": {
+              "kind": "player",
+              "account_id": "player-bazaar.testnet"
+            },
+            "seller": {
+              "kind": "merchant",
+              "merchant_id": "rex"
+            },
+            "resource": "crystal",
+            "quantity": "12",
+            "unit_price": "4",
+            "total_price": "48",
+            "offer_id": null,
+            "buyer_gold_after": "52",
+            "seller_gold_after": "228",
+            "buyer_resource_after": "12",
+            "seller_resource_after": "3",
+            "settled_at_ns": "1793402275758876339",
+            "market_revision": "3"
+          }
+        ],
+        "next_after_id": "1",
+        "has_more": false,
+        "history_gap": false,
+        "pruned_through": "0"
+      }
+    },
+    "offer": {
+      "market_revision": "4",
+      "block_height": "275517418",
+      "block_timestamp_ns": "1793402409550668038",
+      "data": {
+        "kind": "found",
+        "offer": {
+          "offer_id": "1",
+          "proposer": "rex",
+          "buyer": "rex",
+          "seller": "luna",
+          "counterparty": "luna",
+          "resource": "crystal",
+          "quantity": "4",
+          "unit_price": "6",
+          "total_price": "24",
+          "created_at_ns": "1793402408963212106",
+          "expires_at_ns": "1793402904306696917",
+          "status": "pending",
+          "closed_at_ns": null,
+          "settled_trade_id": null,
+          "proposal_action": {
+            "merchant_id": "rex",
+            "action_id": "1"
+          }
+        }
+      }
+    },
+    "keys": {
+      "player-bazaar.testnet": {
+        "block_hash": "ERyzPd69YyU2A4GkxsH3TZMPvzgn8senq8xdXjG1gHfk",
+        "block_height": 275517418,
+        "nonce": 275515147000002,
+        "permission": "FullAccess"
+      },
+      "rex-bazaar.testnet": {
+        "block_hash": "ERyzPd69YyU2A4GkxsH3TZMPvzgn8senq8xdXjG1gHfk",
+        "block_height": 275517418,
+        "nonce": 275516337000001,
+        "permission": {
+          "FunctionCall": {
+            "allowance": "99711932973678500000000",
+            "method_names": [
+              "set_listing",
+              "propose_trade",
+              "accept_trade",
+              "cancel_trade",
+              "expire_offers"
+            ],
+            "receiver_id": "vaultkeeper-bazaar.testnet"
+          }
+        }
+      },
+      "luna-bazaar.testnet": {
+        "block_hash": "ERyzPd69YyU2A4GkxsH3TZMPvzgn8senq8xdXjG1gHfk",
+        "block_height": 275517418,
+        "nonce": 275516342000000,
+        "permission": {
+          "FunctionCall": {
+            "allowance": "100000000000000000000000",
+            "method_names": [
+              "set_listing",
+              "propose_trade",
+              "accept_trade",
+              "cancel_trade",
+              "expire_offers"
+            ],
+            "receiver_id": "vaultkeeper-bazaar.testnet"
+          }
+        }
+      }
+    }
+  },
+  "final": {
+    "checked_at_utc": "2026-10-30T23:20:17.760Z",
+    "finalized_block": {
+      "hash": "6t8zQyHT5nuL8tnLGtGqnfUr8L3Ux65iqXXCgahAQDsz",
+      "height": 275517428,
+      "timestamp_ns": "1793402415786186878"
+    },
+    "contract_account": {
+      "amount": "9997736003072424600000000",
+      "block_hash": "6t8zQyHT5nuL8tnLGtGqnfUr8L3Ux65iqXXCgahAQDsz",
+      "block_height": 275517428,
+      "code_hash": "CcU8qzpFzXy9BstkGqLCnK7Uxam8tymqZyaDK92nzYkW",
+      "locked": "0",
+      "storage_paid_at": 0,
+      "storage_usage": 263618
+    },
+    "market": {
+      "market_revision": "5",
+      "block_height": "275517428",
+      "block_timestamp_ns": "1793402415786186878",
+      "data": {
+        "api_version": "1.0.0",
+        "economy_version": "1",
+        "contract_account_id": "vaultkeeper-bazaar.testnet",
+        "owner_account_id": "vaultkeeper-bazaar.testnet",
+        "paused": false,
+        "registered_player_count": "1",
+        "total_issued_gold": "650",
+        "resource_supply": {
+          "crystal": "29",
+          "wood": "25",
+          "herb": "26",
+          "iron": "24"
+        },
+        "merchants": [
+          {
+            "merchant_id": "rex",
+            "controller_account_id": "rex-bazaar.testnet",
+            "gold": "204",
+            "inventory": {
+              "crystal": "7",
+              "wood": "4",
+              "herb": "2",
+              "iron": "10"
+            },
+            "listings": [
+              {
+                "merchant_id": "rex",
+                "resource": "crystal",
+                "unit_price": "4",
+                "quantity": "3",
+                "active": true,
+                "version": "3"
+              },
+              {
+                "merchant_id": "rex",
+                "resource": "wood",
+                "unit_price": "3",
+                "quantity": "2",
+                "active": true,
+                "version": "1"
+              },
+              {
+                "merchant_id": "rex",
+                "resource": "herb",
+                "unit_price": "4",
+                "quantity": "0",
+                "active": false,
+                "version": "1"
+              },
+              {
+                "merchant_id": "rex",
+                "resource": "iron",
+                "unit_price": "5",
+                "quantity": "6",
+                "active": true,
+                "version": "1"
+              }
+            ],
+            "last_action_id": "1",
+            "last_action": {
+              "action_id": "1",
+              "method": "propose_trade",
+              "args_sha256": "f0f34d7bc682aad77ce5d47563494d9353d0d45283694c6e40aa49c1ebb1b23d",
+              "market_revision": "4",
+              "offer_id": "1",
+              "trade_id": null,
+              "listing_version": null
+            }
+          },
+          {
+            "merchant_id": "luna",
+            "controller_account_id": "luna-bazaar.testnet",
+            "gold": "244",
+            "inventory": {
+              "crystal": "8",
+              "wood": "3",
+              "herb": "20",
+              "iron": "2"
+            },
+            "listings": [
+              {
+                "merchant_id": "luna",
+                "resource": "crystal",
+                "unit_price": "6",
+                "quantity": "8",
+                "active": true,
+                "version": "2"
+              },
+              {
+                "merchant_id": "luna",
+                "resource": "wood",
+                "unit_price": "3",
+                "quantity": "1",
+                "active": true,
+                "version": "1"
+              },
+              {
+                "merchant_id": "luna",
+                "resource": "herb",
+                "unit_price": "3",
+                "quantity": "12",
+                "active": true,
+                "version": "1"
+              },
+              {
+                "merchant_id": "luna",
+                "resource": "iron",
+                "unit_price": "6",
+                "quantity": "0",
+                "active": false,
+                "version": "1"
+              }
+            ],
+            "last_action_id": "1",
+            "last_action": {
+              "action_id": "1",
+              "method": "accept_trade",
+              "args_sha256": "bde105b0cc7ff308deda8ef1d4af84d41ec5797ada6a378c1b0ed83ecb980bed",
+              "market_revision": "5",
+              "offer_id": "1",
+              "trade_id": "2",
+              "listing_version": null
+            }
+          },
+          {
+            "merchant_id": "bolt",
+            "controller_account_id": "bolt-bazaar.testnet",
+            "gold": "150",
+            "inventory": {
+              "crystal": "2",
+              "wood": "18",
+              "herb": "4",
+              "iron": "12"
+            },
+            "listings": [
+              {
+                "merchant_id": "bolt",
+                "resource": "crystal",
+                "unit_price": "7",
+                "quantity": "0",
+                "active": false,
+                "version": "1"
+              },
+              {
+                "merchant_id": "bolt",
+                "resource": "wood",
+                "unit_price": "2",
+                "quantity": "10",
+                "active": true,
+                "version": "1"
+              },
+              {
+                "merchant_id": "bolt",
+                "resource": "herb",
+                "unit_price": "4",
+                "quantity": "2",
+                "active": true,
+                "version": "1"
+              },
+              {
+                "merchant_id": "bolt",
+                "resource": "iron",
+                "unit_price": "5",
+                "quantity": "6",
+                "active": true,
+                "version": "1"
+              }
+            ],
+            "last_action_id": "0",
+            "last_action": null
+          }
+        ],
+        "next_offer_id": "2",
+        "next_trade_id": "3",
+        "offers_pruned_through": "0",
+        "trades_pruned_through": "0",
+        "limits": {
+          "max_players": "1000",
+          "starter_gold": "100",
+          "max_actor_gold": "1000000",
+          "max_actor_resource": "1000",
+          "max_trade_quantity": "100",
+          "max_listing_quantity": "100",
+          "max_unit_price": "100",
+          "max_total_price": "10000",
+          "max_pending_offers_per_merchant": "8",
+          "max_offer_lifetime_ns": "600000000000",
+          "max_page_size": "50",
+          "retained_trade_limit": "100",
+          "retained_terminal_offer_limit": "100",
+          "max_expire_batch": "24"
+        }
+      }
+    },
+    "player": {
+      "market_revision": "5",
+      "block_height": "275517428",
+      "block_timestamp_ns": "1793402415786186878",
+      "data": {
+        "account_id": "player-bazaar.testnet",
+        "gold": "52",
+        "inventory": {
+          "crystal": "12",
+          "wood": "0",
+          "herb": "0",
+          "iron": "0"
+        }
+      }
+    },
+    "trades": {
+      "market_revision": "5",
+      "block_height": "275517428",
+      "block_timestamp_ns": "1793402415786186878",
+      "data": {
+        "items": [
+          {
+            "trade_id": "1",
+            "kind": "player_purchase",
+            "buyer": {
+              "kind": "player",
+              "account_id": "player-bazaar.testnet"
+            },
+            "seller": {
+              "kind": "merchant",
+              "merchant_id": "rex"
+            },
+            "resource": "crystal",
+            "quantity": "12",
+            "unit_price": "4",
+            "total_price": "48",
+            "offer_id": null,
+            "buyer_gold_after": "52",
+            "seller_gold_after": "228",
+            "buyer_resource_after": "12",
+            "seller_resource_after": "3",
+            "settled_at_ns": "1793402275758876339",
+            "market_revision": "3"
+          },
+          {
+            "trade_id": "2",
+            "kind": "merchant_trade",
+            "buyer": {
+              "kind": "merchant",
+              "merchant_id": "rex"
+            },
+            "seller": {
+              "kind": "merchant",
+              "merchant_id": "luna"
+            },
+            "resource": "crystal",
+            "quantity": "4",
+            "unit_price": "6",
+            "total_price": "24",
+            "offer_id": "1",
+            "buyer_gold_after": "204",
+            "seller_gold_after": "244",
+            "buyer_resource_after": "7",
+            "seller_resource_after": "8",
+            "settled_at_ns": "1793402413996735323",
+            "market_revision": "5"
+          }
+        ],
+        "next_after_id": "2",
+        "has_more": false,
+        "history_gap": false,
+        "pruned_through": "0"
+      }
+    },
+    "offer": {
+      "market_revision": "5",
+      "block_height": "275517428",
+      "block_timestamp_ns": "1793402415786186878",
+      "data": {
+        "kind": "found",
+        "offer": {
+          "offer_id": "1",
+          "proposer": "rex",
+          "buyer": "rex",
+          "seller": "luna",
+          "counterparty": "luna",
+          "resource": "crystal",
+          "quantity": "4",
+          "unit_price": "6",
+          "total_price": "24",
+          "created_at_ns": "1793402408963212106",
+          "expires_at_ns": "1793402904306696917",
+          "status": "accepted",
+          "closed_at_ns": "1793402413996735323",
+          "settled_trade_id": "2",
+          "proposal_action": {
+            "merchant_id": "rex",
+            "action_id": "1"
+          }
+        }
+      }
+    },
+    "keys": {
+      "player-bazaar.testnet": {
+        "block_hash": "6t8zQyHT5nuL8tnLGtGqnfUr8L3Ux65iqXXCgahAQDsz",
+        "block_height": 275517428,
+        "nonce": 275515147000002,
+        "permission": "FullAccess"
+      },
+      "rex-bazaar.testnet": {
+        "block_hash": "6t8zQyHT5nuL8tnLGtGqnfUr8L3Ux65iqXXCgahAQDsz",
+        "block_height": 275517428,
+        "nonce": 275516337000001,
+        "permission": {
+          "FunctionCall": {
+            "allowance": "99711932973678500000000",
+            "method_names": [
+              "set_listing",
+              "propose_trade",
+              "accept_trade",
+              "cancel_trade",
+              "expire_offers"
+            ],
+            "receiver_id": "vaultkeeper-bazaar.testnet"
+          }
+        }
+      },
+      "luna-bazaar.testnet": {
+        "block_hash": "6t8zQyHT5nuL8tnLGtGqnfUr8L3Ux65iqXXCgahAQDsz",
+        "block_height": 275517428,
+        "nonce": 275516342000001,
+        "permission": {
+          "FunctionCall": {
+            "allowance": "99673105231869400000000",
+            "method_names": [
+              "set_listing",
+              "propose_trade",
+              "accept_trade",
+              "cancel_trade",
+              "expire_offers"
+            ],
+            "receiver_id": "vaultkeeper-bazaar.testnet"
+          }
+        }
+      }
+    }
+  },
+  "steps": [
+    {
+      "caller": "player-bazaar.testnet",
+      "signer_public_key": "ed25519:ERxgBSZ7uZE5Q54iJzb3QrW1tkpwvanB99PftDYGgJJD",
+      "method": "register_player",
+      "args": {},
+      "transaction_hash": "EiQLKX7oLe1mDn8rWjpNwrnNdWzfrquRFLBhBWWDsMUy",
+      "receipt": {
+        "final_execution_status": "FINAL",
+        "receipts_outcome": [
+          {
+            "block_hash": "Fnm3VpY5GR8Yjmwx2MciGKm4yamMs2mT4FBgVJb2tgyx",
+            "id": "7k2B72kB6jj5N4dHPkXtBkns3SERKWfJj3eUirYX94N4",
+            "outcome": {
+              "executor_id": "vaultkeeper-bazaar.testnet",
+              "gas_burnt": 2050741110538,
+              "logs": [
+                "EVENT_JSON:{\"standard\":\"bot_bazaar\",\"version\":\"1.0.0\",\"event\":\"register_player\",\"data\":[{\"initiator_account_id\":\"player-bazaar.testnet\",\"market_revision\":\"2\",\"block_height\":\"275517175\",\"block_timestamp_ns\":\"1793402269553307124\",\"result\":{\"account_id\":\"player-bazaar.testnet\",\"gold\":\"100\",\"inventory\":{\"crystal\":\"0\",\"wood\":\"0\",\"herb\":\"0\",\"iron\":\"0\"}}}]}"
+              ],
+              "metadata": {
+                "contracts": [
+                  {
+                    "local": "CcU8qzpFzXy9BstkGqLCnK7Uxam8tymqZyaDK92nzYkW"
+                  }
+                ],
+                "gas_profile": [
+                  {
+                    "cost": "BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "5295362220"
+                  },
+                  {
+                    "cost": "CONTRACT_LOADING_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "35445963"
+                  },
+                  {
+                    "cost": "CONTRACT_LOADING_BYTES",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "285180698885"
+                  },
+                  {
+                    "cost": "LOG_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "3543313050"
+                  },
+                  {
+                    "cost": "LOG_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "4645974432"
+                  },
+                  {
+                    "cost": "READ_CACHED_TRIE_NODE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "31920000000"
+                  },
+                  {
+                    "cost": "READ_MEMORY_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "20878905600"
+                  },
+                  {
+                    "cost": "READ_MEMORY_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "5941483479"
+                  },
+                  {
+                    "cost": "READ_REGISTER_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "10068660744"
+                  },
+                  {
+                    "cost": "READ_REGISTER_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "90775602"
+                  },
+                  {
+                    "cost": "STORAGE_HAS_KEY_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "54039896625"
+                  },
+                  {
+                    "cost": "STORAGE_HAS_KEY_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "800561970"
+                  },
+                  {
+                    "cost": "STORAGE_READ_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "56356845749"
+                  },
+                  {
+                    "cost": "STORAGE_READ_KEY_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "154762665"
+                  },
+                  {
+                    "cost": "STORAGE_READ_VALUE_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "4887184484"
+                  },
+                  {
+                    "cost": "STORAGE_WRITE_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "128393472000"
+                  },
+                  {
+                    "cost": "STORAGE_WRITE_EVICTED_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "27974174397"
+                  },
+                  {
+                    "cost": "STORAGE_WRITE_KEY_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "2184968877"
+                  },
+                  {
+                    "cost": "STORAGE_WRITE_VALUE_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "29033352504"
+                  },
+                  {
+                    "cost": "TOUCHING_TRIE_NODE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "29640000000"
+                  },
+                  {
+                    "cost": "UTF8_DECODING_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "3111779061"
+                  },
+                  {
+                    "cost": "UTF8_DECODING_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "102636328608"
+                  },
+                  {
+                    "cost": "WASM_INSTRUCTION",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "318127657716"
+                  },
+                  {
+                    "cost": "WRITE_MEMORY_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "14018974305"
+                  },
+                  {
+                    "cost": "WRITE_MEMORY_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "2552174364"
+                  },
+                  {
+                    "cost": "WRITE_REGISTER_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "14327612430"
+                  },
+                  {
+                    "cost": "WRITE_REGISTER_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "6800997996"
+                  }
+                ],
+                "version": 4
+              },
+              "receipt_ids": ["7MdHkshrAZA8ubQy8NQJa6JFCdbuBPpiSwQpt1Ke9MH"],
+              "status": {
+                "SuccessValue": "eyJtYXJrZXRfcmV2aXNpb24iOiIyIiwiYmxvY2tfaGVpZ2h0IjoiMjc1NTE3MTc1IiwiYmxvY2tfdGltZXN0YW1wX25zIjoiMTc5MzQwMjI2OTU1MzMwNzEyNCIsImRhdGEiOnsiYWNjb3VudF9pZCI6InBsYXllci1iYXphYXIudGVzdG5ldCIsImdvbGQiOiIxMDAiLCJpbnZlbnRvcnkiOnsiY3J5c3RhbCI6IjAiLCJ3b29kIjoiMCIsImhlcmIiOiIwIiwiaXJvbiI6IjAifX19"
+              },
+              "tokens_burnt": "205074111053800000000"
+            },
+            "proof": []
+          },
+          {
+            "block_hash": "Gh6DNxDfYjb3ZFsVy3LUJ3T6MoEf2dikJU3hv2WkqFND",
+            "id": "7MdHkshrAZA8ubQy8NQJa6JFCdbuBPpiSwQpt1Ke9MH",
+            "outcome": {
+              "executor_id": "player-bazaar.testnet",
+              "gas_burnt": 223182562500,
+              "logs": [],
+              "metadata": {
+                "contracts": [null],
+                "gas_profile": [],
+                "version": 4
+              },
+              "receipt_ids": [],
+              "status": {
+                "SuccessValue": ""
+              },
+              "tokens_burnt": "0"
+            },
+            "proof": []
+          }
+        ],
+        "status": {
+          "SuccessValue": "eyJtYXJrZXRfcmV2aXNpb24iOiIyIiwiYmxvY2tfaGVpZ2h0IjoiMjc1NTE3MTc1IiwiYmxvY2tfdGltZXN0YW1wX25zIjoiMTc5MzQwMjI2OTU1MzMwNzEyNCIsImRhdGEiOnsiYWNjb3VudF9pZCI6InBsYXllci1iYXphYXIudGVzdG5ldCIsImdvbGQiOiIxMDAiLCJpbnZlbnRvcnkiOnsiY3J5c3RhbCI6IjAiLCJ3b29kIjoiMCIsImhlcmIiOiIwIiwiaXJvbiI6IjAifX19"
+        },
+        "transaction": {
+          "actions": [
+            {
+              "FunctionCall": {
+                "args": "e30K",
+                "deposit": "0",
+                "gas": 30000000000000,
+                "method_name": "register_player"
+              }
+            }
+          ],
+          "hash": "EiQLKX7oLe1mDn8rWjpNwrnNdWzfrquRFLBhBWWDsMUy",
+          "nonce": 275515147000001,
+          "priority_fee": 0,
+          "public_key": "ed25519:ERxgBSZ7uZE5Q54iJzb3QrW1tkpwvanB99PftDYGgJJD",
+          "receiver_id": "vaultkeeper-bazaar.testnet",
+          "signature": "ed25519:3z1gnkatrLyyWMCEDhwj9xSDyxkVZz5sPYF93EFiQ3ZSCe7xtKUYkwUMeRQTE65DZcq6wrGuYZX3RKFbJPEEcTXo",
+          "signer_id": "player-bazaar.testnet"
+        },
+        "transaction_outcome": {
+          "block_hash": "9Ku7EZ1cG7hC6Sj9MKHPaJJ2KwgtwKSLW92WR8dWxUBC",
+          "id": "EiQLKX7oLe1mDn8rWjpNwrnNdWzfrquRFLBhBWWDsMUy",
+          "outcome": {
+            "executor_id": "player-bazaar.testnet",
+            "gas_burnt": 308917806870,
+            "logs": [],
+            "metadata": {
+              "gas_profile": null,
+              "version": 1
+            },
+            "receipt_ids": ["7k2B72kB6jj5N4dHPkXtBkns3SERKWfJj3eUirYX94N4"],
+            "status": {
+              "SuccessReceiptId": "7k2B72kB6jj5N4dHPkXtBkns3SERKWfJj3eUirYX94N4"
+            },
+            "tokens_burnt": "30891780687000000000"
+          },
+          "proof": [
+            {
+              "direction": "Right",
+              "hash": "3PE2NgzPKJRqQtaqkY7LsYhTzeENGHhsnW4eGJEnZMzL"
+            }
+          ]
+        }
+      },
+      "result": {
+        "market_revision": "2",
+        "block_height": "275517175",
+        "block_timestamp_ns": "1793402269553307124",
+        "data": {
+          "account_id": "player-bazaar.testnet",
+          "gold": "100",
+          "inventory": {
+            "crystal": "0",
+            "wood": "0",
+            "herb": "0",
+            "iron": "0"
+          }
+        }
+      }
+    },
+    {
+      "caller": "player-bazaar.testnet",
+      "signer_public_key": "ed25519:ERxgBSZ7uZE5Q54iJzb3QrW1tkpwvanB99PftDYGgJJD",
+      "method": "buy_from_merchant",
+      "args": {
+        "merchant_id": "rex",
+        "resource": "crystal",
+        "quantity": "12",
+        "max_total_price": "48",
+        "listing_version": "1"
+      },
+      "transaction_hash": "2xFKufd2SZgL6AD1aprWGZ2jCKJNjsW9XyhoQ1bWDUM7",
+      "receipt": {
+        "final_execution_status": "FINAL",
+        "receipts_outcome": [
+          {
+            "block_hash": "KuJxmXDdAVbEs31b3pxKo87eLSJrK9mCPNdiHUoHuzx",
+            "id": "5MeBCAUvFVpNduRbq9xnHjunNinw3V3Zfrecd7D3APDd",
+            "outcome": {
+              "executor_id": "vaultkeeper-bazaar.testnet",
+              "gas_burnt": 2488053358277,
+              "logs": [
+                "EVENT_JSON:{\"standard\":\"bot_bazaar\",\"version\":\"1.0.0\",\"event\":\"buy_from_merchant\",\"data\":[{\"initiator_account_id\":\"player-bazaar.testnet\",\"market_revision\":\"3\",\"block_height\":\"275517185\",\"block_timestamp_ns\":\"1793402275758876339\",\"result\":{\"trade_id\":\"1\",\"kind\":\"player_purchase\",\"buyer\":{\"kind\":\"player\",\"account_id\":\"player-bazaar.testnet\"},\"seller\":{\"kind\":\"merchant\",\"merchant_id\":\"rex\"},\"resource\":\"crystal\",\"quantity\":\"12\",\"unit_price\":\"4\",\"total_price\":\"48\",\"offer_id\":null,\"buyer_gold_after\":\"52\",\"seller_gold_after\":\"228\",\"buyer_resource_after\":\"12\",\"seller_resource_after\":\"3\",\"settled_at_ns\":\"1793402275758876339\",\"market_revision\":\"3\"}}]}"
+              ],
+              "metadata": {
+                "contracts": [
+                  {
+                    "local": "CcU8qzpFzXy9BstkGqLCnK7Uxam8tymqZyaDK92nzYkW"
+                  }
+                ],
+                "gas_profile": [
+                  {
+                    "cost": "BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "6354434664"
+                  },
+                  {
+                    "cost": "CONTRACT_LOADING_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "35445963"
+                  },
+                  {
+                    "cost": "CONTRACT_LOADING_BYTES",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "285180698885"
+                  },
+                  {
+                    "cost": "LOG_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "3543313050"
+                  },
+                  {
+                    "cost": "LOG_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "8579214150"
+                  },
+                  {
+                    "cost": "READ_CACHED_TRIE_NODE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "70680000000"
+                  },
+                  {
+                    "cost": "READ_MEMORY_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "28708495200"
+                  },
+                  {
+                    "cost": "READ_MEMORY_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "8720257902"
+                  },
+                  {
+                    "cost": "READ_REGISTER_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "12585825930"
+                  },
+                  {
+                    "cost": "READ_REGISTER_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "118964334"
+                  },
+                  {
+                    "cost": "STORAGE_HAS_KEY_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "54039896625"
+                  },
+                  {
+                    "cost": "STORAGE_HAS_KEY_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "277117605"
+                  },
+                  {
+                    "cost": "STORAGE_READ_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "112713691498"
+                  },
+                  {
+                    "cost": "STORAGE_READ_KEY_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "959528523"
+                  },
+                  {
+                    "cost": "STORAGE_READ_VALUE_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "5251899744"
+                  },
+                  {
+                    "cost": "STORAGE_WRITE_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "192590208000"
+                  },
+                  {
+                    "cost": "STORAGE_WRITE_EVICTED_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "30061799352"
+                  },
+                  {
+                    "cost": "STORAGE_WRITE_KEY_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "2819314680"
+                  },
+                  {
+                    "cost": "STORAGE_WRITE_VALUE_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "32724558645"
+                  },
+                  {
+                    "cost": "TOUCHING_TRIE_NODE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "36480000000"
+                  },
+                  {
+                    "cost": "UTF8_DECODING_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "3111779061"
+                  },
+                  {
+                    "cost": "UTF8_DECODING_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "189527311350"
+                  },
+                  {
+                    "cost": "WASM_INSTRUCTION",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "467203640112"
+                  },
+                  {
+                    "cost": "WRITE_MEMORY_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "16822769166"
+                  },
+                  {
+                    "cost": "WRITE_MEMORY_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "3331173156"
+                  },
+                  {
+                    "cost": "WRITE_REGISTER_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "20058657402"
+                  },
+                  {
+                    "cost": "WRITE_REGISTER_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "7196360652"
+                  }
+                ],
+                "version": 4
+              },
+              "receipt_ids": ["3vxKc18kcybyEgFV13vVXTcF5mnFDph4HT1YAtQ9kb7M"],
+              "status": {
+                "SuccessValue": "eyJtYXJrZXRfcmV2aXNpb24iOiIzIiwiYmxvY2tfaGVpZ2h0IjoiMjc1NTE3MTg1IiwiYmxvY2tfdGltZXN0YW1wX25zIjoiMTc5MzQwMjI3NTc1ODg3NjMzOSIsImRhdGEiOnsidHJhZGVfaWQiOiIxIiwia2luZCI6InBsYXllcl9wdXJjaGFzZSIsImJ1eWVyIjp7ImtpbmQiOiJwbGF5ZXIiLCJhY2NvdW50X2lkIjoicGxheWVyLWJhemFhci50ZXN0bmV0In0sInNlbGxlciI6eyJraW5kIjoibWVyY2hhbnQiLCJtZXJjaGFudF9pZCI6InJleCJ9LCJyZXNvdXJjZSI6ImNyeXN0YWwiLCJxdWFudGl0eSI6IjEyIiwidW5pdF9wcmljZSI6IjQiLCJ0b3RhbF9wcmljZSI6IjQ4Iiwib2ZmZXJfaWQiOm51bGwsImJ1eWVyX2dvbGRfYWZ0ZXIiOiI1MiIsInNlbGxlcl9nb2xkX2FmdGVyIjoiMjI4IiwiYnV5ZXJfcmVzb3VyY2VfYWZ0ZXIiOiIxMiIsInNlbGxlcl9yZXNvdXJjZV9hZnRlciI6IjMiLCJzZXR0bGVkX2F0X25zIjoiMTc5MzQwMjI3NTc1ODg3NjMzOSIsIm1hcmtldF9yZXZpc2lvbiI6IjMifX0="
+              },
+              "tokens_burnt": "248805335827700000000"
+            },
+            "proof": [
+              {
+                "direction": "Left",
+                "hash": "FQbdbZV61FEA5MQYxvStvWQ6zbsWTb2jkufGszPKzhSL"
+              },
+              {
+                "direction": "Right",
+                "hash": "4s1bn9XohbyUg7wfonRaVTgMG6997fykX6an3zftX7XU"
+              }
+            ]
+          },
+          {
+            "block_hash": "E8H3XrHkmTqPGrH5PSy2yt24rbxWfwn5tQf7cvQwCZtU",
+            "id": "3vxKc18kcybyEgFV13vVXTcF5mnFDph4HT1YAtQ9kb7M",
+            "outcome": {
+              "executor_id": "player-bazaar.testnet",
+              "gas_burnt": 223182562500,
+              "logs": [],
+              "metadata": {
+                "contracts": [null],
+                "gas_profile": [],
+                "version": 4
+              },
+              "receipt_ids": [],
+              "status": {
+                "SuccessValue": ""
+              },
+              "tokens_burnt": "0"
+            },
+            "proof": []
+          }
+        ],
+        "status": {
+          "SuccessValue": "eyJtYXJrZXRfcmV2aXNpb24iOiIzIiwiYmxvY2tfaGVpZ2h0IjoiMjc1NTE3MTg1IiwiYmxvY2tfdGltZXN0YW1wX25zIjoiMTc5MzQwMjI3NTc1ODg3NjMzOSIsImRhdGEiOnsidHJhZGVfaWQiOiIxIiwia2luZCI6InBsYXllcl9wdXJjaGFzZSIsImJ1eWVyIjp7ImtpbmQiOiJwbGF5ZXIiLCJhY2NvdW50X2lkIjoicGxheWVyLWJhemFhci50ZXN0bmV0In0sInNlbGxlciI6eyJraW5kIjoibWVyY2hhbnQiLCJtZXJjaGFudF9pZCI6InJleCJ9LCJyZXNvdXJjZSI6ImNyeXN0YWwiLCJxdWFudGl0eSI6IjEyIiwidW5pdF9wcmljZSI6IjQiLCJ0b3RhbF9wcmljZSI6IjQ4Iiwib2ZmZXJfaWQiOm51bGwsImJ1eWVyX2dvbGRfYWZ0ZXIiOiI1MiIsInNlbGxlcl9nb2xkX2FmdGVyIjoiMjI4IiwiYnV5ZXJfcmVzb3VyY2VfYWZ0ZXIiOiIxMiIsInNlbGxlcl9yZXNvdXJjZV9hZnRlciI6IjMiLCJzZXR0bGVkX2F0X25zIjoiMTc5MzQwMjI3NTc1ODg3NjMzOSIsIm1hcmtldF9yZXZpc2lvbiI6IjMifX0="
+        },
+        "transaction": {
+          "actions": [
+            {
+              "FunctionCall": {
+                "args": "ewogICJtZXJjaGFudF9pZCI6ICJyZXgiLAogICJyZXNvdXJjZSI6ICJjcnlzdGFsIiwKICAicXVhbnRpdHkiOiAiMTIiLAogICJtYXhfdG90YWxfcHJpY2UiOiAiNDgiLAogICJsaXN0aW5nX3ZlcnNpb24iOiAiMSIKfQo=",
+                "deposit": "0",
+                "gas": 30000000000000,
+                "method_name": "buy_from_merchant"
+              }
+            }
+          ],
+          "hash": "2xFKufd2SZgL6AD1aprWGZ2jCKJNjsW9XyhoQ1bWDUM7",
+          "nonce": 275515147000002,
+          "priority_fee": 0,
+          "public_key": "ed25519:ERxgBSZ7uZE5Q54iJzb3QrW1tkpwvanB99PftDYGgJJD",
+          "receiver_id": "vaultkeeper-bazaar.testnet",
+          "signature": "ed25519:5v8fiCDacE65dw5N7RCX5N1prBu6u8Pqza3WNu7FQMdZjtvVp6JiEiC5ysTZMgTmR78eJGNNbz2iKbGUi24z5bwu",
+          "signer_id": "player-bazaar.testnet"
+        },
+        "transaction_outcome": {
+          "block_hash": "CYrvBzCWy66ER2ygYipCbWsEdcXJNzYRq1Y2jrs7qQGe",
+          "id": "2xFKufd2SZgL6AD1aprWGZ2jCKJNjsW9XyhoQ1bWDUM7",
+          "outcome": {
+            "executor_id": "player-bazaar.testnet",
+            "gas_burnt": 314830587530,
+            "logs": [],
+            "metadata": {
+              "gas_profile": null,
+              "version": 1
+            },
+            "receipt_ids": ["5MeBCAUvFVpNduRbq9xnHjunNinw3V3Zfrecd7D3APDd"],
+            "status": {
+              "SuccessReceiptId": "5MeBCAUvFVpNduRbq9xnHjunNinw3V3Zfrecd7D3APDd"
+            },
+            "tokens_burnt": "31483058753000000000"
+          },
+          "proof": []
+        }
+      },
+      "result": {
+        "market_revision": "3",
+        "block_height": "275517185",
+        "block_timestamp_ns": "1793402275758876339",
+        "data": {
+          "trade_id": "1",
+          "kind": "player_purchase",
+          "buyer": {
+            "kind": "player",
+            "account_id": "player-bazaar.testnet"
+          },
+          "seller": {
+            "kind": "merchant",
+            "merchant_id": "rex"
+          },
+          "resource": "crystal",
+          "quantity": "12",
+          "unit_price": "4",
+          "total_price": "48",
+          "offer_id": null,
+          "buyer_gold_after": "52",
+          "seller_gold_after": "228",
+          "buyer_resource_after": "12",
+          "seller_resource_after": "3",
+          "settled_at_ns": "1793402275758876339",
+          "market_revision": "3"
+        }
+      }
+    },
+    {
+      "caller": "rex-bazaar.testnet",
+      "signer_public_key": "ed25519:5HH4zzYch19VWfAAh2pMJWGZvPnfgUuGnmQtnWF1g1hx",
+      "method": "propose_trade",
+      "args": {
+        "proposer": "rex",
+        "buyer": "rex",
+        "seller": "luna",
+        "resource": "crystal",
+        "quantity": "4",
+        "total_price": "24",
+        "expires_at_ns": "1793402904306696917",
+        "action_id": "1"
+      },
+      "transaction_hash": "H6eofZHRoxNjDujacTXPQC5aPQiNtQm5UMx91FHaTGtS",
+      "receipt": {
+        "final_execution_status": "FINAL",
+        "receipts_outcome": [
+          {
+            "block_hash": "BC7b5eAXgJ3QSJFnjuNC21zqp53qJYh5zsbjqSdXM2oQ",
+            "id": "3SUUpwisMEX7G7XV7HzuqfLxjGnSrHdQJqsaU4DfKcJT",
+            "outcome": {
+              "executor_id": "vaultkeeper-bazaar.testnet",
+              "gas_burnt": 2562883285355,
+              "logs": [
+                "EVENT_JSON:{\"standard\":\"bot_bazaar\",\"version\":\"1.0.0\",\"event\":\"propose_trade\",\"data\":[{\"initiator_account_id\":\"rex-bazaar.testnet\",\"market_revision\":\"4\",\"block_height\":\"275517417\",\"block_timestamp_ns\":\"1793402408963212106\",\"result\":{\"offer\":{\"offer_id\":\"1\",\"proposer\":\"rex\",\"buyer\":\"rex\",\"seller\":\"luna\",\"counterparty\":\"luna\",\"resource\":\"crystal\",\"quantity\":\"4\",\"unit_price\":\"6\",\"total_price\":\"24\",\"created_at_ns\":\"1793402408963212106\",\"expires_at_ns\":\"1793402904306696917\",\"status\":\"pending\",\"closed_at_ns\":null,\"settled_trade_id\":null,\"proposal_action\":{\"merchant_id\":\"rex\",\"action_id\":\"1\"}},\"action\":{\"action_id\":\"1\",\"method\":\"propose_trade\",\"args_sha256\":\"f0f34d7bc682aad77ce5d47563494d9353d0d45283694c6e40aa49c1ebb1b23d\",\"market_revision\":\"4\",\"offer_id\":\"1\",\"trade_id\":null,\"listing_version\":null}}}]}"
+              ],
+              "metadata": {
+                "contracts": [
+                  {
+                    "local": "CcU8qzpFzXy9BstkGqLCnK7Uxam8tymqZyaDK92nzYkW"
+                  }
+                ],
+                "gas_profile": [
+                  {
+                    "cost": "BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "5560130331"
+                  },
+                  {
+                    "cost": "CONTRACT_LOADING_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "35445963"
+                  },
+                  {
+                    "cost": "CONTRACT_LOADING_BYTES",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "285180698885"
+                  },
+                  {
+                    "cost": "LOG_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "3543313050"
+                  },
+                  {
+                    "cost": "LOG_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "10638225546"
+                  },
+                  {
+                    "cost": "READ_CACHED_TRIE_NODE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "34200000000"
+                  },
+                  {
+                    "cost": "READ_MEMORY_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "23488768800"
+                  },
+                  {
+                    "cost": "READ_MEMORY_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "10297811097"
+                  },
+                  {
+                    "cost": "READ_REGISTER_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "12585825930"
+                  },
+                  {
+                    "cost": "READ_REGISTER_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "129214782"
+                  },
+                  {
+                    "cost": "SHA256_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "4540970250"
+                  },
+                  {
+                    "cost": "SHA256_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "4606414041"
+                  },
+                  {
+                    "cost": "STORAGE_HAS_KEY_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "54039896625"
+                  },
+                  {
+                    "cost": "STORAGE_HAS_KEY_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "277117605"
+                  },
+                  {
+                    "cost": "STORAGE_READ_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "56356845749"
+                  },
+                  {
+                    "cost": "STORAGE_READ_KEY_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "154762665"
+                  },
+                  {
+                    "cost": "STORAGE_READ_VALUE_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "4932072516"
+                  },
+                  {
+                    "cost": "STORAGE_WRITE_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "128393472000"
+                  },
+                  {
+                    "cost": "STORAGE_WRITE_EVICTED_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "28231112853"
+                  },
+                  {
+                    "cost": "STORAGE_WRITE_KEY_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "986760138"
+                  },
+                  {
+                    "cost": "STORAGE_WRITE_VALUE_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "31390761468"
+                  },
+                  {
+                    "cost": "TOUCHING_TRIE_NODE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "36480000000"
+                  },
+                  {
+                    "cost": "UTF8_DECODING_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "3111779061"
+                  },
+                  {
+                    "cost": "UTF8_DECODING_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "235013866074"
+                  },
+                  {
+                    "cost": "WASM_INSTRUCTION",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "655688812152"
+                  },
+                  {
+                    "cost": "WRITE_MEMORY_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "16822769166"
+                  },
+                  {
+                    "cost": "WRITE_MEMORY_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "3614445444"
+                  },
+                  {
+                    "cost": "WRITE_REGISTER_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "17193134916"
+                  },
+                  {
+                    "cost": "WRITE_REGISTER_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "6873227712"
+                  }
+                ],
+                "version": 4
+              },
+              "receipt_ids": ["51NBNLqaJuG3C8HqDB3tGG6cuq3yQh3eamxJNg59s8gQ"],
+              "status": {
+                "SuccessValue": "eyJtYXJrZXRfcmV2aXNpb24iOiI0IiwiYmxvY2tfaGVpZ2h0IjoiMjc1NTE3NDE3IiwiYmxvY2tfdGltZXN0YW1wX25zIjoiMTc5MzQwMjQwODk2MzIxMjEwNiIsImRhdGEiOnsib2ZmZXIiOnsib2ZmZXJfaWQiOiIxIiwicHJvcG9zZXIiOiJyZXgiLCJidXllciI6InJleCIsInNlbGxlciI6Imx1bmEiLCJjb3VudGVycGFydHkiOiJsdW5hIiwicmVzb3VyY2UiOiJjcnlzdGFsIiwicXVhbnRpdHkiOiI0IiwidW5pdF9wcmljZSI6IjYiLCJ0b3RhbF9wcmljZSI6IjI0IiwiY3JlYXRlZF9hdF9ucyI6IjE3OTM0MDI0MDg5NjMyMTIxMDYiLCJleHBpcmVzX2F0X25zIjoiMTc5MzQwMjkwNDMwNjY5NjkxNyIsInN0YXR1cyI6InBlbmRpbmciLCJjbG9zZWRfYXRfbnMiOm51bGwsInNldHRsZWRfdHJhZGVfaWQiOm51bGwsInByb3Bvc2FsX2FjdGlvbiI6eyJtZXJjaGFudF9pZCI6InJleCIsImFjdGlvbl9pZCI6IjEifX0sImFjdGlvbiI6eyJhY3Rpb25faWQiOiIxIiwibWV0aG9kIjoicHJvcG9zZV90cmFkZSIsImFyZ3Nfc2hhMjU2IjoiZjBmMzRkN2JjNjgyYWFkNzdjZTVkNDc1NjM0OTRkOTM1M2QwZDQ1MjgzNjk0YzZlNDBhYTQ5YzFlYmIxYjIzZCIsIm1hcmtldF9yZXZpc2lvbiI6IjQiLCJvZmZlcl9pZCI6IjEiLCJ0cmFkZV9pZCI6bnVsbCwibGlzdGluZ192ZXJzaW9uIjpudWxsfX19"
+              },
+              "tokens_burnt": "256288328535500000000"
+            },
+            "proof": []
+          },
+          {
+            "block_hash": "ERyzPd69YyU2A4GkxsH3TZMPvzgn8senq8xdXjG1gHfk",
+            "id": "51NBNLqaJuG3C8HqDB3tGG6cuq3yQh3eamxJNg59s8gQ",
+            "outcome": {
+              "executor_id": "rex-bazaar.testnet",
+              "gas_burnt": 223182562500,
+              "logs": [],
+              "metadata": {
+                "contracts": [null],
+                "gas_profile": [],
+                "version": 4
+              },
+              "receipt_ids": [],
+              "status": {
+                "SuccessValue": ""
+              },
+              "tokens_burnt": "0"
+            },
+            "proof": []
+          }
+        ],
+        "status": {
+          "SuccessValue": "eyJtYXJrZXRfcmV2aXNpb24iOiI0IiwiYmxvY2tfaGVpZ2h0IjoiMjc1NTE3NDE3IiwiYmxvY2tfdGltZXN0YW1wX25zIjoiMTc5MzQwMjQwODk2MzIxMjEwNiIsImRhdGEiOnsib2ZmZXIiOnsib2ZmZXJfaWQiOiIxIiwicHJvcG9zZXIiOiJyZXgiLCJidXllciI6InJleCIsInNlbGxlciI6Imx1bmEiLCJjb3VudGVycGFydHkiOiJsdW5hIiwicmVzb3VyY2UiOiJjcnlzdGFsIiwicXVhbnRpdHkiOiI0IiwidW5pdF9wcmljZSI6IjYiLCJ0b3RhbF9wcmljZSI6IjI0IiwiY3JlYXRlZF9hdF9ucyI6IjE3OTM0MDI0MDg5NjMyMTIxMDYiLCJleHBpcmVzX2F0X25zIjoiMTc5MzQwMjkwNDMwNjY5NjkxNyIsInN0YXR1cyI6InBlbmRpbmciLCJjbG9zZWRfYXRfbnMiOm51bGwsInNldHRsZWRfdHJhZGVfaWQiOm51bGwsInByb3Bvc2FsX2FjdGlvbiI6eyJtZXJjaGFudF9pZCI6InJleCIsImFjdGlvbl9pZCI6IjEifX0sImFjdGlvbiI6eyJhY3Rpb25faWQiOiIxIiwibWV0aG9kIjoicHJvcG9zZV90cmFkZSIsImFyZ3Nfc2hhMjU2IjoiZjBmMzRkN2JjNjgyYWFkNzdjZTVkNDc1NjM0OTRkOTM1M2QwZDQ1MjgzNjk0YzZlNDBhYTQ5YzFlYmIxYjIzZCIsIm1hcmtldF9yZXZpc2lvbiI6IjQiLCJvZmZlcl9pZCI6IjEiLCJ0cmFkZV9pZCI6bnVsbCwibGlzdGluZ192ZXJzaW9uIjpudWxsfX19"
+        },
+        "transaction": {
+          "actions": [
+            {
+              "FunctionCall": {
+                "args": "ewogICJwcm9wb3NlciI6ICJyZXgiLAogICJidXllciI6ICJyZXgiLAogICJzZWxsZXIiOiAibHVuYSIsCiAgInJlc291cmNlIjogImNyeXN0YWwiLAogICJxdWFudGl0eSI6ICI0IiwKICAidG90YWxfcHJpY2UiOiAiMjQiLAogICJleHBpcmVzX2F0X25zIjogIjE3OTM0MDI5MDQzMDY2OTY5MTciLAogICJhY3Rpb25faWQiOiAiMSIKfQo=",
+                "deposit": "0",
+                "gas": 30000000000000,
+                "method_name": "propose_trade"
+              }
+            }
+          ],
+          "hash": "H6eofZHRoxNjDujacTXPQC5aPQiNtQm5UMx91FHaTGtS",
+          "nonce": 275516337000001,
+          "priority_fee": 0,
+          "public_key": "ed25519:5HH4zzYch19VWfAAh2pMJWGZvPnfgUuGnmQtnWF1g1hx",
+          "receiver_id": "vaultkeeper-bazaar.testnet",
+          "signature": "ed25519:ppQNCrHQcWmRZFhsKFH5NEQjLhmya2mHVSkpSnY7SREec7mnM8astUAyX7An3eEtBbZ6xrSG6qsSg1hUB4pwpvc",
+          "signer_id": "rex-bazaar.testnet"
+        },
+        "transaction_outcome": {
+          "block_hash": "gGHYZcCVEocVt7zaf1pw9ZUR5XyRLMmCnDQ1ProFzWD",
+          "id": "H6eofZHRoxNjDujacTXPQC5aPQiNtQm5UMx91FHaTGtS",
+          "outcome": {
+            "executor_id": "rex-bazaar.testnet",
+            "gas_burnt": 317786977860,
+            "logs": [],
+            "metadata": {
+              "gas_profile": null,
+              "version": 1
+            },
+            "receipt_ids": ["3SUUpwisMEX7G7XV7HzuqfLxjGnSrHdQJqsaU4DfKcJT"],
+            "status": {
+              "SuccessReceiptId": "3SUUpwisMEX7G7XV7HzuqfLxjGnSrHdQJqsaU4DfKcJT"
+            },
+            "tokens_burnt": "31778697786000000000"
+          },
+          "proof": []
+        }
+      },
+      "result": {
+        "market_revision": "4",
+        "block_height": "275517417",
+        "block_timestamp_ns": "1793402408963212106",
+        "data": {
+          "offer": {
+            "offer_id": "1",
+            "proposer": "rex",
+            "buyer": "rex",
+            "seller": "luna",
+            "counterparty": "luna",
+            "resource": "crystal",
+            "quantity": "4",
+            "unit_price": "6",
+            "total_price": "24",
+            "created_at_ns": "1793402408963212106",
+            "expires_at_ns": "1793402904306696917",
+            "status": "pending",
+            "closed_at_ns": null,
+            "settled_trade_id": null,
+            "proposal_action": {
+              "merchant_id": "rex",
+              "action_id": "1"
+            }
+          },
+          "action": {
+            "action_id": "1",
+            "method": "propose_trade",
+            "args_sha256": "f0f34d7bc682aad77ce5d47563494d9353d0d45283694c6e40aa49c1ebb1b23d",
+            "market_revision": "4",
+            "offer_id": "1",
+            "trade_id": null,
+            "listing_version": null
+          }
+        }
+      }
+    },
+    {
+      "caller": "luna-bazaar.testnet",
+      "signer_public_key": "ed25519:32mf2USaRbubhuxKYorrWsjSeiavshMENcdTTt2nYLXd",
+      "method": "accept_trade",
+      "args": {
+        "offer_id": "1",
+        "action_id": "1"
+      },
+      "transaction_hash": "7Bqnxuhp9PDsMJM8tkECeiHiaQ9PxjDN1HYfazEcM9w6",
+      "receipt": {
+        "final_execution_status": "FINAL",
+        "receipts_outcome": [
+          {
+            "block_hash": "8hyuHFk4QSPnundqJQfD1JoaTsNTpKNSGseXyAEsraiq",
+            "id": "6eLFN49arWJ8ewzyN8kRi7FDqk5zHTbKi53R7DjrZiyK",
+            "outcome": {
+              "executor_id": "vaultkeeper-bazaar.testnet",
+              "gas_burnt": 2958313260696,
+              "logs": [
+                "EVENT_JSON:{\"standard\":\"bot_bazaar\",\"version\":\"1.0.0\",\"event\":\"accept_trade\",\"data\":[{\"initiator_account_id\":\"luna-bazaar.testnet\",\"market_revision\":\"5\",\"block_height\":\"275517426\",\"block_timestamp_ns\":\"1793402413996735323\",\"result\":{\"offer\":{\"offer_id\":\"1\",\"proposer\":\"rex\",\"buyer\":\"rex\",\"seller\":\"luna\",\"counterparty\":\"luna\",\"resource\":\"crystal\",\"quantity\":\"4\",\"unit_price\":\"6\",\"total_price\":\"24\",\"created_at_ns\":\"1793402408963212106\",\"expires_at_ns\":\"1793402904306696917\",\"status\":\"accepted\",\"closed_at_ns\":\"1793402413996735323\",\"settled_trade_id\":\"2\",\"proposal_action\":{\"merchant_id\":\"rex\",\"action_id\":\"1\"}},\"trade\":{\"trade_id\":\"2\",\"kind\":\"merchant_trade\",\"buyer\":{\"kind\":\"merchant\",\"merchant_id\":\"rex\"},\"seller\":{\"kind\":\"merchant\",\"merchant_id\":\"luna\"},\"resource\":\"crystal\",\"quantity\":\"4\",\"unit_price\":\"6\",\"total_price\":\"24\",\"offer_id\":\"1\",\"buyer_gold_after\":\"204\",\"seller_gold_after\":\"244\",\"buyer_resource_after\":\"7\",\"seller_resource_after\":\"8\",\"settled_at_ns\":\"1793402413996735323\",\"market_revision\":\"5\"},\"action\":{\"action_id\":\"1\",\"method\":\"accept_trade\",\"args_sha256\":\"bde105b0cc7ff308deda8ef1d4af84d41ec5797ada6a378c1b0ed83ecb980bed\",\"market_revision\":\"5\",\"offer_id\":\"1\",\"trade_id\":\"2\",\"listing_version\":null}}}]}"
+              ],
+              "metadata": {
+                "contracts": [
+                  {
+                    "local": "CcU8qzpFzXy9BstkGqLCnK7Uxam8tymqZyaDK92nzYkW"
+                  }
+                ],
+                "gas_profile": [
+                  {
+                    "cost": "BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "6619202775"
+                  },
+                  {
+                    "cost": "CONTRACT_LOADING_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "35445963"
+                  },
+                  {
+                    "cost": "CONTRACT_LOADING_BYTES",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "285180698885"
+                  },
+                  {
+                    "cost": "LOG_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "3543313050"
+                  },
+                  {
+                    "cost": "LOG_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "16115723811"
+                  },
+                  {
+                    "cost": "READ_CACHED_TRIE_NODE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "82080000000"
+                  },
+                  {
+                    "cost": "READ_MEMORY_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "31318358400"
+                  },
+                  {
+                    "cost": "READ_MEMORY_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "13753222794"
+                  },
+                  {
+                    "cost": "READ_REGISTER_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "15102991116"
+                  },
+                  {
+                    "cost": "READ_REGISTER_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "113050614"
+                  },
+                  {
+                    "cost": "SHA256_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "4540970250"
+                  },
+                  {
+                    "cost": "SHA256_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "1567627815"
+                  },
+                  {
+                    "cost": "STORAGE_HAS_KEY_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "54039896625"
+                  },
+                  {
+                    "cost": "STORAGE_HAS_KEY_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "277117605"
+                  },
+                  {
+                    "cost": "STORAGE_READ_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "112713691498"
+                  },
+                  {
+                    "cost": "STORAGE_READ_KEY_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "433335462"
+                  },
+                  {
+                    "cost": "STORAGE_READ_VALUE_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "5678336048"
+                  },
+                  {
+                    "cost": "STORAGE_WRITE_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "192590208000"
+                  },
+                  {
+                    "cost": "STORAGE_WRITE_EVICTED_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "32502714684"
+                  },
+                  {
+                    "cost": "STORAGE_WRITE_KEY_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "1621105941"
+                  },
+                  {
+                    "cost": "STORAGE_WRITE_VALUE_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "37191228261"
+                  },
+                  {
+                    "cost": "TOUCHING_TRIE_NODE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "29640000000"
+                  },
+                  {
+                    "cost": "UTF8_DECODING_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "3111779061"
+                  },
+                  {
+                    "cost": "UTF8_DECODING_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "356019764859"
+                  },
+                  {
+                    "cost": "WASM_INSTRUCTION",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "730736500692"
+                  },
+                  {
+                    "cost": "WRITE_MEMORY_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "19626564027"
+                  },
+                  {
+                    "cost": "WRITE_MEMORY_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "3167746836"
+                  },
+                  {
+                    "cost": "WRITE_REGISTER_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "22924179888"
+                  },
+                  {
+                    "cost": "WRITE_REGISTER_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "7888245300"
+                  }
+                ],
+                "version": 4
+              },
+              "receipt_ids": ["5WwAKk5sgProT2Wc9m7Y9o8qXTC52ZhNSCQeyxNnnDeB"],
+              "status": {
+                "SuccessValue": "eyJtYXJrZXRfcmV2aXNpb24iOiI1IiwiYmxvY2tfaGVpZ2h0IjoiMjc1NTE3NDI2IiwiYmxvY2tfdGltZXN0YW1wX25zIjoiMTc5MzQwMjQxMzk5NjczNTMyMyIsImRhdGEiOnsib2ZmZXIiOnsib2ZmZXJfaWQiOiIxIiwicHJvcG9zZXIiOiJyZXgiLCJidXllciI6InJleCIsInNlbGxlciI6Imx1bmEiLCJjb3VudGVycGFydHkiOiJsdW5hIiwicmVzb3VyY2UiOiJjcnlzdGFsIiwicXVhbnRpdHkiOiI0IiwidW5pdF9wcmljZSI6IjYiLCJ0b3RhbF9wcmljZSI6IjI0IiwiY3JlYXRlZF9hdF9ucyI6IjE3OTM0MDI0MDg5NjMyMTIxMDYiLCJleHBpcmVzX2F0X25zIjoiMTc5MzQwMjkwNDMwNjY5NjkxNyIsInN0YXR1cyI6ImFjY2VwdGVkIiwiY2xvc2VkX2F0X25zIjoiMTc5MzQwMjQxMzk5NjczNTMyMyIsInNldHRsZWRfdHJhZGVfaWQiOiIyIiwicHJvcG9zYWxfYWN0aW9uIjp7Im1lcmNoYW50X2lkIjoicmV4IiwiYWN0aW9uX2lkIjoiMSJ9fSwidHJhZGUiOnsidHJhZGVfaWQiOiIyIiwia2luZCI6Im1lcmNoYW50X3RyYWRlIiwiYnV5ZXIiOnsia2luZCI6Im1lcmNoYW50IiwibWVyY2hhbnRfaWQiOiJyZXgifSwic2VsbGVyIjp7ImtpbmQiOiJtZXJjaGFudCIsIm1lcmNoYW50X2lkIjoibHVuYSJ9LCJyZXNvdXJjZSI6ImNyeXN0YWwiLCJxdWFudGl0eSI6IjQiLCJ1bml0X3ByaWNlIjoiNiIsInRvdGFsX3ByaWNlIjoiMjQiLCJvZmZlcl9pZCI6IjEiLCJidXllcl9nb2xkX2FmdGVyIjoiMjA0Iiwic2VsbGVyX2dvbGRfYWZ0ZXIiOiIyNDQiLCJidXllcl9yZXNvdXJjZV9hZnRlciI6IjciLCJzZWxsZXJfcmVzb3VyY2VfYWZ0ZXIiOiI4Iiwic2V0dGxlZF9hdF9ucyI6IjE3OTM0MDI0MTM5OTY3MzUzMjMiLCJtYXJrZXRfcmV2aXNpb24iOiI1In0sImFjdGlvbiI6eyJhY3Rpb25faWQiOiIxIiwibWV0aG9kIjoiYWNjZXB0X3RyYWRlIiwiYXJnc19zaGEyNTYiOiJiZGUxMDViMGNjN2ZmMzA4ZGVkYThlZjFkNGFmODRkNDFlYzU3OTdhZGE2YTM3OGMxYjBlZDgzZWNiOTgwYmVkIiwibWFya2V0X3JldmlzaW9uIjoiNSIsIm9mZmVyX2lkIjoiMSIsInRyYWRlX2lkIjoiMiIsImxpc3RpbmdfdmVyc2lvbiI6bnVsbH19fQ=="
+              },
+              "tokens_burnt": "295831326069600000000"
+            },
+            "proof": [
+              {
+                "direction": "Left",
+                "hash": "f28BjYfSNtmjHC3N6PqqS7sSRjzUiqNjBtiAsKpDMGr"
+              }
+            ]
+          },
+          {
+            "block_hash": "6t8zQyHT5nuL8tnLGtGqnfUr8L3Ux65iqXXCgahAQDsz",
+            "id": "5WwAKk5sgProT2Wc9m7Y9o8qXTC52ZhNSCQeyxNnnDeB",
+            "outcome": {
+              "executor_id": "luna-bazaar.testnet",
+              "gas_burnt": 223182562500,
+              "logs": [],
+              "metadata": {
+                "contracts": [null],
+                "gas_profile": [],
+                "version": 4
+              },
+              "receipt_ids": [],
+              "status": {
+                "SuccessValue": ""
+              },
+              "tokens_burnt": "0"
+            },
+            "proof": [
+              {
+                "direction": "Left",
+                "hash": "5bFzKxMqVEMFcPrxMHrxGRPa7ZHSS4jEU3wR4kqk7tak"
+              }
+            ]
+          }
+        ],
+        "status": {
+          "SuccessValue": "eyJtYXJrZXRfcmV2aXNpb24iOiI1IiwiYmxvY2tfaGVpZ2h0IjoiMjc1NTE3NDI2IiwiYmxvY2tfdGltZXN0YW1wX25zIjoiMTc5MzQwMjQxMzk5NjczNTMyMyIsImRhdGEiOnsib2ZmZXIiOnsib2ZmZXJfaWQiOiIxIiwicHJvcG9zZXIiOiJyZXgiLCJidXllciI6InJleCIsInNlbGxlciI6Imx1bmEiLCJjb3VudGVycGFydHkiOiJsdW5hIiwicmVzb3VyY2UiOiJjcnlzdGFsIiwicXVhbnRpdHkiOiI0IiwidW5pdF9wcmljZSI6IjYiLCJ0b3RhbF9wcmljZSI6IjI0IiwiY3JlYXRlZF9hdF9ucyI6IjE3OTM0MDI0MDg5NjMyMTIxMDYiLCJleHBpcmVzX2F0X25zIjoiMTc5MzQwMjkwNDMwNjY5NjkxNyIsInN0YXR1cyI6ImFjY2VwdGVkIiwiY2xvc2VkX2F0X25zIjoiMTc5MzQwMjQxMzk5NjczNTMyMyIsInNldHRsZWRfdHJhZGVfaWQiOiIyIiwicHJvcG9zYWxfYWN0aW9uIjp7Im1lcmNoYW50X2lkIjoicmV4IiwiYWN0aW9uX2lkIjoiMSJ9fSwidHJhZGUiOnsidHJhZGVfaWQiOiIyIiwia2luZCI6Im1lcmNoYW50X3RyYWRlIiwiYnV5ZXIiOnsia2luZCI6Im1lcmNoYW50IiwibWVyY2hhbnRfaWQiOiJyZXgifSwic2VsbGVyIjp7ImtpbmQiOiJtZXJjaGFudCIsIm1lcmNoYW50X2lkIjoibHVuYSJ9LCJyZXNvdXJjZSI6ImNyeXN0YWwiLCJxdWFudGl0eSI6IjQiLCJ1bml0X3ByaWNlIjoiNiIsInRvdGFsX3ByaWNlIjoiMjQiLCJvZmZlcl9pZCI6IjEiLCJidXllcl9nb2xkX2FmdGVyIjoiMjA0Iiwic2VsbGVyX2dvbGRfYWZ0ZXIiOiIyNDQiLCJidXllcl9yZXNvdXJjZV9hZnRlciI6IjciLCJzZWxsZXJfcmVzb3VyY2VfYWZ0ZXIiOiI4Iiwic2V0dGxlZF9hdF9ucyI6IjE3OTM0MDI0MTM5OTY3MzUzMjMiLCJtYXJrZXRfcmV2aXNpb24iOiI1In0sImFjdGlvbiI6eyJhY3Rpb25faWQiOiIxIiwibWV0aG9kIjoiYWNjZXB0X3RyYWRlIiwiYXJnc19zaGEyNTYiOiJiZGUxMDViMGNjN2ZmMzA4ZGVkYThlZjFkNGFmODRkNDFlYzU3OTdhZGE2YTM3OGMxYjBlZDgzZWNiOTgwYmVkIiwibWFya2V0X3JldmlzaW9uIjoiNSIsIm9mZmVyX2lkIjoiMSIsInRyYWRlX2lkIjoiMiIsImxpc3RpbmdfdmVyc2lvbiI6bnVsbH19fQ=="
+        },
+        "transaction": {
+          "actions": [
+            {
+              "FunctionCall": {
+                "args": "ewogICJvZmZlcl9pZCI6ICIxIiwKICAiYWN0aW9uX2lkIjogIjEiCn0K",
+                "deposit": "0",
+                "gas": 30000000000000,
+                "method_name": "accept_trade"
+              }
+            }
+          ],
+          "hash": "7Bqnxuhp9PDsMJM8tkECeiHiaQ9PxjDN1HYfazEcM9w6",
+          "nonce": 275516342000001,
+          "priority_fee": 0,
+          "public_key": "ed25519:32mf2USaRbubhuxKYorrWsjSeiavshMENcdTTt2nYLXd",
+          "receiver_id": "vaultkeeper-bazaar.testnet",
+          "signature": "ed25519:oxhneEUQyv2Yaq1e4np7cGNuaqGy8nX9uPUVbzWpw6tArHrxYWLbhY8V1iWt3VfVgLTAD41Ydjj17sBG5bLnwGK",
+          "signer_id": "luna-bazaar.testnet"
+        },
+        "transaction_outcome": {
+          "block_hash": "HXSNgjg83GRSyDDiwEVe27FD7gUxKpgEBfHS3SBNvesP",
+          "id": "7Bqnxuhp9PDsMJM8tkECeiHiaQ9PxjDN1HYfazEcM9w6",
+          "outcome": {
+            "executor_id": "luna-bazaar.testnet",
+            "gas_burnt": 310634420610,
+            "logs": [],
+            "metadata": {
+              "gas_profile": null,
+              "version": 1
+            },
+            "receipt_ids": ["6eLFN49arWJ8ewzyN8kRi7FDqk5zHTbKi53R7DjrZiyK"],
+            "status": {
+              "SuccessReceiptId": "6eLFN49arWJ8ewzyN8kRi7FDqk5zHTbKi53R7DjrZiyK"
+            },
+            "tokens_burnt": "31063442061000000000"
+          },
+          "proof": [
+            {
+              "direction": "Left",
+              "hash": "H8JV5NRw6SbyL8oBWw5WHJTDeHCSUamtJvxUNicongPS"
+            }
+          ]
+        }
+      },
+      "result": {
+        "market_revision": "5",
+        "block_height": "275517426",
+        "block_timestamp_ns": "1793402413996735323",
+        "data": {
+          "offer": {
+            "offer_id": "1",
+            "proposer": "rex",
+            "buyer": "rex",
+            "seller": "luna",
+            "counterparty": "luna",
+            "resource": "crystal",
+            "quantity": "4",
+            "unit_price": "6",
+            "total_price": "24",
+            "created_at_ns": "1793402408963212106",
+            "expires_at_ns": "1793402904306696917",
+            "status": "accepted",
+            "closed_at_ns": "1793402413996735323",
+            "settled_trade_id": "2",
+            "proposal_action": {
+              "merchant_id": "rex",
+              "action_id": "1"
+            }
+          },
+          "trade": {
+            "trade_id": "2",
+            "kind": "merchant_trade",
+            "buyer": {
+              "kind": "merchant",
+              "merchant_id": "rex"
+            },
+            "seller": {
+              "kind": "merchant",
+              "merchant_id": "luna"
+            },
+            "resource": "crystal",
+            "quantity": "4",
+            "unit_price": "6",
+            "total_price": "24",
+            "offer_id": "1",
+            "buyer_gold_after": "204",
+            "seller_gold_after": "244",
+            "buyer_resource_after": "7",
+            "seller_resource_after": "8",
+            "settled_at_ns": "1793402413996735323",
+            "market_revision": "5"
+          },
+          "action": {
+            "action_id": "1",
+            "method": "accept_trade",
+            "args_sha256": "bde105b0cc7ff308deda8ef1d4af84d41ec5797ada6a378c1b0ed83ecb980bed",
+            "market_revision": "5",
+            "offer_id": "1",
+            "trade_id": "2",
+            "listing_version": null
+          }
+        }
+      }
+    }
+  ]
+}
