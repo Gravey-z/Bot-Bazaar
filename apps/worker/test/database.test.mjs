@@ -514,7 +514,7 @@ test("SQLITE_FULL rolls back the failing record and fences subsequent writes", a
         model: "model",
         promptVersion: "v1",
         action: { method: "hold" },
-        reason: "x".repeat(4000),
+        reason: "x".repeat(240),
       });
     } catch {
       rejected = `decision${i}`;

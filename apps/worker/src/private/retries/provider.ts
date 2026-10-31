@@ -2,11 +2,10 @@ import type { WorkerStore } from "../storage/database.js";
 import { requireStorage, StorageError } from "../storage/validation.js";
 import { SafetyClock } from "./clock.js";
 import type { ProviderRequest } from "./repository.js";
+import { parseDecision, DecisionValidationError } from "../decisions/schema.js";
+import type { Decision } from "../decisions/schema.js";
 export class DefinitiveProviderFailure extends Error {}
-export interface ProviderResponse {
-  action: unknown;
-  reason: string;
-}
+export type ProviderResponse = Decision;
 export class ProviderRunner {
   constructor(
     private readonly store: WorkerStore,
@@ -27,7 +26,7 @@ export class ProviderRunner {
     invoke: (context: {
       signal: AbortSignal;
       requestId: string;
-    }) => Promise<ProviderResponse>,
+    }) => Promise<unknown>,
     options: { timeoutMs?: number; signal?: AbortSignal } = {},
   ): Promise<{
     requestId: string;
@@ -79,16 +78,17 @@ export class ProviderRunner {
             return invoke({ signal: abort.signal, requestId: request.id });
           })
           .then((value) => {
+            const response = parseDecision(value);
             if (expired) {
               this.store.retry.accept(
                 request.id,
-                value.action,
-                value.reason,
+                response.action,
+                response.reason,
                 this.clock.now(),
               );
               throw new Error("late response");
             }
-            return value;
+            return response;
           }),
         interrupted,
       ]);
@@ -107,19 +107,22 @@ export class ProviderRunner {
       const saved = this.store.getDecision(request.id)!;
       return {
         requestId: request.id,
-        decision: {
+        decision: parseDecision({
           action: JSON.parse(String(saved["action_json"])),
           reason: String(saved["reason"]),
-        },
+        }),
         assertCurrent,
       };
     } catch (error) {
       this.store.retry.fail(
         request.id,
-        error instanceof DefinitiveProviderFailure,
-        error instanceof DefinitiveProviderFailure
-          ? "definitive_failure"
-          : "unknown_outcome",
+        error instanceof DefinitiveProviderFailure ||
+          error instanceof DecisionValidationError,
+        error instanceof DecisionValidationError
+          ? "invalid_decision"
+          : error instanceof DefinitiveProviderFailure
+            ? "definitive_failure"
+            : "unknown_outcome",
       );
       throw new StorageError(
         "provider attempt failed or became unknown; no automatic retry",

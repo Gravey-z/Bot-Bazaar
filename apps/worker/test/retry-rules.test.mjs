@@ -91,6 +91,46 @@ const request = (f, id = "request", retryOf) => ({
   ...(retryOf ? { retryOf } : {}),
 });
 const hold = () => ({ action: { method: "hold" }, reason: "wait" });
+
+for (const invalid of ["envelope", "action", "numeric"])
+  test(`invalid provider ${invalid} cannot persist a decision or reach a signer`, async (t) => {
+    const f = await setup(t);
+    let calls = 0;
+    const value =
+      invalid === "envelope"
+        ? { ...hold(), tools: ["sign"] }
+        : invalid === "action"
+          ? {
+              action: {
+                method: "cancel_trade",
+                args: { offer_id: "1", action_id: "1" },
+              },
+              reason: "cancel",
+            }
+          : {
+              action: {
+                method: "accept_trade",
+                args: { offer_id: 1, action_id: "1" },
+              },
+              reason: "accept",
+            };
+    await assert.rejects(
+      f.runner.run(request(f), async () => {
+        calls++;
+        return value;
+      }),
+    );
+    assert.equal(calls, 1);
+    assert.equal(f.store.getDecision("request"), undefined);
+    assert.equal(f.store.retry.attempt("request").status, "failed");
+    assert.equal(f.store.retry.attempt("request").reason, "invalid_decision");
+    assert.equal(f.store.getJob(f.root).model_attempts, 1);
+    assert.equal(f.chain.loads.length, 0);
+    assert.equal(
+      f.chain.calls.some((row) => row.method === "send_tx"),
+      false,
+    );
+  });
 function deferred() {
   let resolve;
   const promise = new Promise((done) => {

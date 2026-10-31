@@ -26,6 +26,7 @@ export function parseU64(value: unknown): U64 {
   check(
     typeof value === "string" &&
       value.length <= 20 &&
+      value.trim() === value &&
       /^(0|[1-9][0-9]*)$/.test(value),
     "expected canonical decimal string",
   );

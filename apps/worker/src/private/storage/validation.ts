@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { createMarketCall, parseU64 } from "@bot-bazaar/chain";
+import { parseDecision } from "../decisions/schema.js";
 import type { DeploymentIdentity, MerchantId } from "@bot-bazaar/chain";
 
 export class StorageError extends Error {
@@ -93,43 +93,16 @@ export function sanitizedDecision(
   action: unknown,
   reason: string,
 ): { actionJson: string; reason: string } {
-  requireStorage(
-    action !== null && typeof action === "object" && !Array.isArray(action),
-    "invalid decision",
-  );
-  const fields = action as Record<string, unknown>;
-  let normalized: unknown;
-  if (fields["method"] === "hold" || fields["method"] === "reject_trade") {
-    requireStorage(
-      Object.keys(fields).length === (fields["method"] === "hold" ? 1 : 2),
-      "unknown decision fields",
-    );
-    normalized =
-      fields["method"] === "hold"
-        ? { method: "hold" }
-        : { method: "reject_trade", offer_id: parseU64(fields["offer_id"]) };
-  } else {
-    requireStorage(
-      ["set_listing", "propose_trade", "accept_trade"].includes(
-        String(fields["method"]),
-      ) && Object.keys(fields).length === 2,
-      "invalid decision method",
-    );
-    const call = createMarketCall(
-      fields["method"] as "set_listing" | "propose_trade" | "accept_trade",
-      fields["args"],
-    );
-    normalized = { method: call.method, args: call.args };
-  }
-  requireStorage(
-    typeof reason === "string" && Buffer.byteLength(reason) <= 4000,
-    "invalid decision reason",
-  );
+  const normalized = parseDecision({ action, reason });
   const clean = reason
     .replace(/\p{Cc}/gu, " ")
     .replace(
       /(?:Bearer\s+\S+|sk-[a-zA-Z0-9_-]+|ed25519:[1-9A-HJ-NP-Za-km-z]{32,})/gi,
       "[redacted]",
     );
-  return { actionJson: json(normalized), reason: clean };
+  requireStorage(
+    Array.from(clean).length <= 240,
+    "sanitized reason exceeds decision bound",
+  );
+  return { actionJson: json(normalized.action), reason: clean };
 }
