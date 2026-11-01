@@ -418,6 +418,100 @@ test("server transport bounds headers/connections and sanitizes HTTP parser erro
   assert.equal(f.calls, 0);
 });
 
+test("hostile public cursors and file/admin paths cannot invoke inference, signing, fetch or SQL writes", async (t) => {
+  const f = await setup(t);
+  let forbidden = 0;
+  const deny = () => {
+    forbidden++;
+    throw new Error("forbidden public side effect PRIVATE_CANARY");
+  };
+  const before = {
+    calls: f.chain.calls.length,
+    loads: f.chain.loads.length,
+    entries: f.store.budget.history().entries.length,
+    root: f.store.scheduler.roots()[0],
+  };
+  const prepare = f.store.db.prepare.bind(f.store.db),
+    fetcher = globalThis.fetch,
+    oldKey = process.env.NEAR_AI_API_KEY;
+  const http = await serverFor(t, config, {
+    health: () =>
+      readHealth(f.store, {
+        backup: "verified",
+        discovery: "ready",
+        scheduling: "ready",
+        aiMode: "disabled",
+      }),
+    activity: (after, limit) =>
+      f.store.activity.page(after, limit, "https://testnet.nearblocks.io"),
+  });
+  const valid = f.store.activity.page(
+    undefined,
+    20,
+    "https://testnet.nearblocks.io",
+  ).next_after;
+  const parsed = JSON.parse(Buffer.from(valid, "base64url"));
+  const injection = Buffer.from(
+    JSON.stringify({ ...parsed, sequence: "1; DROP TABLE jobs;--" }),
+  ).toString("base64url");
+  f.store.db.prepare = (sql) => {
+    assert.match(sql.trim(), /^SELECT\b/i);
+    return prepare(sql);
+  };
+  f.store.budget.reserve = deny;
+  f.store.scheduler.claimTurn = deny;
+  f.store.prepareIntent = deny;
+  f.store.saveSigned = deny;
+  f.store.policy.authorize = deny;
+  f.chain.credentials.rex.loadSecretKey = deny;
+  globalThis.fetch = deny;
+  process.env.NEAR_AI_API_KEY = "PRIVATE_CANARY";
+  try {
+    for (const cursor of [
+      "'; DROP TABLE jobs;--",
+      "../../deploy/omv7/worker.env",
+      "file:///private/worker.env",
+      injection,
+      "<img src=x onerror=alert(1)>",
+    ]) {
+      const result = await get(
+        http,
+        "/activity?after=" + encodeURIComponent(cursor),
+        { headers: { Origin: origin } },
+      );
+      assert.equal(result.status, 400);
+      assert.doesNotMatch(
+        result.text,
+        /PRIVATE_CANARY|DROP TABLE|worker\.env|<img/,
+      );
+      assert.ok(Buffer.byteLength(result.text) < 128);
+    }
+    for (const path of [
+      "/.env",
+      "/deploy/omv7/worker.env",
+      "/sign",
+      "/inference",
+    ]) {
+      const result = await get(http, path);
+      assert.equal(result.status, 404);
+      assert.doesNotMatch(result.text, /PRIVATE_CANARY/);
+    }
+    const health = await get(http, "/health");
+    assert.equal(health.status, 503);
+    assert.doesNotMatch(health.text, /PRIVATE_CANARY/);
+  } finally {
+    f.store.db.prepare = prepare;
+    globalThis.fetch = fetcher;
+    if (oldKey === undefined) delete process.env.NEAR_AI_API_KEY;
+    else process.env.NEAR_AI_API_KEY = oldKey;
+  }
+  assert.equal(forbidden, 0);
+  assert.equal(f.chain.calls.length, before.calls);
+  assert.equal(f.chain.loads.length, before.loads);
+  assert.equal(f.store.budget.history().entries.length, before.entries);
+  assert.deepEqual(f.store.scheduler.roots()[0], before.root);
+});
+
 test("the handler holds capacity until finish/close, including failed or disconnected responses", async () => {
   const { EventEmitter } = await import("node:events");
   let reads = 0;

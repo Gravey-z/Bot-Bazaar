@@ -504,3 +504,49 @@ test("failed pre-migration backup leaves the v1 database and its jobs intact", a
     db.close();
   }
 });
+
+test("an unavailable pinned page restarts the whole snapshot at a newer block without partial evidence", async (t) => {
+  let unavailable = false;
+  const f = await setup(t, {
+    patch: (_method, params, result) => {
+      if (unavailable && params.method_name === "get_offers_for_merchant")
+        throw new Error("UNKNOWN_BLOCK PRIVATE_CANARY");
+      return result;
+    },
+  });
+  await f.observer.poll();
+  const before = f.store.discoveryState(),
+    signals = f.store.discoverySignals();
+  Object.assign(f.chain.state, structuredClone(captured.pending));
+  unavailable = true;
+  await assert.rejects(f.observer.poll());
+  assert.deepEqual(f.store.discoveryState(), before);
+  assert.deepEqual(f.store.discoverySignals(), signals);
+  Object.assign(f.chain.state, structuredClone(captured.final));
+  unavailable = false;
+  const start = f.chain.calls.length;
+  const observed = await f.observer.poll();
+  const queries = f.chain.calls
+    .slice(start)
+    .filter((call) => call.method === "query");
+  assert.equal(observed.block.hash, captured.final.finalized_block.hash);
+  assert.equal(
+    queries.find((call) => call.params.request_type === "call_function").params
+      .method_name,
+    "get_market_state",
+  );
+  assert.ok(
+    queries.every((call) => call.params.block_id === observed.block.hash),
+  );
+  assert.ok(
+    queries.filter(
+      (call) => call.params.method_name === "get_offers_for_merchant",
+    ).length >= 6,
+  );
+  assert.doesNotMatch(
+    JSON.stringify(
+      f.store.activity.page(undefined, 50, "https://testnet.nearblocks.io"),
+    ),
+    /PRIVATE_CANARY/,
+  );
+});

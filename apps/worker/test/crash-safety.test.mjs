@@ -10,6 +10,36 @@ import { CrashSafeProcessor } from "../dist/private/recovery/processor.js";
 import { captured, fixture } from "./chain-fixture.mjs";
 import { verifyBackup } from "../dist/private/storage/backup.js";
 
+// Controlled final receipts pass through the real verifier. No network is used.
+function resultReceipt(f, intentId, result) {
+  const prepared = JSON.parse(f.store.attempt(intentId).signed_json),
+    value = structuredClone(captured.steps[2].receipt);
+  Object.assign(value.transaction, {
+    hash: prepared.transactionHash,
+    signer_id: prepared.signerId,
+    receiver_id: prepared.contractId,
+    public_key: prepared.publicKey,
+    nonce: Number(prepared.nonce),
+    actions: [
+      {
+        FunctionCall: {
+          method_name: prepared.method,
+          args: Buffer.from(JSON.stringify(prepared.args)).toString("base64"),
+          gas: Number(prepared.gas),
+          deposit: "0",
+        },
+      },
+    ],
+  });
+  value.transaction_outcome.id = prepared.transactionHash;
+  const status = {
+    SuccessValue: Buffer.from(JSON.stringify(result)).toString("base64"),
+  };
+  value.status = status;
+  value.receipts_outcome[0].outcome.status = status;
+  return value;
+}
+
 async function setup(t, options = {}) {
   const root = await mkdtemp(join(tmpdir(), "bazaar-crash-"));
   let receipt = { final_execution_status: "NONE" };
@@ -183,6 +213,12 @@ test("a failed intent commit never loads a signing secret or broadcasts", async 
   await assert.rejects(f.processor.execute(proposal()));
   assert.equal(f.chain.loads.length, 0);
   assert.equal(f.submits, 0);
+  await f.restart();
+  assert.equal((await f.processor.recover()).kind, "ready");
+  assert.equal(f.store.getIntent("intent"), undefined);
+  assert.equal(f.store.attempt("intent"), undefined);
+  assert.equal(f.submits, 0);
+  assert.deepEqual(f.chain.loads, []);
 });
 
 for (const afterCommit of [false, true])
@@ -508,6 +544,193 @@ test("backup verification supports a reconciled snapshot but restoration always 
   } finally {
     await store.close();
   }
+});
+
+test("restart after intent commit but before signing accounts for the unsigned intent without loading a key", async (t) => {
+  const f = await setup(t);
+  await ready(f);
+  const prepare = f.store.prepareIntent.bind(f.store);
+  f.store.prepareIntent = async (...args) => {
+    await prepare(...args);
+    throw new Error("crash after durable intent");
+  };
+  await assert.rejects(f.processor.execute(proposal()));
+  assert.equal(f.store.getIntent("intent").status, "prepared");
+  await f.restart();
+  assert.equal((await f.processor.recover()).kind, "ready");
+  assert.equal(f.store.getIntent("intent").status, "abandoned");
+  assert.equal(f.store.attempt("intent"), undefined);
+  assert.equal(f.submits, 0);
+  assert.deepEqual(f.chain.loads, []);
+});
+
+test("restart after unknown commit before send retains the signed identity and never assumes it was unsent", async (t) => {
+  const f = await setup(t);
+  await ready(f);
+  const mark = f.store.markBroadcast.bind(f.store);
+  f.store.markBroadcast = (...args) => {
+    mark(...args);
+    throw new Error("crash after unknown commit");
+  };
+  await assert.rejects(f.processor.execute(proposal()));
+  const hash = f.store.attempt("intent").tx_hash;
+  assert.equal(f.store.getIntent("intent").status, "unknown");
+  assert.equal(f.submits, 0);
+  await f.restart();
+  assert.equal((await f.processor.recover()).kind, "blocked");
+  await assert.rejects(
+    f.processor.execute({ ...proposal(), id: "replacement" }),
+  );
+  assert.equal(f.store.attempt("intent").tx_hash, hash);
+  assert.equal(f.store.locks().length, 3);
+  assert.equal(f.chain.loads.length, 1);
+  assert.equal(f.submits, 0);
+});
+
+test("restart after final commit but before acknowledgement keeps one confirmed event and never rebroadcasts", async (t) => {
+  const f = await setup(t);
+  await ready(f);
+  await f.processor.execute(proposal());
+  f.publish();
+  f.setReceipt(receiptFor(f));
+  const finish = f.store.finishAttempt.bind(f.store);
+  f.store.finishAttempt = (...args) => {
+    finish(...args);
+    throw new Error("crash after final commit");
+  };
+  await f.processor.recover();
+  assert.equal(f.store.getIntent("intent").status, "confirmed");
+  const hash = f.store.attempt("intent").tx_hash;
+  await f.restart();
+  assert.equal((await f.processor.recover()).kind, "ready");
+  assert.equal(f.store.attempt("intent").tx_hash, hash);
+  const events = f.store.activity.page(
+    undefined,
+    50,
+    "https://testnet.nearblocks.io",
+  ).entries;
+  assert.equal(
+    events.filter((e) => e.intent_id === "intent" && e.status === "confirmed")
+      .length,
+    1,
+  );
+  assert.equal(f.submits, 1);
+  assert.equal(f.chain.loads.length, 1);
+});
+
+test("a definitive failure and restart permit a corrected intent with the same action ID, not a blind replacement", async (t) => {
+  const f = await setup(t);
+  await ready(f);
+  await f.processor.execute(proposal());
+  const failed = receiptFor(f);
+  failed.status = { Failure: { ActionError: {} } };
+  failed.receipts_outcome[0].outcome.status = failed.status;
+  f.setReceipt(failed);
+  assert.equal((await f.processor.recover()).kind, "ready");
+  const original = f.store.attempt("intent");
+  await f.restart();
+  assert.equal((await f.processor.recover()).kind, "ready");
+  f.chain.state.keys["rex-bazaar.testnet"].nonce = Number(
+    JSON.parse(original.signed_json).nonce,
+  );
+  const corrected = {
+    ...proposal(),
+    id: "corrected",
+    args: { ...proposal().args, quantity: "3", total_price: "18" },
+  };
+  await f.processor.execute(corrected);
+  assert.equal(f.store.getIntent("corrected").action_id, "1");
+  assert.equal(f.store.getIntent("intent").status, "failed");
+  assert.notEqual(f.store.attempt("corrected").tx_hash, original.tx_hash);
+  const result = structuredClone(captured.steps[2].result);
+  Object.assign(result.data.offer, { quantity: "3", total_price: "18" });
+  result.data.action.args_sha256 = f.store.getIntent("corrected").args_digest;
+  f.publish();
+  Object.assign(f.chain.state.offer.data.offer, result.data.offer);
+  Object.assign(
+    f.chain.state.market.data.merchants[0].last_action,
+    result.data.action,
+  );
+  f.setReceipt(resultReceipt(f, "corrected", result));
+  assert.equal((await f.processor.recover()).kind, "ready");
+  assert.equal(f.store.getIntent("corrected").status, "confirmed");
+  assert.equal(f.store.merchantCheckpoint("rex").last_action_id, "1");
+  assert.equal(f.submits, 2);
+});
+
+test("ignored live/unallocated cleanup IDs survive restart and can be collected at actual expiry", async (t) => {
+  const f = await setup(t);
+  await ready(f);
+  await f.processor.execute(proposal());
+  f.publish();
+  f.setReceipt(receiptFor(f));
+  assert.equal((await f.processor.recover()).kind, "ready");
+  const cleanup = {
+    id: "cleanup-live",
+    jobId: "job",
+    merchantId: "rex",
+    method: "expire_offers",
+    args: { offer_ids: ["1", "999"] },
+  };
+  await f.processor.execute(cleanup);
+  const ignored = {
+    market_revision: f.chain.state.market.market_revision,
+    block_height: f.chain.state.market.block_height,
+    block_timestamp_ns: f.chain.state.market.block_timestamp_ns,
+    data: { expired_offer_ids: [], ignored_offer_ids: ["1", "999"] },
+  };
+  f.setReceipt(resultReceipt(f, cleanup.id, ignored));
+  assert.equal((await f.processor.recover()).kind, "ready");
+  assert.equal(f.store.getIntent(cleanup.id).status, "confirmed");
+  assert.equal(f.store.offers()[0].cleanup_ack, 0);
+  assert.equal(
+    f.store.offers().some((o) => o.offer_id === "999"),
+    false,
+  );
+  assert.throws(() => f.store.forgetTerminalOffer("1"));
+  assert.throws(() => f.store.releaseLocks("job", "commitment"));
+  const nonce = Number(
+    JSON.parse(f.store.attempt(cleanup.id).signed_json).nonce,
+  );
+  await f.restart();
+  assert.equal((await f.processor.recover()).kind, "ready");
+  assert.equal(f.store.offers()[0].cleanup_ack, 0);
+  const time = f.chain.state.offer.data.offer.expires_at_ns;
+  f.chain.state.finalized_block.timestamp_ns = time;
+  f.chain.state.market.block_timestamp_ns = time;
+  f.chain.state.offer.block_timestamp_ns = time;
+  f.chain.state.keys["rex-bazaar.testnet"].nonce = nonce;
+  const later = {
+    ...cleanup,
+    id: "cleanup-expired",
+    args: { offer_ids: ["1"] },
+  };
+  await f.processor.execute(later);
+  f.chain.state.market.market_revision = String(
+    BigInt(f.chain.state.market.market_revision) + 1n,
+  );
+  f.chain.state.offer.market_revision = f.chain.state.market.market_revision;
+  Object.assign(f.chain.state.offer.data.offer, {
+    status: "expired",
+    closed_at_ns: time,
+  });
+  const collected = {
+    ...ignored,
+    market_revision: f.chain.state.market.market_revision,
+    block_timestamp_ns: time,
+    data: { expired_offer_ids: ["1"], ignored_offer_ids: [] },
+  };
+  f.setReceipt(resultReceipt(f, later.id, collected));
+  assert.equal((await f.processor.recover()).kind, "ready");
+  assert.equal(f.store.getIntent(later.id).status, "confirmed");
+  assert.equal(f.store.offers()[0].cleanup_ack, 1);
+  assert.equal(f.store.offers()[0].status, "expired");
+  f.store.releaseLocks("job", "commitment");
+  assert.equal(
+    f.store.locks().filter((l) => l.kind === "commitment").length,
+    0,
+  );
+  assert.equal(f.submits, 3);
 });
 
 test(

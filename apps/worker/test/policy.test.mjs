@@ -912,6 +912,104 @@ test("short decision retention cannot erase unresolved policy plans or commitmen
   );
   assert.equal(f.store.getDecision("choice").id, "choice");
 });
+
+for (const fault of [
+  "seller_stock",
+  "listing_version",
+  "seller_quote",
+  "trigger_disappeared",
+  "pause",
+  "pinned_read_unavailable",
+]) {
+  test(`${fault} after policy approval stops before signature or broadcast`, async (t) => {
+    let processor;
+    const f = await modelRoot(t, "rex", async (f, c) => {
+      f.chain.state.market = structuredClone(c.state.market);
+      f.chain.state.finalized_block.timestamp_ns = c.state.block.timestampNs;
+      processor = new CrashSafeProcessor(
+        f.store,
+        f.chain.client,
+        f.chain.adapter,
+        async (context) => ({
+          ...context,
+          journal: "current",
+          fencing: "verified",
+          providerHistory: "accounted",
+          evidenceRef: "unit:fault-continuity",
+          baselines: {
+            rex: { actionId: "0", digest: null },
+            luna: { actionId: "0", digest: null },
+            bolt: { actionId: "0", digest: null },
+          },
+        }),
+      );
+      assert.equal((await processor.recover()).kind, "ready");
+    });
+    f.save("fault-choice", buy(f.c));
+    f.store.policy.authorize("fault-choice", now);
+    const step = f.store.policy.next("fault-choice", now),
+      original = f.chain.adapter.prepare.bind(f.chain.adapter);
+    f.chain.adapter.prepare = (...args) =>
+      original(args[0], args[1], args[2], async (key) => {
+        const market = f.chain.state.market.data;
+        if (fault === "seller_stock")
+          market.merchants[1].inventory.crystal = "4";
+        if (fault === "listing_version")
+          market.merchants[0].listings[0].version = "2";
+        if (fault === "seller_quote")
+          market.merchants[1].listings[0].unit_price = "8";
+        if (fault === "trigger_disappeared")
+          market.merchants[0].inventory.crystal = "5";
+        if (fault === "pause") market.paused = true;
+        if (fault === "pinned_read_unavailable") {
+          const transport = f.chain.client.transport;
+          f.chain.client.transport = async (method, params) => {
+            if (params.request_type === "call_function")
+              throw new Error("UNKNOWN_BLOCK PRIVATE_CANARY");
+            return transport(method, params);
+          };
+        }
+        await args[3](key);
+      });
+    await assert.rejects(processor.execute(step));
+    assert.equal(f.store.attempt(step.id), undefined);
+    assert.equal(f.chain.loads.length, 1);
+    assert.equal(
+      f.chain.calls.some((call) => call.method === "send_tx"),
+      false,
+    );
+    assert.equal(f.store.getIntent(step.id).status, "prepared");
+    assert.equal(f.store.checkpoint().recovery_required, 1);
+    assert.deepEqual(
+      JSON.parse(
+        f.store.db
+          .prepare("SELECT steps_json FROM policy_plans WHERE decision_id=?")
+          .get("fault-choice").steps_json,
+      )[1].intent.args.quantity,
+      "4",
+    );
+  });
+}
+
+test("a stock change after confirmed preparation cannot silently resize the original proposal", async (t) => {
+  const f = await modelRoot(t);
+  f.save("stock-race", buy(f.c));
+  f.store.policy.authorize("stock-race", now);
+  const prep = f.store.policy.next("stock-race", now);
+  await confirmedFixture(f, prep);
+  f.c.state.market.data.merchants[1].inventory.crystal = "4";
+  f.publish();
+  assert.throws(() => f.store.policy.next("stock-race", now));
+  const plan = JSON.parse(
+    f.store.db
+      .prepare("SELECT steps_json FROM policy_plans WHERE decision_id=?")
+      .get("stock-race").steps_json,
+  );
+  assert.equal(plan[1].intent.args.quantity, "4");
+  assert.equal(plan[1].intent.args.total_price, "24");
+  assert.equal(f.store.getIntent(plan[1].intent.id), undefined);
+  assert.deepEqual(f.chain.loads, []);
+});
 test("unknown billing is protected for the full 30-day window and ages out only on verified admission", async (t) => {
   const f = await setup(t);
   grant(f.store);
