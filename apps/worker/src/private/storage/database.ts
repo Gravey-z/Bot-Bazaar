@@ -43,6 +43,7 @@ import { RetryRepository } from "../retries/repository.js";
 import { BudgetRepository } from "../policy/budget.js";
 import { PolicyRepository } from "../policy/repository.js";
 import { InferenceRepository } from "../inference/repository.js";
+import { InferenceAvailability } from "../inference/availability.js";
 import { migrateDiscovery } from "./migration.js";
 import type {
   DiscoveryCommit,
@@ -102,6 +103,7 @@ export class WorkerStore {
   readonly budget: BudgetRepository;
   readonly policy: PolicyRepository;
   readonly records: InferenceRepository;
+  readonly availability = new InferenceAvailability();
 
   constructor(options: StoreOptions) {
     const expected = identityJson(options.identity);

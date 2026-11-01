@@ -7,6 +7,8 @@ import type { Decision } from "../decisions/schema.js";
 import type { InferencePolicy, PreparedInference } from "../policy/budget.js";
 import { recordInferenceInput } from "../inference/input.js";
 import type { RecordedInput } from "../inference/input.js";
+import { InferenceUnavailableError } from "../inference/availability.js";
+import type { AiCode } from "../inference/availability.js";
 export class DefinitiveProviderFailure extends Error {}
 export type ProviderResponse = Decision;
 export class ProviderRunner {
@@ -17,6 +19,10 @@ export class ProviderRunner {
     ),
     private readonly inference?: InferencePolicy,
   ) {}
+  private unavailable(code: AiCode): InferenceUnavailableError {
+    this.store.availability.unavailable(code);
+    return new InferenceUnavailableError(code);
+  }
   resumeClock(): void {
     requireStorage(
       this.store.checkpoint()["recovery_required"] === 0 &&
@@ -41,39 +47,51 @@ export class ProviderRunner {
     assertCurrent: () => void;
   }> {
     request = { ...request };
-    const now = this.clock.now();
+    let now: number;
+    try {
+      now = this.clock.now();
+    } catch {
+      throw this.unavailable("clock_unavailable");
+    }
     let prepared: PreparedInference;
     let recordedInput: RecordedInput;
     try {
-      requireStorage(this.inference, "verified inference accounting required");
+      if (!this.inference)
+        throw new InferenceUnavailableError("provider_not_configured");
       prepared = { ...this.inference.prepare(request) };
-      requireStorage(
-        prepared.provider === request.provider &&
-          prepared.model === request.model,
-        "inference model identity mismatch",
-      );
+      if (
+        prepared.provider !== request.provider ||
+        prepared.model !== request.model
+      )
+        throw new InferenceUnavailableError("model_identity_mismatch");
       recordedInput = recordInferenceInput(prepared.payload);
-      requireStorage(
-        recordedInput.status === "recorded",
-        "sanitized market input required before dispatch",
-      );
+      if (recordedInput.status !== "recorded")
+        throw new InferenceUnavailableError("input_unavailable");
       this.store.budget.reserve(request.id, prepared, now);
-    } catch {
-      throw new StorageError(
-        "inference admission unavailable; no request dispatched",
+    } catch (error) {
+      throw this.unavailable(
+        error instanceof InferenceUnavailableError
+          ? error.code
+          : "admission_unavailable",
       );
     }
     if (this.store.budget.status(now).warning)
       console.error(
         "Worker model budget at or above 80 percent; admission limits remain enforced",
       );
-    const record = this.store.retry.reserve(
+    let record: ReturnType<WorkerStore["retry"]["reserve"]>;
+    try {
+      record = this.store.retry.reserve(
         request,
         now,
         options.timeoutMs ?? 15000,
         recordedInput,
-      ),
-      abort = new AbortController();
+      );
+    } catch {
+      throw this.unavailable("admission_unavailable");
+    }
+    this.store.availability.admitted();
+    const abort = new AbortController();
     let expired = false;
     let rejectAbort: (error: Error) => void = () => {};
     const interrupted = new Promise<never>((_resolve, reject) => {
@@ -88,14 +106,16 @@ export class ProviderRunner {
         /* No late result may authorize work after failed persistence. */
       }
       rejectAbort(
-        new StorageError("provider request interrupted; outcome unknown"),
+        new InferenceUnavailableError(
+          reason === "timeout" ? "request_timeout" : "request_cancelled",
+        ),
       );
     };
     const invalidate = () => expire("cancelled");
     const external = options.signal;
     if (external?.aborted) {
       this.store.retry.fail(request.id, false, "cancelled_before_dispatch");
-      throw new StorageError("provider request cancelled before dispatch");
+      throw new InferenceUnavailableError("request_cancelled");
     }
     external?.addEventListener("abort", invalidate, { once: true });
     const timer = setTimeout(
@@ -176,19 +196,27 @@ export class ProviderRunner {
         assertCurrent,
       };
     } catch (error) {
-      this.store.retry.fail(
-        request.id,
-        error instanceof DefinitiveProviderFailure ||
-          error instanceof DecisionValidationError,
-        error instanceof DecisionValidationError
-          ? "invalid_decision"
-          : error instanceof DefinitiveProviderFailure
-            ? "definitive_failure"
-            : "unknown_outcome",
-      );
-      throw new StorageError(
-        "provider attempt failed or became unknown; no automatic retry",
-      );
+      try {
+        this.store.retry.fail(
+          request.id,
+          error instanceof DefinitiveProviderFailure ||
+            error instanceof DecisionValidationError,
+          error instanceof DecisionValidationError
+            ? "invalid_decision"
+            : error instanceof DefinitiveProviderFailure
+              ? "definitive_failure"
+              : "unknown_outcome",
+        );
+      } catch {
+        throw this.unavailable("storage_unavailable");
+      }
+      let summary;
+      try {
+        summary = this.store.records.status(request.id);
+      } catch {
+        throw this.unavailable("storage_unavailable");
+      }
+      throw new InferenceUnavailableError(summary?.code ?? "outcome_unknown");
     } finally {
       if (timer) clearTimeout(timer);
       external?.removeEventListener("abort", invalidate);

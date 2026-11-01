@@ -342,7 +342,7 @@ for (const window of ["hour", "day"])
         calls++;
         return hold();
       }),
-      /limit/,
+      (error) => error.code === "admission_unavailable",
     );
     assert.equal(calls, 0);
     assert.equal(f.store.retry.attempt("request"), undefined);

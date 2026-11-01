@@ -125,6 +125,17 @@ test(
         backup: "verified",
         discovery: "disabled",
         scheduling: "waiting_for_recovery",
+        ai: {
+          status: "unavailable",
+          label: "AI unavailable",
+          code: "provider_disabled",
+          observedAt: null,
+          currentSession: false,
+          mode: "disabled",
+          liveAiEvidence: false,
+          lastInference: null,
+          lastAdmission: null,
+        },
       });
       assert.equal(
         (await fetch(`http://127.0.0.1:${port}/unknown`)).status,

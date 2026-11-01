@@ -1,5 +1,7 @@
 import type { DatabaseSync, SQLInputValue } from "node:sqlite";
 import { parseDecisionAction } from "../decisions/schema.js";
+import { summarizeInference } from "./availability.js";
+import type { InferenceStatus } from "./availability.js";
 import {
   id,
   label,
@@ -22,6 +24,19 @@ export class InferenceRepository {
   ) {}
   private one(sql: string, ...args: SQLInputValue[]): Row | undefined {
     return this.db.prepare(sql).get(...args);
+  }
+  latestStatus(): InferenceStatus | null {
+    const row = this.one(
+      "SELECT r.outcome,r.outcome_code,r.schema_outcome,r.policy_outcome,r.updated_at,p.status AS provider_status,(p.session_id=d.feed_generation) AS current_session FROM inference_records r JOIN provider_attempts p ON p.id=r.request_id CROSS JOIN deployment d ORDER BY r.updated_at DESC,r.request_id DESC LIMIT 1",
+    );
+    return row ? summarizeInference(row) : null;
+  }
+  status(requestId: string): InferenceStatus | null {
+    const row = this.one(
+      "SELECT r.outcome,r.outcome_code,r.schema_outcome,r.policy_outcome,r.updated_at,p.status AS provider_status,(p.session_id=d.feed_generation) AS current_session FROM inference_records r JOIN provider_attempts p ON p.id=r.request_id CROSS JOIN deployment d WHERE r.request_id=?",
+      id(requestId),
+    );
+    return row ? summarizeInference(row) : null;
   }
   get(requestId: string): InferenceRecord | undefined {
     id(requestId);

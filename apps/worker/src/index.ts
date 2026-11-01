@@ -10,6 +10,7 @@ import { DiscoveryLoop } from "./private/discovery/loop.js";
 import { Scheduler } from "./private/scheduling/scheduler.js";
 import { CrashSafeProcessor } from "./private/recovery/processor.js";
 import { readBackoff } from "./private/retries/backoff.js";
+import { readAiAvailability } from "./private/inference/availability.js";
 
 const config = (() => {
   try {
@@ -156,6 +157,10 @@ const server = createServer((request, response) => {
         backup: backupFailed ? "failed" : "verified",
         discovery: discovery?.status ?? "disabled",
         scheduling: schedulingStatus,
+        ai: readAiAvailability(
+          store,
+          config.provider.kind === "disabled" ? "disabled" : "unconfigured",
+        ),
       }),
     );
     return;
