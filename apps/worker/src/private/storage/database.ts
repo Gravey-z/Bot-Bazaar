@@ -36,11 +36,13 @@ import {
   schedulingSchema,
   retrySchema,
   policySchema,
+  inferenceSchema,
 } from "./schema.js";
 import { SchedulerRepository } from "../scheduling/repository.js";
 import { RetryRepository } from "../retries/repository.js";
 import { BudgetRepository } from "../policy/budget.js";
 import { PolicyRepository } from "../policy/repository.js";
+import { InferenceRepository } from "../inference/repository.js";
 import { migrateDiscovery } from "./migration.js";
 import type {
   DiscoveryCommit,
@@ -99,6 +101,7 @@ export class WorkerStore {
   readonly retry: RetryRepository;
   readonly budget: BudgetRepository;
   readonly policy: PolicyRepository;
+  readonly records: InferenceRepository;
 
   constructor(options: StoreOptions) {
     const expected = identityJson(options.identity);
@@ -165,7 +168,8 @@ export class WorkerStore {
               discoverySchema +
               schedulingSchema +
               retrySchema +
-              policySchema,
+              policySchema +
+              inferenceSchema,
           );
           this.db
             .prepare(
@@ -185,7 +189,7 @@ export class WorkerStore {
         }
       } else
         requireStorage(
-          [1, 2, 3, 4, schemaVersion].includes(version),
+          [1, 2, 3, 4, 5, schemaVersion].includes(version),
           "unsupported database schema; do not recreate it",
         );
       requireStorage(
@@ -223,6 +227,9 @@ export class WorkerStore {
     }
     this.scheduler = new SchedulerRepository(this.db, expected, (operation) =>
       this.write(operation, true),
+    );
+    this.records = new InferenceRepository(this.db, (fn, admission = false) =>
+      this.write(fn, admission),
     );
     this.retry = new RetryRepository(this.db, (operation, admission = false) =>
       this.write(operation, admission),
@@ -1223,6 +1230,7 @@ export class WorkerStore {
     timestamp(now);
     this.write(() => {
       this.policy.pruneInTransaction(now);
+      this.records.pruneInTransaction(now);
       // Only resolved jobs are eligible. Protect every unresolved intent and lock.
       const eligible = `job_id IN (SELECT id FROM jobs WHERE status IN ${terminals})`;
       this.run(

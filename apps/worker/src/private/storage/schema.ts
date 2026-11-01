@@ -1,4 +1,4 @@
-export const schemaVersion = 5;
+export const schemaVersion = 6;
 
 // Only fixed, application-owned column names are passed here.
 const u64 = (name: string) => `${name} TEXT CHECK (${name} IS NULL OR
@@ -190,4 +190,27 @@ ALTER TABLE scheduler_mutations ADD COLUMN purpose TEXT NOT NULL DEFAULT 'model'
 DROP INDEX one_root_listing;
 CREATE UNIQUE INDEX one_root_listing ON scheduler_mutations(job_id,merchant_id) WHERE method='set_listing' AND purpose='model';
 PRAGMA user_version=5;
+`;
+
+export const inferenceSchema = `
+CREATE TABLE inference_records (
+ request_id TEXT PRIMARY KEY REFERENCES provider_attempts(id),
+ job_id TEXT NOT NULL REFERENCES jobs(id), merchant_id TEXT NOT NULL,
+ provider TEXT NOT NULL, model TEXT NOT NULL, prompt_version TEXT NOT NULL,
+ actual_provider TEXT, actual_model TEXT,
+ payload_sha256 TEXT, input_status TEXT NOT NULL CHECK(input_status IN ('recorded','unavailable','legacy_unavailable')),
+ input_json TEXT CHECK(length(CAST(input_json AS BLOB))<=49152),
+ returned_action_json TEXT CHECK(length(CAST(returned_action_json AS BLOB))<=65536), reason TEXT,
+ outcome TEXT NOT NULL CHECK(outcome IN ('pending','schema_valid','schema_invalid','failed','unknown','revoked','legacy_unavailable')),
+ schema_outcome TEXT NOT NULL CHECK(schema_outcome IN ('pending','valid','invalid','unavailable','legacy_unavailable')),
+ policy_outcome TEXT NOT NULL DEFAULT 'not_evaluated' CHECK(policy_outcome IN ('not_evaluated','approved','offchain','rejected','unavailable')),
+ outcome_code TEXT, policy_code TEXT,
+ prepared_at INTEGER NOT NULL, dispatched_at INTEGER, responded_at INTEGER, finished_at INTEGER,
+ policy_at INTEGER, updated_at INTEGER NOT NULL,
+ late_ignored INTEGER NOT NULL DEFAULT 0 CHECK(late_ignored IN (0,1))
+) STRICT;
+CREATE INDEX inference_retention ON inference_records(updated_at);
+INSERT INTO inference_records(request_id,job_id,merchant_id,provider,model,prompt_version,input_status,outcome,schema_outcome,prepared_at,updated_at)
+ SELECT id,job_id,merchant_id,provider,model,prompt_version,'legacy_unavailable','legacy_unavailable','legacy_unavailable',started_at,started_at FROM provider_attempts;
+PRAGMA user_version=6;
 `;

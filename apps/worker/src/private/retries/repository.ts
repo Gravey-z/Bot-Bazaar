@@ -1,4 +1,5 @@
 import type { DatabaseSync, SQLInputValue } from "node:sqlite";
+import type { RecordedInput } from "../inference/input.js";
 import {
   id,
   label,
@@ -49,6 +50,12 @@ export class RetryRepository {
     );
     this.run(
       "DELETE FROM merchant_locks WHERE kind='controller' AND EXISTS(SELECT 1 FROM provider_attempts p WHERE p.status='pending' AND p.job_id=merchant_locks.job_id AND p.merchant_id=merchant_locks.merchant_id) AND NOT EXISTS(SELECT 1 FROM intents i WHERE i.merchant_id=merchant_locks.merchant_id AND i.status IN ('prepared','signed','submitted','unknown'))",
+    );
+    this.run(
+      "UPDATE inference_records SET outcome='unknown',schema_outcome=CASE WHEN schema_outcome='pending' THEN 'unavailable' ELSE schema_outcome END,outcome_code=?,finished_at=coalesce(finished_at,?),updated_at=? WHERE outcome='pending' AND request_id IN (SELECT id FROM provider_attempts WHERE status='pending')",
+      reason,
+      Date.now(),
+      Date.now(),
     );
     this.run(
       "UPDATE provider_attempts SET status='unknown',reason=? WHERE status='pending'",
@@ -114,7 +121,12 @@ export class RetryRepository {
       view.observedAt <= now + 5000
     );
   }
-  reserve(request: ProviderRequest, now: number, timeoutMs: number): Row {
+  reserve(
+    request: ProviderRequest,
+    now: number,
+    timeoutMs: number,
+    input?: RecordedInput,
+  ): Row {
     [request.id, request.turnId].forEach(id);
     [request.provider, request.model, request.promptVersion].forEach(label);
     timestamp(now);
@@ -212,6 +224,20 @@ export class RetryRepository {
         request.retryOf ?? null,
       );
       this.run(
+        "INSERT INTO inference_records(request_id,job_id,merchant_id,provider,model,prompt_version,payload_sha256,input_status,input_json,outcome,schema_outcome,prepared_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,'pending','pending',?,?)",
+        request.id,
+        row["job_id"]!,
+        row["merchant_id"]!,
+        request.provider,
+        request.model,
+        request.promptVersion,
+        input?.payloadHash ?? null,
+        input?.status ?? "unavailable",
+        input?.inputJson ?? null,
+        now,
+        now,
+      );
+      this.run(
         "UPDATE jobs SET model_attempts=model_attempts+1 WHERE id=?",
         row["job_id"]!,
       );
@@ -233,7 +259,32 @@ export class RetryRepository {
     return this.write(() => {
       const row = this.attempt(requestId);
       requireStorage(row, "provider request missing");
+      const identity = this.one(
+        "SELECT actual_provider,actual_model FROM inference_records WHERE request_id=?",
+        requestId,
+      );
+      requireStorage(
+        !identity ||
+          identity["actual_provider"] === null ||
+          (identity["actual_provider"] === row["provider"] &&
+            identity["actual_model"] === row["model"]),
+        "returned model identity mismatch",
+      );
+      this.run(
+        "UPDATE inference_records SET returned_action_json=?,reason=?,schema_outcome='valid',responded_at=?,updated_at=? WHERE request_id=? AND schema_outcome IN ('pending','unavailable')",
+        normalized.actionJson,
+        normalized.reason,
+        now,
+        now,
+        requestId,
+      );
       if (!this.current(row, now)) {
+        this.run(
+          "UPDATE inference_records SET late_ignored=1,outcome=CASE WHEN outcome='pending' THEN 'revoked' ELSE outcome END,outcome_code=coalesce(outcome_code,'late_or_revoked_response'),finished_at=coalesce(finished_at,?),updated_at=? WHERE request_id=?",
+          now,
+          now,
+          requestId,
+        );
         this.run(
           "UPDATE provider_attempts SET late_ignored=1 WHERE id=?",
           requestId,
@@ -259,6 +310,12 @@ export class RetryRepository {
         requestId,
       );
       this.run(
+        "UPDATE inference_records SET outcome='schema_valid',finished_at=?,updated_at=? WHERE request_id=? AND outcome='pending'",
+        now,
+        now,
+        requestId,
+      );
+      this.run(
         "UPDATE retry_state SET high_water_ms=max(high_water_ms,?)",
         now,
       );
@@ -271,6 +328,15 @@ export class RetryRepository {
       const row = this.attempt(requestId);
       requireStorage(row, "provider request missing");
       if (row["status"] !== "pending") return;
+      const now = Date.now();
+      this.run(
+        "UPDATE inference_records SET outcome=?,schema_outcome=CASE WHEN schema_outcome='pending' THEN 'unavailable' ELSE schema_outcome END,outcome_code=?,finished_at=coalesce(finished_at,?),updated_at=? WHERE request_id=? AND outcome='pending'",
+        definitive ? "failed" : "unknown",
+        reason,
+        now,
+        now,
+        requestId,
+      );
       this.run(
         "UPDATE provider_attempts SET status=?,reason=? WHERE id=?",
         definitive ? "failed" : "unknown",

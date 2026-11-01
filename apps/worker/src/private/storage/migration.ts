@@ -19,6 +19,7 @@ import {
   schedulingSchema,
   retrySchema,
   policySchema,
+  inferenceSchema,
 } from "./schema.js";
 import { requireStorage } from "./validation.js";
 
@@ -29,7 +30,7 @@ export function migrateDiscovery(db: DatabaseSync, root: string): void {
     db.prepare("PRAGMA user_version").get()!["user_version"],
   );
   requireStorage(
-    [1, 2, 3, 4].includes(version),
+    [1, 2, 3, 4, 5].includes(version),
     "unsupported migration source",
   );
   requireStorage(
@@ -137,7 +138,8 @@ export function migrateDiscovery(db: DatabaseSync, root: string): void {
     if (version === 1) db.exec(discoverySchema);
     if (version <= 2) db.exec(schedulingSchema);
     if (version <= 3) db.exec(retrySchema);
-    db.exec(policySchema);
+    if (version <= 4) db.exec(policySchema);
+    db.exec(inferenceSchema);
     db.exec("COMMIT");
   } catch (error) {
     db.exec("ROLLBACK");

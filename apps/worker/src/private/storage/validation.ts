@@ -94,6 +94,19 @@ export function sanitizedDecision(
   reason: string,
 ): { actionJson: string; reason: string } {
   const normalized = parseDecision({ action, reason });
+  return {
+    actionJson: json(normalized.action),
+    reason: sanitizeBriefReason(reason),
+  };
+}
+export function sanitizeBriefReason(reason: unknown): string {
+  requireStorage(
+    typeof reason === "string" &&
+      reason.length > 0 &&
+      reason.length <= 480 &&
+      Array.from(reason).length <= 240,
+    "invalid decision reason",
+  );
   const clean = reason
     .replace(/\p{Cc}/gu, " ")
     .replace(
@@ -104,5 +117,5 @@ export function sanitizedDecision(
     Array.from(clean).length <= 240,
     "sanitized reason exceeds decision bound",
   );
-  return { actionJson: json(normalized.action), reason: clean };
+  return clean;
 }

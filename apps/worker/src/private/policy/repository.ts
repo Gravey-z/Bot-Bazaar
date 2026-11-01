@@ -12,7 +12,7 @@ import type { WorkerStore, Intent } from "../storage/database.js";
 import type { DiscoveryState } from "../discovery/types.js";
 import { json, sha256, requireStorage } from "../storage/validation.js";
 import { parseDecisionAction } from "../decisions/schema.js";
-import { evaluateDecision } from "./evaluate.js";
+import { evaluateDecision, PolicyError } from "./evaluate.js";
 import type { PolicyContext, TradeTerms, EconomicAction } from "./evaluate.js";
 type Row = Record<string, string | number | bigint | Uint8Array | null>;
 type Step = { intent: Intent; purpose: "model" | "prerequisite" };
@@ -188,145 +188,180 @@ export class PolicyRepository {
     decisionId: string,
     now = Date.now(),
   ): { kind: "offchain" | "planned" } {
-    return this.write(() => {
-      this.sync();
-      requireStorage(
-        !this.one(
-          "SELECT decision_id FROM policy_plans WHERE decision_id=?",
-          decisionId,
-        ),
-        "decision already planned",
-      );
-      const state = this.store.discoveryState();
-      requireStorage(state, "complete discovery required");
-      const context = this.context(decisionId, state, now),
-        decision = this.store.getDecision(decisionId)!,
-        original = parseDecisionAction(
-          JSON.parse(String(decision["action_json"])),
+    try {
+      return this.write(() => {
+        requireStorage(
+          this.one(
+            "SELECT policy_outcome FROM inference_records WHERE request_id=?",
+            decisionId,
+          )?.["policy_outcome"] !== "rejected",
+          "decision already rejected by policy",
         );
-      // An acceptance adopts the capacity already reserved by its proposal's plan.
-      let inherited = 0;
-      if (original.method === "accept_trade") {
-        for (const row of this.db
-          .prepare(
-            "SELECT decision_id,slots_remaining FROM policy_plans WHERE job_id=? AND trade_key=?",
-          )
-          .all(decision["job_id"]!, `offer:${original.args.offer_id}`)) {
-          inherited += Number(row["slots_remaining"]);
-          this.db
+        this.sync();
+        requireStorage(
+          !this.one(
+            "SELECT decision_id FROM policy_plans WHERE decision_id=?",
+            decisionId,
+          ),
+          "decision already planned",
+        );
+        const state = this.store.discoveryState();
+        requireStorage(state, "complete discovery required");
+        const context = this.context(decisionId, state, now),
+          decision = this.store.getDecision(decisionId)!,
+          original = parseDecisionAction(
+            JSON.parse(String(decision["action_json"])),
+          );
+        // An acceptance adopts the capacity already reserved by its proposal's plan.
+        let inherited = 0;
+        if (original.method === "accept_trade") {
+          for (const row of this.db
             .prepare(
-              "UPDATE policy_plans SET slots_remaining=0 WHERE decision_id=?",
+              "SELECT decision_id,slots_remaining FROM policy_plans WHERE job_id=? AND trade_key=?",
             )
-            .run(row["decision_id"]!);
-        }
-      }
-      context.mutationsRemaining += inherited;
-      const result = evaluateDecision(original, context, now);
-      if (
-        result.action.method === "hold" ||
-        result.action.method === "reject_trade"
-      ) {
-        if (result.action.method === "reject_trade")
-          this.db
-            .prepare("INSERT INTO policy_rejections VALUES(?,?,?)")
-            .run(context.merchantId, result.action.offer_id, now);
-        this.db
-          .prepare("INSERT INTO policy_plans VALUES(?,?,?,'[]',0,NULL,NULL,?)")
-          .run(decisionId, decision["job_id"]!, context.merchantId, now);
-        return { kind: "offchain" };
-      }
-      const sequence = [...result.preparations, result.action];
-      const first =
-        BigInt(
-          state.market.data.merchants.find(
-            (m) => m.merchant_id === context.merchantId,
-          )!.last_action_id,
-        ) + 1n;
-      const steps: Step[] = sequence.map((action, index) => ({
-        purpose: index < result.preparations.length ? "prerequisite" : "model",
-        intent: {
-          id: `policy:${sha256(decisionId).slice(0, 32)}:${index}`,
-          jobId: String(decision["job_id"]),
-          decisionId,
-          merchantId: context.merchantId,
-          method: action.method,
-          args: createMarketCall(action.method, {
-            ...action.args,
-            action_id: String(first + BigInt(index)),
-          }).args,
-        },
-      }));
-      const tradeKey = result.trade
-        ? result.trade.offerId
-          ? `offer:${result.trade.offerId}`
-          : `decision:${decisionId}`
-        : null;
-      this.db.prepare("INSERT INTO policy_plans VALUES(?,?,?,?,?,?,?,?)").run(
-        decisionId,
-        decision["job_id"]!,
-        context.merchantId,
-        json(steps),
-        result.requiredSlots,
-        tradeKey,
-        result.trade
-          ? json({
-              ...result.trade,
-              ...(original.method === "accept_trade"
-                ? {
-                    offerDigest: offerDigest(
-                      state.offers.find(
-                        (o) => o.offer_id === original.args.offer_id,
-                      )!,
-                    ),
-                  }
-                : {}),
-            })
-          : null,
-        now,
-      );
-      steps.forEach((step, index) =>
-        this.db
-          .prepare(
-            "INSERT INTO policy_steps(intent_id,decision_id,step_index,purpose) VALUES(?,?,?,?)",
-          )
-          .run(step.intent.id, decisionId, index, step.purpose),
-      );
-      if (result.trade)
-        for (const name of [result.trade.buyer, result.trade.seller]) {
-          const existing = this.one(
-            "SELECT trade_key FROM policy_commitments WHERE merchant_id=?",
-            name,
-          );
-          requireStorage(
-            !existing || existing["trade_key"] === tradeKey,
-            "merchant commitment conflict",
-          );
-          if (!existing)
+            .all(decision["job_id"]!, `offer:${original.args.offer_id}`)) {
+            inherited += Number(row["slots_remaining"]);
             this.db
-              .prepare("INSERT INTO policy_commitments VALUES(?,?,?,?,?)")
-              .run(
-                name,
-                decision["job_id"]!,
-                decisionId,
-                tradeKey!,
-                json(result.trade),
-              );
-          const lock = this.one(
-            "SELECT job_id FROM merchant_locks WHERE merchant_id=? AND kind='commitment'",
-            name,
-          );
-          requireStorage(
-            !lock || lock["job_id"] === decision["job_id"],
-            "merchant commitment lock conflict",
-          );
+              .prepare(
+                "UPDATE policy_plans SET slots_remaining=0 WHERE decision_id=?",
+              )
+              .run(row["decision_id"]!);
+          }
+        }
+        context.mutationsRemaining += inherited;
+        const result = evaluateDecision(original, context, now);
+        if (
+          result.action.method === "hold" ||
+          result.action.method === "reject_trade"
+        ) {
+          if (result.action.method === "reject_trade")
+            this.db
+              .prepare("INSERT INTO policy_rejections VALUES(?,?,?)")
+              .run(context.merchantId, result.action.offer_id, now);
           this.db
             .prepare(
-              "INSERT OR IGNORE INTO merchant_locks VALUES(?,'commitment',?,?)",
+              "INSERT INTO policy_plans VALUES(?,?,?,'[]',0,NULL,NULL,?)",
             )
-            .run(name, decision["job_id"]!, now);
+            .run(decisionId, decision["job_id"]!, context.merchantId, now);
+          this.store.records.policyInTransaction(
+            decisionId,
+            "offchain",
+            null,
+            now,
+          );
+          return { kind: "offchain" };
         }
-      return { kind: "planned" };
-    });
+        const sequence = [...result.preparations, result.action];
+        const first =
+          BigInt(
+            state.market.data.merchants.find(
+              (m) => m.merchant_id === context.merchantId,
+            )!.last_action_id,
+          ) + 1n;
+        const steps: Step[] = sequence.map((action, index) => ({
+          purpose:
+            index < result.preparations.length ? "prerequisite" : "model",
+          intent: {
+            id: `policy:${sha256(decisionId).slice(0, 32)}:${index}`,
+            jobId: String(decision["job_id"]),
+            decisionId,
+            merchantId: context.merchantId,
+            method: action.method,
+            args: createMarketCall(action.method, {
+              ...action.args,
+              action_id: String(first + BigInt(index)),
+            }).args,
+          },
+        }));
+        const tradeKey = result.trade
+          ? result.trade.offerId
+            ? `offer:${result.trade.offerId}`
+            : `decision:${decisionId}`
+          : null;
+        this.db.prepare("INSERT INTO policy_plans VALUES(?,?,?,?,?,?,?,?)").run(
+          decisionId,
+          decision["job_id"]!,
+          context.merchantId,
+          json(steps),
+          result.requiredSlots,
+          tradeKey,
+          result.trade
+            ? json({
+                ...result.trade,
+                ...(original.method === "accept_trade"
+                  ? {
+                      offerDigest: offerDigest(
+                        state.offers.find(
+                          (o) => o.offer_id === original.args.offer_id,
+                        )!,
+                      ),
+                    }
+                  : {}),
+              })
+            : null,
+          now,
+        );
+        steps.forEach((step, index) =>
+          this.db
+            .prepare(
+              "INSERT INTO policy_steps(intent_id,decision_id,step_index,purpose) VALUES(?,?,?,?)",
+            )
+            .run(step.intent.id, decisionId, index, step.purpose),
+        );
+        if (result.trade)
+          for (const name of [result.trade.buyer, result.trade.seller]) {
+            const existing = this.one(
+              "SELECT trade_key FROM policy_commitments WHERE merchant_id=?",
+              name,
+            );
+            requireStorage(
+              !existing || existing["trade_key"] === tradeKey,
+              "merchant commitment conflict",
+            );
+            if (!existing)
+              this.db
+                .prepare("INSERT INTO policy_commitments VALUES(?,?,?,?,?)")
+                .run(
+                  name,
+                  decision["job_id"]!,
+                  decisionId,
+                  tradeKey!,
+                  json(result.trade),
+                );
+            const lock = this.one(
+              "SELECT job_id FROM merchant_locks WHERE merchant_id=? AND kind='commitment'",
+              name,
+            );
+            requireStorage(
+              !lock || lock["job_id"] === decision["job_id"],
+              "merchant commitment lock conflict",
+            );
+            this.db
+              .prepare(
+                "INSERT OR IGNORE INTO merchant_locks VALUES(?,'commitment',?,?)",
+              )
+              .run(name, decision["job_id"]!, now);
+          }
+        this.store.records.policyInTransaction(
+          decisionId,
+          "approved",
+          null,
+          now,
+        );
+        return { kind: "planned" };
+      });
+    } catch (error) {
+      try {
+        this.store.records.rejectedPolicy(
+          decisionId,
+          error instanceof PolicyError ? error.code : null,
+          now,
+        );
+      } catch {
+        /* Failed writes keep execution stopped. */
+      }
+      throw error;
+    }
   }
   next(decisionId: string, now = Date.now()): Intent | undefined {
     const plan = this.one(

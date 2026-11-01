@@ -1,4 +1,8 @@
+import { buildMerchantPrompt } from "../dist/private/prompts/merchant-prompt.js";
+import { captured } from "./chain-fixture.mjs";
+export const dropInference = "DROP TABLE inference_records;";
 export const dropPolicy =
+  dropInference +
   "DROP TABLE policy_steps;DROP TABLE policy_plans;DROP TABLE policy_commitments;DROP TABLE policy_rejections;DROP TABLE inference_usage;DROP TABLE usage_state;DROP INDEX one_root_listing;ALTER TABLE scheduler_mutations DROP COLUMN purpose;CREATE UNIQUE INDEX one_root_listing ON scheduler_mutations(job_id,merchant_id) WHERE method='set_listing';";
 export function inferenceFixture(store) {
   store.budget.configure({
@@ -16,7 +20,7 @@ export function inferenceFixture(store) {
     prepare: (request) => ({
       payload: JSON.stringify({
         model: request.model,
-        messages: [{ role: "user", content: "test fixture" }],
+        messages: fixtureMessages(store),
         max_output_tokens: 512,
       }),
       provider: request.provider,
@@ -30,4 +34,38 @@ export function inferenceFixture(store) {
       verifiedUntil: Date.now() + 60000,
     }),
   };
+}
+
+function fixtureMessages(store) {
+  const now = Date.now(),
+    market = structuredClone(captured.seed.market),
+    state = store.discoveryState() ?? {
+      block: {
+        hash: captured.seed.finalized_block.hash,
+        height: market.block_height,
+        timestampNs: market.block_timestamp_ns,
+      },
+      market,
+      offers: [],
+      trades: [],
+      tradeCursor: "0",
+      mode: "initial",
+      observedAt: now,
+    };
+  const copy = structuredClone(state);
+  copy.observedAt = now;
+  return buildMerchantPrompt(
+    copy,
+    {
+      merchantId: "rex",
+      phase: "decision",
+      rootDeadline: now + 120000,
+      modelCallsRemaining: 6,
+      mutationsRemaining: 8,
+      rexShortageMode: true,
+      commitments: [],
+      rejectedOfferIds: [],
+    },
+    now,
+  ).messages;
 }

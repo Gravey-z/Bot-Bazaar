@@ -5,6 +5,8 @@ import type { ProviderRequest } from "./repository.js";
 import { parseDecision, DecisionValidationError } from "../decisions/schema.js";
 import type { Decision } from "../decisions/schema.js";
 import type { InferencePolicy, PreparedInference } from "../policy/budget.js";
+import { recordInferenceInput } from "../inference/input.js";
+import type { RecordedInput } from "../inference/input.js";
 export class DefinitiveProviderFailure extends Error {}
 export type ProviderResponse = Decision;
 export class ProviderRunner {
@@ -30,6 +32,7 @@ export class ProviderRunner {
       requestId: string;
       payload: string;
       maxOutputTokens: 512;
+      reportIdentity: (identity: { provider: string; model: string }) => void;
     }) => Promise<unknown>,
     options: { timeoutMs?: number; signal?: AbortSignal } = {},
   ): Promise<{
@@ -40,6 +43,7 @@ export class ProviderRunner {
     request = { ...request };
     const now = this.clock.now();
     let prepared: PreparedInference;
+    let recordedInput: RecordedInput;
     try {
       requireStorage(this.inference, "verified inference accounting required");
       prepared = { ...this.inference.prepare(request) };
@@ -47,6 +51,11 @@ export class ProviderRunner {
         prepared.provider === request.provider &&
           prepared.model === request.model,
         "inference model identity mismatch",
+      );
+      recordedInput = recordInferenceInput(prepared.payload);
+      requireStorage(
+        recordedInput.status === "recorded",
+        "sanitized market input required before dispatch",
       );
       this.store.budget.reserve(request.id, prepared, now);
     } catch {
@@ -62,6 +71,7 @@ export class ProviderRunner {
         request,
         now,
         options.timeoutMs ?? 15000,
+        recordedInput,
       ),
       abort = new AbortController();
     let expired = false;
@@ -98,15 +108,39 @@ export class ProviderRunner {
           .then(() => {
             if (expired) throw new Error("cancelled");
             this.store.retry.assertPendingCurrent(request.id, this.clock.now());
+            this.store.records.dispatch(request.id, this.clock.now());
             return invoke({
               signal: abort.signal,
               requestId: request.id,
               payload: prepared.payload,
               maxOutputTokens: 512,
+              reportIdentity: (identity) =>
+                this.store.records.identity(
+                  request.id,
+                  identity.provider,
+                  identity.model,
+                  this.clock.now(),
+                ),
             });
           })
           .then((value) => {
-            const response = parseDecision(value);
+            let response: Decision;
+            try {
+              response = parseDecision(value);
+            } catch (error) {
+              this.store.records.invalidResponse(
+                request.id,
+                value,
+                this.clock.now(),
+              );
+              throw error;
+            }
+            this.store.records.validResponse(
+              request.id,
+              response.action,
+              response.reason,
+              this.clock.now(),
+            );
             if (expired) {
               this.store.retry.accept(
                 request.id,
