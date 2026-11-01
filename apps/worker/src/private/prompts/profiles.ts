@@ -1,5 +1,5 @@
 // Merchant policy v1: docs/merchant-policies.md and docs/economy.md.
-// These describe choices to the model; P3.9 must enforce them independently.
+// Shared parameters for prompt guidance and independent P3.9 enforcement.
 export const profiles = {
   rex: {
     name: "Rex",

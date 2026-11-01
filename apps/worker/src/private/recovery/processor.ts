@@ -112,6 +112,12 @@ export class CrashSafeProcessor {
           const { reader, market } = await this.client.verifyDeployment(
             this.store.identity,
           );
+          const policyState = await this.store.policy.verifyLive(
+            input,
+            reader,
+            market,
+            this.clock.now(),
+          );
           const actor = market.data.merchants.find(
             (row) => row.merchant_id === input.merchantId,
           )!;
@@ -192,6 +198,12 @@ export class CrashSafeProcessor {
           );
           this.gate();
           assertDecisionCurrent();
+          if (policyState)
+            this.store.policy.assertIntent(
+              input,
+              policyState,
+              this.clock.now(),
+            );
           requireStorage(
             Number(this.store.getJob(input.jobId)?.["deadline"]) >
               this.clock.now(),
@@ -260,7 +272,24 @@ export class CrashSafeProcessor {
         prepared.merchantId === row["merchant_id"],
       "journal identity mismatch",
     );
-    const { market } = await this.client.verifyDeployment(this.store.identity);
+    const { reader, market } = await this.client.verifyDeployment(
+      this.store.identity,
+    );
+    await this.store.policy.verifyLive(
+      {
+        id: intentId,
+        jobId: String(row["job_id"]),
+        ...(row["decision_id"]
+          ? { decisionId: String(row["decision_id"]) }
+          : {}),
+        merchantId: prepared.merchantId,
+        method: prepared.method,
+        args: prepared.args,
+      },
+      reader,
+      market,
+      this.clock.now(),
+    );
     this.clock.now();
     requireStorage(
       prepared.method === "cancel_trade" ||
@@ -299,7 +328,7 @@ export class CrashSafeProcessor {
       const result = await this.adapter.submit(prepared);
       this.store.markBroadcast(intentId, result.kind);
       this.authorizedSession = undefined;
-      this.store.requireRecovery();
+      this.store.requireRecovery(true);
       return result;
     } catch {
       this.authorizedSession = undefined;
@@ -357,7 +386,7 @@ export class CrashSafeProcessor {
     this.authorizedSession = undefined;
     const reasons = new Set<string>();
     try {
-      this.store.requireRecovery();
+      this.store.requireRecovery(true);
       const authority = await this.verifyContinuity?.(this.context());
       const verified = this.attested(authority);
       if (!verified) reasons.add("journal_continuity_or_fencing_unverified");

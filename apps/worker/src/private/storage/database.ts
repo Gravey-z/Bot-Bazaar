@@ -35,9 +35,12 @@ import {
   discoverySchema,
   schedulingSchema,
   retrySchema,
+  policySchema,
 } from "./schema.js";
 import { SchedulerRepository } from "../scheduling/repository.js";
 import { RetryRepository } from "../retries/repository.js";
+import { BudgetRepository } from "../policy/budget.js";
+import { PolicyRepository } from "../policy/repository.js";
 import { migrateDiscovery } from "./migration.js";
 import type {
   DiscoveryCommit,
@@ -94,6 +97,8 @@ export class WorkerStore {
   readonly identity: DeploymentIdentity;
   readonly scheduler: SchedulerRepository;
   readonly retry: RetryRepository;
+  readonly budget: BudgetRepository;
+  readonly policy: PolicyRepository;
 
   constructor(options: StoreOptions) {
     const expected = identityJson(options.identity);
@@ -156,7 +161,11 @@ export class WorkerStore {
         this.db.exec("BEGIN IMMEDIATE");
         try {
           this.db.exec(
-            schema + discoverySchema + schedulingSchema + retrySchema,
+            schema +
+              discoverySchema +
+              schedulingSchema +
+              retrySchema +
+              policySchema,
           );
           this.db
             .prepare(
@@ -176,7 +185,7 @@ export class WorkerStore {
         }
       } else
         requireStorage(
-          [1, 2, 3, schemaVersion].includes(version),
+          [1, 2, 3, 4, schemaVersion].includes(version),
           "unsupported database schema; do not recreate it",
         );
       requireStorage(
@@ -219,6 +228,16 @@ export class WorkerStore {
       this.write(operation, admission),
     );
     this.retry.invalidate("restart");
+    this.budget = new BudgetRepository(
+      this.db,
+      (fn, admission = false) => this.write(fn, admission),
+      () => String(this.checkpoint()["feed_generation"]),
+      expected,
+    );
+    this.db.exec("UPDATE usage_state SET verified_session=NULL");
+    this.policy = new PolicyRepository(this.db, this, (fn) =>
+      this.write(fn, true),
+    );
   }
   private one(sql: string, ...args: SQLInputValue[]): Row | undefined {
     return this.db.prepare(sql).get(...args);
@@ -274,9 +293,9 @@ export class WorkerStore {
   get available(): boolean {
     return !this.closed && !this.failed;
   }
-  requireRecovery(): void {
+  requireRecovery(preserveAccepted = false): void {
     this.write(() => {
-      this.retry.invalidateInTransaction("recovery");
+      this.retry.invalidateInTransaction("recovery", !preserveAccepted);
       this.run("UPDATE deployment SET recovery_required=1 WHERE singleton=1");
     });
   }
@@ -444,6 +463,15 @@ export class WorkerStore {
     this.write(() => {
       if (state.market.data.paused)
         this.retry.invalidateInTransaction("paused");
+      if (
+        BigInt(
+          state.market.data.merchants.find((m) => m.merchant_id === "rex")!
+            .inventory.crystal,
+        ) < 5n
+      )
+        this.run(
+          "UPDATE merchants SET shortage_mode=1 WHERE merchant_id='rex'",
+        );
       const previous = this.discoveryState(),
         checkpoint = this.checkpoint();
       requireStorage(
@@ -799,6 +827,7 @@ export class WorkerStore {
     this.write(
       () => {
         this.scheduler.assertIntent(snapshot, argsJson, now);
+        this.policy.assertIntent(snapshot, this.discoveryState()!, now);
         const job = this.getJob(snapshot.jobId);
         requireStorage(
           job?.["status"] === "active" && Number(job["deadline"]) > now,
@@ -1193,6 +1222,7 @@ export class WorkerStore {
   prune(now = Date.now()): void {
     timestamp(now);
     this.write(() => {
+      this.policy.pruneInTransaction(now);
       // Only resolved jobs are eligible. Protect every unresolved intent and lock.
       const eligible = `job_id IN (SELECT id FROM jobs WHERE status IN ${terminals})`;
       this.run(

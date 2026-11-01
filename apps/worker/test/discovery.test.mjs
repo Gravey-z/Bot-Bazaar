@@ -10,7 +10,9 @@ import { DiscoveryObserver } from "../dist/private/discovery/observer.js";
 import { DiscoveryLoop } from "../dist/private/discovery/loop.js";
 import { verifyBackup } from "../dist/private/storage/backup.js";
 import { captured, fixture } from "./chain-fixture.mjs";
+import { dropPolicy } from "./policy-fixture.mjs";
 const dropScheduling =
+  dropPolicy +
   "DROP TABLE provider_attempts;DROP TABLE retry_state;DROP TABLE scheduler_mutations;DROP TABLE scheduler_turns;DROP TABLE scheduler_sources;DROP TABLE scheduler_inputs;DROP TABLE scheduler_roots;DROP TABLE scheduler_state;";
 
 async function setup(t, options = {}) {

@@ -528,14 +528,51 @@ export class SchedulerRepository {
         ) < 8,
         "root mutation budget exhausted",
       );
+      const policyStep = this.one(
+        "SELECT * FROM policy_steps WHERE intent_id=?",
+        intent.id,
+      );
+      const held = Number(
+        this.one(
+          "SELECT coalesce(sum(slots_remaining),0) AS n FROM policy_plans WHERE job_id=?",
+          intent.jobId,
+        )!["n"],
+      );
+      const spent = Number(
+        this.one(
+          "SELECT mutations FROM scheduler_roots WHERE job_id=?",
+          intent.jobId,
+        )!["mutations"],
+      );
+      requireStorage(
+        spent + held + (policyStep ? 0 : 1) <= 8,
+        "mutation capacity reserved by policy",
+      );
+      if (policyStep) {
+        requireStorage(
+          policyStep["reserved"] === 0,
+          "policy step already reserved",
+        );
+        const changed = this.db
+          .prepare(
+            "UPDATE policy_plans SET slots_remaining=slots_remaining-1 WHERE decision_id=? AND slots_remaining>0",
+          )
+          .run(policyStep["decision_id"]!);
+        requireStorage(changed.changes === 1, "policy capacity exhausted");
+        this.run(
+          "UPDATE policy_steps SET reserved=1 WHERE intent_id=?",
+          intent.id,
+        );
+      }
       this.run(
-        "INSERT INTO scheduler_mutations VALUES(?,?,?,?,?,?)",
+        "INSERT INTO scheduler_mutations(intent_id,turn_id,method,args_json,merchant_id,job_id,purpose) VALUES(?,?,?,?,?,?,?)",
         intent.id,
         turnId,
         intent.method,
         args,
         intent.merchantId,
         intent.jobId,
+        policyStep?.["purpose"] ?? "model",
       );
       this.run(
         "UPDATE scheduler_roots SET mutations=mutations+1 WHERE job_id=?",

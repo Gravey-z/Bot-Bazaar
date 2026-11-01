@@ -17,6 +17,7 @@ import { readBackoff } from "../dist/private/retries/backoff.js";
 import { CrashSafeProcessor } from "../dist/private/recovery/processor.js";
 import { verifyBackup } from "../dist/private/storage/backup.js";
 import { captured, fixture, changeView } from "./chain-fixture.mjs";
+import { dropPolicy, inferenceFixture } from "./policy-fixture.mjs";
 
 async function setup(t, options = {}) {
   const dataDir = await mkdtemp(join(tmpdir(), "bazaar-retry-")),
@@ -28,7 +29,7 @@ async function setup(t, options = {}) {
     create: true,
   };
   let store = new WorkerStore(storeOptions),
-    runner = new ProviderRunner(store);
+    runner = new ProviderRunner(store, undefined, inferenceFixture(store));
   await new DiscoveryObserver(chain.client, store).poll();
   const state = store.discoveryState(),
     now = Date.now();
@@ -69,7 +70,7 @@ async function setup(t, options = {}) {
     async reopen() {
       await store.close();
       store = new WorkerStore({ ...storeOptions, create: false });
-      runner = new ProviderRunner(store);
+      runner = new ProviderRunner(store, undefined, inferenceFixture(store));
     },
     pause() {
       const state = store.discoveryState();
@@ -423,6 +424,22 @@ test("accepted decisions lose authority on a later pause even after resume", asy
   assert.equal(f.store.retry.attempt("request").status, "succeeded");
 });
 
+test("an accepted response can finish its confirmed preparations within the root, while explicit recovery revokes it", async (t) => {
+  const f = await setup(t),
+    result = await f.runner.run(request(f), async () => hold());
+  f.store.db
+    .prepare("UPDATE provider_attempts SET deadline=? WHERE id='request'")
+    .run(Date.now() - 1);
+  result.assertCurrent();
+  f.store.requireRecovery(true);
+  assert.throws(result.assertCurrent);
+  f.store.db.exec("UPDATE deployment SET recovery_required=0");
+  result.assertCurrent();
+  f.store.requireRecovery();
+  f.store.db.exec("UPDATE deployment SET recovery_required=0");
+  assert.throws(result.assertCurrent);
+});
+
 for (const cause of ["pause", "deadline"])
   test(`state changes during credential loading stop ${cause} before a signature is produced`, async (t) => {
     let f,
@@ -501,7 +518,8 @@ test("v3 migration preserves scheduler state, and upgrades backups before adding
   await f.store.close();
   const db = new DatabaseSync(join(f.dataDir, "worker.sqlite"));
   db.exec(
-    "DROP TABLE provider_attempts;DROP TABLE retry_state;PRAGMA user_version=3;",
+    dropPolicy +
+      "DROP TABLE provider_attempts;DROP TABLE retry_state;PRAGMA user_version=3;",
   );
   db.close();
   await f.reopen();

@@ -11,6 +11,7 @@ import { DiscoveryObserver } from "../dist/private/discovery/observer.js";
 import { Scheduler } from "../dist/private/scheduling/scheduler.js";
 import { verifyBackup } from "../dist/private/storage/backup.js";
 import { captured, fixture, proofFor } from "./chain-fixture.mjs";
+import { dropPolicy } from "./policy-fixture.mjs";
 
 async function setup(t) {
   const dataDir = await mkdtemp(join(tmpdir(), "bazaar-scheduler-")),
@@ -467,7 +468,8 @@ test("v2 migration preserves discovery observations and produces a verifiable v2
   await f.store.close();
   const db = new DatabaseSync(join(f.dataDir, "worker.sqlite"));
   db.exec(
-    "DROP TABLE provider_attempts;DROP TABLE retry_state;DROP TABLE scheduler_mutations;DROP TABLE scheduler_turns;DROP TABLE scheduler_sources;DROP TABLE scheduler_inputs;DROP TABLE scheduler_roots;DROP TABLE scheduler_state;PRAGMA user_version=2;",
+    dropPolicy +
+      "DROP TABLE provider_attempts;DROP TABLE retry_state;DROP TABLE scheduler_mutations;DROP TABLE scheduler_turns;DROP TABLE scheduler_sources;DROP TABLE scheduler_inputs;DROP TABLE scheduler_roots;DROP TABLE scheduler_state;PRAGMA user_version=2;",
   );
   db.close();
   await f.reopen();

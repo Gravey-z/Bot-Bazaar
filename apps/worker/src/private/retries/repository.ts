@@ -40,9 +40,10 @@ export class RetryRepository {
       .prepare("SELECT * FROM provider_attempts WHERE status='pending' LIMIT 3")
       .all();
   }
-  invalidateInTransaction(reason: string): void {
+  invalidateInTransaction(reason: string, revokeAccepted = true): void {
     id(reason);
-    this.run("UPDATE retry_state SET epoch=epoch+1 WHERE singleton=1");
+    if (revokeAccepted)
+      this.run("UPDATE retry_state SET epoch=epoch+1 WHERE singleton=1");
     this.run(
       "UPDATE scheduler_turns SET status='skipped' WHERE id IN (SELECT turn_id FROM provider_attempts WHERE status='pending')",
     );
@@ -297,7 +298,17 @@ export class RetryRepository {
       "accepted provider decision required",
     );
     requireStorage(
-      this.current({ ...row, status: "pending" }, now),
+      this.current(
+        {
+          ...row,
+          status: "pending",
+          deadline: this.one(
+            "SELECT deadline FROM jobs WHERE id=?",
+            row["job_id"]!,
+          )!["deadline"]!,
+        },
+        now,
+      ),
       "provider decision revoked or expired",
     );
   }

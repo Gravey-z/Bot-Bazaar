@@ -4,6 +4,7 @@ import { SafetyClock } from "./clock.js";
 import type { ProviderRequest } from "./repository.js";
 import { parseDecision, DecisionValidationError } from "../decisions/schema.js";
 import type { Decision } from "../decisions/schema.js";
+import type { InferencePolicy, PreparedInference } from "../policy/budget.js";
 export class DefinitiveProviderFailure extends Error {}
 export type ProviderResponse = Decision;
 export class ProviderRunner {
@@ -12,6 +13,7 @@ export class ProviderRunner {
     private readonly clock = new SafetyClock(() =>
       store.retry.blockClock(Date.now()),
     ),
+    private readonly inference?: InferencePolicy,
   ) {}
   resumeClock(): void {
     requireStorage(
@@ -26,6 +28,8 @@ export class ProviderRunner {
     invoke: (context: {
       signal: AbortSignal;
       requestId: string;
+      payload: string;
+      maxOutputTokens: 512;
     }) => Promise<unknown>,
     options: { timeoutMs?: number; signal?: AbortSignal } = {},
   ): Promise<{
@@ -34,8 +38,27 @@ export class ProviderRunner {
     assertCurrent: () => void;
   }> {
     request = { ...request };
-    const now = this.clock.now(),
-      record = this.store.retry.reserve(
+    const now = this.clock.now();
+    let prepared: PreparedInference;
+    try {
+      requireStorage(this.inference, "verified inference accounting required");
+      prepared = { ...this.inference.prepare(request) };
+      requireStorage(
+        prepared.provider === request.provider &&
+          prepared.model === request.model,
+        "inference model identity mismatch",
+      );
+      this.store.budget.reserve(request.id, prepared, now);
+    } catch {
+      throw new StorageError(
+        "inference admission unavailable; no request dispatched",
+      );
+    }
+    if (this.store.budget.status(now).warning)
+      console.error(
+        "Worker model budget at or above 80 percent; admission limits remain enforced",
+      );
+    const record = this.store.retry.reserve(
         request,
         now,
         options.timeoutMs ?? 15000,
@@ -75,7 +98,12 @@ export class ProviderRunner {
           .then(() => {
             if (expired) throw new Error("cancelled");
             this.store.retry.assertPendingCurrent(request.id, this.clock.now());
-            return invoke({ signal: abort.signal, requestId: request.id });
+            return invoke({
+              signal: abort.signal,
+              requestId: request.id,
+              payload: prepared.payload,
+              maxOutputTokens: 512,
+            });
           })
           .then((value) => {
             const response = parseDecision(value);

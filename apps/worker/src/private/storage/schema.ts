@@ -1,4 +1,4 @@
-export const schemaVersion = 4;
+export const schemaVersion = 5;
 
 // Only fixed, application-owned column names are passed here.
 const u64 = (name: string) => `${name} TEXT CHECK (${name} IS NULL OR
@@ -153,4 +153,41 @@ CREATE UNIQUE INDEX one_pending_provider_turn ON provider_attempts(turn_id) WHER
 CREATE INDEX provider_window ON provider_attempts(started_at);
 CREATE INDEX provider_turn_history ON provider_attempts(turn_id,started_at);
 PRAGMA user_version=4;
+`;
+
+export const policySchema = `
+CREATE TABLE usage_state (
+ singleton INTEGER PRIMARY KEY CHECK(singleton=1), config_json TEXT NOT NULL,
+ ledger_id TEXT NOT NULL, verified_session TEXT, high_water_ms INTEGER NOT NULL,
+ blocked_until INTEGER NOT NULL DEFAULT 0, evidence_ref TEXT
+) STRICT;
+CREATE TABLE inference_usage (
+ request_id TEXT PRIMARY KEY, deployment TEXT NOT NULL, provider TEXT NOT NULL, model TEXT NOT NULL,
+ started_at INTEGER NOT NULL, reserved_micro INTEGER NOT NULL CHECK(reserved_micro>=1000),
+ charged_micro INTEGER NOT NULL CHECK(charged_micro>=0), input_bound INTEGER NOT NULL,
+ status TEXT NOT NULL CHECK(status IN ('reserved','accounted')), evidence_ref TEXT
+) STRICT;
+CREATE INDEX usage_window ON inference_usage(started_at);
+CREATE TABLE policy_plans (
+ decision_id TEXT PRIMARY KEY, job_id TEXT NOT NULL REFERENCES jobs(id), merchant_id TEXT NOT NULL,
+ steps_json TEXT NOT NULL, slots_remaining INTEGER NOT NULL CHECK(slots_remaining>=0),
+ trade_key TEXT, terms_json TEXT, created_at INTEGER NOT NULL
+) STRICT;
+CREATE TABLE policy_steps (
+ intent_id TEXT PRIMARY KEY, decision_id TEXT NOT NULL REFERENCES policy_plans(decision_id),
+ step_index INTEGER NOT NULL, purpose TEXT NOT NULL CHECK(purpose IN ('model','prerequisite')),
+ reserved INTEGER NOT NULL DEFAULT 0 CHECK(reserved IN (0,1))
+) STRICT;
+CREATE TABLE policy_commitments (
+ merchant_id TEXT PRIMARY KEY, job_id TEXT NOT NULL REFERENCES jobs(id), origin_decision TEXT NOT NULL,
+ trade_key TEXT NOT NULL, terms_json TEXT NOT NULL
+) STRICT;
+CREATE TABLE policy_rejections (
+ merchant_id TEXT NOT NULL, offer_id TEXT NOT NULL, created_at INTEGER NOT NULL,
+ PRIMARY KEY(merchant_id,offer_id)
+) STRICT;
+ALTER TABLE scheduler_mutations ADD COLUMN purpose TEXT NOT NULL DEFAULT 'model';
+DROP INDEX one_root_listing;
+CREATE UNIQUE INDEX one_root_listing ON scheduler_mutations(job_id,merchant_id) WHERE method='set_listing' AND purpose='model';
+PRAGMA user_version=5;
 `;
