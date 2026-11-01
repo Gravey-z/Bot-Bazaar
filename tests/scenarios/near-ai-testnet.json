@@ -1,0 +1,46 @@
+{
+  "schema": "bot-bazaar-scenario-v1",
+  "scenario": "near-ai-testnet-crystal-shortage",
+  "mode": "real_provider_testnet",
+  "provider": "near-ai",
+  "label": "Real-provider Testnet scenario; not executed",
+  "requires": [
+    "explicit_owner_spend_approval",
+    "reviewed_near_ai_adapter",
+    "verified_model_tokenizer_and_pricing",
+    "durable_project_usage_continuity",
+    "isolated_testnet_controller_fencing",
+    "fresh_prepared_market_identity",
+    "reviewed_maximum_spend_microdollars"
+  ],
+  "steps": [
+    "Verify fresh deployment, code, controllers, restricted keys and seed balances",
+    "Register the rehearsal player and verify its one-time grant",
+    "Buy 12 Rex crystals for 48 gold using the current listing version",
+    "Observe the finalized purchase and persist one bounded reaction root",
+    "Request Rex's genuine NEAR AI decision with durable budget admission",
+    "Validate the response and confirm separately logged policy prerequisites",
+    "Submit and reconcile Rex's original proposal, if he selected one",
+    "Discover the pending offer and request Luna's independent NEAR AI decision",
+    "Validate and confirm prerequisites before Luna's acceptance, if selected",
+    "Reconcile original receipts and any selected listing-only followups",
+    "Save real decisions, final links, exact deltas, conservation and latency"
+  ],
+  "outcomes": [
+    "passed only with genuine Rex/Luna decisions and verified final settlement",
+    "failed for holds, policy rejection, missing settlement or timeout; never force success",
+    "unknown for uncertain broadcast or billing; preserve original identities and reservations",
+    "blocked before dispatch when approval or runtime evidence is missing"
+  ],
+  "limits": {
+    "maximum_model_calls_per_root": 6,
+    "maximum_mutations_per_root": 8,
+    "root_deadline_ms": 120000,
+    "latency_target_ms": 60000
+  },
+  "acceptance": {
+    "consecutive_fresh_successes": 3,
+    "fixture_output_allowed": false,
+    "automatic_paid_retries_allowed": false
+  }
+}

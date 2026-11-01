@@ -1,0 +1,12 @@
+# Local scenario toolchain only. Never deploy this image as the public worker.
+FROM bot-bazaar-worker:local AS worker
+FROM bot-bazaar-toolchain:1.93.0-near0.22.0
+COPY --from=worker /usr/local/bin/node /usr/local/bin/node
+COPY --from=worker /app /scenario/apps/worker
+COPY tests/scenarios /scenario/tests/scenarios
+COPY Cargo.toml Cargo.lock rust-toolchain.toml /workspace/
+COPY contracts /workspace/contracts
+COPY tests/sandbox /workspace/tests/sandbox
+COPY tests/fixtures/storage /workspace/tests/fixtures/storage
+ENV BAZAAR_SCENARIO_BRIDGE=/scenario/tests/scenarios/controlled-turn.mjs
+WORKDIR /workspace
