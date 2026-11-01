@@ -1,6 +1,7 @@
 import { ConfigurationError, parsePublicConfig } from "@bot-bazaar/shared";
 import type { PublicConfig } from "@bot-bazaar/shared";
 import { parseStorageConfig } from "./storage/config.js";
+import { parseBoundaryConfig } from "./read-api/config.js";
 
 type ProviderConfig =
   | { readonly kind: "disabled" }
@@ -17,6 +18,7 @@ export interface WorkerConfig {
   readonly provider: ProviderConfig;
   readonly storage: ReturnType<typeof parseStorageConfig>;
   readonly discoveryEnabled: boolean;
+  readonly boundary: ReturnType<typeof parseBoundaryConfig>;
 }
 
 function required(
@@ -82,5 +84,6 @@ export function parseWorkerConfig(
     provider: Object.freeze(provider),
     storage: Object.freeze(parseStorageConfig(env, publicConfig.contractId)),
     discoveryEnabled: discovery === "true",
+    boundary: parseBoundaryConfig(env),
   });
 }

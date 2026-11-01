@@ -68,6 +68,11 @@ test(
       PORT: String(port),
       WORKER_DATA_DIR: directory,
       WORKER_INITIALIZE_DATABASE: "true",
+      WORKER_ALLOWED_ORIGINS: "https://bazaar.example",
+      WORKER_TRUSTED_PROXY_IPS: "",
+      WORKER_READS_PER_MINUTE: "60",
+      WORKER_READS_PER_SECOND: "10",
+      NEAR_AI_API_KEY: "PRIVATE_NEAR_AI_CANARY",
     };
     const names = [
       "NEAR_NETWORK_ID",
@@ -81,6 +86,11 @@ test(
       "WORKER_DISCOVERY_ENABLED",
       "WORKER_DATA_DIR",
       "WORKER_INITIALIZE_DATABASE",
+      "WORKER_ALLOWED_ORIGINS",
+      "WORKER_TRUSTED_PROXY_IPS",
+      "WORKER_READS_PER_MINUTE",
+      "WORKER_READS_PER_SECOND",
+      "NEAR_AI_API_KEY",
       "WORKER_POLICY_VERSION",
       "NEAR_OWNER_ID",
       "NEAR_EXPECTED_CODE_HASH",
@@ -119,6 +129,10 @@ test(
       assert.ok(response, "Worker must listen after configuration validation");
       assert.equal(response.status, 503);
       const health = await response.json();
+      assert.doesNotMatch(
+        JSON.stringify(health),
+        /PRIVATE_NEAR_AI_CANARY|NEAR_AI_API_KEY/,
+      );
       const { status, database, recovery, backup, discovery, scheduling, ai } =
         health;
       assert.deepEqual(
@@ -159,6 +173,22 @@ test(
       assert.equal(page.history_gap, false);
       assert.equal(page.feed_generation, health.feed_generation);
       assert.equal(typeof page.next_after, "string");
+      assert.doesNotMatch(
+        JSON.stringify(page),
+        /PRIVATE_NEAR_AI_CANARY|NEAR_AI_API_KEY/,
+      );
+      const cors = await fetch(`http://127.0.0.1:${port}/activity`, {
+        headers: { Origin: "https://bazaar.example" },
+      });
+      assert.equal(cors.status, 200);
+      assert.equal(
+        cors.headers.get("access-control-allow-origin"),
+        "https://bazaar.example",
+      );
+      const deniedOrigin = await fetch(`http://127.0.0.1:${port}/activity`, {
+        headers: { Origin: "https://untrusted.example" },
+      });
+      assert.equal(deniedOrigin.status, 403);
       const head = await fetch(`http://127.0.0.1:${port}/health`, {
         method: "HEAD",
       });

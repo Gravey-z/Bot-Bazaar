@@ -9,10 +9,17 @@ const output = fileURLToPath(
 );
 const forbidden = [
   "OPENAI_API_KEY",
+  "NEAR_AI_API_KEY",
   "MODEL_PROVIDER",
   "near-api-js",
   "apps/worker",
-  ...["OPENAI_API_KEY", "REX_SECRET_KEY", "LUNA_SECRET_KEY", "BOLT_SECRET_KEY"]
+  ...[
+    "OPENAI_API_KEY",
+    "NEAR_AI_API_KEY",
+    "REX_SECRET_KEY",
+    "LUNA_SECRET_KEY",
+    "BOLT_SECRET_KEY",
+  ]
     .map((name) => process.env[name])
     .filter((value) => value && value.length >= 8),
 ];

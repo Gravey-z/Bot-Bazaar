@@ -4,6 +4,7 @@ import globals from "globals";
 import tseslint from "typescript-eslint";
 
 import publicImports from "./scripts/public-imports-rule.mjs";
+import publicText from "./scripts/public-text-rule.mjs";
 
 export default defineConfig([
   {
@@ -27,6 +28,11 @@ export default defineConfig([
   {
     files: ["apps/worker/src/**/*.ts"],
     languageOptions: { globals: globals.node },
+  },
+  {
+    files: ["apps/web/src/**/*.{ts,tsx,js,mjs}"],
+    plugins: { rendering: { rules: { "public-text": publicText } } },
+    rules: { "rendering/public-text": "error" },
   },
   {
     files: [

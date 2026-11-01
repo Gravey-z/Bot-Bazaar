@@ -1,4 +1,3 @@
-import { createServer } from "node:http";
 import { ConfigurationError } from "@bot-bazaar/shared";
 import { parseWorkerConfig } from "./private/config.js";
 import { mkdirSync } from "node:fs";
@@ -11,7 +10,7 @@ import { Scheduler } from "./private/scheduling/scheduler.js";
 import { CrashSafeProcessor } from "./private/recovery/processor.js";
 import { readBackoff } from "./private/retries/backoff.js";
 import { readHealth } from "./private/read-api/health.js";
-import { createReadHandler } from "./private/read-api/handler.js";
+import { createReadServer } from "./private/read-api/server.js";
 
 const config = (() => {
   try {
@@ -147,8 +146,8 @@ const discovery = config.discoveryEnabled
     )
   : undefined;
 
-const server = createServer(
-  createReadHandler({
+const server = createReadServer(
+  {
     health: () =>
       readHealth(store, {
         backup: backupFailed ? "failed" : "verified",
@@ -159,7 +158,8 @@ const server = createServer(
       }),
     activity: (after, limit) =>
       store.activity.page(after, limit, config.public.explorerUrl),
-  }),
+  },
+  config.boundary,
 );
 
 server.on("error", () => {
