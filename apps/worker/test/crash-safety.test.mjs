@@ -153,6 +153,25 @@ test("the network sees only exact signed bytes that were durably marked unknown 
   assert.equal(f.submits, 1);
   assert.equal(f.store.checkpoint().recovery_required, 1);
   assert.equal(f.chain.loads.length, 1);
+  const events = f.store.activity
+    .page(undefined, 50, "https://testnet.nearblocks.io")
+    .entries.filter((e) => e.intent_id === "intent");
+  assert.deepEqual(
+    events.map((e) => e.status),
+    ["prepared", "signed", "unknown", "submitted"],
+  );
+  assert.ok(
+    events
+      .slice(2)
+      .every((e) =>
+        e.transaction.explorer_url.endsWith(f.store.attempt("intent").tx_hash),
+      ),
+  );
+  assert.ok(events.every((e) => e.transaction?.receipt_hash == null));
+  assert.doesNotMatch(
+    JSON.stringify(events),
+    /signed_json|signedTransactionBase64|secretKey|nonce/,
+  );
 });
 
 test("a failed intent commit never loads a signing secret or broadcasts", async (t) => {
@@ -250,6 +269,16 @@ test("crash after network acknowledgement but before acknowledgement persistence
   assert.equal((await f.processor.recover()).kind, "ready");
   assert.equal(f.store.getIntent("intent").status, "confirmed");
   assert.equal(f.submits, 1);
+  const confirmed = f.store.activity
+    .page(undefined, 50, "https://testnet.nearblocks.io")
+    .entries.find((e) => e.intent_id === "intent" && e.status === "confirmed");
+  assert.equal(confirmed.source, "chain");
+  assert.equal(confirmed.transaction.evidence, "receipt");
+  assert.equal(confirmed.transaction.evidence_incomplete, false);
+  assert.equal(
+    confirmed.transaction.receipt_hash,
+    f.store.attempt("intent").tx_hash,
+  );
   assert.equal(f.chain.loads.length, 1);
 });
 
@@ -263,6 +292,12 @@ test("a final failed receipt consumes no action ID and preserves its exact evide
   f.setReceipt(failed);
   assert.equal((await f.processor.recover()).kind, "ready");
   assert.equal(f.store.getIntent("intent").status, "failed");
+  const failedEvent = f.store.activity
+    .page(undefined, 50, "https://testnet.nearblocks.io")
+    .entries.find((e) => e.intent_id === "intent" && e.status === "failed");
+  assert.equal(failedEvent.source, "chain");
+  assert.equal(failedEvent.transaction.evidence, "receipt");
+  assert.equal(failedEvent.trade, null);
   assert.equal(f.store.merchantCheckpoint("rex").last_action_id, "0");
   assert.equal(
     JSON.parse(f.store.attempt("intent").evidence_json).kind,
@@ -285,6 +320,19 @@ test("matching onchain action proof records incomplete evidence without fabricat
   assert.equal(f.store.merchantCheckpoint("rex").last_action_id, "1");
   assert.equal(f.store.offers()[0].offer_id, "1");
   assert.equal(f.submits, 1);
+  const confirmed = f.store.activity
+    .page(undefined, 50, "https://testnet.nearblocks.io")
+    .entries.find((e) => e.intent_id === "intent" && e.status === "confirmed");
+  assert.equal(confirmed.source, "chain");
+  assert.equal(confirmed.transaction.evidence, "action_checkpoint");
+  assert.equal(confirmed.transaction.evidence_incomplete, true);
+  assert.equal(confirmed.transaction.receipt_hash, null);
+  assert.equal(confirmed.transaction.explorer_url, null);
+  assert.equal(
+    confirmed.transaction.signed_hash,
+    f.store.attempt("intent").tx_hash,
+  );
+  assert.equal(confirmed.trade, null);
 });
 
 test("a conflicting digest or overwritten action with unavailable receipts keeps new signing blocked", async (t) => {

@@ -37,6 +37,7 @@ import {
   retrySchema,
   policySchema,
   inferenceSchema,
+  activitySchema,
 } from "./schema.js";
 import { SchedulerRepository } from "../scheduling/repository.js";
 import { RetryRepository } from "../retries/repository.js";
@@ -44,6 +45,7 @@ import { BudgetRepository } from "../policy/budget.js";
 import { PolicyRepository } from "../policy/repository.js";
 import { InferenceRepository } from "../inference/repository.js";
 import { InferenceAvailability } from "../inference/availability.js";
+import { ActivityRepository } from "../activity/repository.js";
 import { migrateDiscovery } from "./migration.js";
 import type {
   DiscoveryCommit,
@@ -104,6 +106,7 @@ export class WorkerStore {
   readonly policy: PolicyRepository;
   readonly records: InferenceRepository;
   readonly availability = new InferenceAvailability();
+  readonly activity: ActivityRepository;
 
   constructor(options: StoreOptions) {
     const expected = identityJson(options.identity);
@@ -171,7 +174,8 @@ export class WorkerStore {
               schedulingSchema +
               retrySchema +
               policySchema +
-              inferenceSchema,
+              inferenceSchema +
+              activitySchema,
           );
           this.db
             .prepare(
@@ -191,7 +195,7 @@ export class WorkerStore {
         }
       } else
         requireStorage(
-          [1, 2, 3, 4, 5, schemaVersion].includes(version),
+          [1, 2, 3, 4, 5, 6, schemaVersion].includes(version),
           "unsupported database schema; do not recreate it",
         );
       requireStorage(
@@ -227,6 +231,8 @@ export class WorkerStore {
       if (error instanceof StorageError) throw error;
       throw new StorageError("cannot acquire ownership or validate database");
     }
+    this.activity = new ActivityRepository(this.db, this.identity);
+    if (!fresh) this.db.exec("UPDATE activity_state SET initial_gap=1");
     this.scheduler = new SchedulerRepository(this.db, expected, (operation) =>
       this.write(operation, true),
     );
@@ -269,6 +275,7 @@ export class WorkerStore {
       this.db.exec("BEGIN IMMEDIATE");
       try {
         const result = operation();
+        this.activity.flushInTransaction();
         this.db.exec("COMMIT");
         return result;
       } catch (error) {
@@ -519,6 +526,7 @@ export class WorkerStore {
         state.block.hash,
         state.observedAt,
       );
+      this.activity.observeChainInTransaction(state);
     });
   }
   checkpoint(): Row {
@@ -1233,6 +1241,7 @@ export class WorkerStore {
     this.write(() => {
       this.policy.pruneInTransaction(now);
       this.records.pruneInTransaction(now);
+      this.activity.pruneInTransaction(now);
       // Only resolved jobs are eligible. Protect every unresolved intent and lock.
       const eligible = `job_id IN (SELECT id FROM jobs WHERE status IN ${terminals})`;
       this.run(

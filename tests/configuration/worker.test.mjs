@@ -118,25 +118,57 @@ test(
       }
       assert.ok(response, "Worker must listen after configuration validation");
       assert.equal(response.status, 503);
-      assert.deepEqual(await response.json(), {
-        status: "not_ready",
-        database: "ready",
-        recovery: "required",
-        backup: "verified",
-        discovery: "disabled",
-        scheduling: "waiting_for_recovery",
-        ai: {
-          status: "unavailable",
-          label: "AI unavailable",
-          code: "provider_disabled",
-          observedAt: null,
-          currentSession: false,
-          mode: "disabled",
-          liveAiEvidence: false,
-          lastInference: null,
-          lastAdmission: null,
+      const health = await response.json();
+      const { status, database, recovery, backup, discovery, scheduling, ai } =
+        health;
+      assert.deepEqual(
+        { status, database, recovery, backup, discovery, scheduling, ai },
+        {
+          status: "not_ready",
+          database: "ready",
+          recovery: "required",
+          backup: "verified",
+          discovery: "disabled",
+          scheduling: "waiting_for_recovery",
+          ai: {
+            status: "unavailable",
+            label: "AI unavailable",
+            code: "provider_disabled",
+            observedAt: null,
+            currentSession: false,
+            mode: "disabled",
+            liveAiEvidence: false,
+            lastInference: null,
+            lastAdmission: null,
+          },
         },
+      );
+      assert.equal(health.api_version, "1");
+      assert.equal(health.deployment.contract_id, "market.testnet");
+      assert.equal(health.deployment.network_id, "testnet");
+      assert.equal(health.deployment.identity_kind, "configured");
+      assert.equal(typeof health.feed_generation, "string");
+      assert.equal(health.chain.stale, true);
+      assert.equal(health.chain.observed_at, null);
+      assert.ok(Number.isSafeInteger(health.heartbeat_at));
+      const activity = await fetch(`http://127.0.0.1:${port}/activity`);
+      assert.equal(activity.status, 200);
+      const page = await activity.json();
+      assert.deepEqual(page.entries, []);
+      assert.equal(page.has_more, false);
+      assert.equal(page.history_gap, false);
+      assert.equal(page.feed_generation, health.feed_generation);
+      assert.equal(typeof page.next_after, "string");
+      const head = await fetch(`http://127.0.0.1:${port}/health`, {
+        method: "HEAD",
       });
+      assert.equal(head.status, 503);
+      assert.equal(await head.text(), "");
+      assert.equal(
+        (await fetch(`http://127.0.0.1:${port}/activity`, { method: "POST" }))
+          .status,
+        405,
+      );
       assert.equal(
         (await fetch(`http://127.0.0.1:${port}/unknown`)).status,
         404,

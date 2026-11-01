@@ -301,7 +301,7 @@ test("restart and verified backup preserve interrupted input and mark unknown wi
   f.store.records.dispatch(f.request.id, f.now);
   await mkdir(join(f.dataDir, "backups"));
   const directory = await f.store.backup(join(f.dataDir, "backups"));
-  assert.equal((await verifyBackup(directory)).schema, 6);
+  assert.equal((await verifyBackup(directory)).schema, 7);
   await f.reopen();
   const record = f.store.records.get(f.request.id).record;
   assert.equal(record.outcome, "unknown");

@@ -1,4 +1,4 @@
-export const schemaVersion = 6;
+export const schemaVersion = 7;
 
 // Only fixed, application-owned column names are passed here.
 const u64 = (name: string) => `${name} TEXT CHECK (${name} IS NULL OR
@@ -213,4 +213,48 @@ CREATE INDEX inference_retention ON inference_records(updated_at);
 INSERT INTO inference_records(request_id,job_id,merchant_id,provider,model,prompt_version,input_status,outcome,schema_outcome,prepared_at,updated_at)
  SELECT id,job_id,merchant_id,provider,model,prompt_version,'legacy_unavailable','legacy_unavailable','legacy_unavailable',started_at,started_at FROM provider_attempts;
 PRAGMA user_version=6;
+`;
+
+export const activitySchema = `
+CREATE TABLE activity_state (
+ singleton INTEGER PRIMARY KEY CHECK(singleton=1), last_sequence INTEGER NOT NULL DEFAULT 0,
+ pruned_through INTEGER NOT NULL DEFAULT 0, initial_gap INTEGER NOT NULL DEFAULT 0 CHECK(initial_gap IN (0,1))
+) STRICT;
+INSERT INTO activity_state(singleton) VALUES(1);
+CREATE TABLE activity_events (
+ sequence INTEGER PRIMARY KEY AUTOINCREMENT, event_key TEXT NOT NULL UNIQUE,
+ observed_at INTEGER NOT NULL, entry_json TEXT NOT NULL CHECK(length(CAST(entry_json AS BLOB))<=4096)
+) STRICT;
+CREATE TABLE activity_keys(event_key TEXT PRIMARY KEY) STRICT;
+CREATE TABLE activity_projection(entity_key TEXT PRIMARY KEY,fingerprint TEXT NOT NULL,version INTEGER NOT NULL) STRICT;
+CREATE TABLE activity_queue(kind TEXT NOT NULL,entity_id TEXT NOT NULL,PRIMARY KEY(kind,entity_id)) STRICT;
+CREATE INDEX activity_retention ON activity_events(observed_at);
+CREATE TRIGGER activity_high_water AFTER INSERT ON activity_events BEGIN
+ UPDATE activity_state SET last_sequence=NEW.sequence;
+END;
+CREATE TRIGGER activity_pruned BEFORE DELETE ON activity_events BEGIN
+ UPDATE activity_state SET pruned_through=max(pruned_through,OLD.sequence);
+END;
+CREATE TRIGGER activity_inference_insert AFTER INSERT ON inference_records BEGIN
+ INSERT OR IGNORE INTO activity_queue VALUES('inference',NEW.request_id);
+END;
+CREATE TRIGGER activity_inference_update AFTER UPDATE ON inference_records BEGIN
+ INSERT OR IGNORE INTO activity_queue VALUES('inference',NEW.request_id);
+END;
+CREATE TRIGGER activity_decision AFTER INSERT ON decisions BEGIN
+ INSERT OR IGNORE INTO activity_queue VALUES('decision',NEW.id);
+END;
+CREATE TRIGGER activity_intent_insert AFTER INSERT ON intents BEGIN
+ INSERT OR IGNORE INTO activity_queue VALUES('intent',NEW.id);
+END;
+CREATE TRIGGER activity_intent_update AFTER UPDATE ON intents BEGIN
+ INSERT OR IGNORE INTO activity_queue VALUES('intent',NEW.id);
+END;
+CREATE TRIGGER activity_attempt_insert AFTER INSERT ON attempts BEGIN
+ INSERT OR IGNORE INTO activity_queue VALUES('intent',NEW.intent_id);
+END;
+CREATE TRIGGER activity_attempt_update AFTER UPDATE ON attempts BEGIN
+ INSERT OR IGNORE INTO activity_queue VALUES('intent',NEW.intent_id);
+END;
+PRAGMA user_version=7;
 `;

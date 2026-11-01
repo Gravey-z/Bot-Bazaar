@@ -120,7 +120,7 @@ test("creates verified durable SQLite schema, excludes another owner and reopens
   const db = new DatabaseSync(join(f.data, "worker.sqlite"));
   try {
     for (const [pragma, value] of [
-      ["user_version", 6],
+      ["user_version", 7],
       ["journal_mode", "wal"],
       ["auto_vacuum", 2],
     ])

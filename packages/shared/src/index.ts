@@ -12,3 +12,18 @@ export type Resource = (typeof resourceIds)[number];
 
 export { ConfigurationError, parsePublicConfig } from "./config.js";
 export type { PublicConfig } from "./config.js";
+export type {
+  ActivitySource,
+  ActivityStatus,
+  PublicDeployment,
+  PublicChainObservation,
+  PublicSelection,
+  PublicTrade,
+  PublicListing,
+  PublicTransaction,
+  PublicActivityEntry,
+  ActivityPage,
+  PublicAiStatus,
+  PublicAiAvailability,
+  PublicHealth,
+} from "./activity.js";

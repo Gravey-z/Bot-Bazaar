@@ -20,6 +20,7 @@ import {
   retrySchema,
   policySchema,
   inferenceSchema,
+  activitySchema,
 } from "./schema.js";
 import { requireStorage } from "./validation.js";
 
@@ -30,7 +31,7 @@ export function migrateDiscovery(db: DatabaseSync, root: string): void {
     db.prepare("PRAGMA user_version").get()!["user_version"],
   );
   requireStorage(
-    [1, 2, 3, 4, 5].includes(version),
+    [1, 2, 3, 4, 5, 6].includes(version),
     "unsupported migration source",
   );
   requireStorage(
@@ -139,7 +140,9 @@ export function migrateDiscovery(db: DatabaseSync, root: string): void {
     if (version <= 2) db.exec(schedulingSchema);
     if (version <= 3) db.exec(retrySchema);
     if (version <= 4) db.exec(policySchema);
-    db.exec(inferenceSchema);
+    if (version <= 5) db.exec(inferenceSchema);
+    db.exec(activitySchema);
+    db.exec("UPDATE activity_state SET initial_gap=1");
     db.exec("COMMIT");
   } catch (error) {
     db.exec("ROLLBACK");

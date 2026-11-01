@@ -10,7 +10,8 @@ import { DiscoveryLoop } from "./private/discovery/loop.js";
 import { Scheduler } from "./private/scheduling/scheduler.js";
 import { CrashSafeProcessor } from "./private/recovery/processor.js";
 import { readBackoff } from "./private/retries/backoff.js";
-import { readAiAvailability } from "./private/inference/availability.js";
+import { readHealth } from "./private/read-api/health.js";
+import { createReadHandler } from "./private/read-api/handler.js";
 
 const config = (() => {
   try {
@@ -146,29 +147,20 @@ const discovery = config.discoveryEnabled
     )
   : undefined;
 
-const server = createServer((request, response) => {
-  if (request.method === "GET" && request.url === "/health") {
-    response.writeHead(503, { "Content-Type": "application/json" });
-    response.end(
-      JSON.stringify({
-        status: "not_ready",
-        database: store.available ? "ready" : "unavailable",
-        recovery: "required",
+const server = createServer(
+  createReadHandler({
+    health: () =>
+      readHealth(store, {
         backup: backupFailed ? "failed" : "verified",
         discovery: discovery?.status ?? "disabled",
         scheduling: schedulingStatus,
-        ai: readAiAvailability(
-          store,
+        aiMode:
           config.provider.kind === "disabled" ? "disabled" : "unconfigured",
-        ),
       }),
-    );
-    return;
-  }
-
-  response.writeHead(404);
-  response.end();
-});
+    activity: (after, limit) =>
+      store.activity.page(after, limit, config.public.explorerUrl),
+  }),
+);
 
 server.on("error", () => {
   console.error(
