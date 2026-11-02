@@ -283,101 +283,6 @@ h1 em {
   background: #e9eddf;
   color: #3a553d;
 }
-.market-section {
-  padding: 51px 0 46px;
-}
-.section-heading {
-  display: flex;
-  justify-content: space-between;
-  align-items: end;
-  gap: 24px;
-  margin-bottom: 25px;
-}
-.section-heading h2 {
-  font-family: Georgia, serif;
-  font-size: 35px;
-  letter-spacing: -1px;
-  margin-top: 8px;
-  line-height: 1.25;
-}
-.section-heading > p {
-  color: #667067;
-  font-size: 12px;
-  line-height: 1.7;
-  padding-bottom: 3px;
-}
-.merchant-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 18px;
-}
-.merchant-card {
-  padding: 22px;
-  background: #fffefa;
-  border: 1px solid #dce0d6;
-  border-radius: 6px;
-}
-.merchant-card-top {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-}
-.merchant-avatar {
-  width: 46px;
-  height: 49px;
-  display: grid;
-  place-items: center;
-  font:
-    26px/1 Georgia,
-    serif;
-  border-radius: 13px 13px 13px 2px;
-  background: #dce8cd;
-  color: #3c5a3a;
-}
-.lavender .merchant-avatar {
-  background: #e5e0ee;
-  color: #615378;
-}
-.peach .merchant-avatar {
-  background: #f1dfcb;
-  color: #865933;
-}
-.specialty {
-  font-size: 10px;
-  color: #5b675d;
-}
-.merchant-card h3 {
-  font-family: Georgia, serif;
-  font-size: 32px;
-  line-height: 1.2;
-  margin-top: 18px;
-}
-.merchant-card h3 span {
-  color: #799266;
-}
-.lavender h3 span {
-  color: #9686ae;
-}
-.peach h3 span {
-  color: #bd9367;
-}
-.merchant-role {
-  font-size: 11px;
-  font-weight: 600;
-  margin-top: 4px;
-}
-.merchant-description {
-  margin-top: 14px;
-  color: #60695f;
-  font-size: 12px;
-  line-height: 1.8;
-}
-.market-note {
-  margin-top: 16px;
-  font-size: 11px;
-  color: #657064;
-}
 .how-section {
   display: grid;
   grid-template-columns: 0.9fr 1.3fr;
@@ -621,36 +526,6 @@ h2[tabindex="-1"]:focus-visible {
     gap: 8px;
     padding-block: 14px;
     font-size: 11px;
-  }
-  .market-section {
-    padding-top: 33px;
-  }
-  .section-heading {
-    display: block;
-    margin-bottom: 20px;
-  }
-  .section-heading h2 {
-    font-size: 31px;
-  }
-  .section-heading > p {
-    margin-top: 10px;
-    font-size: 11px;
-  }
-  .section-heading > p br {
-    display: none;
-  }
-  .merchant-grid {
-    grid-template-columns: 1fr;
-    gap: 12px;
-  }
-  .merchant-card {
-    padding: 20px;
-  }
-  .merchant-card h3 {
-    margin-top: 12px;
-  }
-  .merchant-description {
-    margin-top: 10px;
   }
   .how-section {
     grid-template-columns: 1fr;

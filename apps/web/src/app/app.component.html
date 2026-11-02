@@ -84,51 +84,12 @@
     <div class="preview-note" role="note" aria-label="Preview status">
       <span class="preview-tag">Browsing preview</span>
       <p>
-        You can meet the merchants now. Wallet buying and live AI reactions
-        aren’t connected yet.
+        Browse finalized Testnet stock and prices. Wallet buying and live AI
+        reactions aren’t connected yet.
       </p>
     </div>
 
-    <section
-      class="market-section"
-      aria-labelledby="marketplace"
-      aria-describedby="market-description"
-    >
-      <div class="section-heading">
-        <div>
-          <p class="eyebrow">THREE STALLS. THREE POINTS OF VIEW.</p>
-          <h2 id="marketplace" tabindex="-1">Meet the merchants.</h2>
-        </div>
-        <p id="market-description">
-          Come for the crystals.<br />Stay for the different personalities.
-        </p>
-      </div>
-      <div class="merchant-grid">
-        @for (merchant of merchants; track merchant.id) {
-          <article
-            class="merchant-card"
-            [class]="'merchant-card ' + merchant.color"
-            [attr.aria-labelledby]="merchant.id + '-name'"
-          >
-            <div class="merchant-card-top">
-              <span class="merchant-avatar" aria-hidden="true">{{
-                merchant.initial
-              }}</span
-              ><span class="specialty">{{ merchant.specialty }}</span>
-            </div>
-            <h3 [id]="merchant.id + '-name'">
-              {{ merchant.name }}<span aria-hidden="true">.</span>
-            </h3>
-            <p class="merchant-role">{{ merchant.role }}</p>
-            <p class="merchant-description">{{ merchant.description }}</p>
-          </article>
-        }
-      </div>
-      <p class="market-note">
-        Merchant introductions only. Live stock, prices and trading will appear
-        as the market is connected.
-      </p>
-    </section>
+    <app-market-scene />
 
     <section class="how-section" aria-labelledby="how-it-works">
       <div class="how-intro">

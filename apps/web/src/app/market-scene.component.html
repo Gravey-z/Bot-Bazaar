@@ -1,0 +1,281 @@
+<section
+  class="market-section"
+  aria-labelledby="marketplace"
+  aria-describedby="market-description"
+>
+  <div class="section-heading">
+    <div>
+      <p class="eyebrow">THREE STALLS. THREE POINTS OF VIEW.</p>
+      <h2 id="marketplace" tabindex="-1">At the market.</h2>
+    </div>
+    <p id="market-description">
+      Inspect the stalls. Get to know the merchants.<br />All amounts below use
+      virtual gold.
+    </p>
+  </div>
+
+  <div class="market-toolbar">
+    <div
+      class="snapshot-status"
+      role="status"
+      [class.warning]="
+        state().status === 'stale' || state().status === 'unavailable'
+      "
+    >
+      <span class="status-dot" aria-hidden="true"></span>
+      @switch (state().status) {
+        @case ("loading") {
+          <span>Reading the finalized market…</span>
+        }
+        @case ("ready") {
+          <span>Finalized Testnet snapshot</span>
+        }
+        @case ("stale") {
+          <span>Previous snapshot · may be out of date</span>
+        }
+        @case ("unavailable") {
+          <span>Market data unavailable</span>
+        }
+      }
+      @if (state().observation?.market.data.paused) {
+        <span class="paused-label">Market paused</span>
+      }
+    </div>
+    <button
+      class="refresh-button"
+      type="button"
+      (click)="refresh()"
+      [disabled]="state().refreshing"
+    >
+      <span aria-hidden="true">↻</span>
+      {{ state().refreshing ? "Refreshing…" : "Refresh market" }}
+    </button>
+  </div>
+  @if (state().readFailed) {
+    <p class="read-warning">
+      We couldn’t refresh the market.
+      @if (state().observation) {
+        The last confirmed values stay visible until a fresh read succeeds.
+      } @else {
+        No stock or prices are shown until a finalized read succeeds.
+      }
+      You can try Refresh market again.
+    </p>
+  }
+
+  <div class="market-square" [attr.aria-busy]="state().refreshing">
+    <div class="square-caption">
+      <span>{{ config.contractId }}</span
+      ><span>SPECTATORS WELCOME</span>
+    </div>
+    <div class="merchant-grid">
+      @for (profile of profiles; track profile.id) {
+        <article
+          class="stall"
+          [class]="'stall ' + profile.color"
+          [class.selected]="selectedId() === profile.id"
+          [attr.aria-labelledby]="profile.id + '-name'"
+        >
+          <div class="stall-awning" aria-hidden="true">
+            <span></span><span></span><span></span><span></span><span></span
+            ><span></span>
+          </div>
+          <div class="stall-content">
+            <div class="stall-top">
+              <span class="merchant-portrait" aria-hidden="true"
+                ><span class="portrait-head">{{ profile.initial }}</span
+                ><span class="portrait-shoulders"></span></span
+              ><span class="specialty">{{ profile.specialty }}</span>
+            </div>
+            <h3 [id]="profile.id + '-name'">
+              {{ profile.name }}<span aria-hidden="true">.</span>
+            </h3>
+            <p class="merchant-role">{{ profile.role }}</p>
+            <p class="merchant-description">{{ profile.description }}</p>
+            <div class="stock-header" aria-hidden="true">
+              <span>RESOURCE</span><span>FOR SALE</span><span>GOLD EACH</span>
+            </div>
+            <ul
+              class="stock-list"
+              [attr.aria-label]="profile.name + ' listings'"
+            >
+              @for (resource of resources; track resource.id) {
+                <li>
+                  <span class="resource-name"
+                    ><span
+                      class="resource-icon"
+                      [class]="'resource-icon ' + resource.color"
+                      aria-hidden="true"
+                      >{{ resource.icon }}</span
+                    >{{ resource.name }}</span
+                  >
+                  @if (listing(profile.id, resource.id); as quote) {
+                    @if (!quote.active) {
+                      <span class="not-listed">Not listed</span
+                      ><span class="amount muted" aria-label="No active price"
+                        >—</span
+                      >
+                    } @else if (quote.quantity === "0") {
+                      <span class="not-listed">Sold out</span
+                      ><span
+                        class="amount muted"
+                        aria-label="No available stock"
+                        >—</span
+                      >
+                    } @else {
+                      <span class="amount">{{ format(quote.quantity) }}</span
+                      ><span class="amount price"
+                        >{{ format(quote.unit_price)
+                        }}<span class="sr-only"> virtual gold each</span></span
+                      >
+                    }
+                  } @else {
+                    <span class="not-listed">{{
+                      state().status === "loading" ? "Loading…" : "Unavailable"
+                    }}</span
+                    ><span class="amount muted">—</span>
+                  }
+                </li>
+              }
+            </ul>
+            <button
+              type="button"
+              class="inspect-button"
+              (click)="inspect(profile.id)"
+              [attr.aria-expanded]="selectedId() === profile.id"
+              aria-controls="merchant-details"
+            >
+              {{ selectedId() === profile.id ? "Close" : "Inspect" }}
+              {{ profile.name
+              }}<span aria-hidden="true">{{
+                selectedId() === profile.id ? "−" : "↗"
+              }}</span>
+            </button>
+          </div>
+        </article>
+      }
+    </div>
+    <div class="square-floor" aria-hidden="true">
+      <span>CRYSTALS</span><span>WOOD</span><span>HERBS</span><span>IRON</span>
+    </div>
+  </div>
+
+  @if (selectedProfile(); as profile) {
+    <section
+      id="merchant-details"
+      class="merchant-details"
+      [class]="'merchant-details ' + profile.color"
+      aria-labelledby="merchant-detail-title"
+    >
+      <div class="detail-heading">
+        <div>
+          <p class="eyebrow">A CLOSER LOOK</p>
+          <h3 id="merchant-detail-title">{{ profile.name }}’s stall</h3>
+        </div>
+        <button
+          type="button"
+          class="close-detail"
+          (click)="selectedId.set(null)"
+          aria-label="Close merchant details"
+        >
+          ×
+        </button>
+      </div>
+      <div class="detail-body">
+        <div class="merchant-goal">
+          <p class="merchant-role">{{ profile.role }}</p>
+          <p>{{ profile.goal }}</p>
+          @if (selectedMerchant(); as actor) {
+            <div class="gold-balance">
+              <span>MERCHANT’S VIRTUAL GOLD</span
+              ><strong>{{ format(actor.gold) }} <small>gold</small></strong>
+            </div>
+          }
+          <p class="browsing-only">
+            Browsing only. Wallet buying and live AI reactions are not connected
+            yet.
+          </p>
+        </div>
+        @if (selectedMerchant(); as actor) {
+          <div class="detail-table-wrapper">
+            <table>
+              <caption>
+                {{
+                  profile.name
+                }}’s inventory and stored listings
+              </caption>
+              <thead>
+                <tr>
+                  <th scope="col">Resource</th>
+                  <th scope="col">On hand</th>
+                  <th scope="col">Listed</th>
+                  <th scope="col">Stored price</th>
+                  <th scope="col">Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (resource of resources; track resource.id) {
+                  <tr>
+                    <th scope="row">
+                      <span
+                        class="resource-icon"
+                        [class]="'resource-icon ' + resource.color"
+                        aria-hidden="true"
+                        >{{ resource.icon }}</span
+                      >{{ resource.name }}
+                    </th>
+                    <td>{{ format(actor.inventory[resource.id]) }}</td>
+                    @if (listing(profile.id, resource.id); as quote) {
+                      <td>{{ format(quote.quantity) }}</td>
+                      <td>{{ format(quote.unit_price) }} gold</td>
+                      <td>
+                        {{
+                          !quote.active
+                            ? "Not listed"
+                            : quote.quantity === "0"
+                              ? "Sold out"
+                              : "Listed"
+                        }}
+                      </td>
+                    }
+                  </tr>
+                }
+              </tbody>
+            </table>
+            <p class="table-note">
+              On hand is total inventory. Listed is the amount offered for sale;
+              stored prices on inactive listings are not offers.
+              @if (state().observation?.market.data.paused) {
+                Trading is paused on the contract.
+              }
+            </p>
+          </div>
+        } @else {
+          <p class="detail-unavailable">
+            Inventory details will appear after a successful finalized market
+            read.
+          </p>
+        }
+      </div>
+    </section>
+  }
+
+  @if (state().observation; as observation) {
+    <div class="snapshot-meta">
+      <span
+        >Block {{ format(observation.block.height) }} · Revision
+        {{ observation.market.market_revision }}</span
+      ><span
+        >Read at <time>{{ observation.receivedAt | date: "HH:mm:ss" }}</time> ·
+        {{
+          state().status === "ready" ? "Finalized" : "Previous snapshot"
+        }}</span
+      >
+    </div>
+  }
+  <p class="market-note">
+    Stock and listings come from the configured Testnet contract, not merchant
+    predictions. Inspect a stall to see total inventory. No wallet is needed to
+    browse.
+  </p>
+</section>
