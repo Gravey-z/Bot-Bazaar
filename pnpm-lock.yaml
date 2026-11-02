@@ -50,6 +50,9 @@ importers:
       '@bot-bazaar/shared':
         specifier: workspace:*
         version: link:../../packages/shared
+      '@hot-labs/near-connect':
+        specifier: 0.11.4
+        version: 0.11.4
       rxjs:
         specifier: 7.8.2
         version: 7.8.2
@@ -485,6 +488,9 @@ packages:
 
   '@harperfast/extended-iterable@1.0.5':
     resolution: {integrity: sha512-4ScXlphaKEa49RpHmqwATq9QI9aUTdWVYDlJkzxhsD7ShJP+pHCYLznMO9n/wREY8jPjRZ59wLJY6HM5yB5Gkw==}
+
+  '@hot-labs/near-connect@0.11.4':
+    resolution: {integrity: sha512-exAL1gqysyCHewcMO334YJ3ddTPg3j9EyVM9novz5Jx4fLbG/YSYBlkYMjMNB8E9K/4I7BiemjOw9bQ+h80hEA==}
 
   '@humanfs/core@0.19.2':
     resolution: {integrity: sha512-UhXNm+CFMWcbChXywFwkmhqjs3PRCmcSa/hfBgLIb7oQ5HNb1wS0icWsGtSAUNgefHeI+eBrA8I1fxmbHsGdvA==}
@@ -2915,6 +2921,8 @@ snapshots:
 
   '@harperfast/extended-iterable@1.0.5':
     optional: true
+
+  '@hot-labs/near-connect@0.11.4': {}
 
   '@humanfs/core@0.19.2':
     dependencies:

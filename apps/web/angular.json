@@ -18,6 +18,7 @@
             "index": "src/index.html",
             "tsConfig": "tsconfig.json",
             "styles": ["src/styles.css"],
+            "allowedCommonJsDependencies": ["@hot-labs/near-connect"],
             "outputPath": "dist",
             "assets": [
               { "glob": "config.json", "input": "public", "output": "/" }

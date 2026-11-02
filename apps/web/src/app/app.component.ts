@@ -1,10 +1,11 @@
 import { Component, inject } from "@angular/core";
 import { PUBLIC_CONFIG } from "./public-config";
 import { MarketSceneComponent } from "./market-scene.component";
+import { WalletComponent } from "./wallet.component";
 
 @Component({
   selector: "app-root",
-  imports: [MarketSceneComponent],
+  imports: [MarketSceneComponent, WalletComponent],
   templateUrl: "./app.component.html",
   styleUrl: "./app.component.css",
 })

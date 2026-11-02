@@ -1,0 +1,81 @@
+:host {
+  display: block;
+}
+.wallet-bar {
+  padding: 15px 0 17px;
+  border-bottom: 1px solid #d9ded3;
+  font:
+    12px/1.6 "Segoe UI",
+    Arial,
+    sans-serif;
+  color: #203e35;
+}
+.wallet-main {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+.wallet-network {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 1.3px;
+  color: #66735d;
+}
+.account {
+  font-weight: 650;
+  overflow-wrap: anywhere;
+}
+.wallet-hint {
+  color: #66735d;
+}
+button,
+select {
+  font: inherit;
+  border: 1px solid #203e35;
+  border-radius: 5px;
+  padding: 7px 13px;
+}
+button {
+  color: #fffefa;
+  background: #203e35;
+  cursor: pointer;
+}
+button.secondary {
+  background: transparent;
+  color: #203e35;
+  border-color: #bbc6b5;
+}
+button:hover {
+  filter: brightness(1.15);
+}
+button:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+button:focus-visible,
+select:focus-visible {
+  outline: 3px solid #709562;
+  outline-offset: 3px;
+}
+.account-picker {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+select {
+  max-width: 260px;
+  background: #fffefa;
+  color: #203e35;
+}
+.wallet-note {
+  color: #66735d;
+  font-size: 11px;
+  margin: 7px 0 0;
+}
+.wallet-message {
+  margin: 10px 0 0;
+  padding: 9px 12px;
+  background: #edf0e4;
+  border-radius: 4px;
+}

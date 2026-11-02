@@ -1,0 +1,62 @@
+<div class="wallet-bar" aria-label="Testnet wallet">
+  <div class="wallet-main">
+    <span class="wallet-network">TESTNET WALLET</span>
+    @switch (wallet.state().status) {
+      @case ("connected") {
+        <span class="account" title="Connected Testnet account">{{
+          wallet.state().accountId
+        }}</span>
+        @if (wallet.state().accounts.length > 1) {
+          <label class="account-picker"
+            >Account
+            <select
+              [value]="wallet.state().accountId"
+              (change)="select($event)"
+            >
+              @for (account of wallet.state().accounts; track account) {
+                <option [value]="account">{{ account }}</option>
+              }
+            </select>
+          </label>
+        }
+        <button type="button" class="secondary" (click)="disconnect()">
+          Disconnect
+        </button>
+      }
+      @case ("connecting") {
+        <span role="status">Waiting for Meteor…</span>
+        <button type="button" class="secondary" (click)="disconnect()">
+          Cancel connection
+        </button>
+      }
+      @case ("checking") {
+        <span role="status">Checking Testnet wallet…</span>
+        <button type="button" class="secondary" (click)="disconnect()">
+          Disconnect
+        </button>
+      }
+      @default {
+        <span class="wallet-hint">Optional for browsing</span>
+        <button
+          type="button"
+          (click)="connect()"
+          [disabled]="wallet.state().pending?.kind === 'transaction'"
+        >
+          Connect Meteor
+        </button>
+        @if (wallet.state().status === "blocked") {
+          <button type="button" class="secondary" (click)="retry()">
+            Check connection
+          </button>
+        }
+      }
+    }
+  </div>
+  @if (wallet.state().message) {
+    <p class="wallet-message" role="status">{{ wallet.state().message }}</p>
+  }
+  <p class="wallet-note">
+    Use a funded NEAR Testnet account. Connecting does not register a player or
+    make a purchase.
+  </p>
+</div>

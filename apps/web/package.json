@@ -9,12 +9,13 @@
     "typecheck": "ngc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@bot-bazaar/chain": "workspace:*",
-    "@bot-bazaar/shared": "workspace:*",
     "@angular/common": "22.2.3",
     "@angular/compiler": "22.2.3",
     "@angular/core": "22.2.3",
     "@angular/platform-browser": "22.2.3",
+    "@bot-bazaar/chain": "workspace:*",
+    "@bot-bazaar/shared": "workspace:*",
+    "@hot-labs/near-connect": "0.11.4",
     "rxjs": "7.8.2",
     "tslib": "2.8.1"
   },
