@@ -129,6 +129,31 @@ async function ready(h) {
   await settle();
 }
 
+test("repeated degraded read retries preserve the original spend and never open another wallet request", async () => {
+  const h = harness();
+  await ready(h);
+  await h.controller.review();
+  await h.controller.confirm();
+  const original = h.context.read();
+  assert.equal(h.calls.sends, 1);
+  h.behavior.read = async () => {
+    throw new Error("private RPC error");
+  };
+  h.behavior.receipt = async () => {
+    throw new Error("unavailable");
+  };
+  for (let retry = 0; retry < 3; retry++) await h.controller.refresh();
+  assert.equal(h.context.read().id, original.id);
+  assert.equal(h.context.read().transactionHash, original.transactionHash);
+  assert.equal(h.controller.state.quote, null);
+  assert.doesNotMatch(h.controller.state.message, /private RPC/);
+  h.behavior.read = async (id) => observation(id);
+  await h.controller.refresh();
+  await h.controller.confirm();
+  assert.equal(h.calls.sends, 1);
+  assert.equal(h.context.read().id, original.id);
+});
+
 test("purchase quote uses listed stock and exact total/version, without signing", () => {
   const value = quote(observation(), "12");
   assert.deepEqual(plain(value.args), {

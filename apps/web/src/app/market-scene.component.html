@@ -63,6 +63,9 @@
     </p>
   }
 
+  @if (notice()) {
+    <p class="read-warning" role="status">{{ notice() }}</p>
+  }
   <div class="market-square" [attr.aria-busy]="state().refreshing">
     <div class="square-caption">
       <span>{{ config.contractId }}</span

@@ -111,7 +111,16 @@
         : state().validation
     }}
   </p>
-  @if (state().phase === "review" && state().reviewed; as reviewed) {
+  @if (state().observation && stale()) {
+    <p class="validation" role="status">
+      This quote is out of date. Refresh the quote, then review and confirm
+      again. No purchase has been resent.
+    </p>
+  }
+  @if (
+    !stale() && state().phase === "review" && state().reviewed;
+    as reviewed
+  ) {
     <div class="confirmation" role="group" aria-label="Purchase confirmation">
       <p>
         Buy
@@ -141,6 +150,7 @@
       (click)="review()"
       [disabled]="
         !state().quote ||
+        stale() ||
         state().phase === 'signing' ||
         state().phase === 'unknown' ||
         state().phase === 'loading' ||

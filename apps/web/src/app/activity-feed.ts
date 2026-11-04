@@ -6,6 +6,8 @@ import type {
 } from "@bot-bazaar/shared";
 import { tradeDeltas, workerProof } from "./activity-proof";
 import type { TransactionProof } from "./activity-proof";
+import { availabilityNotice } from "./worker-availability";
+import type { WorkerAvailability } from "./worker-availability";
 import { ActivityReadError } from "./activity-reader";
 import type { ActivityReads, ChainActivityPage } from "./activity-reader";
 
@@ -25,6 +27,7 @@ export interface FeedRow {
   readonly deltas: readonly string[];
 }
 export interface ActivityFeedState {
+  readonly availability: string;
   readonly rows: readonly FeedRow[];
   readonly refreshing: boolean;
   readonly chainStatus: "loading" | "ready" | "stale" | "unavailable";
@@ -40,6 +43,7 @@ export interface ActivityFeedState {
   readonly notice: string;
 }
 const initial: ActivityFeedState = {
+  availability: "Reading worker and AI availability…",
   rows: [],
   refreshing: false,
   chainStatus: "loading",
@@ -223,6 +227,7 @@ export class ActivityFeed {
   private readonly events = new Map<string, PublicActivityEntry>();
   private chainPage: ChainActivityPage | null = null;
   private workerPage: ActivityPage | null = null;
+  private health: WorkerAvailability | null = null;
   private workerCursor: string | null = null;
   private chainCursor: string | null = null;
   private sequence = "0";
@@ -268,6 +273,13 @@ export class ActivityFeed {
       ...this.current,
       ...values,
       rows: merged.rows,
+      availability: availabilityNotice(
+        this.health,
+        this.chainPage?.codeHash ?? null,
+        !this.chainFailed && this.freshChain(),
+        this.workerPage?.feed_generation ?? null,
+        this.now(),
+      ),
       chainStatus: this.chainPage
         ? !this.chainFailed && this.freshChain()
           ? "ready"
@@ -316,6 +328,7 @@ export class ActivityFeed {
     this.events.clear();
     this.workerCursor = null;
     this.workerPage = null;
+    this.health = null;
     this.sequence = "0";
     this.current = { ...this.current, notice, workerStatus: "loading" };
     this.historyGap(`reset:${generation}:${notice}`);
@@ -456,6 +469,7 @@ export class ActivityFeed {
     this.chainCursor = null;
     this.sequence = "0";
     this.current = initial;
+    this.health = null;
     this.gaps.clear();
     this.chainFailed = false;
     this.nextWorker = 0;
@@ -479,11 +493,16 @@ export class ActivityFeed {
       chainDue = manual || this.now() >= this.nextChain;
     this.publish({ refreshing: true });
     try {
-      const [chain, worker] = await Promise.allSettled([
+      const [chain, worker, health] = await Promise.allSettled([
         chainDue ? this.reads.chain(chainCursor) : Promise.resolve(null),
         workerDue ? this.reads.worker(workerCursor) : Promise.resolve(null),
+        workerDue && this.reads.health
+          ? this.reads.health()
+          : Promise.resolve(null),
       ]);
       if (!this.running || generation !== this.generation) return;
+      if (workerDue)
+        this.health = health.status === "fulfilled" ? health.value : null;
       if (chainDue) {
         try {
           if (chain.status !== "fulfilled" || chain.value === null)

@@ -60,6 +60,15 @@
       independently readable; no model explanation is invented for them.
     </p>
   }
+  <p class="feed-note" role="status">{{ state().availability }}</p>
+  @if (
+    state().chainStatus === "stale" || state().chainStatus === "unavailable"
+  ) {
+    <p class="feed-warning" role="status">
+      Current chain activity cannot be verified. Any retained trades are
+      historical; refreshing checks reads and never resends a purchase.
+    </p>
+  }
   @if (state().historyGap) {
     <p class="feed-warning" role="status">
       History is incomplete: retained entries may omit earlier activity.

@@ -6,6 +6,8 @@ import type {
   PublicTrade,
 } from "@bot-bazaar/shared";
 import { decodeActivityPage, decodeDeployment } from "./activity-wire";
+import { decodeAvailability } from "./worker-availability";
+import type { WorkerAvailability } from "./worker-availability";
 
 export class ActivityReadError extends Error {
   constructor(
@@ -31,6 +33,7 @@ export interface ActivityReads {
   readonly config?: PublicConfig;
   worker(after: string | null): Promise<ActivityPage>;
   chain(after: string | null): Promise<ChainActivityPage>;
+  health?(): Promise<WorkerAvailability>;
 }
 function merchantSeller(actor: Trade["seller"]): PublicTrade["seller"] {
   if (actor.kind !== "merchant") throw new ActivityReadError("invalid");
@@ -77,6 +80,30 @@ export function createActivityReads(
   );
   return {
     config,
+    async health() {
+      try {
+        const response = await fetcher(
+          new URL("health", config.workerUrl).href,
+          {
+            method: "GET",
+            headers: { Accept: "application/json" },
+            credentials: "omit",
+            cache: "no-store",
+            redirect: "error",
+            referrerPolicy: "no-referrer",
+            signal: AbortSignal.timeout(10000),
+          },
+        );
+        if (response.status !== 200 && response.status !== 503)
+          throw new ActivityReadError("unavailable");
+        const health = decodeAvailability(await boundedJson(response));
+        if (health.deployment.contract_id !== config.contractId)
+          throw new ActivityReadError("deployment");
+        return health;
+      } catch {
+        throw new ActivityReadError("unavailable");
+      }
+    },
     async worker(after) {
       try {
         const url = new URL("activity", config.workerUrl);

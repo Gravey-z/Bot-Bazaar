@@ -19,6 +19,7 @@ import {
 } from "./market-reader";
 import type { MarketViewState } from "./market-reader";
 import { merchantProfiles, marketResources } from "./merchant-profiles";
+import { marketNotice } from "./degraded-states";
 
 @Component({
   selector: "app-market-scene",
@@ -39,6 +40,7 @@ export class MarketSceneComponent implements OnInit, OnDestroy {
     readFailed: false,
   });
   protected readonly selectedId = signal<MerchantId | null>(null);
+  protected readonly notice = computed(() => marketNotice(this.state()));
   protected readonly selectedProfile = computed(
     () =>
       this.profiles.find((profile) => profile.id === this.selectedId()) ?? null,

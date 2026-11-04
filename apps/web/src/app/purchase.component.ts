@@ -14,6 +14,8 @@ import type { PurchaseState } from "./purchase";
 import { createPurchaseReads } from "./registration-reader";
 import { formatMarketAmount } from "./market-reader";
 import { merchantProfiles, marketResources } from "./merchant-profiles";
+import { ReadClock } from "./read-clock";
+import { playerReadStale } from "./degraded-states";
 
 @Component({
   selector: "app-purchase",
@@ -26,6 +28,10 @@ export class PurchaseComponent {
   protected readonly resources = marketResources;
   protected readonly format = formatMarketAmount;
   private readonly updates = inject(MarketUpdates);
+  private readonly clock = inject(ReadClock);
+  protected readonly stale = computed(() =>
+    playerReadStale(this.state().observation, this.clock.now()),
+  );
   protected readonly state = signal<PurchaseState>({
     accountId: null,
     merchantId: "rex",

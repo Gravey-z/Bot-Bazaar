@@ -1,4 +1,13 @@
-import { Component, effect, inject, signal, untracked } from "@angular/core";
+import {
+  Component,
+  computed,
+  effect,
+  inject,
+  signal,
+  untracked,
+} from "@angular/core";
+import { ReadClock } from "./read-clock";
+import { playerReadStale } from "./degraded-states";
 import { MarketUpdates } from "./market-updates";
 import { PUBLIC_CONFIG } from "./public-config";
 import { WalletService } from "./wallet.service";
@@ -14,6 +23,10 @@ import { formatMarketAmount } from "./market-reader";
 })
 export class RegistrationComponent {
   private readonly updates = inject(MarketUpdates);
+  private readonly clock = inject(ReadClock);
+  protected readonly stale = computed(() =>
+    playerReadStale(this.state().observation, this.clock.now()),
+  );
   protected readonly wallet = inject(WalletService);
   protected readonly format = formatMarketAmount;
   protected readonly state = signal<RegistrationState>({

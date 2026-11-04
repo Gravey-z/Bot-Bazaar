@@ -9,7 +9,7 @@ const fixture = JSON.parse(
 );
 const output = await build({
   stdin: {
-    contents: `export * from './apps/web/src/app/activity-feed.ts'; export * from './apps/web/src/app/activity-reader.ts'; export * from './apps/web/src/app/activity-wire.ts'; export * from './apps/web/src/app/activity-proof.ts';`,
+    contents: `export * from './apps/web/src/app/activity-feed.ts'; export * from './apps/web/src/app/activity-reader.ts'; export * from './apps/web/src/app/activity-wire.ts'; export * from './apps/web/src/app/activity-proof.ts'; export * from './apps/web/src/app/worker-availability.ts'; export * from './apps/web/src/app/degraded-states.ts';`,
     resolveDir: process.cwd(),
   },
   bundle: true,
@@ -40,6 +40,10 @@ const {
   transactionExplorer,
   workerProof,
   tradeDeltas,
+  decodeAvailability,
+  availabilityNotice,
+  playerReadStale,
+  marketNotice,
 } = sandbox.activity;
 const config = {
   networkId: "testnet",
@@ -175,6 +179,7 @@ function harness() {
   const timers = new Map(),
     calls = { worker: [], chain: [], gaps: 0 };
   const behavior = {
+    health: async () => decodeAvailability(health()),
     worker: async (after) =>
       after === null ? page() : page([], { next_after: after }),
     chain: async (after) =>
@@ -182,6 +187,7 @@ function harness() {
   };
   const feed = new ActivityFeed(
     {
+      health: () => behavior.health(),
       worker: (after) => {
         calls.worker.push(after);
         return behavior.worker(after);
@@ -224,6 +230,198 @@ function harness() {
     },
   };
 }
+
+function health(overrides = {}) {
+  return {
+    status: "not_ready",
+    api_version: "1",
+    worker_version: "0.1.0",
+    policy_version: "v1",
+    database: "ready",
+    recovery: "reconciled",
+    backup: "verified",
+    discovery: "ready",
+    scheduling: "ready",
+    ai: {
+      mode: "disabled",
+      status: "unavailable",
+      label: "<script>untrusted</script>",
+      code: "provider_disabled",
+      observedAt: null,
+      currentSession: false,
+      liveAiEvidence: false,
+      lastInference: null,
+      lastAdmission: null,
+    },
+    deployment: page().deployment,
+    feed_generation: generation,
+    captured_at: time,
+    heartbeat_at: time,
+    chain: page().chain,
+    activity: null,
+    ...overrides,
+  };
+}
+
+test("market emptiness and pause are distinguished from stale or missing reads", () => {
+  const value = {
+    block: chain().block,
+    market: plain(fixture.final.market),
+    receivedAt: time,
+  };
+  const state = {
+    observation: value,
+    status: "ready",
+    refreshing: false,
+    readFailed: false,
+  };
+  assert.equal(marketNotice(state), "");
+  for (const merchant of value.market.data.merchants)
+    for (const listing of merchant.listings) listing.quantity = "0";
+  assert.match(marketNotice(state), /No resources are currently listed/);
+  value.market.data.paused = true;
+  assert.match(marketNotice(state), /contract is paused/);
+  assert.match(
+    marketNotice({ ...state, status: "stale" }),
+    /previous market values/,
+  );
+  assert.equal(
+    marketNotice({ ...state, observation: null, status: "unavailable" }),
+    "",
+  );
+});
+
+test("player snapshots expire with wall time even without another read", () => {
+  const value = { market: fixture.final.market, receivedAt: time };
+  assert.equal(playerReadStale(value, time), false);
+  assert.equal(playerReadStale(value, time + 15001), true);
+  assert.equal(playerReadStale(value, time - 1), true);
+  assert.equal(playerReadStale(null, time), true);
+});
+
+test("availability exposes fixed labels for disabled, unconfigured and diagnostic modes", () => {
+  for (const [mode, label] of [
+    ["disabled", /AI is disabled/],
+    ["unconfigured", /not configured/],
+    ["diagnostic", /Diagnostic/],
+  ]) {
+    const decoded = decodeAvailability(
+      health({ ai: { ...health().ai, mode } }),
+    );
+    const note = availabilityNotice(
+      decoded,
+      fixture.code_hash,
+      true,
+      generation,
+      time,
+    );
+    assert.match(note, label);
+    assert.doesNotMatch(note, /<script>|untrusted/);
+  }
+});
+
+test("provider status separates pending, validation, response and unavailable evidence", () => {
+  for (const [status, pattern] of [
+    ["pending", /pending/],
+    ["validation_error", /validation error/],
+    ["response_received", /does not verify/],
+    ["unavailable", /AI unavailable/],
+  ]) {
+    const decoded = decodeAvailability(
+      health({
+        ai: {
+          ...health().ai,
+          mode: "provider",
+          currentSession: true,
+          observedAt: time,
+          status,
+        },
+      }),
+    );
+    assert.match(
+      availabilityNotice(decoded, fixture.code_hash, true, generation, time),
+      pattern,
+    );
+  }
+  const historical = decodeAvailability(
+    health({
+      ai: { ...health().ai, mode: "provider", status: "response_received" },
+    }),
+  );
+  assert.match(
+    availabilityNotice(historical, fixture.code_hash, true, generation, time),
+    /No current-session/,
+  );
+});
+
+test("stale, wrong-code, wrong-generation and missing health never claim provider availability", () => {
+  const decoded = decodeAvailability(health());
+  for (const [value, code, fresh, gen, now] of [
+    [null, fixture.code_hash, true, generation, time],
+    [decoded, fixture.code_hash, true, generation, time + 15001],
+    [decoded, "A".repeat(44), true, generation, time],
+    [decoded, fixture.code_hash, true, "other", time],
+    [decoded, fixture.code_hash, false, generation, time],
+  ])
+    assert.match(availabilityNotice(value, code, fresh, gen, now), /unknown/);
+  assert.throws(() =>
+    decodeAvailability(
+      health({ ai: { ...health().ai, liveAiEvidence: true } }),
+    ),
+  );
+  assert.throws(() =>
+    decodeAvailability({ ...health(), private_config: "untrusted" }),
+  );
+});
+
+test("health failure and recovery do not erase contract trades or advance wallet work", async () => {
+  const h = harness();
+  h.behavior.health = async () => {
+    throw new Error("private provider error");
+  };
+  await h.start();
+  assert.equal(h.feed.state.rows.length, 3);
+  assert.equal(h.feed.state.workerStatus, "ready");
+  assert.match(h.feed.state.availability, /unknown/);
+  assert.doesNotMatch(h.feed.state.availability, /private/);
+  h.behavior.health = async () => decodeAvailability(health());
+  await h.feed.refresh();
+  assert.match(h.feed.state.availability, /AI is disabled/);
+  assert.equal(h.feed.state.rows.length, 3);
+  h.feed.stop();
+});
+
+test("health retries are bounded credential-free reads and accept valid 503 readiness", async () => {
+  let request;
+  const reads = createActivityReads(config, async (url, options) => {
+    request = { url, options };
+    return new Response(JSON.stringify(health()), {
+      status: 503,
+      headers: { "content-type": "application/json" },
+    });
+  });
+  const decoded = await reads.health();
+  assert.equal(decoded.ready, false);
+  assert.equal(new URL(request.url).pathname, "/health");
+  assert.equal(request.options.method, "GET");
+  assert.equal(request.options.credentials, "omit");
+  assert.equal(request.options.redirect, "error");
+  assert.equal(request.options.body, undefined);
+  assert.ok(request.options.signal instanceof AbortSignal);
+  const wrong = createActivityReads(
+    config,
+    async () =>
+      new Response(
+        JSON.stringify(
+          health({
+            deployment: { ...page().deployment, contract_id: "wrong.testnet" },
+          }),
+        ),
+        { headers: { "content-type": "application/json" } },
+      ),
+  );
+  await assert.rejects(wrong.health(), /Activity read: unavailable/);
+});
 
 test("proof links use only validated Testnet explorer configuration and base58 hashes", () => {
   const hash = fixture.final.finalized_block.hash;
@@ -361,6 +559,19 @@ test("browser decoder accepts real persisted worker projections without using a 
   const { setupInferenceFixture } =
     await import("../../apps/worker/test/inference-fixture.mjs");
   const f = await setupInferenceFixture(t);
+  const { readHealth } =
+    await import("../../apps/worker/dist/private/read-api/health.js");
+  const status = decodeAvailability(
+    plain(
+      readHealth(f.store, {
+        backup: "verified",
+        discovery: "ready",
+        scheduling: "ready",
+        aiMode: "disabled",
+      }),
+    ),
+  );
+  assert.equal(status.ai.mode, "disabled");
   const before = f.store.activity.page(
     undefined,
     50,

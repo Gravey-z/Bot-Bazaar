@@ -82,12 +82,19 @@
       }
     }
   </div>
+  @if (state().observation && stale()) {
+    <p class="registration-message" role="status">
+      Previous player snapshot · out of date. Check status to refresh balances
+      and registration availability.
+    </p>
+  }
   @if (state().status === "eligible") {
     <button
       type="button"
       class="register-button"
       (click)="register()"
       [disabled]="
+        stale() ||
         state().attempt === 'signing' ||
         state().attempt === 'unknown' ||
         wallet.state().pending !== null

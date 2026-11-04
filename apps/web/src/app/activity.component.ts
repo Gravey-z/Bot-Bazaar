@@ -16,6 +16,7 @@ import type { ActivityFeedState } from "./activity-feed";
 export class ActivityComponent implements OnInit, OnDestroy {
   private readonly updates = inject(MarketUpdates);
   protected readonly state = signal<ActivityFeedState>({
+    availability: "Reading worker and AI availability…",
     rows: [],
     refreshing: false,
     chainStatus: "loading",
