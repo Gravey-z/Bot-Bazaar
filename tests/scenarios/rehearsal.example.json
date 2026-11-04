@@ -1,0 +1,17 @@
+{
+  "runId": "r20261104-a1b2c3d4",
+  "funder": "operator.testnet",
+  "codeHash": "CcU8qzpFzXy9BstkGqLCnK7Uxam8tymqZyaDK92nzYkW",
+  "port": 3101,
+  "activeDeployments": [
+    {
+      "contractId": "vaultkeeper-bazaar.testnet",
+      "controllers": {
+        "rex": "rex-bazaar.testnet",
+        "luna": "luna-bazaar.testnet",
+        "bolt": "bolt-bazaar.testnet"
+      },
+      "workerUrl": "http://127.0.0.1:3001"
+    }
+  ]
+}
