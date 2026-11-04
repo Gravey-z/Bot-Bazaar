@@ -12,6 +12,7 @@ export interface WalletContext {
   readonly createdAt: number;
   readonly returnUrl: string;
   readonly call: { method: PlayerMethod; args: unknown } | null;
+  readonly transactionHash?: string;
 }
 export interface WalletStorage {
   getItem(key: string): string | null;
@@ -62,8 +63,10 @@ export class WalletContextStore {
     const value = JSON.parse(raw) as WalletContext;
     requireValue(
       value &&
-        Object.keys(value).sort().join() ===
+        [
           "accountId,call,contractId,createdAt,id,kind,networkId,returnUrl,version",
+          "accountId,call,contractId,createdAt,id,kind,networkId,returnUrl,transactionHash,version",
+        ].includes(Object.keys(value).sort().join()),
     );
     requireValue(
       value.version === 1 &&
@@ -83,7 +86,11 @@ export class WalletContextStore {
         !callback.hash,
     );
     if (value.kind === "connect")
-      requireValue(value.accountId === null && value.call === null);
+      requireValue(
+        value.accountId === null &&
+          value.call === null &&
+          value.transactionHash === undefined,
+      );
     else {
       requireValue(
         value.kind === "transaction" &&
@@ -93,6 +100,11 @@ export class WalletContextStore {
           ["register_player", "buy_from_merchant"].includes(value.call.method),
       );
       createMarketCall(value.call.method, value.call.args);
+      requireValue(
+        value.transactionHash === undefined ||
+          (typeof value.transactionHash === "string" &&
+            /^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(value.transactionHash)),
+      );
     }
     return value;
   }
@@ -139,6 +151,29 @@ export class WalletContextStore {
   finishConnect(id: string): void {
     const context = this.read();
     requireValue(context?.kind === "connect" && context.id === id);
+    this.storage.removeItem(this.key);
+  }
+  recordRegistrationHash(id: string, hash: string): void {
+    const context = this.read();
+    requireValue(
+      context?.id === id &&
+        context.call?.method === "register_player" &&
+        /^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(hash) &&
+        (!context.transactionHash || context.transactionHash === hash),
+    );
+    this.storage.setItem(
+      this.key,
+      JSON.stringify({ ...context, transactionHash: hash }),
+    );
+    requireValue(this.read()?.transactionHash === hash);
+  }
+  // Called only after a finalized player proves registration exists, a verified
+  // final failed receipt, or a request that never reached the wallet.
+  finishRegistration(id: string): void {
+    const context = this.read();
+    requireValue(
+      context?.id === id && context.call?.method === "register_player",
+    );
     this.storage.removeItem(this.key);
   }
   returned(pageUrl: string): boolean {

@@ -11,6 +11,7 @@
             >Account
             <select
               [value]="wallet.state().accountId"
+              [disabled]="wallet.state().pending?.kind === 'transaction'"
               (change)="select($event)"
             >
               @for (account of wallet.state().accounts; track account) {
@@ -40,7 +41,10 @@
         <button
           type="button"
           (click)="connect()"
-          [disabled]="wallet.state().pending?.kind === 'transaction'"
+          [disabled]="
+            wallet.state().pending?.kind === 'transaction' &&
+            wallet.state().pending?.call?.method !== 'register_player'
+          "
         >
           Connect Meteor
         </button>

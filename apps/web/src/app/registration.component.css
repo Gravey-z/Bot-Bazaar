@@ -1,0 +1,93 @@
+:host {
+  display: block;
+}
+.registration {
+  margin: 25px 0 8px;
+  padding: 24px;
+  color: #203e35;
+  border: 1px solid #d7deca;
+  border-radius: 8px;
+  background: #fffefa;
+  font-size: 13px;
+  line-height: 1.7;
+}
+.registration-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+h2,
+p {
+  margin: 0;
+}
+h2 {
+  font:
+    400 26px/1.3 Georgia,
+    serif;
+  margin-top: 5px;
+}
+.eyebrow {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  color: #66735d;
+}
+button {
+  font: inherit;
+  background: #203e35;
+  color: #fffefa;
+  border: 1px solid #203e35;
+  border-radius: 5px;
+  padding: 9px 15px;
+  cursor: pointer;
+}
+button.secondary {
+  background: transparent;
+  color: #203e35;
+  border-color: #bbc6b5;
+}
+button:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+button:focus-visible {
+  outline: 3px solid #709562;
+  outline-offset: 3px;
+}
+.register-button {
+  margin-top: 16px;
+}
+.registered-label {
+  font-weight: 650;
+  overflow-wrap: anywhere;
+}
+.player-gold {
+  margin-top: 10px;
+}
+.player-gold strong {
+  font:
+    400 32px/1.4 Georgia,
+    serif;
+}
+.inventory {
+  margin: 5px 0 10px;
+}
+.registration-message {
+  margin-top: 15px;
+  padding: 10px 12px;
+  background: #edf0e4;
+  border-radius: 4px;
+}
+.gas-note {
+  margin-top: 18px;
+  color: #5b685e;
+  font-size: 12px;
+  max-width: 880px;
+}
+.registration-meta {
+  margin-top: 12px;
+  font-size: 10px;
+  color: #66735d;
+}

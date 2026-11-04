@@ -1,0 +1,119 @@
+<section class="registration" aria-labelledby="registration-title">
+  <div class="registration-heading">
+    <div>
+      <p class="eyebrow">YOUR PLACE IN THE MARKET</p>
+      <h2 id="registration-title">Player registration</h2>
+    </div>
+    @if (state().accountId) {
+      <button
+        type="button"
+        class="secondary"
+        (click)="refresh()"
+        [disabled]="
+          state().status === 'loading' || state().attempt === 'signing'
+        "
+      >
+        Check status
+      </button>
+    }
+  </div>
+  <div role="status">
+    @switch (state().status) {
+      @case ("disconnected") {
+        <p>
+          Connect a Testnet player wallet above to check registration. You can
+          browse the market without registering.
+        </p>
+      }
+      @case ("loading") {
+        <p>Reading finalized player registration…</p>
+      }
+      @case ("unavailable") {
+        <p>
+          Registration status is unavailable. Check status before trying to
+          register.
+        </p>
+      }
+      @case ("registered") {
+        <p class="registered-label">Registered · {{ state().accountId }}</p>
+        @if (state().observation?.player.data; as player) {
+          <p class="player-gold">
+            <strong>{{ format(player.gold) }}</strong> virtual gold
+          </p>
+          <p class="inventory">
+            On hand: {{ format(player.inventory.crystal) }} crystals ·
+            {{ format(player.inventory.wood) }} wood ·
+            {{ format(player.inventory.herb) }} herbs ·
+            {{ format(player.inventory.iron) }} iron
+          </p>
+        }
+        <p>
+          The starter grant is issued once per account. Buying is coming in the
+          next step.
+        </p>
+      }
+      @case ("reserved") {
+        <p>
+          This is an operator or merchant account. Connect a separate Testnet
+          player account to register.
+        </p>
+      }
+      @case ("paused") {
+        <p>
+          The market is paused. Player registration will be available when the
+          operator resumes it.
+        </p>
+      }
+      @case ("full") {
+        <p>
+          Registration is full. This market has reached its player limit;
+          existing players can still check their balances.
+        </p>
+      }
+      @case ("eligible") {
+        @if (state().observation; as observation) {
+          <p>
+            {{ state().accountId }} has not registered yet. Register once to
+            receive
+            {{ format(observation.market.data.limits.starter_gold) }} virtual
+            gold.
+          </p>
+        }
+      }
+    }
+  </div>
+  @if (state().status === "eligible") {
+    <button
+      type="button"
+      class="register-button"
+      (click)="register()"
+      [disabled]="
+        state().attempt === 'signing' ||
+        state().attempt === 'unknown' ||
+        wallet.state().pending !== null
+      "
+    >
+      {{
+        state().attempt === "signing"
+          ? "Waiting for wallet…"
+          : "Register player"
+      }}
+    </button>
+  }
+  @if (state().message) {
+    <p class="registration-message" role="status">{{ state().message }}</p>
+  }
+  <p class="gas-note">
+    Registration needs a funded NEAR Testnet wallet to pay network gas. Virtual
+    gold is game currency and cannot pay that gas. No NEAR deposit is attached
+    to registration; the operator funds contract storage separately.
+  </p>
+  @if (state().observation; as observation) {
+    <p class="registration-meta">
+      Finalized block {{ format(observation.market.block_height) }} ·
+      {{ format(observation.market.data.registered_player_count) }} /
+      {{ format(observation.market.data.limits.max_players) }} players
+      registered
+    </p>
+  }
+</section>

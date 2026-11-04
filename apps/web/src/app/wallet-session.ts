@@ -5,12 +5,14 @@ import type {
   WalletStorage,
 } from "./wallet-context";
 import type { PublicConfig } from "@bot-bazaar/shared";
+import { RegistrationNotOpenedError } from "./registration-reader";
 
 export interface WalletPort {
   accounts(): Promise<readonly { accountId: string }[]>;
   connect(): Promise<readonly { accountId: string }[]>;
   disconnect(): Promise<void>;
   subscribe(changed: () => void): () => void;
+  register(accountId: string): Promise<unknown>;
 }
 export interface WalletState {
   readonly status:
@@ -155,12 +157,16 @@ export class WalletSession {
     let id: string | undefined;
     try {
       const pending = this.context.read();
-      if (pending?.kind === "transaction")
+      if (
+        pending?.kind === "transaction" &&
+        pending.call?.method !== "register_player"
+      )
         throw new Error("unresolved transaction");
       if (pending?.kind === "connect") this.context.finishConnect(pending.id);
-      const context = this.context.beginConnect();
+      const context =
+        pending?.kind === "transaction" ? pending : this.context.beginConnect();
       this.enabled = true;
-      id = context.id;
+      id = context.kind === "connect" ? context.id : undefined;
       this.publish({
         status: "connecting",
         accounts: [],
@@ -177,8 +183,8 @@ export class WalletSession {
       if (!accounts.length) throw new Error("No connected account");
       this.accept(accounts);
       this.storage.setItem(this.hint, "meteor-wallet");
-      this.context.finishConnect(id);
-      this.publish({ pending: null });
+      if (id) this.context.finishConnect(id);
+      this.publish({ pending: this.context.read() });
     } catch {
       if (generation !== this.generation || this.destroyed) return;
       // A failed connection is safe to retry. A transaction context is never cleared here.
@@ -209,11 +215,60 @@ export class WalletSession {
   select(accountId: string): void {
     if (
       this.current.status === "connected" &&
-      this.current.accounts.includes(accountId)
+      this.current.accounts.includes(accountId) &&
+      this.current.pending?.kind !== "transaction"
     ) {
       this.preferred = accountId;
       this.publish({ accountId });
     }
+  }
+  async submitRegistration(context: WalletContext): Promise<unknown> {
+    const saved = this.context.read();
+    const accountId = context.accountId;
+    if (
+      this.busy ||
+      this.destroyed ||
+      this.current.status !== "connected" ||
+      !accountId ||
+      accountId !== this.current.accountId ||
+      context.call?.method !== "register_player" ||
+      saved?.id !== context.id ||
+      saved.call?.method !== "register_player" ||
+      saved.accountId !== accountId ||
+      saved.contractId !== context.contractId ||
+      saved.networkId !== context.networkId
+    )
+      throw new RegistrationNotOpenedError();
+    this.busy = true;
+    const generation = this.generation;
+    this.publish({ pending: context });
+    try {
+      let adapter: WalletPort;
+      try {
+        adapter = await this.adapter();
+        const accounts = await adapter.accounts();
+        if (
+          generation !== this.generation ||
+          this.destroyed ||
+          !accounts.some((row) => row.accountId === context.accountId)
+        )
+          throw new Error("Wallet changed");
+      } catch {
+        throw new RegistrationNotOpenedError();
+      }
+      return await adapter.register(accountId);
+    } finally {
+      this.busy = false;
+    }
+  }
+  syncPending(): void {
+    const pending = this.contextSafely();
+    this.publish({
+      pending,
+      ...(pending === null && this.current.status === "connected"
+        ? { message: "" }
+        : {}),
+    });
   }
   preferencesChanged(): void {
     try {

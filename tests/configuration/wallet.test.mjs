@@ -408,11 +408,83 @@ test("cancelling during lazy loading prevents a later sign-in prompt", async () 
   assert.equal(context.read(), null);
 });
 
+test("reconnecting with an unresolved registration preserves intent and opens no transaction", async () => {
+  const h = harness();
+  const pending = h.context.prepareTransaction(
+    "player.testnet",
+    "register_player",
+    {},
+  );
+  await h.session.restore(page);
+  await h.session.disconnect();
+  await h.session.connect();
+  assert.equal(h.calls.connect, 1);
+  assert.equal(h.session.state.accountId, "player.testnet");
+  assert.deepEqual(plain(h.context.read()), plain(pending));
+  assert.equal(h.session.state.pending.id, pending.id);
+});
+
+test("registration submission needs the matching stored intent and cannot run twice concurrently", async () => {
+  const h = harness();
+  await h.session.connect();
+  const pending = h.context.prepareTransaction(
+    "player.testnet",
+    "register_player",
+    {},
+  );
+  let resolve;
+  let registrations = 0;
+  h.port.register = () => {
+    registrations++;
+    return new Promise((done) => {
+      resolve = done;
+    });
+  };
+  const first = h.session.submitRegistration(pending);
+  await settle();
+  await assert.rejects(h.session.submitRegistration(pending), /not opened/);
+  resolve({});
+  await first;
+  assert.equal(registrations, 1);
+  assert.equal(h.context.read().id, pending.id);
+  await assert.rejects(
+    h.session.submitRegistration({ ...pending, contractId: "other.testnet" }),
+    /not opened/,
+  );
+});
+
+test("disconnect during registration account verification prevents the wallet request", async () => {
+  const h = harness();
+  await h.session.connect();
+  const pending = h.context.prepareTransaction(
+    "player.testnet",
+    "register_player",
+    {},
+  );
+  let resolve;
+  let registrations = 0;
+  h.port.accounts = () =>
+    new Promise((done) => {
+      resolve = done;
+    });
+  h.port.register = async () => {
+    registrations++;
+  };
+  const first = h.session.submitRegistration(pending);
+  await settle();
+  await h.session.disconnect();
+  resolve([{ accountId: "player.testnet" }]);
+  await assert.rejects(first, /not opened/);
+  assert.equal(registrations, 0);
+  assert.equal(h.context.read().id, pending.id);
+});
+
 test("adapter pins Meteor, explicitly selects Testnet, never requests keys, and checks RPC network", async () => {
   const capture = {
     signIns: [],
     accountReads: [],
     signOuts: [],
+    registrations: [],
     options: null,
     connector: null,
   };
@@ -443,6 +515,7 @@ test("adapter pins Meteor, explicitly selects Testnet, never requests keys, and 
           async signIn(options) { capture.signIns.push(options); return [{ accountId: 'player.testnet' }]; }
           async getAccounts(options) { capture.accountReads.push(options); return [{ accountId: 'player.testnet' }]; }
           async signOut(options) { capture.signOuts.push(options); }
+          async signAndSendTransaction(options) { capture.registrations.push(options); return { transaction: { hash: 'candidate' } }; }
         }
       `,
           }));
@@ -471,9 +544,10 @@ test("adapter pins Meteor, explicitly selects Testnet, never requests keys, and 
   vm.runInContext(output.outputFiles[0].text, context, {
     filename: "wallet-adapter.js",
   });
+  const saved = storage();
   const port = await context.adapter.createWalletPort(
     { ...config, rpcUrl: "https://test.rpc.fastnear.com" },
-    storage(),
+    saved,
   );
   assert.equal(capture.options.autoConnect, false);
   assert.equal(capture.options.network, "testnet");
@@ -485,9 +559,54 @@ test("adapter pins Meteor, explicitly selects Testnet, never requests keys, and 
   );
   await port.connect();
   await port.accounts();
+  saved.setItem(
+    "meteor-wallet:meteor-account-data",
+    JSON.stringify({
+      account: { accountId: "player.testnet" },
+      identifier: {
+        accountId: "player.testnet",
+        network: "testnet",
+        blockchain: "near",
+      },
+    }),
+  );
+  await port.register("player.testnet");
+  assert.deepEqual(plain(capture.registrations), [
+    {
+      network: "testnet",
+      signerId: "player.testnet",
+      receiverId: config.contractId,
+      actions: [
+        {
+          type: "FunctionCall",
+          params: {
+            methodName: "register_player",
+            args: {},
+            gas: "30000000000000",
+            deposit: "0",
+          },
+        },
+      ],
+    },
+  ]);
+  await assert.rejects(port.register("other.testnet"), /not opened/);
+  saved.setItem(
+    "meteor-wallet:meteor-account-data",
+    JSON.stringify({
+      account: { accountId: "player.testnet" },
+      identifier: {
+        accountId: "player.testnet",
+        network: "mainnet",
+        blockchain: "near",
+      },
+    }),
+  );
+  await assert.rejects(port.register("player.testnet"), /not opened/);
+  assert.equal(capture.registrations.length, 1);
   await port.disconnect();
   assert.deepEqual(plain(capture.signIns), [{ network: "testnet" }]);
-  assert.deepEqual(plain(capture.accountReads), [{ network: "testnet" }]);
+  assert.ok(capture.accountReads.length >= 2);
+  assert.ok(capture.accountReads.every((row) => row.network === "testnet"));
   assert.deepEqual(plain(capture.signOuts), [{ network: "testnet" }]);
   network = "mainnet";
   await assert.rejects(port.connect(), /Testnet unavailable/);
