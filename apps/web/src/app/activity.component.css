@@ -137,6 +137,30 @@ summary:focus-visible {
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
+.transfer-deltas {
+  margin: 10px 0 0;
+  padding-left: 18px;
+}
+.transfer-deltas li {
+  margin: 0;
+  padding: 0;
+}
+.transfer-deltas li::before {
+  display: none;
+}
+.proof-link {
+  margin-top: 10px;
+  overflow-wrap: anywhere;
+}
+.proof-link a {
+  color: #34533c;
+  font-weight: 600;
+}
+.proof-link span {
+  display: block;
+  font-size: 10px;
+  color: #66735d;
+}
 .reason span {
   font-size: 11px;
   color: #66735d;

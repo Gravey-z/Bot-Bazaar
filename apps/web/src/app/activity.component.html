@@ -106,6 +106,34 @@
           </div>
           <h3>{{ row.title }}</h3>
           <p>{{ row.detail }}</p>
+          @if (row.deltas.length) {
+            <ul class="transfer-deltas" aria-label="Confirmed transfer changes">
+              @for (delta of row.deltas; track $index) {
+                <li>{{ delta }}</li>
+              }
+            </ul>
+            <p class="feed-note">
+              Changes from this confirmed trade; current balances may include
+              later activity.
+            </p>
+          }
+          @for (proof of row.proofs; track proof.hash) {
+            <p class="proof-link">
+              <a
+                [href]="proof.url"
+                target="_blank"
+                rel="noopener noreferrer"
+                referrerpolicy="no-referrer"
+                >{{ proof.label }}</a
+              ><span>{{ proof.hash }}</span>
+            </p>
+          }
+          @if (row.status === "confirmed" && row.proofs.length === 0) {
+            <p class="feed-note">
+              Transaction receipt link unavailable from this record. A trade ID
+              is not a transaction hash.
+            </p>
+          }
           @if (row.reason) {
             <p class="reason">
               <span

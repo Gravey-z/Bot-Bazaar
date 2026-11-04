@@ -1,6 +1,7 @@
 import { readFile, realpath } from "node:fs/promises";
 import { createServer } from "node:http";
 import path from "node:path";
+import { securityHeaders } from "./security-headers.mjs";
 
 const contentTypes = {
   ".html": "text/html; charset=utf-8",
@@ -13,6 +14,8 @@ const contentTypes = {
 export function createPreviewServer(directory) {
   const root = path.resolve(directory);
   return createServer(async (request, response) => {
+    for (const [name, value] of Object.entries(securityHeaders))
+      response.setHeader(name, value);
     if (request.method !== "GET" && request.method !== "HEAD") {
       response.writeHead(405, { Allow: "GET, HEAD" });
       response.end();

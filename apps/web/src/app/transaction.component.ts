@@ -2,6 +2,8 @@ import { Component, inject, signal } from "@angular/core";
 import type { OnInit, OnDestroy } from "@angular/core";
 import { TransactionService } from "./transaction.service";
 import { WalletService } from "./wallet.service";
+import { PUBLIC_CONFIG } from "./public-config";
+import { transactionExplorer } from "./activity-proof";
 
 @Component({
   selector: "app-transaction",
@@ -11,6 +13,10 @@ import { WalletService } from "./wallet.service";
 export class TransactionComponent implements OnInit, OnDestroy {
   protected readonly transactions = inject(TransactionService);
   private readonly wallet = inject(WalletService);
+  private readonly config = inject(PUBLIC_CONFIG);
+  protected explorer(hash: unknown): string | null {
+    return transactionExplorer(this.config, hash);
+  }
   protected readonly hash = signal("");
   private timer?: ReturnType<typeof setInterval>;
   private readonly refreshVisible = (): void => {

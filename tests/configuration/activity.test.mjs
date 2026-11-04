@@ -9,7 +9,7 @@ const fixture = JSON.parse(
 );
 const output = await build({
   stdin: {
-    contents: `export * from './apps/web/src/app/activity-feed.ts'; export * from './apps/web/src/app/activity-reader.ts'; export * from './apps/web/src/app/activity-wire.ts';`,
+    contents: `export * from './apps/web/src/app/activity-feed.ts'; export * from './apps/web/src/app/activity-reader.ts'; export * from './apps/web/src/app/activity-wire.ts'; export * from './apps/web/src/app/activity-proof.ts';`,
     resolveDir: process.cwd(),
   },
   bundle: true,
@@ -37,6 +37,9 @@ const {
   ActivityReadError,
   ActivityFeed,
   mergeActivityRows,
+  transactionExplorer,
+  workerProof,
+  tradeDeltas,
 } = sandbox.activity;
 const config = {
   networkId: "testnet",
@@ -221,6 +224,127 @@ function harness() {
     },
   };
 }
+
+test("proof links use only validated Testnet explorer configuration and base58 hashes", () => {
+  const hash = fixture.final.finalized_block.hash;
+  assert.equal(
+    transactionExplorer(config, hash),
+    `https://testnet.nearblocks.io/txns/${hash}`,
+  );
+  for (const malicious of [
+    "javascript:alert(1)",
+    "//evil.example/tx",
+    "<img src=x>",
+    hash + "?token=x",
+    "%2f",
+    "0".repeat(44),
+    hash + "\n",
+    "A".repeat(45),
+  ])
+    assert.equal(transactionExplorer(config, malicious), null);
+  for (const override of [
+    { networkId: "mainnet" },
+    { explorerUrl: "https://nearblocks.io" },
+    { explorerUrl: "https://testnet.nearblocks.io.evil.example" },
+    { explorerUrl: "https://evil.example/" },
+    { explorerUrl: "https://testnet.nearblocks.io/?x=y" },
+  ])
+    assert.equal(transactionExplorer({ ...config, ...override }, hash), null);
+});
+
+test("only actual receipt evidence receives the verified worker link label", () => {
+  const hash = fixture.final.finalized_block.hash;
+  const tx = {
+    signed_hash: hash,
+    receipt_hash: hash,
+    evidence: "receipt",
+    evidence_incomplete: false,
+    explorer_url: "javascript:alert(1)",
+  };
+  const confirmed = confirmedEntry("1");
+  confirmed.transaction = tx;
+  const proof = workerProof(confirmed, config)[0];
+  assert.match(proof.label, /successful receipt/);
+  assert.equal(proof.url, `https://testnet.nearblocks.io/txns/${hash}`);
+  for (const fields of [
+    { status: "submitted" },
+    { source: "system" },
+    { transaction: { ...tx, receipt_hash: "B".repeat(44) } },
+    { transaction: { ...tx, evidence_incomplete: true } },
+  ])
+    assert.match(
+      workerProof({ ...confirmed, ...fields }, config)[0].label,
+      /finality unverified/,
+    );
+  for (const evidence of ["action_checkpoint", "unavailable"])
+    assert.equal(
+      workerProof({ ...confirmed, transaction: { ...tx, evidence } }, config)
+        .length,
+      0,
+    );
+});
+
+test("purchase, proposal and acceptance links never use offered terms as actual deltas", () => {
+  const hash = fixture.final.finalized_block.hash;
+  for (const method of ["propose_trade", "accept_trade"]) {
+    const event = entry("1", {
+      source: "system",
+      status: "submitted",
+      phase: "transaction",
+      method,
+      transaction: {
+        signed_hash: hash,
+        receipt_hash: null,
+        explorer_url: "https://evil.example",
+        evidence: "signed",
+        evidence_incomplete: false,
+      },
+    });
+    const row = mergeActivityRows([], [event], config).rows[0];
+    assert.equal(row.deltas.length, 0);
+    assert.equal(
+      row.proofs[0].url,
+      `https://testnet.nearblocks.io/txns/${hash}`,
+    );
+    assert.match(row.proofs[0].label, /unverified/);
+  }
+  const purchase = mergeActivityRows(
+    [trade(fixture.final.trades.data.items[0])],
+    [],
+    config,
+  ).rows[0];
+  assert.deepEqual(plain(purchase.deltas), [
+    "Player: +12 crystal, −48 virtual gold",
+    "rex: −12 crystal, +48 virtual gold",
+  ]);
+  assert.equal(purchase.proofs.length, 0);
+  const merchant = trade(fixture.final.trades.data.items[1]);
+  assert.deepEqual(plain(tradeDeltas(merchant)), [
+    "rex: +4 crystal, −24 virtual gold",
+    "luna: −4 crystal, +24 virtual gold",
+  ]);
+  assert.throws(() => tradeDeltas({ ...merchant, total_price: "25" }));
+});
+
+test("deduplicated confirmation preserves one transfer and its receipt hash", () => {
+  const event = confirmedEntry();
+  const hash = fixture.final.finalized_block.hash;
+  event.transaction = {
+    signed_hash: hash,
+    receipt_hash: hash,
+    explorer_url: null,
+    evidence: "receipt",
+    evidence_incomplete: false,
+  };
+  const rows = mergeActivityRows(
+    [event.trade],
+    [event, { ...event, id: "c".repeat(64) }],
+    config,
+  ).rows;
+  assert.equal(rows.length, 1);
+  assert.equal(rows[0].deltas.length, 2);
+  assert.equal(rows[0].proofs.length, 1);
+});
 
 test("worker decoder preserves large string sequences and plain hostile reasons", () => {
   const sequence = "9007199254740993";

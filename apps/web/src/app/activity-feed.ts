@@ -2,7 +2,10 @@ import type {
   ActivityPage,
   PublicActivityEntry,
   PublicTrade,
+  PublicConfig,
 } from "@bot-bazaar/shared";
+import { tradeDeltas, workerProof } from "./activity-proof";
+import type { TransactionProof } from "./activity-proof";
 import { ActivityReadError } from "./activity-reader";
 import type { ActivityReads, ChainActivityPage } from "./activity-reader";
 
@@ -18,6 +21,8 @@ export interface FeedRow {
   readonly ids: string;
   readonly group: string;
   readonly incomplete: boolean;
+  readonly proofs: readonly TransactionProof[];
+  readonly deltas: readonly string[];
 }
 export interface ActivityFeedState {
   readonly rows: readonly FeedRow[];
@@ -80,9 +85,11 @@ function tradeRow(trade: PublicTrade, source: string): FeedRow {
     ids: `Trade #${trade.trade_id}`,
     group: `trade:${trade.trade_id}`,
     incomplete: false,
+    proofs: [],
+    deltas: tradeDeltas(trade),
   };
 }
-function workerRow(entry: PublicActivityEntry): FeedRow {
+function workerRow(entry: PublicActivityEntry, config?: PublicConfig): FeedRow {
   const source =
     entry.source === "model"
       ? "Worker model record"
@@ -144,11 +151,14 @@ function workerRow(entry: PublicActivityEntry): FeedRow {
     group:
       entry.root_id ?? entry.decision_id ?? entry.intent_id ?? entry.domain_key,
     incomplete: entry.transaction?.evidence_incomplete ?? false,
+    proofs: workerProof(entry, config),
+    deltas: [],
   };
 }
 export function mergeActivityRows(
   trades: readonly PublicTrade[],
   entries: readonly PublicActivityEntry[],
+  config?: PublicConfig,
 ): { rows: FeedRow[]; conflict: boolean } {
   const confirmed = new Map(
     trades.map((trade) => [
@@ -180,6 +190,14 @@ export function mergeActivityRows(
           : row.source,
         incomplete:
           row.incomplete || (entry.transaction?.evidence_incomplete ?? false),
+        proofs: [
+          ...new Map(
+            [...row.proofs, ...workerProof(entry, config)].map((proof) => [
+              proof.hash,
+              proof,
+            ]),
+          ).values(),
+        ],
         ids: [
           ...new Set([
             ...row.ids.split(" · "),
@@ -191,7 +209,7 @@ export function mergeActivityRows(
           ]),
         ].join(" · "),
       });
-    } else rows.push(workerRow(entry));
+    } else rows.push(workerRow(entry, config));
   }
   rows.push(...confirmed.values());
   return {
@@ -244,6 +262,7 @@ export class ActivityFeed {
     const merged = mergeActivityRows(
       [...this.trades.values()],
       [...this.events.values()],
+      this.reads.config,
     );
     this.current = {
       ...this.current,

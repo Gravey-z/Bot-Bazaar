@@ -28,6 +28,7 @@ export interface ChainActivityPage {
   readonly reset: boolean;
 }
 export interface ActivityReads {
+  readonly config?: PublicConfig;
   worker(after: string | null): Promise<ActivityPage>;
   chain(after: string | null): Promise<ChainActivityPage>;
 }
@@ -75,6 +76,7 @@ export function createActivityReads(
     createRpcTransport(config.rpcUrl, fetcher),
   );
   return {
+    config,
     async worker(after) {
       try {
         const url = new URL("activity", config.workerUrl);

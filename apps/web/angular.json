@@ -21,7 +21,8 @@
             "allowedCommonJsDependencies": ["@hot-labs/near-connect"],
             "outputPath": "dist",
             "assets": [
-              { "glob": "config.json", "input": "public", "output": "/" }
+              { "glob": "config.json", "input": "public", "output": "/" },
+              { "glob": "_headers", "input": "public", "output": "/" }
             ]
           },
           "configurations": {

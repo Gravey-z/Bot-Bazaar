@@ -76,6 +76,23 @@
     <p class="operation">Attempt {{ record.id }}</p>
     @if (record.transactionHash) {
       <p class="hash">Transaction: {{ record.transactionHash }}</p>
+      @if (explorer(record.transactionHash); as url) {
+        <p>
+          <a
+            [href]="url"
+            target="_blank"
+            rel="noopener noreferrer"
+            referrerpolicy="no-referrer"
+            >Open
+            {{
+              transactions.state().phase === "confirmed"
+                ? "verified transaction"
+                : "recorded hash (this link does not confirm execution)"
+            }}
+            on Testnet</a
+          >
+        </p>
+      }
     }
     @if (
       transactions.state().phase === "unknown" &&
