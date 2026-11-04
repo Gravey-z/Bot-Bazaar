@@ -154,10 +154,16 @@ export class WalletContextStore {
     this.storage.removeItem(this.key);
   }
   recordRegistrationHash(id: string, hash: string): void {
+    this.recordHash(id, hash, "register_player");
+  }
+  recordPurchaseHash(id: string, hash: string): void {
+    this.recordHash(id, hash, "buy_from_merchant");
+  }
+  private recordHash(id: string, hash: string, method: PlayerMethod): void {
     const context = this.read();
     requireValue(
       context?.id === id &&
-        context.call?.method === "register_player" &&
+        context.call?.method === method &&
         /^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(hash) &&
         (!context.transactionHash || context.transactionHash === hash),
     );
@@ -170,10 +176,14 @@ export class WalletContextStore {
   // Called only after a finalized player proves registration exists, a verified
   // final failed receipt, or a request that never reached the wallet.
   finishRegistration(id: string): void {
+    this.finishPlayerCall(id, "register_player");
+  }
+  finishPurchase(id: string): void {
+    this.finishPlayerCall(id, "buy_from_merchant");
+  }
+  private finishPlayerCall(id: string, method: PlayerMethod): void {
     const context = this.read();
-    requireValue(
-      context?.id === id && context.call?.method === "register_player",
-    );
+    requireValue(context?.id === id && context.call?.method === method);
     this.storage.removeItem(this.key);
   }
   returned(pageUrl: string): boolean {

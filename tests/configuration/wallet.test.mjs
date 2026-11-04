@@ -253,7 +253,7 @@ test("transaction intent survives return, disconnect and account switching witho
   assert.deepEqual(plain(h.context.read()), plain(first));
   await h.session.disconnect();
   await h.session.connect();
-  assert.equal(h.calls.connect, 0);
+  assert.equal(h.calls.connect, 1);
   assert.deepEqual(plain(h.context.read()), plain(first));
   assert.throws(() => h.context.finishConnect(first.id));
   assert.throws(() =>
@@ -479,6 +479,54 @@ test("disconnect during registration account verification prevents the wallet re
   assert.equal(h.context.read().id, pending.id);
 });
 
+test("unchanged background wallet checks preserve the account used by purchase review", async () => {
+  const h = harness();
+  await h.session.connect();
+  let resolve;
+  h.port.accounts = () =>
+    new Promise((done) => {
+      resolve = done;
+    });
+  const checking = h.session.refresh();
+  await settle();
+  assert.equal(h.session.state.status, "connected");
+  assert.equal(h.session.state.accountId, "player.testnet");
+  resolve([{ accountId: "changed.testnet" }]);
+  await checking;
+  assert.equal(h.session.state.accountId, "changed.testnet");
+});
+
+test("purchase submission uses only matching saved arguments and rejects tampering", async () => {
+  const h = harness();
+  await h.session.connect();
+  const args = {
+    merchant_id: "rex",
+    resource: "crystal",
+    quantity: "2",
+    max_total_price: "8",
+    listing_version: "1",
+  };
+  const pending = h.context.prepareTransaction(
+    "player.testnet",
+    "buy_from_merchant",
+    args,
+  );
+  const calls = [];
+  h.port.buy = async (...values) => {
+    calls.push(values);
+  };
+  await assert.rejects(
+    h.session.submitPurchase({
+      ...pending,
+      call: { ...pending.call, args: { ...args, quantity: "3" } },
+    }),
+    /not opened/,
+  );
+  assert.equal(calls.length, 0);
+  await h.session.submitPurchase(pending);
+  assert.deepEqual(plain(calls), [["player.testnet", args]]);
+});
+
 test("adapter pins Meteor, explicitly selects Testnet, never requests keys, and checks RPC network", async () => {
   const capture = {
     signIns: [],
@@ -603,6 +651,47 @@ test("adapter pins Meteor, explicitly selects Testnet, never requests keys, and 
   );
   await assert.rejects(port.register("player.testnet"), /not opened/);
   assert.equal(capture.registrations.length, 1);
+  const purchaseArgs = {
+    merchant_id: "rex",
+    resource: "crystal",
+    quantity: "2",
+    max_total_price: "8",
+    listing_version: "1",
+  };
+  await assert.rejects(port.buy("player.testnet", purchaseArgs), /not opened/);
+  saved.setItem(
+    "meteor-wallet:meteor-account-data",
+    JSON.stringify({
+      account: { accountId: "player.testnet" },
+      identifier: {
+        accountId: "player.testnet",
+        network: "testnet",
+        blockchain: "near",
+      },
+    }),
+  );
+  await port.buy("player.testnet", purchaseArgs);
+  assert.deepEqual(plain(capture.registrations[1]), {
+    network: "testnet",
+    signerId: "player.testnet",
+    receiverId: config.contractId,
+    actions: [
+      {
+        type: "FunctionCall",
+        params: {
+          methodName: "buy_from_merchant",
+          args: purchaseArgs,
+          gas: "30000000000000",
+          deposit: "0",
+        },
+      },
+    ],
+  });
+  await assert.rejects(
+    port.buy("player.testnet", { ...purchaseArgs, quantity: "0" }),
+    /not opened/,
+  );
+  assert.equal(capture.registrations.length, 2);
   await port.disconnect();
   assert.deepEqual(plain(capture.signIns), [{ network: "testnet" }]);
   assert.ok(capture.accountReads.length >= 2);

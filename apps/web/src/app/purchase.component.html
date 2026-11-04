@@ -1,0 +1,163 @@
+<section class="purchase" aria-labelledby="buy-title">
+  <div class="purchase-heading">
+    <div>
+      <p class="eyebrow">YOUR NEXT MOVE</p>
+      <h2 id="buy-title">Buy from a merchant</h2>
+    </div>
+    <button
+      type="button"
+      class="secondary"
+      (click)="refresh()"
+      [disabled]="
+        !state().accountId ||
+        state().phase === 'signing' ||
+        state().phase === 'loading'
+      "
+    >
+      Refresh quote / check status
+    </button>
+  </div>
+  <p>
+    Choose a resource and review its exact virtual-gold cost before approving
+    the purchase in Meteor.
+  </p>
+  @if (!state().accountId) {
+    <p class="hint">
+      Connect a Testnet player wallet above.
+      <a href="#registration-title">Register the player</a> if needed.
+    </p>
+  }
+  <div class="purchase-fields">
+    <label for="buy-merchant"
+      >Merchant<select
+        id="buy-merchant"
+        [value]="state().merchantId"
+        (change)="edit('merchant', $event)"
+        [disabled]="state().phase === 'signing' || state().phase === 'unknown'"
+      >
+        @for (merchant of merchants; track merchant.id) {
+          <option [value]="merchant.id">{{ merchant.name }}</option>
+        }
+      </select></label
+    >
+    <label for="buy-resource"
+      >Resource<select
+        id="buy-resource"
+        [value]="state().resource"
+        (change)="edit('resource', $event)"
+        [disabled]="state().phase === 'signing' || state().phase === 'unknown'"
+      >
+        @for (resource of resources; track resource.id) {
+          <option [value]="resource.id">{{ resource.name }}</option>
+        }
+      </select></label
+    >
+    <label for="buy-quantity"
+      >Quantity<input
+        id="buy-quantity"
+        type="text"
+        inputmode="numeric"
+        pattern="[1-9][0-9]{0,2}"
+        maxlength="3"
+        [value]="state().quantity"
+        (input)="edit('quantity', $event)"
+        aria-describedby="buy-quantity-help buy-validation"
+        [attr.aria-invalid]="state().validation ? 'true' : null"
+        [disabled]="state().phase === 'signing' || state().phase === 'unknown'"
+    /></label>
+  </div>
+  <p id="buy-quantity-help" class="hint">
+    Whole quantities from 1 to 100, within the listed stock and your game
+    balance.
+  </p>
+  @if (listing(); as listing) {
+    <dl class="quote-grid">
+      <div>
+        <dt>For sale</dt>
+        <dd>{{ listing.active ? format(listing.quantity) : "Not listed" }}</dd>
+      </div>
+      <div>
+        <dt>Gold each</dt>
+        <dd>{{ listing.active ? format(listing.unit_price) : "—" }}</dd>
+      </div>
+      <div>
+        <dt>Total virtual gold</dt>
+        <dd>
+          {{
+            state().quote ? format(state().quote!.args.max_total_price) : "—"
+          }}
+        </dd>
+      </div>
+      <div>
+        <dt>Listing version</dt>
+        <dd>{{ listing.version }}</dd>
+      </div>
+    </dl>
+  }
+  @if (state().quote; as quote) {
+    <p class="hint">
+      Player: {{ quote.accountId }} · {{ format(quote.gold) }} virtual gold ·
+      {{ format(quote.owned) }} of this resource on hand
+    </p>
+    <p class="hint">
+      Finalized block {{ format(quote.blockHeight) }} · Market revision
+      {{ quote.revision }}
+    </p>
+  }
+  <p id="buy-validation" class="validation" role="status">
+    {{
+      state().phase === "loading"
+        ? "Reading finalized market and player data…"
+        : state().validation
+    }}
+  </p>
+  @if (state().phase === "review" && state().reviewed; as reviewed) {
+    <div class="confirmation" role="group" aria-label="Purchase confirmation">
+      <p>
+        Buy
+        <strong
+          >{{ reviewed.args.quantity }} {{ reviewed.args.resource }}</strong
+        >
+        from <strong>{{ reviewed.args.merchant_id }}</strong> for exactly
+        <strong>{{ format(reviewed.args.max_total_price) }} virtual gold</strong
+        >, as {{ reviewed.accountId }}.
+      </p>
+      <p class="hint">
+        Listing version {{ reviewed.args.listing_version }}. Any changed quote
+        requires a fresh review.
+      </p>
+      <button
+        type="button"
+        (click)="confirm()"
+        [disabled]="wallet.state().pending !== null"
+      >
+        Confirm purchase in Meteor
+      </button>
+    </div>
+  } @else {
+    <button
+      type="button"
+      class="review-button"
+      (click)="review()"
+      [disabled]="
+        !state().quote ||
+        state().phase === 'signing' ||
+        state().phase === 'unknown' ||
+        state().phase === 'loading' ||
+        wallet.state().pending !== null
+      "
+    >
+      {{
+        state().phase === "signing" ? "Waiting for wallet…" : "Review purchase"
+      }}
+    </button>
+  }
+  @if (state().message) {
+    <p class="purchase-message" role="status">{{ state().message }}</p>
+  }
+  <p class="gas-note">
+    Virtual gold pays for resources. Fund your Testnet wallet with NEAR
+    separately for network gas. This call attaches no NEAR deposit. Live AI
+    reactions are not connected yet.
+  </p>
+</section>

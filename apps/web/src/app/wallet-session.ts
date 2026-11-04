@@ -5,7 +5,11 @@ import type {
   WalletStorage,
 } from "./wallet-context";
 import type { PublicConfig } from "@bot-bazaar/shared";
-import { RegistrationNotOpenedError } from "./registration-reader";
+import {
+  RegistrationNotOpenedError,
+  PurchaseNotOpenedError,
+} from "./registration-reader";
+import type { CallInput } from "@bot-bazaar/chain";
 
 export interface WalletPort {
   accounts(): Promise<readonly { accountId: string }[]>;
@@ -13,6 +17,10 @@ export interface WalletPort {
   disconnect(): Promise<void>;
   subscribe(changed: () => void): () => void;
   register(accountId: string): Promise<unknown>;
+  buy(
+    accountId: string,
+    args: CallInput<"buy_from_merchant">,
+  ): Promise<unknown>;
 }
 export interface WalletState {
   readonly status:
@@ -120,7 +128,11 @@ export class WalletSession {
     if (this.busy || this.destroyed || !this.enabled) return;
     this.busy = true;
     const generation = ++this.generation;
-    this.publish({ status: "checking", accountId: null, accounts: [] });
+    // Preserve a checked identity during background polling so an unchanged
+    // account does not erase the user's purchase review every ten seconds.
+    // Submission stays locked by busy; changes/failures replace or clear it.
+    if (this.current.status !== "connected")
+      this.publish({ status: "checking", accountId: null, accounts: [] });
     try {
       const accounts = await (await this.adapter()).accounts();
       if (generation !== this.generation || this.destroyed) return;
@@ -157,11 +169,6 @@ export class WalletSession {
     let id: string | undefined;
     try {
       const pending = this.context.read();
-      if (
-        pending?.kind === "transaction" &&
-        pending.call?.method !== "register_player"
-      )
-        throw new Error("unresolved transaction");
       if (pending?.kind === "connect") this.context.finishConnect(pending.id);
       const context =
         pending?.kind === "transaction" ? pending : this.context.beginConnect();
@@ -223,6 +230,19 @@ export class WalletSession {
     }
   }
   async submitRegistration(context: WalletContext): Promise<unknown> {
+    return this.submitPlayerCall(context, "register_player");
+  }
+  async submitPurchase(context: WalletContext): Promise<unknown> {
+    return this.submitPlayerCall(context, "buy_from_merchant");
+  }
+  private async submitPlayerCall(
+    context: WalletContext,
+    method: "register_player" | "buy_from_merchant",
+  ): Promise<unknown> {
+    const NotOpened =
+      method === "register_player"
+        ? RegistrationNotOpenedError
+        : PurchaseNotOpenedError;
     const saved = this.context.read();
     const accountId = context.accountId;
     if (
@@ -231,14 +251,15 @@ export class WalletSession {
       this.current.status !== "connected" ||
       !accountId ||
       accountId !== this.current.accountId ||
-      context.call?.method !== "register_player" ||
+      context.call?.method !== method ||
       saved?.id !== context.id ||
-      saved.call?.method !== "register_player" ||
+      saved.call?.method !== method ||
+      JSON.stringify(saved.call.args) !== JSON.stringify(context.call.args) ||
       saved.accountId !== accountId ||
       saved.contractId !== context.contractId ||
       saved.networkId !== context.networkId
     )
-      throw new RegistrationNotOpenedError();
+      throw new NotOpened();
     this.busy = true;
     const generation = this.generation;
     this.publish({ pending: context });
@@ -254,9 +275,14 @@ export class WalletSession {
         )
           throw new Error("Wallet changed");
       } catch {
-        throw new RegistrationNotOpenedError();
+        throw new NotOpened();
       }
-      return await adapter.register(accountId);
+      return method === "register_player"
+        ? await adapter.register(accountId)
+        : await adapter.buy(
+            accountId,
+            saved.call.args as CallInput<"buy_from_merchant">,
+          );
     } finally {
       this.busy = false;
     }

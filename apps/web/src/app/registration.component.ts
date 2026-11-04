@@ -1,4 +1,5 @@
-import { Component, effect, inject, signal } from "@angular/core";
+import { Component, effect, inject, signal, untracked } from "@angular/core";
+import { MarketUpdates } from "./market-updates";
 import { PUBLIC_CONFIG } from "./public-config";
 import { WalletService } from "./wallet.service";
 import { RegistrationController } from "./registration";
@@ -12,6 +13,7 @@ import { formatMarketAmount } from "./market-reader";
   styleUrl: "./registration.component.css",
 })
 export class RegistrationComponent {
+  private readonly updates = inject(MarketUpdates);
   protected readonly wallet = inject(WalletService);
   protected readonly format = formatMarketAmount;
   protected readonly state = signal<RegistrationState>({
@@ -29,6 +31,12 @@ export class RegistrationComponent {
     () => this.wallet.session.syncPending(),
   );
   constructor() {
+    effect(() => {
+      this.updates.revision();
+      untracked(() => {
+        void this.controller.refresh();
+      });
+    });
     effect(() => {
       const wallet = this.wallet.state();
       this.controller.setAccount(

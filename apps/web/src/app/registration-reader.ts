@@ -7,8 +7,15 @@ import {
 import type { MarketState, Player, Snapshot } from "@bot-bazaar/chain";
 import type { PublicConfig } from "@bot-bazaar/shared";
 import type { WalletContext } from "./wallet-context";
+import type { PlayerMethod } from "./wallet-context";
 
 export const registrationGas = "30000000000000";
+export const purchaseGas = "30000000000000";
+export class PurchaseNotOpenedError extends Error {
+  constructor() {
+    super("Purchase wallet request was not opened.");
+  }
+}
 export class RegistrationNotOpenedError extends Error {
   constructor() {
     super("Registration wallet request was not opened.");
@@ -48,6 +55,21 @@ export function createRegistrationReads(
   fetcher: typeof fetch = fetch,
   now: () => number = Date.now,
 ): RegistrationReads {
+  return createPlayerReads(config, fetcher, now, "register_player");
+}
+export function createPurchaseReads(
+  config: PublicConfig,
+  fetcher: typeof fetch = fetch,
+  now: () => number = Date.now,
+): RegistrationReads {
+  return createPlayerReads(config, fetcher, now, "buy_from_merchant");
+}
+function createPlayerReads(
+  config: PublicConfig,
+  fetcher: typeof fetch,
+  now: () => number,
+  method: PlayerMethod,
+): RegistrationReads {
   const rpc = createRpcTransport(config.rpcUrl, fetcher);
   const client = new MarketClient(config.contractId, rpc);
   return {
@@ -67,7 +89,7 @@ export function createRegistrationReads(
         context.accountId === null ||
         context.contractId !== config.contractId ||
         context.networkId !== "testnet" ||
-        context.call?.method !== "register_player"
+        context.call?.method !== method
       )
         return { kind: "unknown" };
       await client.finalized();
@@ -91,9 +113,9 @@ export function createRegistrationReads(
         publicKey: tx["public_key"],
         nonce: parseU64(nonce),
         contractId: config.contractId,
-        gas: registrationGas,
-        method: "register_player",
-        args: {},
+        gas: method === "register_player" ? registrationGas : purchaseGas,
+        method,
+        args: context.call.args,
       });
       if (status.kind !== "failed") return { kind: status.kind };
       // Only extract known codes after full final-receipt provenance checking.
@@ -104,6 +126,13 @@ export function createRegistrationReads(
           "E_PLAYER_CAPACITY",
           "E_MARKET_PAUSED",
           "E_RESERVED_ACCOUNT",
+          "E_STALE_LISTING",
+          "E_LISTING_INACTIVE",
+          "E_INSUFFICIENT_STOCK",
+          "E_INSUFFICIENT_GOLD",
+          "E_NOT_REGISTERED",
+          "E_INSUFFICIENT_LISTED_QUANTITY",
+          "E_BALANCE_CAP",
         ].find((item) => failure.includes(`BB:${item}`)) ?? "EXECUTION_FAILED";
       return { kind: "failed", code };
     },

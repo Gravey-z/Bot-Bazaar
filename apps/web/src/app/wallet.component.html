@@ -38,16 +38,7 @@
       }
       @default {
         <span class="wallet-hint">Optional for browsing</span>
-        <button
-          type="button"
-          (click)="connect()"
-          [disabled]="
-            wallet.state().pending?.kind === 'transaction' &&
-            wallet.state().pending?.call?.method !== 'register_player'
-          "
-        >
-          Connect Meteor
-        </button>
+        <button type="button" (click)="connect()">Connect Meteor</button>
         @if (wallet.state().status === "blocked") {
           <button type="button" class="secondary" (click)="retry()">
             Check connection

@@ -8,6 +8,8 @@ import {
   RegistrationNotOpenedError,
 } from "./registration-reader";
 import { isTestnetAccount } from "./wallet-context";
+import { createMarketCall } from "@bot-bazaar/chain";
+import { purchaseGas, PurchaseNotOpenedError } from "./registration-reader";
 
 export const meteorExecutorCommit = "911f9d645b912fadbb1af0d0953cba44b005c82f";
 export const meteorManifest: WalletManifest = {
@@ -79,6 +81,31 @@ export async function createWalletPort(
     if (status.chain_id !== "testnet" || status.sync_info?.syncing !== false)
       throw new Error("Testnet unavailable");
   }
+  async function verifyActiveAccount(accountId: string): Promise<void> {
+    await verifyNetwork();
+    const accounts = await wallet.getAccounts({ network: "testnet" });
+    // The pinned Meteor executor uses its stored active identifier rather
+    // than the optional signerId argument. Check that public identifier too.
+    const active = JSON.parse(
+      storage.getItem("meteor-wallet:meteor-account-data") ?? "null",
+    ) as {
+      account?: { accountId?: string };
+      identifier?: {
+        accountId?: string;
+        network?: string;
+        blockchain?: string;
+      };
+    } | null;
+    if (
+      !isTestnetAccount(accountId) ||
+      !accounts.some((row) => row.accountId === accountId) ||
+      active?.account?.accountId !== accountId ||
+      active.identifier?.accountId !== accountId ||
+      active.identifier.network !== "testnet" ||
+      active.identifier.blockchain !== "near"
+    )
+      throw new Error("Active wallet account changed");
+  }
   return {
     async accounts() {
       await verifyNetwork();
@@ -95,29 +122,7 @@ export async function createWalletPort(
     },
     async register(accountId) {
       try {
-        await verifyNetwork();
-        const accounts = await wallet.getAccounts({ network: "testnet" });
-        // The pinned Meteor executor uses its stored active identifier rather
-        // than the optional signerId argument. Check that public identifier too.
-        const active = JSON.parse(
-          storage.getItem("meteor-wallet:meteor-account-data") ?? "null",
-        ) as {
-          account?: { accountId?: string };
-          identifier?: {
-            accountId?: string;
-            network?: string;
-            blockchain?: string;
-          };
-        } | null;
-        if (
-          !isTestnetAccount(accountId) ||
-          !accounts.some((row) => row.accountId === accountId) ||
-          active?.account?.accountId !== accountId ||
-          active.identifier?.accountId !== accountId ||
-          active.identifier.network !== "testnet" ||
-          active.identifier.blockchain !== "near"
-        )
-          throw new Error("Active wallet account changed");
+        await verifyActiveAccount(accountId);
       } catch {
         throw new RegistrationNotOpenedError();
       }
@@ -132,6 +137,31 @@ export async function createWalletPort(
               methodName: "register_player",
               args: {},
               gas: registrationGas,
+              deposit: "0",
+            },
+          },
+        ],
+      });
+    },
+    async buy(accountId, input) {
+      let args;
+      try {
+        args = createMarketCall("buy_from_merchant", input).args;
+        await verifyActiveAccount(accountId);
+      } catch {
+        throw new PurchaseNotOpenedError();
+      }
+      return wallet.signAndSendTransaction({
+        network: "testnet",
+        signerId: accountId,
+        receiverId: config.contractId,
+        actions: [
+          {
+            type: "FunctionCall",
+            params: {
+              methodName: "buy_from_merchant",
+              args,
+              gas: purchaseGas,
               deposit: "0",
             },
           },

@@ -1,4 +1,12 @@
-import { Component, computed, inject, signal } from "@angular/core";
+import {
+  Component,
+  computed,
+  effect,
+  inject,
+  signal,
+  untracked,
+} from "@angular/core";
+import { MarketUpdates } from "./market-updates";
 import type { OnDestroy, OnInit } from "@angular/core";
 import { DatePipe } from "@angular/common";
 import type { MerchantId, Resource } from "@bot-bazaar/shared";
@@ -19,6 +27,7 @@ import { merchantProfiles, marketResources } from "./merchant-profiles";
   styleUrl: "./market-scene.component.css",
 })
 export class MarketSceneComponent implements OnInit, OnDestroy {
+  private readonly updates = inject(MarketUpdates);
   protected readonly config = inject(PUBLIC_CONFIG);
   protected readonly profiles = merchantProfiles;
   protected readonly resources = marketResources;
@@ -45,6 +54,12 @@ export class MarketSceneComponent implements OnInit, OnDestroy {
     if (document.hidden) this.feed.stop();
     else this.feed.start();
   };
+  constructor() {
+    effect(() => {
+      this.updates.revision();
+      untracked(() => this.refresh());
+    });
+  }
 
   ngOnInit(): void {
     document.addEventListener("visibilitychange", this.visibilityChanged);
