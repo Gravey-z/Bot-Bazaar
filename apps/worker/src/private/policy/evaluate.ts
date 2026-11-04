@@ -2,7 +2,7 @@ import type { MerchantId, Resource, Merchant, Offer } from "@bot-bazaar/chain";
 import { parseDecisionAction } from "../decisions/schema.js";
 import type { DecisionAction } from "../decisions/schema.js";
 import type { DiscoveryState } from "../discovery/types.js";
-import { profiles } from "../prompts/profiles.js";
+import { profiles, rexShortageSaleBand } from "../prompts/profiles.js";
 import { StorageError } from "../storage/validation.js";
 export class PolicyError extends StorageError {
   constructor(readonly code: string) {
@@ -60,7 +60,7 @@ function saleBand(
           (m) => m.merchant_id === "rex",
         )!.inventory.crystal,
       ) < 5n)
-    ? ["7", "8"]
+    ? rexShortageSaleBand
     : profiles[name].sells[resource];
 }
 function inBand(price: bigint, band: readonly string[]): boolean {
@@ -340,7 +340,10 @@ export function evaluateDecision(
       trade.resource === "crystal"
     ) {
       const listing = own.listings.find((l) => l.resource === "crystal")!;
-      if (listing.active && BigInt(listing.unit_price) < 7n)
+      if (
+        listing.active &&
+        BigInt(listing.unit_price) < BigInt(rexShortageSaleBand[0])
+      )
         preparations.push({
           method: "set_listing",
           args: {

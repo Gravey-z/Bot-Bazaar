@@ -2,9 +2,9 @@ import { parseU64 } from "@bot-bazaar/chain";
 import type { MerchantId, Resource } from "@bot-bazaar/chain";
 import type { DiscoveryState } from "../discovery/types.js";
 import { merchant, requireStorage, timestamp } from "../storage/validation.js";
-import { profiles } from "./profiles.js";
+import { profiles, rexShortageSaleBand } from "./profiles.js";
 
-export const promptVersion = "merchant-v1.0.0";
+export const promptVersion = "merchant-v1.1.0";
 const resources = ["crystal", "wood", "herb", "iron"] as const;
 type Stock = Record<Resource, string>;
 export interface PromptTurn {
@@ -39,7 +39,8 @@ Priority: evaluate incoming offers in supplied creation order; then a triggered 
 For buying, preserve goldFloor after local committed gold. Quantity must fit target gap, both parties' trade-size limits, affordable stock, seller surplus after stock floors, listings and local commitments, and contract limits. Absent buy resources are forbidden. A new buy proposal must pay at least the seller's active public quote within both bands. A new sale proposal also needs a buyer with a valid purchase trigger and budget. Public quotes are not consent to transfer.
 Incoming offers may differ from public quotes but must satisfy the same reserves, triggers, price and quantity limits. Accept only a supplied incoming pending offer, using its offer_id and exact stored terms; never rewrite it or invent a counteroffer. Reject is offchain. Do not reconsider rejected offers. Offers reserve no assets onchain. Allow only one unresolved trade commitment per merchant; completing that same commitment is permitted.
 Before a sale, listed quantity plus intended sale must fit stock above floors and other commitments. The worker must separately confirm any deterministic listing reduction, then refresh and revalidate the original decision. You do not declare this preparation completed or invent its result.
-When Rex shortage mode is true or unknown, or observed crystals are below five, his crystal sale/listing band is seven to eight permanently. Restocking never restores the introductory band. Before restocking, a cheap crystal listing must be deactivated by separately logged worker preparation. Do not force a restock, acceptance or relisting to satisfy a demo.
+When Rex shortage mode is true or unknown, or observed crystals are below five, his crystal sale/listing band is ${rexShortageSaleBand[0]} to ${rexShortageSaleBand[1]} permanently. Restocking never restores the introductory band. Before restocking, a cheap crystal listing must be deactivated by separately logged worker preparation. Do not force a restock, acceptance or relisting to satisfy a demo.
+restockEconomics, when supplied, is buyer-only arithmetic for the crystal shortage. Its quantity ceiling excludes seller availability and consent, incoming-offer priority and mutation capacity; it is not an authorized action. Potential unit gross margin assumes a future buyer pays the minimum permitted resale price; demand and realized profit are not guaranteed. Recheck both parties' rules, exact quotes, commitments and prerequisites independently. You may buy less, hold or decline.
 Select only hold, set_listing, propose_trade, accept_trade or reject_trade. No cancellation, cleanup or administrator actions. Return one JSON object with exactly action and reason, without Markdown or chain-of-thought. Reason is a brief observable explanation, at most 240 characters, never a fabricated success.
 Action shapes:
 {"method":"hold"}
@@ -238,6 +239,35 @@ export function buildMerchantPrompt(
       mutationsRemaining: turn.mutationsRemaining,
     },
     rexShortageMode: shortage,
+    restockEconomics: (() => {
+      const rule = profiles.rex.buys.crystal;
+      if (
+        turn.merchantId !== "rex" ||
+        turn.phase !== "decision" ||
+        BigInt(own.inventory.crystal) >= BigInt(rule.below)
+      )
+        return null;
+      const gap = BigInt(rule.target) - BigInt(own.inventory.crystal);
+      const maxBuyPrice = BigInt(rule.price[1]);
+      const ceiling = [
+        gap,
+        BigInt(rule.maxQuantity),
+        BigInt(own.spendableGold) / maxBuyPrice,
+      ].reduce((a, b) => (a < b ? a : b));
+      return {
+        resource: "crystal",
+        targetGap: String(gap),
+        spendableGold: own.spendableGold,
+        purchaseUnitPriceBand: rule.price,
+        futureSaleUnitPriceBand: rexShortageSaleBand,
+        buyerOnlyQuantityCeilingAtMaxPrice: String(ceiling),
+        totalAtQuantityCeilingAndMaxPrice: String(ceiling * maxBuyPrice),
+        potentialUnitGrossMarginAtMinResaleAndMaxBuyPrice: String(
+          BigInt(rexShortageSaleBand[0]) - maxBuyPrice,
+        ),
+        futureDemandGuaranteed: false,
+      };
+    })(),
     own,
     merchants,
     offers,

@@ -1,5 +1,6 @@
 // Merchant policy v1: docs/merchant-policies.md and docs/economy.md.
 // Shared parameters for prompt guidance and independent P3.9 enforcement.
+export const rexShortageSaleBand = ["7", "8"] as const;
 export const profiles = {
   rex: {
     name: "Rex",

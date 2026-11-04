@@ -105,6 +105,23 @@ const marketInput = shape({
     mutationsRemaining: integer,
   }),
   rexShortageMode: boolean,
+  restockEconomics: (value) =>
+    value === null || value === undefined
+      ? null
+      : shape({
+          resource: choice(["crystal"]),
+          targetGap: parseU64,
+          spendableGold: parseU64,
+          purchaseUnitPriceBand: list(parseU64, 2),
+          futureSaleUnitPriceBand: list(parseU64, 2),
+          buyerOnlyQuantityCeilingAtMaxPrice: parseU64,
+          totalAtQuantityCeilingAndMaxPrice: parseU64,
+          potentialUnitGrossMarginAtMinResaleAndMaxBuyPrice: parseU64,
+          futureDemandGuaranteed: (value) => {
+            requireStorage(value === false, "future demand is not guaranteed");
+            return false;
+          },
+        })(value),
   own: actor,
   merchants: list(actor, 3),
   offers: list(
