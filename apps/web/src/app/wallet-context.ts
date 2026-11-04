@@ -1,7 +1,35 @@
-import { createMarketCall } from "@bot-bazaar/chain";
+import { createMarketCall, parseU64 } from "@bot-bazaar/chain";
 import type { PublicConfig } from "@bot-bazaar/shared";
 
 export type PlayerMethod = "register_player" | "buy_from_merchant";
+export type TransactionPhase =
+  | "prepared"
+  | "awaiting_wallet"
+  | "submitted"
+  | "unknown"
+  | "rejected"
+  | "failed"
+  | "confirmed"
+  | "registered"
+  | "not_submitted";
+const phases: readonly TransactionPhase[] = [
+  "prepared",
+  "awaiting_wallet",
+  "submitted",
+  "unknown",
+  "rejected",
+  "failed",
+  "confirmed",
+  "registered",
+  "not_submitted",
+];
+const terminal = new Set<TransactionPhase>([
+  "rejected",
+  "failed",
+  "confirmed",
+  "registered",
+  "not_submitted",
+]);
 export interface WalletContext {
   readonly version: 1;
   readonly id: string;
@@ -13,6 +41,13 @@ export interface WalletContext {
   readonly returnUrl: string;
   readonly call: { method: PlayerMethod; args: unknown } | null;
   readonly transactionHash?: string;
+  readonly lifecycle?: {
+    readonly phase: TransactionPhase;
+    readonly updatedAt: number;
+  };
+  readonly returnConsumed?: boolean;
+  readonly referenceBlockHeight?: string;
+  readonly transactionSource?: "wallet" | "return" | "manual";
 }
 export interface WalletStorage {
   getItem(key: string): string | null;
@@ -59,14 +94,42 @@ export class WalletContextStore {
   read(): WalletContext | null {
     const raw = this.storage.getItem(this.key);
     if (raw === null) return null;
+    return this.decode(raw);
+  }
+  private decode(raw: string): WalletContext {
     requireValue(raw.length <= 4096);
     const value = JSON.parse(raw) as WalletContext;
     requireValue(
       value &&
         [
-          "accountId,call,contractId,createdAt,id,kind,networkId,returnUrl,version",
-          "accountId,call,contractId,createdAt,id,kind,networkId,returnUrl,transactionHash,version",
-        ].includes(Object.keys(value).sort().join()),
+          "accountId",
+          "call",
+          "contractId",
+          "createdAt",
+          "id",
+          "kind",
+          "networkId",
+          "returnUrl",
+          "version",
+        ].every((key) => Object.hasOwn(value, key)) &&
+        Object.keys(value).every((key) =>
+          [
+            "accountId",
+            "call",
+            "contractId",
+            "createdAt",
+            "id",
+            "kind",
+            "networkId",
+            "returnUrl",
+            "version",
+            "transactionHash",
+            "lifecycle",
+            "returnConsumed",
+            "referenceBlockHeight",
+            "transactionSource",
+          ].includes(key),
+        ),
     );
     requireValue(
       value.version === 1 &&
@@ -89,7 +152,11 @@ export class WalletContextStore {
       requireValue(
         value.accountId === null &&
           value.call === null &&
-          value.transactionHash === undefined,
+          value.transactionHash === undefined &&
+          value.lifecycle === undefined &&
+          value.returnConsumed === undefined &&
+          value.referenceBlockHeight === undefined &&
+          value.transactionSource === undefined,
       );
     else {
       requireValue(
@@ -99,6 +166,35 @@ export class WalletContextStore {
           Object.keys(value.call).sort().join() === "args,method" &&
           ["register_player", "buy_from_merchant"].includes(value.call.method),
       );
+      requireValue(
+        value.returnConsumed === undefined ||
+          typeof value.returnConsumed === "boolean",
+      );
+      if (value.referenceBlockHeight !== undefined)
+        requireValue(BigInt(parseU64(value.referenceBlockHeight)) > 0n);
+      requireValue(
+        value.transactionSource === undefined ||
+          (!!value.transactionHash &&
+            ["wallet", "return", "manual"].includes(value.transactionSource)),
+      );
+      requireValue(
+        value.lifecycle === undefined ||
+          (value.lifecycle !== null &&
+            typeof value.lifecycle === "object" &&
+            !Array.isArray(value.lifecycle)),
+      );
+      if (value.lifecycle) {
+        requireValue(
+          Object.keys(value.lifecycle).sort().join() === "phase,updatedAt" &&
+            phases.includes(value.lifecycle.phase) &&
+            Number.isSafeInteger(value.lifecycle.updatedAt) &&
+            value.lifecycle.updatedAt >= value.createdAt,
+        );
+        requireValue(
+          !["submitted", "confirmed"].includes(value.lifecycle.phase) ||
+            !!value.transactionHash,
+        );
+      }
       createMarketCall(value.call.method, value.call.args);
       requireValue(
         value.transactionHash === undefined ||
@@ -108,6 +204,17 @@ export class WalletContextStore {
     }
     return value;
   }
+  lastTransaction(): WalletContext | null {
+    const raw = this.storage.getItem(`${this.key}:last`);
+    if (raw === null) return null;
+    const value = this.decode(raw);
+    requireValue(
+      value.kind === "transaction" &&
+        value.lifecycle &&
+        terminal.has(value.lifecycle.phase),
+    );
+    return value;
+  }
   beginConnect(): WalletContext {
     return this.save("connect", null, null);
   }
@@ -115,20 +222,30 @@ export class WalletContextStore {
     accountId: string,
     method: PlayerMethod,
     args: unknown,
+    referenceBlockHeight?: string,
   ): WalletContext {
     requireValue(
       isTestnetAccount(accountId) &&
         ["register_player", "buy_from_merchant"].includes(method),
     );
     const call = createMarketCall(method, args);
-    return this.save("transaction", accountId, { method, args: call.args });
+    if (referenceBlockHeight !== undefined)
+      requireValue(BigInt(parseU64(referenceBlockHeight)) > 0n);
+    return this.save(
+      "transaction",
+      accountId,
+      { method, args: call.args },
+      referenceBlockHeight,
+    );
   }
   private save(
     kind: WalletContext["kind"],
     accountId: string | null,
     call: WalletContext["call"],
+    referenceBlockHeight?: string,
   ): WalletContext {
     requireValue(this.config.networkId === "testnet" && !this.read());
+    if (kind === "transaction") this.lastTransaction();
     const id = this.uuid();
     requireValue(/^[a-f0-9-]{36}$/.test(id));
     const returnUrl = new URL(this.route);
@@ -143,6 +260,10 @@ export class WalletContextStore {
       createdAt: this.now(),
       returnUrl: returnUrl.href,
       call,
+      ...(referenceBlockHeight !== undefined ? { referenceBlockHeight } : {}),
+      ...(kind === "transaction"
+        ? { lifecycle: { phase: "prepared" as const, updatedAt: this.now() } }
+        : {}),
     };
     this.storage.setItem(this.key, JSON.stringify(context));
     requireValue(this.read()?.id === id);
@@ -159,32 +280,187 @@ export class WalletContextStore {
   recordPurchaseHash(id: string, hash: string): void {
     this.recordHash(id, hash, "buy_from_merchant");
   }
-  private recordHash(id: string, hash: string, method: PlayerMethod): void {
+  progress(
+    id: string,
+    phase: "awaiting_wallet" | "submitted" | "unknown",
+  ): void {
+    const value = this.read();
+    requireValue(
+      value?.kind === "transaction" &&
+        value.id === id &&
+        !terminal.has(value.lifecycle?.phase ?? "unknown"),
+    );
+    if (phase === "awaiting_wallet")
+      requireValue(
+        value.lifecycle?.phase === "prepared" && !value.transactionHash,
+      );
+    if (phase === "submitted") requireValue(!!value.transactionHash);
+    const updated = {
+      ...value,
+      lifecycle: { phase, updatedAt: Math.max(this.now(), value.createdAt) },
+    };
+    this.storage.setItem(this.key, JSON.stringify(updated));
+    requireValue(this.read()?.lifecycle?.phase === phase);
+  }
+  settle(
+    id: string,
+    phase: "rejected" | "failed" | "confirmed" | "registered" | "not_submitted",
+  ): void {
+    const value = this.read();
+    if (value === null && this.lastTransaction()?.id === id) return;
+    requireValue(value?.kind === "transaction" && value.id === id);
+    requireValue(phase !== "confirmed" || !!value.transactionHash);
+    const settled = {
+      ...value,
+      lifecycle: { phase, updatedAt: Math.max(this.now(), value.createdAt) },
+    };
+    const raw = JSON.stringify(settled);
+    this.decode(raw);
+    // Archive before releasing the pending lock. Failed persistence keeps it locked.
+    this.storage.setItem(`${this.key}:last`, raw);
+    requireValue(this.storage.getItem(`${this.key}:last`) === raw);
+    this.storage.removeItem(this.key);
+    requireValue(this.read() === null);
+  }
+  private recordHash(
+    id: string,
+    hash: string,
+    method: PlayerMethod,
+    source: "wallet" | "return" | "manual" = "wallet",
+  ): void {
     const context = this.read();
     requireValue(
       context?.id === id &&
         context.call?.method === method &&
         /^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(hash) &&
-        (!context.transactionHash || context.transactionHash === hash),
+        (!context.transactionHash ||
+          context.transactionHash === hash ||
+          (context.transactionSource &&
+            context.transactionSource !== "wallet" &&
+            (source === "wallet" ||
+              (source === "manual" &&
+                context.lifecycle?.phase === "unknown")))),
     );
     this.storage.setItem(
       this.key,
-      JSON.stringify({ ...context, transactionHash: hash }),
+      JSON.stringify({
+        ...context,
+        transactionHash: hash,
+        transactionSource:
+          context.transactionHash === hash &&
+          context.transactionSource === "wallet"
+            ? "wallet"
+            : source,
+        lifecycle: {
+          phase:
+            source === "wallet" || context.transactionSource === "wallet"
+              ? "submitted"
+              : "unknown",
+          updatedAt: Math.max(this.now(), context.createdAt),
+        },
+      }),
     );
     requireValue(this.read()?.transactionHash === hash);
   }
   // Called only after a finalized player proves registration exists, a verified
   // final failed receipt, or a request that never reached the wallet.
-  finishRegistration(id: string): void {
-    this.finishPlayerCall(id, "register_player");
+  finishRegistration(
+    id: string,
+    phase:
+      "confirmed" | "registered" | "failed" | "not_submitted" = "not_submitted",
+  ): void {
+    this.finishPlayerCall(id, "register_player", phase);
   }
-  finishPurchase(id: string): void {
-    this.finishPlayerCall(id, "buy_from_merchant");
+  finishPurchase(
+    id: string,
+    phase: "confirmed" | "failed" | "not_submitted" = "not_submitted",
+  ): void {
+    this.finishPlayerCall(id, "buy_from_merchant", phase);
   }
-  private finishPlayerCall(id: string, method: PlayerMethod): void {
+  private finishPlayerCall(
+    id: string,
+    method: PlayerMethod,
+    phase: "confirmed" | "failed" | "registered" | "not_submitted",
+  ): void {
     const context = this.read();
+    if (context === null && this.lastTransaction()?.id === id) return;
     requireValue(context?.id === id && context.call?.method === method);
-    this.storage.removeItem(this.key);
+    this.settle(id, phase);
+  }
+  recoverHash(
+    id: string,
+    hash: string,
+    source: "wallet" | "return" | "manual" = "manual",
+  ): void {
+    const context = this.read();
+    requireValue(
+      context?.kind === "transaction" && context.id === id && context.call,
+    );
+    this.recordHash(id, hash, context.call.method, source);
+  }
+  consumeReturn(pageUrl: string): "none" | "invalid" | "accepted" {
+    const page = new URL(pageUrl);
+    if (
+      !["bbWalletState", "transactionHashes", "errorCode", "errorMessage"].some(
+        (key) => page.searchParams.has(key),
+      )
+    )
+      return "none";
+    const context = this.read();
+    if (
+      !context ||
+      context.kind !== "transaction" ||
+      !this.returned(pageUrl) ||
+      context.returnConsumed
+    )
+      return "invalid";
+    for (const key of [
+      "bbWalletState",
+      "transactionHashes",
+      "errorCode",
+      "errorMessage",
+      "account_id",
+      "networkId",
+      "contractId",
+    ])
+      if (page.searchParams.getAll(key).length > 1) return "invalid";
+    if (
+      (page.searchParams.has("account_id") &&
+        page.searchParams.get("account_id") !== context.accountId) ||
+      (page.searchParams.has("networkId") &&
+        page.searchParams.get("networkId") !== context.networkId) ||
+      (page.searchParams.has("contractId") &&
+        page.searchParams.get("contractId") !== context.contractId)
+    )
+      return "invalid";
+    const hash = page.searchParams.get("transactionHashes");
+    if (
+      hash !== null &&
+      (!/^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(hash) ||
+        (context.transactionHash && context.transactionHash !== hash))
+    )
+      return "invalid";
+    // The nonce-only URL is the outbound page, not a completed callback.
+    if (hash === null && !page.searchParams.has("errorCode")) return "none";
+    if (hash) this.recoverHash(context.id, hash, "return");
+    const updated = this.read();
+    requireValue(updated?.id === context.id);
+    this.storage.setItem(
+      this.key,
+      JSON.stringify({
+        ...updated,
+        returnConsumed: true,
+        lifecycle: {
+          phase:
+            hash && updated.transactionSource === "wallet"
+              ? "submitted"
+              : "unknown",
+          updatedAt: Math.max(this.now(), context.createdAt),
+        },
+      }),
+    );
+    requireValue(this.read()?.returnConsumed === true);
+    return "accepted";
   }
   returned(pageUrl: string): boolean {
     const page = new URL(pageUrl);

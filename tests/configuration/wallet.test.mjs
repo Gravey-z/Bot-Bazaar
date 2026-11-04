@@ -476,7 +476,9 @@ test("disconnect during registration account verification prevents the wallet re
   resolve([{ accountId: "player.testnet" }]);
   await assert.rejects(first, /not opened/);
   assert.equal(registrations, 0);
-  assert.equal(h.context.read().id, pending.id);
+  assert.equal(h.context.read(), null);
+  assert.equal(h.context.lastTransaction().id, pending.id);
+  assert.equal(h.context.lastTransaction().lifecycle.phase, "not_submitted");
 });
 
 test("unchanged background wallet checks preserve the account used by purchase review", async () => {
@@ -563,7 +565,7 @@ test("adapter pins Meteor, explicitly selects Testnet, never requests keys, and 
           async signIn(options) { capture.signIns.push(options); return [{ accountId: 'player.testnet' }]; }
           async getAccounts(options) { capture.accountReads.push(options); return [{ accountId: 'player.testnet' }]; }
           async signOut(options) { capture.signOuts.push(options); }
-          async signAndSendTransaction(options) { capture.registrations.push(options); return { transaction: { hash: 'candidate' } }; }
+          async signAndSendTransaction(options) { if(capture.failure) throw capture.failure; capture.registrations.push(options); return { transaction: { hash: 'candidate' } }; }
         }
       `,
           }));
@@ -692,6 +694,20 @@ test("adapter pins Meteor, explicitly selects Testnet, never requests keys, and 
     /not opened/,
   );
   assert.equal(capture.registrations.length, 2);
+  capture.failure = {
+    name: "MeteorActionError",
+    _reason: { endTags: ["USER_CANCELLED"] },
+  };
+  await assert.rejects(
+    port.buy("player.testnet", purchaseArgs),
+    /explicitly rejected/,
+  );
+  capture.failure = new Error("Wallet closed");
+  await assert.rejects(
+    port.buy("player.testnet", purchaseArgs),
+    /Wallet closed/,
+  );
+  capture.failure = null;
   await port.disconnect();
   assert.deepEqual(plain(capture.signIns), [{ network: "testnet" }]);
   assert.ok(capture.accountReads.length >= 2);

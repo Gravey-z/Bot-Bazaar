@@ -410,6 +410,21 @@ test("stored registration hashes survive reload and cannot overwrite another tra
   assert.equal(h.journal.read(), null);
 });
 
+test("registered player data does not hide an unresolved known-hash transaction", async () => {
+  const h = harness();
+  const pending = h.journal.prepareTransaction(account, "register_player", {});
+  h.journal.recordRegistrationHash(pending.id, txHash);
+  h.behavior.read = async (id) => observation(id, true);
+  h.controller.setAccount(account);
+  await settle();
+  assert.equal(h.controller.state.status, "registered");
+  assert.equal(h.journal.read().id, pending.id);
+  h.behavior.receipt = async () => ({ kind: "succeeded" });
+  await h.controller.refresh();
+  assert.equal(h.journal.read(), null);
+  assert.equal(h.journal.lastTransaction().lifecycle.phase, "confirmed");
+});
+
 test("receipt reader verifies the captured registration and rejects wrong signer or receiver", async () => {
   let response = structuredClone(fixture.steps[0].receipt);
   const { createRegistrationReads } = await load(

@@ -117,6 +117,38 @@ function createPlayerReads(
         method,
         args: context.call.args,
       });
+      const recovered =
+        context.transactionSource === "manual" ||
+        context.transactionSource === "return";
+      if (recovered && !context.referenceBlockHeight)
+        return { kind: "unknown" };
+      if (
+        status.kind === "succeeded" &&
+        context.referenceBlockHeight &&
+        BigInt(status.result.block_height) <=
+          BigInt(context.referenceBlockHeight)
+      )
+        throw new Error("Transaction predates the saved intent");
+      // Untrusted failures can belong to another failed call with identical terms.
+      if (status.kind === "failed" && recovered) return { kind: "unknown" };
+      if (status.kind === "failed" && context.referenceBlockHeight) {
+        const hash = record(response["transaction_outcome"])["block_hash"];
+        if (typeof hash !== "string")
+          throw new Error("Missing transaction block");
+        const header = record(
+          record(await rpc("block", { block_id: hash }))["header"],
+        );
+        const height =
+          typeof header["height"] === "number" &&
+          Number.isSafeInteger(header["height"])
+            ? String(header["height"])
+            : header["height"];
+        if (
+          header["hash"] !== hash ||
+          BigInt(parseU64(height)) <= BigInt(context.referenceBlockHeight)
+        )
+          throw new Error("Transaction block mismatch");
+      }
       if (status.kind !== "failed") return { kind: status.kind };
       // Only extract known codes after full final-receipt provenance checking.
       const failure = JSON.stringify(response["status"]);

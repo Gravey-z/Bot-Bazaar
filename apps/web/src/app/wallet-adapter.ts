@@ -10,6 +10,7 @@ import {
 import { isTestnetAccount } from "./wallet-context";
 import { createMarketCall } from "@bot-bazaar/chain";
 import { purchaseGas, PurchaseNotOpenedError } from "./registration-reader";
+import { isMeteorRejection, WalletRejectedError } from "./transaction-errors";
 
 export const meteorExecutorCommit = "911f9d645b912fadbb1af0d0953cba44b005c82f";
 export const meteorManifest: WalletManifest = {
@@ -106,6 +107,10 @@ export async function createWalletPort(
     )
       throw new Error("Active wallet account changed");
   }
+  function rejectWallet(error: unknown): never {
+    if (isMeteorRejection(error)) throw new WalletRejectedError();
+    throw error;
+  }
   return {
     async accounts() {
       await verifyNetwork();
@@ -126,22 +131,24 @@ export async function createWalletPort(
       } catch {
         throw new RegistrationNotOpenedError();
       }
-      return wallet.signAndSendTransaction({
-        network: "testnet",
-        signerId: accountId,
-        receiverId: config.contractId,
-        actions: [
-          {
-            type: "FunctionCall",
-            params: {
-              methodName: "register_player",
-              args: {},
-              gas: registrationGas,
-              deposit: "0",
+      return wallet
+        .signAndSendTransaction({
+          network: "testnet",
+          signerId: accountId,
+          receiverId: config.contractId,
+          actions: [
+            {
+              type: "FunctionCall",
+              params: {
+                methodName: "register_player",
+                args: {},
+                gas: registrationGas,
+                deposit: "0",
+              },
             },
-          },
-        ],
-      });
+          ],
+        })
+        .catch(rejectWallet);
     },
     async buy(accountId, input) {
       let args;
@@ -151,22 +158,24 @@ export async function createWalletPort(
       } catch {
         throw new PurchaseNotOpenedError();
       }
-      return wallet.signAndSendTransaction({
-        network: "testnet",
-        signerId: accountId,
-        receiverId: config.contractId,
-        actions: [
-          {
-            type: "FunctionCall",
-            params: {
-              methodName: "buy_from_merchant",
-              args,
-              gas: purchaseGas,
-              deposit: "0",
+      return wallet
+        .signAndSendTransaction({
+          network: "testnet",
+          signerId: accountId,
+          receiverId: config.contractId,
+          actions: [
+            {
+              type: "FunctionCall",
+              params: {
+                methodName: "buy_from_merchant",
+                args,
+                gas: purchaseGas,
+                deposit: "0",
+              },
             },
-          },
-        ],
-      });
+          ],
+        })
+        .catch(rejectWallet);
     },
     subscribe(changed) {
       const signIn = (): void => changed();

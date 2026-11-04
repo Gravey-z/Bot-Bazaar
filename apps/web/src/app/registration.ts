@@ -7,6 +7,7 @@ import type {
   RegistrationReads,
 } from "./registration-reader";
 import type { WalletContext, WalletContextStore } from "./wallet-context";
+import { WalletRejectedError } from "./transaction-errors";
 
 export type RegistrationStatus =
   | "disconnected"
@@ -132,6 +133,7 @@ export class RegistrationController {
     try {
       const pending = this.context.read();
       let failed: string | null = null;
+      let confirmed = false;
       if (
         pending?.accountId === accountId &&
         pending.call?.method === "register_player" &&
@@ -140,6 +142,7 @@ export class RegistrationController {
         try {
           const receipt = await this.reads.receipt(pending);
           if (receipt.kind === "failed") failed = receipt.code;
+          if (receipt.kind === "succeeded") confirmed = true;
         } catch {
           /* Preserve ambiguous attempts; a player read can still prove registration exists. */
         }
@@ -150,8 +153,14 @@ export class RegistrationController {
       const own =
         pending?.accountId === accountId &&
         pending.call?.method === "register_player";
-      if (own && (value.player.data || failed)) {
-        this.context.finishRegistration(pending.id);
+      if (
+        own &&
+        (confirmed || failed || (value.player.data && !pending.transactionHash))
+      ) {
+        this.context.finishRegistration(
+          pending.id,
+          confirmed ? "confirmed" : failed ? "failed" : "registered",
+        );
         this.pendingChanged();
       }
       const unresolved = this.context.read()?.kind === "transaction";
@@ -209,6 +218,7 @@ export class RegistrationController {
         accountId,
         "register_player",
         {},
+        fresh.market.block_height,
       );
       this.pendingChanged();
       const result = await this.send(pending);
@@ -220,9 +230,18 @@ export class RegistrationController {
           message: "Wallet returned. Checking finalized registration status…",
         });
     } catch (error) {
-      if (pending && error instanceof RegistrationNotOpenedError) {
+      if (
+        pending &&
+        (error instanceof RegistrationNotOpenedError ||
+          error instanceof WalletRejectedError)
+      ) {
         try {
-          this.context.finishRegistration(pending.id);
+          if (
+            error instanceof WalletRejectedError &&
+            this.context.read()?.id === pending.id
+          )
+            this.context.settle(pending.id, "rejected");
+          else this.context.finishRegistration(pending.id);
           this.pendingChanged();
         } catch {
           /* Preserve the intent when browser storage cannot confirm clearing it. */
@@ -231,13 +250,17 @@ export class RegistrationController {
       if (epoch === this.epoch)
         this.publish({
           attempt:
-            pending && !(error instanceof RegistrationNotOpenedError)
+            pending &&
+            !(error instanceof RegistrationNotOpenedError) &&
+            !(error instanceof WalletRejectedError)
               ? "unknown"
               : "failed",
           message:
-            pending && !(error instanceof RegistrationNotOpenedError)
-              ? "The wallet request did not complete. Its outcome is unknown; check status before taking another action."
-              : "Registration was not submitted. Check the active Meteor account and Testnet connection, then try again.",
+            error instanceof WalletRejectedError
+              ? "Registration rejected in Meteor. You can explicitly try again."
+              : pending && !(error instanceof RegistrationNotOpenedError)
+                ? "The wallet request did not complete. Its outcome is unknown; check status before taking another action."
+                : "Registration was not submitted. Check the active Meteor account and Testnet connection, then try again.",
         });
     } finally {
       this.sending = false;

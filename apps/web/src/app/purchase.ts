@@ -10,6 +10,7 @@ import type {
   RegistrationReads,
 } from "./registration-reader";
 import type { WalletContext, WalletContextStore } from "./wallet-context";
+import { WalletRejectedError } from "./transaction-errors";
 
 export interface PurchaseQuote {
   readonly accountId: string;
@@ -259,7 +260,10 @@ export class PurchaseController {
           const receipt = await this.reads.receipt(pending);
           if (epoch !== this.epoch) return;
           if (receipt.kind === "succeeded" || receipt.kind === "failed") {
-            this.context.finishPurchase(pending.id);
+            this.context.finishPurchase(
+              pending.id,
+              receipt.kind === "succeeded" ? "confirmed" : "failed",
+            );
             this.pendingChanged();
             outcome = receipt.kind;
             this.settled();
@@ -368,6 +372,7 @@ export class PurchaseController {
         reviewed.accountId,
         "buy_from_merchant",
         reviewed.args,
+        value.market.block_height,
       );
       this.pendingChanged();
       const result = await this.send(pending);
@@ -380,9 +385,18 @@ export class PurchaseController {
           message: "Wallet returned. Checking the original purchase…",
         });
     } catch (error) {
-      if (pending && error instanceof PurchaseNotOpenedError) {
+      if (
+        pending &&
+        (error instanceof PurchaseNotOpenedError ||
+          error instanceof WalletRejectedError)
+      ) {
         try {
-          this.context.finishPurchase(pending.id);
+          if (
+            error instanceof WalletRejectedError &&
+            this.context.read()?.id === pending.id
+          )
+            this.context.settle(pending.id, "rejected");
+          else this.context.finishPurchase(pending.id);
           this.pendingChanged();
         } catch {
           /* Retain an intent that could not be cleared. */
@@ -391,16 +405,20 @@ export class PurchaseController {
       if (epoch === this.epoch)
         this.publish({
           phase:
-            pending && !(error instanceof PurchaseNotOpenedError)
+            pending &&
+            !(error instanceof PurchaseNotOpenedError) &&
+            !(error instanceof WalletRejectedError)
               ? "unknown"
               : "failed",
           reviewed: null,
           message:
-            error instanceof QuoteError
-              ? error.message
-              : pending && !(error instanceof PurchaseNotOpenedError)
-                ? "The wallet outcome is unknown. Check status; this purchase will not be sent again."
-                : "The purchase was not opened. Refresh and review a new quote before retrying.",
+            error instanceof WalletRejectedError
+              ? "Purchase rejected in Meteor. Review a fresh quote to try again."
+              : error instanceof QuoteError
+                ? error.message
+                : pending && !(error instanceof PurchaseNotOpenedError)
+                  ? "The wallet outcome is unknown. Check status; this purchase will not be sent again."
+                  : "The purchase was not opened. Refresh and review a new quote before retrying.",
         });
     } finally {
       this.sending = false;

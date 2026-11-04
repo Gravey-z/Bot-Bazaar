@@ -10,6 +10,8 @@ import {
   PurchaseNotOpenedError,
 } from "./registration-reader";
 import type { CallInput } from "@bot-bazaar/chain";
+import { WalletRejectedError } from "./transaction-errors";
+import { walletTransactionHash } from "./registration-reader";
 
 export interface WalletPort {
   accounts(): Promise<readonly { accountId: string }[]>;
@@ -54,6 +56,7 @@ export class WalletSession {
     private readonly context: WalletContextStore,
     private readonly load: () => Promise<WalletPort>,
     private readonly changed: (state: WalletState) => void,
+    private readonly beforeWallet: (context: WalletContext) => void = () => {},
   ) {
     this.hint = `bot-bazaar:wallet:${config.networkId}:${config.contractId}`;
   }
@@ -257,7 +260,9 @@ export class WalletSession {
       JSON.stringify(saved.call.args) !== JSON.stringify(context.call.args) ||
       saved.accountId !== accountId ||
       saved.contractId !== context.contractId ||
-      saved.networkId !== context.networkId
+      saved.networkId !== context.networkId ||
+      saved.transactionHash ||
+      saved.lifecycle?.phase !== "prepared"
     )
       throw new NotOpened();
     this.busy = true;
@@ -277,14 +282,40 @@ export class WalletSession {
       } catch {
         throw new NotOpened();
       }
-      return method === "register_player"
-        ? await adapter.register(accountId)
-        : await adapter.buy(
-            accountId,
-            saved.call.args as CallInput<"buy_from_merchant">,
-          );
+      try {
+        this.context.progress(context.id, "awaiting_wallet");
+        this.beforeWallet(this.context.read()!);
+        this.syncPending();
+      } catch {
+        throw new NotOpened();
+      }
+      const result =
+        method === "register_player"
+          ? await adapter.register(accountId)
+          : await adapter.buy(
+              accountId,
+              saved.call.args as CallInput<"buy_from_merchant">,
+            );
+      const hash = walletTransactionHash(result);
+      if (hash) this.context.recoverHash(context.id, hash, "wallet");
+      else this.context.progress(context.id, "unknown");
+      return result;
+    } catch (error) {
+      try {
+        if (this.context.read()?.id === context.id) {
+          if (error instanceof NotOpened)
+            this.context.settle(context.id, "not_submitted");
+          else if (error instanceof WalletRejectedError)
+            this.context.settle(context.id, "rejected");
+          else this.context.progress(context.id, "unknown");
+        }
+      } catch {
+        /* A persistence failure never permits another wallet request. */
+      }
+      throw error;
     } finally {
       this.busy = false;
+      this.syncPending();
     }
   }
   syncPending(): void {

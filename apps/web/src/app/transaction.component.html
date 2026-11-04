@@ -1,0 +1,118 @@
+@if (transactions.state().record; as record) {
+  <section class="transaction" aria-labelledby="transaction-title">
+    <div class="heading">
+      <div>
+        <p class="eyebrow">WALLET TRANSACTION</p>
+        <h2 id="transaction-title">
+          {{
+            record.call?.method === "buy_from_merchant"
+              ? "Purchase"
+              : "Registration"
+          }}
+          status
+        </h2>
+      </div>
+      @if (
+        transactions.state().phase === "unknown" ||
+        transactions.state().phase === "submitted" ||
+        transactions.state().phase === "awaiting_wallet" ||
+        transactions.state().phase === "prepared"
+      ) {
+        <button
+          type="button"
+          (click)="check()"
+          [disabled]="transactions.state().checking"
+        >
+          {{
+            transactions.state().checking
+              ? "Checking…"
+              : "Check original transaction"
+          }}
+        </button>
+      }
+    </div>
+    <div class="status" role="status">
+      @switch (transactions.state().phase) {
+        @case ("prepared") {
+          <strong>Prepared · waiting for wallet</strong>
+        }
+        @case ("awaiting_wallet") {
+          <strong>Awaiting wallet approval</strong>
+        }
+        @case ("submitted") {
+          <strong>Submitted · waiting for verified finality</strong>
+        }
+        @case ("unknown") {
+          <strong>Outcome unknown · new transactions blocked</strong>
+        }
+        @case ("rejected") {
+          <strong>Rejected in the wallet · no transaction submitted</strong>
+        }
+        @case ("failed") {
+          <strong>Failed on-chain</strong>
+        }
+        @case ("confirmed") {
+          <strong>Confirmed on Testnet</strong>
+        }
+        @case ("registered") {
+          <strong>Player registration found on-chain</strong>
+          <p>
+            This account is registered. This observation does not verify the
+            original wallet transaction.
+          </p>
+        }
+        @case ("not_submitted") {
+          <strong>Not submitted · wallet request was not opened</strong>
+        }
+        @case ("unavailable") {
+          <strong>Saved transaction details unavailable</strong>
+        }
+      }
+    </div>
+    <p>
+      Account: {{ record.accountId }} · Contract: {{ record.contractId }} ·
+      Testnet
+    </p>
+    <p class="operation">Attempt {{ record.id }}</p>
+    @if (record.transactionHash) {
+      <p class="hash">Transaction: {{ record.transactionHash }}</p>
+    }
+    @if (
+      transactions.state().phase === "unknown" &&
+      (!record.transactionHash ||
+        record.transactionSource === "manual" ||
+        record.transactionSource === "return")
+    ) {
+      <p>
+        The original transaction is not yet verified. You can paste its hash
+        from your wallet history. It will be checked against this account and
+        the saved call before any result is confirmed.
+      </p>
+      <label for="recover-transaction"
+        >Original transaction hash<input
+          id="recover-transaction"
+          type="text"
+          maxlength="44"
+          autocomplete="off"
+          [value]="hash()"
+          (input)="changeHash($event)"
+      /></label>
+      <button
+        type="button"
+        (click)="recover()"
+        [disabled]="!hash() || transactions.state().checking"
+      >
+        Verify original hash
+      </button>
+    }
+    @if (transactions.state().message) {
+      <p class="message" role="status">{{ transactions.state().message }}</p>
+    }
+    <p class="note">
+      Status checks never sign or resend a transaction. A timeout, closed wallet
+      or failed read is not a confirmed rejection or trade.
+    </p>
+  </section>
+} @else if (transactions.state().phase === "unavailable") {
+  <p class="transaction" role="alert">{{ transactions.state().message }}</p>
+}

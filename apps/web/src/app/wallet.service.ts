@@ -38,5 +38,6 @@ export class WalletService {
     this.context,
     () => createWalletPort(this.config, this.preferences),
     (state) => this.state.set(state),
+    (context) => history.replaceState(history.state, "", context.returnUrl),
   );
 }
