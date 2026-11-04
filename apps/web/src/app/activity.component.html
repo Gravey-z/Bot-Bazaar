@@ -1,0 +1,147 @@
+<section class="activity" aria-labelledby="activity-title">
+  <div class="feed-heading">
+    <div>
+      <p class="eyebrow">FOLLOW THE CHAIN REACTION</p>
+      <h2 id="activity-title">Market activity</h2>
+    </div>
+    <div class="feed-actions">
+      <button type="button" (click)="refresh()" [disabled]="state().refreshing">
+        {{
+          state().refreshing
+            ? "Reading activity…"
+            : state().hasMore
+              ? "Load next retained page"
+              : "Refresh activity"
+        }}</button
+      ><button type="button" class="secondary" (click)="reset()">
+        Reload history
+      </button>
+    </div>
+  </div>
+  <p>
+    Confirmed trades and labelled worker decisions, in timestamp order. A
+    proposal or submission is not a completed transfer.
+  </p>
+  <div class="source-status" role="status">
+    <span
+      >Contract:
+      {{
+        state().chainStatus === "ready"
+          ? "finalized reads"
+          : state().chainStatus === "stale"
+            ? "previous read · stale"
+            : state().chainStatus === "unavailable"
+              ? "unavailable"
+              : "loading"
+      }}{{ state().chainBlock ? " · block " + state().chainBlock : "" }}</span
+    >
+    <span
+      >Worker:
+      {{
+        state().workerStatus === "ready"
+          ? "records received"
+          : state().workerStatus === "mismatch"
+            ? "deployment mismatch · hidden"
+            : state().workerStatus === "waiting"
+              ? "waiting for chain identity"
+              : state().workerStatus === "unavailable"
+                ? "unavailable"
+                : "loading"
+      }}{{
+        state().workerStatus === "ready" && state().workerStale
+          ? " · chain observation stale"
+          : ""
+      }}</span
+    >
+  </div>
+  @if (state().workerStatus === "unavailable") {
+    <p class="feed-warning">
+      Worker history is unavailable. Finalized contract trades remain
+      independently readable; no model explanation is invented for them.
+    </p>
+  }
+  @if (state().historyGap) {
+    <p class="feed-warning" role="status">
+      History is incomplete: retained entries may omit earlier activity.
+      Authoritative market/player refreshes were requested. The feed does not
+      reconstruct missing decisions.
+    </p>
+  }
+  @if (state().notice) {
+    <p class="feed-warning" role="status">{{ state().notice }}</p>
+  }
+  @if (state().hasMore) {
+    <p class="feed-note">
+      More retained history is available. Pages advance from the oldest retained
+      entries; polls also continue loading.
+    </p>
+  }
+  @if (state().trimmed) {
+    <p class="feed-note">
+      This browser keeps the latest 200 loaded entries per source. Reload
+      history to revisit the retained window.
+    </p>
+  }
+  @if (state().rows.length === 0) {
+    <p class="feed-empty">
+      {{
+        state().refreshing
+          ? "Reading retained activity…"
+          : state().chainStatus === "ready" && state().workerStatus === "ready"
+            ? "No retained activity has been observed yet."
+            : "No activity is available from the current reads yet."
+      }}
+    </p>
+  } @else {
+    <ol class="timeline" aria-label="Market activity timeline">
+      @for (row of state().rows; track row.id) {
+        <li>
+          <div class="timeline-label">
+            <span
+              class="status-badge"
+              [class.confirmed]="row.status === 'confirmed'"
+              >{{ row.status }}</span
+            ><span>{{ row.source }}</span
+            ><time>{{ row.time | date: "dd MMM HH:mm:ss" : "UTC" }} UTC</time>
+          </div>
+          <h3>{{ row.title }}</h3>
+          <p>{{ row.detail }}</p>
+          @if (row.reason) {
+            <p class="reason">
+              <span
+                >{{
+                  row.reasonKind === "model"
+                    ? "Recorded model reason"
+                    : "Status note"
+                }}:</span
+              >
+              {{ row.reason }}
+            </p>
+          }
+          @if (row.incomplete) {
+            <p class="feed-warning">
+              Receipt evidence is incomplete. No receipt hash or transfer amount
+              is inferred.
+            </p>
+          }
+          <details>
+            <summary>IDs and correlation</summary>
+            <p>{{ row.ids }}</p>
+            <p>Group: {{ row.group }}</p>
+          </details>
+        </li>
+      }
+    </ol>
+  }
+  <p class="feed-note">
+    Worker activity is matched to this Testnet contract. Recorded decisions
+    alone do not verify a live AI run. Trade settlement times and worker
+    observation times come from separate sources.
+  </p>
+  @if (state().workerGeneration) {
+    <p class="feed-meta">
+      Worker generation {{ state().workerGeneration }} · captured
+      {{ state().workerCapturedAt | date: "HH:mm:ss" : "UTC" }} UTC
+    </p>
+  }
+</section>

@@ -5,6 +5,7 @@ import { WalletComponent } from "./wallet.component";
 import { RegistrationComponent } from "./registration.component";
 import { PurchaseComponent } from "./purchase.component";
 import { TransactionComponent } from "./transaction.component";
+import { ActivityComponent } from "./activity.component";
 
 @Component({
   selector: "app-root",
@@ -14,6 +15,7 @@ import { TransactionComponent } from "./transaction.component";
     RegistrationComponent,
     PurchaseComponent,
     TransactionComponent,
+    ActivityComponent,
   ],
   templateUrl: "./app.component.html",
   styleUrl: "./app.component.css",
