@@ -45,3 +45,22 @@ export type {
   ProposalActionArgs,
   OfferActionArgs,
 } from "./merchant-action.js";
+export {
+  replayFileLimit,
+  replayCollectionLimit,
+  validateReplay,
+  sanitizeReplayReceipt,
+  exact,
+  utc,
+  publicText,
+} from "./replay-validation.mjs";
+export type {
+  Replay,
+  ReplayCheckpoint,
+  ReplayAction,
+  ReplayDecision,
+  ReplayReceipt,
+} from "./replay-types.js";
+export { parseReplayCollection } from "./replay-collection.js";
+export type { ReplayCollection, ReplayEntry } from "./replay-collection.js";
+export { decodeBase64Json } from "./rpc.js";

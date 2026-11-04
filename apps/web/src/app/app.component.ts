@@ -7,6 +7,7 @@ import { PurchaseComponent } from "./purchase.component";
 import { TransactionComponent } from "./transaction.component";
 import { ActivityComponent } from "./activity.component";
 import { DeploymentComponent } from "./deployment.component";
+import { replayPageUrl } from "./replay-navigation";
 
 @Component({
   selector: "app-root",
@@ -24,4 +25,5 @@ import { DeploymentComponent } from "./deployment.component";
 })
 export class AppComponent {
   protected readonly config = inject(PUBLIC_CONFIG);
+  protected readonly replayUrl = replayPageUrl(location.href, true);
 }

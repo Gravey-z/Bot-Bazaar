@@ -1,0 +1,298 @@
+<div class="archive-page">
+  <header class="archive-header">
+    <a class="wordmark" [href]="liveUrl">BOT BAZAAR</a>
+    <span class="mode">Historical replay · read-only · NEAR Testnet</span>
+    <a class="return-link" [href]="liveUrl">Return to live market ↗</a>
+  </header>
+  <main>
+    <div class="intro">
+      <p class="eyebrow">THE RECORDED MARKET</p>
+      <h1>A story from the ledger.</h1>
+      <p>
+        Explore a previously recorded session. These are historical game
+        balances and recorded decisions. Your live wallet, gold and inventory
+        are separate.
+      </p>
+    </div>
+    @switch (state().phase) {
+      @case ("loading") {
+        <p class="notice" role="status">
+          Reading the reviewed historical archive…
+        </p>
+      }
+      @case ("empty") {
+        <section class="empty" aria-labelledby="archive-empty">
+          <span class="archive-symbol" aria-hidden="true">◇</span>
+          <h2 id="archive-empty">The first recording is still to come.</h2>
+          <p>
+            No verified historical session has been published yet. A genuine
+            NEAR AI session needs to be completed, checked and reviewed before
+            it appears here.
+          </p>
+          <a class="button" [href]="liveUrl">Explore the live market</a>
+        </section>
+      }
+      @case ("error") {
+        <div class="notice" role="alert">
+          <p>{{ state().message }}</p>
+          <button type="button" (click)="retry()">Retry archive</button>
+        </div>
+      }
+      @case ("loading_run") {
+        <p class="notice" role="status">
+          Checking the recording’s hash, receipts and ledger changes…
+        </p>
+      }
+    }
+    @if (state().entries.length) {
+      <section class="recordings" aria-label="Reviewed recordings">
+        @for (entry of state().entries; track entry.runId) {
+          <button
+            type="button"
+            (click)="select(entry.runId)"
+            [class.selected]="state().replay?.runId === entry.runId"
+          >
+            <strong>{{ entry.runId }}</strong
+            ><span
+              >Recorded {{ entry.recordedFrom }} — {{ entry.recordedTo }}</span
+            ><span>{{ entry.contractId }}</span>
+          </button>
+        }
+      </section>
+    }
+    @if (state().replay; as replay) {
+      <section class="recording" aria-labelledby="recording-title">
+        <div class="recording-heading">
+          <div>
+            <p class="eyebrow">HISTORICAL REPLAY</p>
+            <h2 id="recording-title">Recorded {{ replay.recordedFrom }}</h2>
+            <p class="contract">{{ replay.identity.contractId }}</p>
+          </div>
+          <p>
+            Verified {{ replay.verification.verifiedAt }}<br />Model provenance
+            is operator-recorded; receipts prove execution.
+          </p>
+        </div>
+        <div class="controls">
+          <button
+            type="button"
+            (click)="seek(0)"
+            [disabled]="state().position === 0"
+          >
+            Start
+          </button>
+          <button
+            type="button"
+            (click)="seek(state().position - 1)"
+            [disabled]="state().position === 0"
+          >
+            Previous
+          </button>
+          <button class="play" type="button" (click)="toggle()">
+            {{
+              state().playing
+                ? "Pause"
+                : state().position === state().frames.length - 1
+                  ? "Replay"
+                  : "Play"
+            }}
+          </button>
+          <button
+            type="button"
+            (click)="seek(state().position + 1)"
+            [disabled]="state().position === state().frames.length - 1"
+          >
+            Next
+          </button>
+          <span
+            >Step {{ state().position + 1 }} of
+            {{ state().frames.length }}</span
+          >
+        </div>
+        <p class="timing-note">
+          Playback advances every 3 seconds. Original UTC timestamps are shown;
+          playback does not reproduce the original waits.
+        </p>
+        @if (frame(); as current) {
+          <article
+            class="current-event"
+            [class.decision]="current.kind === 'decision'"
+            aria-live="polite"
+          >
+            <p class="eyebrow">
+              {{
+                current.kind === "decision"
+                  ? "RECORDED DECISION"
+                  : "RECORDED CHAIN STATE"
+              }}
+            </p>
+            <h3>{{ current.label }}</h3>
+            <time>{{ utcNanoseconds(current.timestamp) }}</time>
+            @if (current.terms) {
+              <p class="terms">{{ current.terms }}</p>
+            }
+            @if (current.decision; as decision) {
+              <p>
+                <strong
+                  >{{ names[decision.merchantId] }} · recorded decision</strong
+                >
+              </p>
+              <blockquote>{{ decision.explanation }}</blockquote>
+              <p>
+                {{ decision.returnedModel }} · responded
+                {{ decision.returnedAt }} · policy {{ decision.policyOutcome }}
+              </p>
+              <p>
+                The balances below are from before this action executed. This
+                recorded decision is not a current AI response.
+              </p>
+            }
+            @if (current.action; as action) {
+              <p>
+                {{
+                  action.source === "policy"
+                    ? "Deterministic policy preparation"
+                    : action.source === "model"
+                      ? "Recorded model-authorized action"
+                      : "Recorded player action"
+                }}
+              </p>
+              <p>Original signer: {{ action.receipt.transaction.signer_id }}</p>
+              <a
+                [href]="action.explorerUrl"
+                target="_blank"
+                rel="noopener noreferrer"
+                referrerpolicy="no-referrer"
+                >Original confirmed transaction ↗</a
+              >
+            }
+          </article>
+          <div class="balance-heading">
+            <h3>Historical balances and listings</h3>
+            <span
+              >Revision {{ current.checkpoint.market.market_revision }} · block
+              {{ current.checkpoint.block.height }}<br />{{
+                utcNanoseconds(current.checkpoint.block.timestampNs)
+              }}</span
+            >
+          </div>
+          <div class="merchant-grid">
+            @for (
+              merchant of current.checkpoint.market.data.merchants;
+              track merchant.merchant_id;
+              let index = $index
+            ) {
+              <article
+                class="merchant"
+                [class]="'merchant ' + profiles[index]!.color"
+              >
+                <div class="merchant-heading">
+                  <img [src]="profiles[index]!.portrait" alt="" />
+                  <div>
+                    <h3>{{ profiles[index]!.name }}</h3>
+                    <p>{{ merchant.gold }} virtual gold</p>
+                  </div>
+                </div>
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Resource</th>
+                      <th>Owned</th>
+                      <th>Listed</th>
+                      <th>Gold each</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (
+                      listing of merchant.listings;
+                      track listing.resource;
+                      let resourceIndex = $index
+                    ) {
+                      <tr>
+                        <th>{{ resources[resourceIndex]!.name }}</th>
+                        <td>{{ merchant.inventory[listing.resource] }}</td>
+                        <td>
+                          {{ listing.active ? listing.quantity : "Inactive" }}
+                        </td>
+                        <td>{{ listing.unit_price }}</td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </article>
+            }
+          </div>
+          <aside class="player">
+            <h3>Recorded demo player</h3>
+            <p>{{ replay.playerId }}</p>
+            <strong
+              >{{ current.checkpoint.player.data.gold }} virtual gold</strong
+            >
+            <div>
+              @for (resource of resources; track resource.id) {
+                <span
+                  >{{ resource.name }}:
+                  {{
+                    current.checkpoint.player.data.inventory[resource.id]
+                  }}</span
+                >
+              }
+            </div>
+            <p>This is the recorded player, not your connected wallet.</p>
+          </aside>
+        }
+        <ol class="timeline" aria-label="Recorded session steps">
+          @for (step of state().frames; track $index; let index = $index) {
+            <li>
+              <button
+                type="button"
+                (click)="seek(index)"
+                [class.active]="state().position === index"
+                [attr.aria-current]="state().position === index ? 'step' : null"
+              >
+                <span>{{ index + 1 }}</span
+                ><strong>{{ step.label }}</strong
+                ><time>{{ utcNanoseconds(step.timestamp) }}</time>
+              </button>
+            </li>
+          }
+        </ol>
+        <details class="provenance">
+          <summary>Original evidence and conservation</summary>
+          <p>
+            Seed {{ replay.conservation.seedGold }} + player issuance
+            {{ replay.conservation.playerIssuance }} =
+            {{ replay.conservation.totalGold }} total gold. Crystal
+            {{ replay.conservation.resources.crystal }}, wood
+            {{ replay.conservation.resources.wood }}, herb
+            {{ replay.conservation.resources.herb }}, iron
+            {{ replay.conservation.resources.iron }}.
+          </p>
+          <p>
+            Genesis: {{ replay.identity.genesisHash }}<br />Approved code:
+            {{ replay.identity.codeHash }}<br />Application:
+            {{ replay.versions.application }} · contract:
+            {{ replay.versions.contract }} · policy:
+            {{ replay.versions.policy }} · prompt: {{ replay.versions.prompt }}
+          </p>
+          <a
+            [href]="initializationUrl()"
+            target="_blank"
+            rel="noopener noreferrer"
+            referrerpolicy="no-referrer"
+            >Original initialization transaction ↗</a
+          >
+          <p>
+            Archived verification is dated above. Explorer availability today is
+            not guaranteed. This archive is a reviewed historical example; it
+            does not establish that live AI is currently available.
+          </p>
+        </details>
+      </section>
+    }
+  </main>
+  <footer>
+    Historical replay · read-only. Returning to live reloads your selected
+    deployment and refreshes its current state.
+  </footer>
+</div>
