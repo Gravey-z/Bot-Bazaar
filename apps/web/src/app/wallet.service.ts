@@ -9,6 +9,7 @@ import type { WalletState } from "./wallet-session";
 export class WalletService {
   private readonly config = inject(PUBLIC_CONFIG);
   readonly state = signal<WalletState>({
+    identityVersion: 0,
     status: "disconnected",
     accounts: [],
     accountId: null,

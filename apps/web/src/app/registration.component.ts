@@ -26,7 +26,8 @@ export class RegistrationComponent {
   private readonly controller = new RegistrationController(
     createRegistrationReads(inject(PUBLIC_CONFIG)),
     this.wallet.context,
-    (context) => this.wallet.session.submitRegistration(context),
+    (context, identityVersion) =>
+      this.wallet.session.submitRegistration(context, identityVersion),
     (state) => this.state.set(state),
     () => this.wallet.session.syncPending(),
   );
@@ -41,13 +42,23 @@ export class RegistrationComponent {
       const wallet = this.wallet.state();
       this.controller.setAccount(
         wallet.status === "connected" ? wallet.accountId : null,
+        wallet.identityVersion,
       );
     });
   }
   protected register(): void {
+    this.syncAccount();
     void this.controller.register();
   }
   protected refresh(): void {
+    this.syncAccount();
     void this.controller.refresh();
+  }
+  private syncAccount(): void {
+    const wallet = this.wallet.state();
+    this.controller.setAccount(
+      wallet.status === "connected" ? wallet.accountId : null,
+      wallet.identityVersion,
+    );
   }
 }

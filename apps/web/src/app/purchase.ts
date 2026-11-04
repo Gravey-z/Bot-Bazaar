@@ -11,6 +11,7 @@ import type {
 } from "./registration-reader";
 import type { WalletContext, WalletContextStore } from "./wallet-context";
 import { WalletRejectedError } from "./transaction-errors";
+import { acceptPlayerObservation } from "./player-observation";
 
 export interface PurchaseQuote {
   readonly accountId: string;
@@ -130,6 +131,19 @@ function sameQuote(left: PurchaseQuote, right: PurchaseQuote): boolean {
     ])
   );
 }
+function purchaseFailureMessage(code: string | null): string {
+  if (code === "E_STALE_LISTING")
+    return "The listing changed before this purchase settled. The quote was refreshed; review and confirm again.";
+  if (
+    [
+      "E_INSUFFICIENT_LISTED_QUANTITY",
+      "E_INSUFFICIENT_STOCK",
+      "E_LISTING_INACTIVE",
+    ].includes(code ?? "")
+  )
+    return "The listing no longer has the reviewed stock available. Check the refreshed stock and review a new purchase.";
+  return "The purchase failed on-chain. Review a fresh quote before trying again.";
+}
 export interface PurchaseState {
   readonly accountId: string | null;
   readonly merchantId: MerchantId;
@@ -165,10 +179,15 @@ export class PurchaseController {
   };
   private epoch = 0;
   private sending = false;
+  private identityVersion = 0;
+  private lastObservation: RegistrationObservation | null = null;
   constructor(
     private readonly reads: RegistrationReads,
     private readonly context: WalletContextStore,
-    private readonly send: (context: WalletContext) => Promise<unknown>,
+    private readonly send: (
+      context: WalletContext,
+      identityVersion: number,
+    ) => Promise<unknown>,
     private readonly changed: (state: PurchaseState) => void,
     private readonly pendingChanged: () => void = () => {},
     private readonly settled: () => void = () => {},
@@ -206,8 +225,14 @@ export class PurchaseController {
       };
     }
   }
-  setAccount(accountId: string | null): void {
-    if (this.current.accountId === accountId) return;
+  setAccount(accountId: string | null, identityVersion = 0): void {
+    if (
+      this.current.accountId === accountId &&
+      this.identityVersion === identityVersion
+    )
+      return;
+    this.identityVersion = identityVersion;
+    this.lastObservation = null;
     ++this.epoch;
     this.publish({
       accountId,
@@ -221,6 +246,18 @@ export class PurchaseController {
         : "Connect a registered Testnet player wallet to buy.",
     });
     if (accountId && !this.sending) void this.refresh();
+  }
+  private accept(
+    value: RegistrationObservation,
+    accountId: string,
+  ): RegistrationObservation {
+    this.lastObservation = acceptPlayerObservation(
+      value,
+      accountId,
+      this.lastObservation,
+      this.now(),
+    );
+    return this.lastObservation;
   }
   edit(merchantId: MerchantId, resource: Resource, quantity: string): void {
     if (this.sending || this.current.phase === "unknown") return;
@@ -249,6 +286,7 @@ export class PurchaseController {
       observation: null,
     });
     let outcome: "succeeded" | "failed" | null = null;
+    let failureCode: string | null = null;
     try {
       const pending = this.context.read();
       if (
@@ -263,23 +301,34 @@ export class PurchaseController {
             this.context.finishPurchase(
               pending.id,
               receipt.kind === "succeeded" ? "confirmed" : "failed",
+              receipt.kind === "failed" ? receipt.code : undefined,
             );
             this.pendingChanged();
             outcome = receipt.kind;
+            if (receipt.kind === "failed") failureCode = receipt.code;
             this.settled();
           }
         } catch {
           /* Unverified receipts cannot release the purchase intent. */
         }
       }
-      const value = await this.reads.read(accountId);
+      const read = await this.reads.read(accountId);
       if (epoch !== this.epoch) return;
-      if (
-        value.accountId !== accountId ||
-        (value.player.data && value.player.data.account_id !== accountId)
-      )
-        throw new Error("Player changed");
+      const value = this.accept(read, accountId);
       const pendingNow = this.context.read();
+      if (!pendingNow && outcome === null) {
+        const last = this.context.lastTransaction();
+        if (
+          last?.accountId === accountId &&
+          last.call?.method === "buy_from_merchant"
+        ) {
+          if (last.lifecycle?.phase === "failed") {
+            outcome = "failed";
+            failureCode = last.failureCode ?? null;
+          } else if (last.lifecycle?.phase === "confirmed")
+            outcome = "succeeded";
+        }
+      }
       this.publish({
         observation: value,
         ...this.derive(value),
@@ -289,7 +338,7 @@ export class PurchaseController {
           : outcome === "succeeded"
             ? "Purchase confirmed on Testnet. Balances were refreshed."
             : outcome === "failed"
-              ? "The purchase failed on-chain. Review a fresh quote before trying again."
+              ? purchaseFailureMessage(failureCode)
               : message,
       });
     } catch {
@@ -313,7 +362,9 @@ export class PurchaseController {
       this.current.phase === "unknown"
     )
       return;
+    const epoch = this.epoch + 1;
     await this.refresh();
+    if (epoch !== this.epoch) return;
     if (this.state.quote && this.state.phase !== "unknown") {
       this.publish({
         phase: "review",
@@ -340,8 +391,9 @@ export class PurchaseController {
     });
     try {
       if (this.context.read()) throw new Error("Unresolved wallet operation");
-      const value = await this.reads.read(reviewed.accountId);
+      const read = await this.reads.read(reviewed.accountId);
       if (epoch !== this.epoch) return;
+      const value = this.accept(read, reviewed.accountId);
       const next = quotePurchase(
         value,
         reviewed.accountId,
@@ -375,7 +427,7 @@ export class PurchaseController {
         value.market.block_height,
       );
       this.pendingChanged();
-      const result = await this.send(pending);
+      const result = await this.send(pending, this.identityVersion);
       const hash = walletTransactionHash(result);
       if (hash) this.context.recordPurchaseHash(pending.id, hash);
       if (epoch === this.epoch)

@@ -2,6 +2,20 @@ import { createMarketCall, parseU64 } from "@bot-bazaar/chain";
 import type { PublicConfig } from "@bot-bazaar/shared";
 
 export type PlayerMethod = "register_player" | "buy_from_merchant";
+export const transactionFailureCodes: readonly string[] = [
+  "EXECUTION_FAILED",
+  "E_ALREADY_REGISTERED",
+  "E_PLAYER_CAPACITY",
+  "E_MARKET_PAUSED",
+  "E_RESERVED_ACCOUNT",
+  "E_STALE_LISTING",
+  "E_LISTING_INACTIVE",
+  "E_INSUFFICIENT_STOCK",
+  "E_INSUFFICIENT_GOLD",
+  "E_NOT_REGISTERED",
+  "E_INSUFFICIENT_LISTED_QUANTITY",
+  "E_BALANCE_CAP",
+];
 export type TransactionPhase =
   | "prepared"
   | "awaiting_wallet"
@@ -48,6 +62,7 @@ export interface WalletContext {
   readonly returnConsumed?: boolean;
   readonly referenceBlockHeight?: string;
   readonly transactionSource?: "wallet" | "return" | "manual";
+  readonly failureCode?: string;
 }
 export interface WalletStorage {
   getItem(key: string): string | null;
@@ -128,6 +143,7 @@ export class WalletContextStore {
             "returnConsumed",
             "referenceBlockHeight",
             "transactionSource",
+            "failureCode",
           ].includes(key),
         ),
     );
@@ -156,7 +172,8 @@ export class WalletContextStore {
           value.lifecycle === undefined &&
           value.returnConsumed === undefined &&
           value.referenceBlockHeight === undefined &&
-          value.transactionSource === undefined,
+          value.transactionSource === undefined &&
+          value.failureCode === undefined,
       );
     else {
       requireValue(
@@ -169,6 +186,11 @@ export class WalletContextStore {
       requireValue(
         value.returnConsumed === undefined ||
           typeof value.returnConsumed === "boolean",
+      );
+      requireValue(
+        value.failureCode === undefined ||
+          (value.lifecycle?.phase === "failed" &&
+            transactionFailureCodes.includes(value.failureCode)),
       );
       if (value.referenceBlockHeight !== undefined)
         requireValue(BigInt(parseU64(value.referenceBlockHeight)) > 0n);
@@ -305,14 +327,20 @@ export class WalletContextStore {
   settle(
     id: string,
     phase: "rejected" | "failed" | "confirmed" | "registered" | "not_submitted",
+    failureCode?: string,
   ): void {
     const value = this.read();
     if (value === null && this.lastTransaction()?.id === id) return;
     requireValue(value?.kind === "transaction" && value.id === id);
     requireValue(phase !== "confirmed" || !!value.transactionHash);
+    requireValue(
+      failureCode === undefined ||
+        (phase === "failed" && transactionFailureCodes.includes(failureCode)),
+    );
     const settled = {
       ...value,
       lifecycle: { phase, updatedAt: Math.max(this.now(), value.createdAt) },
+      ...(failureCode ? { failureCode } : {}),
     };
     const raw = JSON.stringify(settled);
     this.decode(raw);
@@ -374,18 +402,20 @@ export class WalletContextStore {
   finishPurchase(
     id: string,
     phase: "confirmed" | "failed" | "not_submitted" = "not_submitted",
+    failureCode?: string,
   ): void {
-    this.finishPlayerCall(id, "buy_from_merchant", phase);
+    this.finishPlayerCall(id, "buy_from_merchant", phase, failureCode);
   }
   private finishPlayerCall(
     id: string,
     method: PlayerMethod,
     phase: "confirmed" | "failed" | "registered" | "not_submitted",
+    failureCode?: string,
   ): void {
     const context = this.read();
     if (context === null && this.lastTransaction()?.id === id) return;
     requireValue(context?.id === id && context.call?.method === method);
-    this.settle(id, phase);
+    this.settle(id, phase, failureCode);
   }
   recoverHash(
     id: string,

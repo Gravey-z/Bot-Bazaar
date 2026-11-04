@@ -24,6 +24,7 @@ async function load(entry, name, globals = {}) {
     crypto,
     setTimeout,
     clearTimeout,
+    structuredClone,
     ...globals,
   });
   vm.runInContext(output.outputFiles[0].text, context, {
@@ -109,6 +110,17 @@ function harness() {
   );
   return { controller, journal, storage, calls, behavior };
 }
+function advance(value) {
+  value.market.block_height = (
+    BigInt(value.market.block_height) + 1n
+  ).toString();
+  value.market.market_revision = (
+    BigInt(value.market.market_revision) + 1n
+  ).toString();
+  value.player.block_height = value.market.block_height;
+  value.player.market_revision = value.market.market_revision;
+  return value;
+}
 
 test("registration eligibility derives from finalized player, pause, capacity and reserved roles", () => {
   const value = observation();
@@ -180,7 +192,7 @@ for (const [name, change] of [
     h.behavior.read = async (id) => {
       const value = observation(id);
       change(value);
-      return value;
+      return advance(value);
     };
     await h.controller.register();
     assert.equal(h.calls.sends, 0);

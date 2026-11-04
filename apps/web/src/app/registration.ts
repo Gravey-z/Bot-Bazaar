@@ -8,6 +8,7 @@ import type {
 } from "./registration-reader";
 import type { WalletContext, WalletContextStore } from "./wallet-context";
 import { WalletRejectedError } from "./transaction-errors";
+import { acceptPlayerObservation } from "./player-observation";
 
 export type RegistrationStatus =
   | "disconnected"
@@ -69,11 +70,15 @@ export class RegistrationController {
   };
   private epoch = 0;
   private sending = false;
+  private identityVersion = 0;
   private lastObservation: RegistrationObservation | null = null;
   constructor(
     private readonly reads: RegistrationReads,
     private readonly context: WalletContextStore,
-    private readonly send: (context: WalletContext) => Promise<unknown>,
+    private readonly send: (
+      context: WalletContext,
+      identityVersion: number,
+    ) => Promise<unknown>,
     private readonly changed: (state: RegistrationState) => void,
     private readonly pendingChanged: () => void = () => {},
     private readonly now: () => number = Date.now,
@@ -85,8 +90,13 @@ export class RegistrationController {
     this.current = { ...this.current, ...values };
     this.changed(this.current);
   }
-  setAccount(accountId: string | null): void {
-    if (accountId === this.current.accountId) return;
+  setAccount(accountId: string | null, identityVersion = 0): void {
+    if (
+      accountId === this.current.accountId &&
+      this.identityVersion === identityVersion
+    )
+      return;
+    this.identityVersion = identityVersion;
     ++this.epoch;
     this.lastObservation = null;
     this.publish({
@@ -98,30 +108,17 @@ export class RegistrationController {
     });
     if (accountId && !this.sending) void this.refresh();
   }
-  private validate(value: RegistrationObservation, accountId: string): void {
-    const chainTime = Number(
-      BigInt(value.market.block_timestamp_ns) / 1000000n,
+  private validate(
+    value: RegistrationObservation,
+    accountId: string,
+  ): RegistrationObservation {
+    this.lastObservation = acceptPlayerObservation(
+      value,
+      accountId,
+      this.lastObservation,
+      this.now(),
     );
-    if (
-      value.accountId !== accountId ||
-      (value.player.data && value.player.data.account_id !== accountId) ||
-      this.now() < value.receivedAt ||
-      this.now() - value.receivedAt > 15000 ||
-      this.now() - chainTime > 15000 ||
-      chainTime - this.now() > 5000
-    )
-      throw new Error("Registration read unavailable or stale");
-    const previous = this.lastObservation;
-    if (
-      previous &&
-      (BigInt(value.market.block_height) <
-        BigInt(previous.market.block_height) ||
-        BigInt(value.market.market_revision) <
-          BigInt(previous.market.market_revision) ||
-        (previous.player.data && !value.player.data))
-    )
-      throw new Error("Regressed registration read");
-    this.lastObservation = value;
+    return this.lastObservation;
   }
   async refresh(): Promise<void> {
     const accountId = this.current.accountId;
@@ -147,9 +144,9 @@ export class RegistrationController {
           /* Preserve ambiguous attempts; a player read can still prove registration exists. */
         }
       }
-      const value = await this.reads.read(accountId);
+      const read = await this.reads.read(accountId);
       if (epoch !== this.epoch) return;
-      this.validate(value, accountId);
+      const value = this.validate(read, accountId);
       const own =
         pending?.accountId === accountId &&
         pending.call?.method === "register_player";
@@ -208,9 +205,9 @@ export class RegistrationController {
     });
     try {
       if (this.context.read()) throw new Error("Pending wallet operation");
-      const fresh = await this.reads.read(accountId);
+      const read = await this.reads.read(accountId);
       if (epoch !== this.epoch) return;
-      this.validate(fresh, accountId);
+      const fresh = this.validate(read, accountId);
       const status = registrationStatus(fresh);
       this.publish({ status, observation: fresh });
       if (status !== "eligible") return;
@@ -221,7 +218,7 @@ export class RegistrationController {
         fresh.market.block_height,
       );
       this.pendingChanged();
-      const result = await this.send(pending);
+      const result = await this.send(pending, this.identityVersion);
       const hash = walletTransactionHash(result);
       if (hash) this.context.recordRegistrationHash(pending.id, hash);
       if (epoch === this.epoch)

@@ -25,6 +25,7 @@ export interface WalletPort {
   ): Promise<unknown>;
 }
 export interface WalletState {
+  readonly identityVersion: number;
   readonly status:
     "disconnected" | "checking" | "connecting" | "connected" | "blocked";
   readonly accounts: readonly string[];
@@ -33,6 +34,7 @@ export interface WalletState {
   readonly pending: WalletContext | null;
 }
 const initial: WalletState = {
+  identityVersion: 0,
   status: "disconnected",
   accounts: [],
   accountId: null,
@@ -65,7 +67,14 @@ export class WalletSession {
   }
   private publish(values: Partial<WalletState>): void {
     if (this.destroyed) return;
-    this.current = { ...this.current, ...values };
+    const next = { ...this.current, ...values };
+    const changed =
+      next.accountId !== this.current.accountId ||
+      (next.status === "connected") !== (this.current.status === "connected");
+    this.current = {
+      ...next,
+      identityVersion: this.current.identityVersion + (changed ? 1 : 0),
+    };
     this.changed(this.current);
   }
   private async adapter(): Promise<WalletPort> {
@@ -228,19 +237,27 @@ export class WalletSession {
       this.current.accounts.includes(accountId) &&
       this.current.pending?.kind !== "transaction"
     ) {
+      if (accountId !== this.current.accountId) ++this.generation;
       this.preferred = accountId;
       this.publish({ accountId });
     }
   }
-  async submitRegistration(context: WalletContext): Promise<unknown> {
-    return this.submitPlayerCall(context, "register_player");
+  async submitRegistration(
+    context: WalletContext,
+    identityVersion?: number,
+  ): Promise<unknown> {
+    return this.submitPlayerCall(context, "register_player", identityVersion);
   }
-  async submitPurchase(context: WalletContext): Promise<unknown> {
-    return this.submitPlayerCall(context, "buy_from_merchant");
+  async submitPurchase(
+    context: WalletContext,
+    identityVersion?: number,
+  ): Promise<unknown> {
+    return this.submitPlayerCall(context, "buy_from_merchant", identityVersion);
   }
   private async submitPlayerCall(
     context: WalletContext,
     method: "register_player" | "buy_from_merchant",
+    identityVersion?: number,
   ): Promise<unknown> {
     const NotOpened =
       method === "register_player"
@@ -252,6 +269,8 @@ export class WalletSession {
       this.busy ||
       this.destroyed ||
       this.current.status !== "connected" ||
+      (identityVersion !== undefined &&
+        identityVersion !== this.current.identityVersion) ||
       !accountId ||
       accountId !== this.current.accountId ||
       context.call?.method !== method ||

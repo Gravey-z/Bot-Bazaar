@@ -24,6 +24,7 @@ async function load(entry, name, globals = {}) {
     crypto,
     setTimeout,
     clearTimeout,
+    structuredClone,
     ...globals,
   });
   vm.runInContext(output.outputFiles[0].text, context, {
@@ -69,6 +70,17 @@ function observation(accountId = account) {
 }
 function quote(value = observation(), quantity = "1") {
   return quotePurchase(value, account, "rex", "crystal", quantity, time);
+}
+function advance(value) {
+  value.market.block_height = (
+    BigInt(value.market.block_height) + 1n
+  ).toString();
+  value.market.market_revision = (
+    BigInt(value.market.market_revision) + 1n
+  ).toString();
+  value.player.block_height = value.market.block_height;
+  value.player.market_revision = value.market.market_revision;
+  return value;
 }
 function harness() {
   const values = new Map();
@@ -263,7 +275,7 @@ test("editing invalidates review; version/price changes require another confirma
     const value = observation();
     value.market.data.merchants[0].listings[0].unit_price = "5";
     value.market.data.merchants[0].listings[0].version = "2";
-    return value;
+    return advance(value);
   };
   await h.controller.confirm();
   assert.equal(h.calls.sends, 0);
@@ -289,7 +301,7 @@ test("unknown wallet outcomes survive balance changes, reload-style reads and di
     const value = observation();
     value.player.data.gold = "96";
     value.player.data.inventory.crystal = "1";
-    return value;
+    return advance(value);
   };
   await h.controller.refresh();
   assert.equal(h.controller.state.phase, "unknown");

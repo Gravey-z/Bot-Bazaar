@@ -1,4 +1,11 @@
-import { Component, computed, effect, inject, signal } from "@angular/core";
+import {
+  Component,
+  computed,
+  effect,
+  inject,
+  signal,
+  untracked,
+} from "@angular/core";
 import { PUBLIC_CONFIG } from "./public-config";
 import { WalletService } from "./wallet.service";
 import { MarketUpdates } from "./market-updates";
@@ -42,16 +49,24 @@ export class PurchaseComponent {
   private readonly controller = new PurchaseController(
     createPurchaseReads(inject(PUBLIC_CONFIG)),
     this.wallet.context,
-    (context) => this.wallet.session.submitPurchase(context),
+    (context, identityVersion) =>
+      this.wallet.session.submitPurchase(context, identityVersion),
     (state) => this.state.set(state),
     () => this.wallet.session.syncPending(),
     () => this.updates.notify(),
   );
   constructor() {
     effect(() => {
+      this.updates.revision();
+      untracked(() => {
+        void this.controller.refresh();
+      });
+    });
+    effect(() => {
       const wallet = this.wallet.state();
       this.controller.setAccount(
         wallet.status === "connected" ? wallet.accountId : null,
+        wallet.identityVersion,
       );
     });
   }
@@ -59,6 +74,7 @@ export class PurchaseComponent {
     field: "merchant" | "resource" | "quantity",
     event: Event,
   ): void {
+    this.syncAccount();
     if (!(
       event.target instanceof HTMLInputElement ||
       event.target instanceof HTMLSelectElement
@@ -82,12 +98,22 @@ export class PurchaseComponent {
       );
   }
   protected refresh(): void {
+    this.syncAccount();
     void this.controller.refresh();
   }
   protected review(): void {
+    this.syncAccount();
     void this.controller.review();
   }
   protected confirm(): void {
+    this.syncAccount();
     void this.controller.confirm();
+  }
+  private syncAccount(): void {
+    const wallet = this.wallet.state();
+    this.controller.setAccount(
+      wallet.status === "connected" ? wallet.accountId : null,
+      wallet.identityVersion,
+    );
   }
 }

@@ -113,6 +113,7 @@ export class TransactionLifecycle {
         this.context.settle(
           pending.id,
           result.kind === "succeeded" ? "confirmed" : "failed",
+          result.kind === "failed" ? result.code : undefined,
         );
         this.settled();
       } else
