@@ -22,10 +22,12 @@ import { merchantProfiles, marketResources } from "./merchant-profiles";
 import { marketNotice } from "./degraded-states";
 import { SnapshotFeedback } from "./market-feedback";
 import type { ValueChange } from "./market-feedback";
+import { shortageGuidance } from "./depletion-guidance";
+import { DepletionComponent } from "./depletion.component";
 
 @Component({
   selector: "app-market-scene",
-  imports: [DatePipe],
+  imports: [DatePipe, DepletionComponent],
   templateUrl: "./market-scene.component.html",
   styleUrl: "./market-scene.component.css",
 })
@@ -63,6 +65,7 @@ export class MarketSceneComponent implements OnInit, OnDestroy {
   });
   protected readonly selectedId = signal<MerchantId | null>(null);
   protected readonly notice = computed(() => marketNotice(this.state()));
+  protected readonly shortage = computed(() => shortageGuidance(this.state()));
   protected readonly selectedProfile = computed(
     () =>
       this.profiles.find((profile) => profile.id === this.selectedId()) ?? null,

@@ -1,0 +1,81 @@
+:host {
+  display: block;
+  margin: 18px 0;
+}
+.guidance {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr;
+  gap: 30px;
+  padding: 24px 26px;
+  background: #f1ecdd;
+  border: 1px solid #d7c9ab;
+  border-radius: 8px;
+  color: #3d4c35;
+}
+p,
+h3 {
+  margin: 0;
+}
+.eyebrow,
+.historical-label {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+}
+h3 {
+  margin: 8px 0 10px;
+  font:
+    400 25px/1.25 Georgia,
+    serif;
+}
+p:not(.eyebrow) {
+  font-size: 12px;
+  line-height: 1.8;
+}
+.progress {
+  margin-top: 9px;
+  color: #66705b;
+}
+.historical {
+  align-self: center;
+  border-left: 1px solid #d7c9ab;
+  padding-left: 26px;
+}
+.historical-label {
+  display: inline-block;
+  color: #74613d;
+}
+.historical p {
+  margin: 8px 0 14px;
+}
+a {
+  display: inline-flex;
+  align-items: center;
+  gap: 22px;
+  padding: 9px 13px;
+  border: 1px solid #b5bea6;
+  border-radius: 4px;
+  background: #fffdf5;
+  color: #34513b;
+  text-decoration: none;
+  font-size: 12px;
+  font-weight: 600;
+}
+a:hover {
+  background: #e6ecd9;
+}
+a:focus-visible {
+  outline: 2px solid #3b7058;
+  outline-offset: 4px;
+}
+@media (max-width: 850px) {
+  .guidance {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  .historical {
+    border-left: 0;
+    border-top: 1px solid #d7c9ab;
+    padding: 16px 0 0;
+  }
+}

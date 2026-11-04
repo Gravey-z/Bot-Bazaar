@@ -1,0 +1,19 @@
+<aside class="guidance" aria-labelledby="shortage-guidance-title">
+  <div>
+    <p class="eyebrow">THE CRYSTAL SHORTAGE DEMO</p>
+    <h3 id="shortage-guidance-title">{{ guidance().title }}</h3>
+    <p>{{ guidance().detail }}</p>
+    <p class="progress">
+      This live market keeps its progress as people trade. You can still browse
+      other listings and make purchases that your current quote allows. A
+      restock or AI trade is not guaranteed.
+    </p>
+  </div>
+  <div class="historical">
+    <span class="historical-label">HISTORICAL · READ-ONLY</span>
+    <p>{{ historical().message }}</p>
+    <a [href]="replayUrl"
+      >{{ historical().label }} <span aria-hidden="true">↗</span></a
+    >
+  </div>
+</aside>
