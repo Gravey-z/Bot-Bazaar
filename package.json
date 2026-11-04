@@ -16,6 +16,7 @@
     "test:sandbox": "node scripts/rust-toolchain.mjs test",
     "scenario:sandbox": "node scripts/run-agent-scenario.mjs sandbox",
     "scenario:testnet": "node scripts/run-agent-scenario.mjs testnet",
+    "replay:check": "node scripts/replay-publication.mjs check apps/web/public/replays",
     "toolchain:build": "docker build --platform linux/amd64 -f Dockerfile.toolchain -t bot-bazaar-toolchain:1.93.0-near0.22.0 .",
     "check:rust": "node scripts/rust-toolchain.mjs check",
     "format:rust": "node scripts/rust-toolchain.mjs format",

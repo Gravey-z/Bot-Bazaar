@@ -24,6 +24,11 @@
               { "glob": "config.json", "input": "public", "output": "/" },
               { "glob": "deployment.json", "input": "public", "output": "/" },
               { "glob": "_headers", "input": "public", "output": "/" },
+              {
+                "glob": "*.json",
+                "input": "public/replays",
+                "output": "/replays/"
+              },
               { "glob": "*.png", "input": "public/art", "output": "/art/" }
             ]
           },

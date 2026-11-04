@@ -1,6 +1,7 @@
 import { readFile, readdir } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { validateReplayCollection } from "./replay-publication.mjs";
 
 import {
   parsePublicConfig,
@@ -50,6 +51,7 @@ const deployment = parseWebDeployment(
 );
 if (JSON.stringify(config) !== JSON.stringify(deployment.current))
   throw new Error("Published configuration and deployment descriptor disagree");
+await validateReplayCollection(path.join(output, "replays"));
 console.info(
   "Public build configuration is valid; no private worker markers or supplied secret values found",
 );
