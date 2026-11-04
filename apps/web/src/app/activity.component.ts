@@ -6,6 +6,7 @@ import { MarketUpdates } from "./market-updates";
 import { createActivityReads } from "./activity-reader";
 import { ActivityFeed } from "./activity-feed";
 import type { ActivityFeedState } from "./activity-feed";
+import { CompletionFeedback } from "./market-feedback";
 
 @Component({
   selector: "app-activity",
@@ -14,6 +15,22 @@ import type { ActivityFeedState } from "./activity-feed";
   styleUrl: "./activity.component.css",
 })
 export class ActivityComponent implements OnInit, OnDestroy {
+  private readonly feedback = new CompletionFeedback();
+  protected readonly completed = signal<readonly string[]>([]);
+  private feedbackTimer?: ReturnType<typeof setTimeout>;
+  private receive(state: ActivityFeedState): void {
+    this.state.set(state);
+    const ids = this.feedback.accept(state, Date.now());
+    if (state.chainStatus !== "ready" || state.hasMore || state.historyGap) {
+      clearTimeout(this.feedbackTimer);
+      this.completed.set([]);
+    }
+    if (!ids.length) return;
+    clearTimeout(this.feedbackTimer);
+    this.completed.set(ids);
+    this.feedbackTimer = setTimeout(() => this.completed.set([]), 6000);
+    this.updates.notify();
+  }
   private readonly updates = inject(MarketUpdates);
   protected readonly state = signal<ActivityFeedState>({
     availability: "Reading worker and AI availability…",
@@ -32,12 +49,16 @@ export class ActivityComponent implements OnInit, OnDestroy {
   });
   private readonly feed = new ActivityFeed(
     createActivityReads(inject(PUBLIC_CONFIG)),
-    (state) => this.state.set(state),
+    (state) => this.receive(state),
     () => this.updates.notify(),
   );
   private readonly visibility = (): void => {
-    if (document.hidden) this.feed.stop();
-    else this.feed.start();
+    if (document.hidden) {
+      this.feed.stop();
+      this.feedback.reset();
+      clearTimeout(this.feedbackTimer);
+      this.completed.set([]);
+    } else this.feed.start();
   };
   ngOnInit(): void {
     document.addEventListener("visibilitychange", this.visibility);
@@ -46,11 +67,15 @@ export class ActivityComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     document.removeEventListener("visibilitychange", this.visibility);
     this.feed.stop();
+    clearTimeout(this.feedbackTimer);
   }
   protected refresh(): void {
     void this.feed.refresh();
   }
   protected reset(): void {
+    this.feedback.reset();
+    clearTimeout(this.feedbackTimer);
+    this.completed.set([]);
     this.feed.reset();
   }
 }

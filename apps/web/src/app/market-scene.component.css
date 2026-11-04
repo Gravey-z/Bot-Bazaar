@@ -1,6 +1,51 @@
 :host {
   display: block;
 }
+.value-changed {
+  animation: finalized-value 1.2s ease-out;
+  box-shadow: inset 3px 0 #6d8744;
+  background-color: #edf1d8;
+}
+@keyframes finalized-value {
+  from {
+    background-color: #e6d8a1;
+  }
+  to {
+    background-color: #edf1d8;
+  }
+}
+.feedback-alternate .value-changed {
+  animation-name: finalized-value-alternate;
+}
+@keyframes finalized-value-alternate {
+  from {
+    background-color: #e6d8a1;
+  }
+  to {
+    background-color: #edf1d8;
+  }
+}
+.snapshot-feedback {
+  margin: 10px 0;
+  padding: 10px;
+  border-left: 3px solid #6d8744;
+  background: #f3f1df;
+  color: #354a2f;
+  font-size: 11px;
+}
+.snapshot-feedback ul {
+  margin: 5px 0;
+  padding-left: 15px;
+}
+.snapshot-feedback span {
+  font-size: 10px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .value-changed,
+  .feedback-alternate .value-changed {
+    animation: none;
+  }
+}
 * {
   box-sizing: border-box;
 }

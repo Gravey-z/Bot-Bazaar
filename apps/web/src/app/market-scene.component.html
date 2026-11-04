@@ -1,5 +1,6 @@
 <section
   class="market-section"
+  [class.feedback-alternate]="alternateFeedback()"
   aria-labelledby="marketplace"
   aria-describedby="market-description"
 >
@@ -106,6 +107,20 @@
             </h3>
             <p class="merchant-role">{{ profile.role }}</p>
             <p class="merchant-description">{{ profile.description }}</p>
+            @if (merchantChanges(profile.id).length) {
+              <div class="snapshot-feedback" role="status">
+                <strong>Finalized values changed</strong>
+                <ul>
+                  @for (
+                    change of merchantChanges(profile.id);
+                    track change.key
+                  ) {
+                    <li>{{ change.text }}</li>
+                  }
+                </ul>
+                <span>Since the previous snapshot; not an AI prediction.</span>
+              </div>
+            }
             <div class="stock-header" aria-hidden="true">
               <span>RESOURCE</span><span>FOR SALE</span><span>GOLD EACH</span>
             </div>
@@ -114,7 +129,13 @@
               [attr.aria-label]="profile.name + ' listings'"
             >
               @for (resource of resources; track resource.id) {
-                <li>
+                <li
+                  [class.value-changed]="
+                    changed(profile.id + ':' + resource.id + ':quantity') ||
+                    changed(profile.id + ':' + resource.id + ':price') ||
+                    changed(profile.id + ':' + resource.id + ':active')
+                  "
+                >
                   <span class="resource-name"
                     ><span
                       class="resource-icon"
@@ -201,7 +222,10 @@
           <p class="merchant-role">{{ profile.role }}</p>
           <p>{{ profile.goal }}</p>
           @if (selectedMerchant(); as actor) {
-            <div class="gold-balance">
+            <div
+              class="gold-balance"
+              [class.value-changed]="changed(profile.id + ':gold')"
+            >
               <span>MERCHANT’S VIRTUAL GOLD</span
               ><strong>{{ format(actor.gold) }} <small>gold</small></strong>
             </div>
@@ -240,10 +264,28 @@
                       ></span>
                       {{ resource.name }}
                     </th>
-                    <td>{{ format(actor.inventory[resource.id]) }}</td>
+                    <td
+                      [class.value-changed]="
+                        changed(profile.id + ':' + resource.id + ':inventory')
+                      "
+                    >
+                      {{ format(actor.inventory[resource.id]) }}
+                    </td>
                     @if (listing(profile.id, resource.id); as quote) {
-                      <td>{{ format(quote.quantity) }}</td>
-                      <td>{{ format(quote.unit_price) }} gold</td>
+                      <td
+                        [class.value-changed]="
+                          changed(profile.id + ':' + resource.id + ':quantity')
+                        "
+                      >
+                        {{ format(quote.quantity) }}
+                      </td>
+                      <td
+                        [class.value-changed]="
+                          changed(profile.id + ':' + resource.id + ':price')
+                        "
+                      >
+                        {{ format(quote.unit_price) }} gold
+                      </td>
                       <td>
                         {{
                           !quote.active

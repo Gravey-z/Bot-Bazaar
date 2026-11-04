@@ -20,6 +20,8 @@ import {
 import type { MarketViewState } from "./market-reader";
 import { merchantProfiles, marketResources } from "./merchant-profiles";
 import { marketNotice } from "./degraded-states";
+import { SnapshotFeedback } from "./market-feedback";
+import type { ValueChange } from "./market-feedback";
 
 @Component({
   selector: "app-market-scene",
@@ -28,6 +30,26 @@ import { marketNotice } from "./degraded-states";
   styleUrl: "./market-scene.component.css",
 })
 export class MarketSceneComponent implements OnInit, OnDestroy {
+  private readonly feedback = new SnapshotFeedback();
+  protected readonly changes = signal<readonly ValueChange[]>([]);
+  protected readonly alternateFeedback = signal(false);
+  private feedbackTimer?: ReturnType<typeof setTimeout>;
+  protected changed(key: string): boolean {
+    return this.changes().some((change) => change.key === key);
+  }
+  protected merchantChanges(id: MerchantId): readonly ValueChange[] {
+    return this.changes().filter((change) => change.merchant === id);
+  }
+  private receive(state: MarketViewState): void {
+    this.state.set(state);
+    const changes = this.feedback.accept(state);
+    if (changes === null) return;
+    clearTimeout(this.feedbackTimer);
+    this.changes.set(changes);
+    if (changes.length) this.alternateFeedback.update((value) => !value);
+    if (changes.length)
+      this.feedbackTimer = setTimeout(() => this.changes.set([]), 6000);
+  }
   private readonly updates = inject(MarketUpdates);
   protected readonly config = inject(PUBLIC_CONFIG);
   protected readonly profiles = merchantProfiles;
@@ -50,11 +72,15 @@ export class MarketSceneComponent implements OnInit, OnDestroy {
   );
   private readonly feed = new MarketFeed(
     createMarketReader(this.config),
-    (state) => this.state.set(state),
+    (state) => this.receive(state),
   );
   private readonly visibilityChanged = (): void => {
-    if (document.hidden) this.feed.stop();
-    else this.feed.start();
+    if (document.hidden) {
+      this.feed.stop();
+      this.feedback.reset(this.state().observation);
+      clearTimeout(this.feedbackTimer);
+      this.changes.set([]);
+    } else this.feed.start();
   };
   constructor() {
     effect(() => {
@@ -70,6 +96,7 @@ export class MarketSceneComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     document.removeEventListener("visibilitychange", this.visibilityChanged);
     this.feed.stop();
+    clearTimeout(this.feedbackTimer);
   }
   protected merchant(id: MerchantId | null): Merchant | null {
     return (

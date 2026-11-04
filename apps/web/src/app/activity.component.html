@@ -104,7 +104,12 @@
   } @else {
     <ol class="timeline" aria-label="Market activity timeline">
       @for (row of state().rows; track row.id) {
-        <li>
+        <li [class.just-confirmed]="completed().includes(row.id)">
+          @if (completed().includes(row.id)) {
+            <p class="completion-note" role="status">
+              Newly observed confirmed trade
+            </p>
+          }
           <div class="timeline-label">
             <span
               class="status-badge"
@@ -148,7 +153,7 @@
               <span
                 >{{
                   row.reasonKind === "model"
-                    ? "Recorded model reason"
+                    ? "Recorded model decision · not transfer confirmation"
                     : "Status note"
                 }}:</span
               >

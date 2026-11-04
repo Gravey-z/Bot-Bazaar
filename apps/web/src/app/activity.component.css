@@ -1,6 +1,35 @@
 :host {
   display: block;
 }
+.timeline > li.just-confirmed {
+  animation: confirmed-trade 1.2s ease-out;
+  border-left: 3px solid #6d8744;
+  background-color: #edf1d8;
+  padding-top: 10px;
+}
+.completion-note {
+  color: #354a2f;
+  font-size: 11px;
+  font-weight: 650;
+  margin-bottom: 8px;
+}
+@keyframes confirmed-trade {
+  from {
+    background-color: #e6d8a1;
+  }
+  to {
+    background-color: #edf1d8;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .timeline > li.just-confirmed {
+    animation: none;
+  }
+}
+.reason {
+  border-left: 2px solid #b7a1bf;
+  padding-left: 10px;
+}
 .activity {
   padding: 40px 0;
   color: #203e35;
