@@ -67,6 +67,13 @@
     <p class="read-warning" role="status">{{ notice() }}</p>
   }
   <div class="market-square" [attr.aria-busy]="state().refreshing">
+    <img
+      class="market-backdrop"
+      src="art/marketplace.png"
+      alt=""
+      width="1672"
+      height="941"
+    />
     <div class="square-caption">
       <span>{{ config.contractId }}</span
       ><span>SPECTATORS WELCOME</span>
@@ -85,10 +92,14 @@
           </div>
           <div class="stall-content">
             <div class="stall-top">
-              <span class="merchant-portrait" aria-hidden="true"
-                ><span class="portrait-head">{{ profile.initial }}</span
-                ><span class="portrait-shoulders"></span></span
-              ><span class="specialty">{{ profile.specialty }}</span>
+              <img
+                class="merchant-portrait"
+                [src]="profile.portrait"
+                alt=""
+                width="1024"
+                height="1536"
+              />
+              <span class="specialty">{{ profile.specialty }}</span>
             </div>
             <h3 [id]="profile.id + '-name'">
               {{ profile.name }}<span aria-hidden="true">.</span>
@@ -108,9 +119,10 @@
                     ><span
                       class="resource-icon"
                       [class]="'resource-icon ' + resource.color"
+                      [style.background-image]="'url(' + resource.icon + ')'"
                       aria-hidden="true"
-                      >{{ resource.icon }}</span
-                    >{{ resource.name }}</span
+                    ></span>
+                    {{ resource.name }}</span
                   >
                   @if (listing(profile.id, resource.id); as quote) {
                     @if (!quote.active) {
@@ -223,9 +235,10 @@
                       <span
                         class="resource-icon"
                         [class]="'resource-icon ' + resource.color"
+                        [style.background-image]="'url(' + resource.icon + ')'"
                         aria-hidden="true"
-                        >{{ resource.icon }}</span
-                      >{{ resource.name }}
+                      ></span>
+                      {{ resource.name }}
                     </th>
                     <td>{{ format(actor.inventory[resource.id]) }}</td>
                     @if (listing(profile.id, resource.id); as quote) {

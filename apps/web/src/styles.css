@@ -1,9 +1,18 @@
 html {
+  --market-paper: #f8f7f1;
+  --market-ink: #203e35;
+  --market-sage: #b9cba4;
+  --market-lavender: #cec3dc;
+  --market-copper: #e1b994;
   scroll-behavior: smooth;
-  background: #f8f7f1;
+  background: var(--market-paper);
 }
 body {
   margin: 0;
+  color: var(--market-ink);
+  font-family: "Segoe UI", Arial, sans-serif;
+  font-variant-numeric: tabular-nums;
+  text-rendering: optimizeLegibility;
 }
 @media (prefers-reduced-motion: reduce) {
   html {

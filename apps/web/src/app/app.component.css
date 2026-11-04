@@ -1,7 +1,7 @@
 :host {
   display: block;
-  color: #203e35;
-  background: #f8f7f1;
+  color: var(--market-ink);
+  background: var(--market-paper);
   font-family: "Segoe UI", Arial, sans-serif;
   font-size: 16px;
   line-height: 1.6;
@@ -219,11 +219,12 @@ h1 em {
   justify-items: center;
   margin: 4px 0 22px;
 }
-.crystal-illustration svg {
+.hero-crystal {
   position: relative;
-  width: 215px;
+  width: 174px;
   height: 174px;
   z-index: 1;
+  background: url("/art/resources.png") left top / 200% 200% no-repeat;
 }
 .resource-caption {
   font-size: 8px;
@@ -503,7 +504,7 @@ h2[tabindex="-1"]:focus-visible {
     align-self: center;
     margin: 12px -10px 0;
   }
-  .crystal-illustration svg {
+  .hero-crystal {
     width: 122px;
     height: 115px;
   }

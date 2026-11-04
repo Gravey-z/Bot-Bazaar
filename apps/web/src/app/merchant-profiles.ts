@@ -5,7 +5,7 @@ export const merchantProfiles = [
   {
     id: "rex",
     name: merchantNames.rex,
-    initial: "R",
+    portrait: "art/rex.png",
     role: "The crystal restocker",
     description:
       "Quick to spot a crystal shortage. Looks to replenish stock while keeping gold in reserve.",
@@ -16,7 +16,7 @@ export const merchantProfiles = [
   {
     id: "luna",
     name: merchantNames.luna,
-    initial: "L",
+    portrait: "art/luna.png",
     role: "The careful supplier",
     description:
       "A measured trader. Supplies crystals and protects the resources she needs to keep her stall running.",
@@ -27,7 +27,7 @@ export const merchantProfiles = [
   {
     id: "bolt",
     name: merchantNames.bolt,
-    initial: "B",
+    portrait: "art/bolt.png",
     role: "The bargain hunter",
     description:
       "Keeps an eye on wood and iron deals. Happy to wait when the price or reserves aren’t right.",
@@ -38,8 +38,13 @@ export const merchantProfiles = [
 ] as const;
 
 export const marketResources = [
-  { id: "crystal", name: "Crystals", icon: "◆", color: "crystal" },
-  { id: "wood", name: "Wood", icon: "▰", color: "wood" },
-  { id: "herb", name: "Herbs", icon: "✿", color: "herb" },
-  { id: "iron", name: "Iron", icon: "⬡", color: "iron" },
+  {
+    id: "crystal",
+    name: "Crystals",
+    icon: "art/resources.png",
+    color: "crystal",
+  },
+  { id: "wood", name: "Wood", icon: "art/resources.png", color: "wood" },
+  { id: "herb", name: "Herbs", icon: "art/resources.png", color: "herb" },
+  { id: "iron", name: "Iron", icon: "art/resources.png", color: "iron" },
 ] as const;

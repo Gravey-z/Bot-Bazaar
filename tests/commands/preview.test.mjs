@@ -17,6 +17,14 @@ test("preview serves browser files from a C# path and blocks private paths and w
   await writeFile(path.join(root, "main.js"), "console.info('preview')");
   await writeFile(path.join(root, "config.json"), '{"networkId":"testnet"}');
   await writeFile(
+    path.join(root, "portrait.png"),
+    Buffer.from([137, 80, 78, 71]),
+  );
+  await writeFile(
+    path.join(root, "portrait.svg"),
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48"/>',
+  );
+  await writeFile(
     path.join(temporary, "C#", "private.json"),
     "test-only-private-value",
   );
@@ -32,6 +40,12 @@ test("preview serves browser files from a C# path and blocks private paths and w
     assert.match(script.headers.get("content-type"), /javascript/);
     assert.equal(script.headers.get("cache-control"), "no-store");
     const config = await fetch(`${base}/config.json`);
+    const portrait = await fetch(`${base}/portrait.svg`);
+    const bitmap = await fetch(`${base}/portrait.png`);
+    assert.equal(bitmap.headers.get("content-type"), "image/png");
+    await bitmap.arrayBuffer();
+    assert.equal(portrait.headers.get("content-type"), "image/svg+xml");
+    assert.match(await portrait.text(), /<svg/);
     assert.deepEqual(await config.json(), { networkId: "testnet" });
     assert.equal((await fetch(base, { method: "HEAD" })).status, 200);
     assert.equal((await fetch(base, { method: "POST" })).status, 405);

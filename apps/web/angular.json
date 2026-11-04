@@ -22,7 +22,8 @@
             "outputPath": "dist",
             "assets": [
               { "glob": "config.json", "input": "public", "output": "/" },
-              { "glob": "_headers", "input": "public", "output": "/" }
+              { "glob": "_headers", "input": "public", "output": "/" },
+              { "glob": "*.png", "input": "public/art", "output": "/art/" }
             ]
           },
           "configurations": {

@@ -109,9 +109,19 @@ h2 {
 }
 .market-square {
   padding: 18px 24px 0;
-  background: #edf0e4;
+  background: linear-gradient(160deg, #edf0e4, #e5eadb);
   border: 1px solid #d7deca;
   border-radius: 8px;
+}
+.market-backdrop {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 340px;
+  object-fit: cover;
+  object-position: center 58%;
+  border-radius: 5px;
+  margin-bottom: 20px;
 }
 .square-caption,
 .square-floor {
@@ -138,7 +148,7 @@ h2 {
   gap: 22px;
 }
 .stall {
-  --stall-color: #b9cba4;
+  --stall-color: var(--market-sage);
   --stall-dark: #4b6c3e;
   background: #fffefa;
   border: 1px solid #d2dac7;
@@ -147,11 +157,11 @@ h2 {
   box-shadow: 0 6px 0 #dde4d1;
 }
 .lavender {
-  --stall-color: #cec3dc;
+  --stall-color: var(--market-lavender);
   --stall-dark: #78648d;
 }
 .peach {
-  --stall-color: #e4c6a1;
+  --stall-color: var(--market-copper);
   --stall-dark: #966b3b;
 }
 .stall.selected {
@@ -182,45 +192,26 @@ h2 {
   align-items: center;
   justify-content: space-between;
   gap: 8px;
+  position: relative;
+  flex-direction: column;
 }
 .merchant-portrait {
-  position: relative;
-  width: 58px;
-  height: 61px;
-  border-radius: 50% 50% 8px 8px;
-  background: #f0f1e7;
-  display: grid;
-  justify-items: center;
-  overflow: hidden;
-}
-.portrait-head {
-  display: grid;
-  place-items: center;
-  position: relative;
-  z-index: 1;
-  width: 32px;
-  height: 33px;
-  top: 7px;
-  background: #fff9e9;
-  border: 1px solid var(--stall-dark);
-  border-radius: 11px 11px 14px 14px;
-  font:
-    21px/1 Georgia,
-    serif;
-  color: var(--stall-dark);
-}
-.portrait-shoulders {
-  position: absolute;
-  bottom: -9px;
-  width: 52px;
-  height: 34px;
-  border-radius: 50% 50% 0 0;
-  background: var(--stall-color);
-  border: 1px solid var(--stall-dark);
+  display: block;
+  width: 100%;
+  height: 300px;
+  flex-shrink: 0;
+  object-fit: contain;
+  background: #211715;
+  border-radius: 5px;
 }
 .specialty {
-  font-size: 10px;
+  font-size: 11px;
   color: #5b675d;
+  background: #f4f2e9;
+  border: 1px solid #e1e4d6;
+  border-radius: 20px;
+  padding: 4px 10px;
+  text-align: center;
 }
 .stall h3 {
   font:
@@ -232,7 +223,7 @@ h2 {
   color: var(--stall-dark);
 }
 .merchant-role {
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 650;
   margin-top: 4px;
 }
@@ -240,7 +231,7 @@ h2 {
   min-height: 68px;
   margin-top: 11px;
   color: #5c675c;
-  font-size: 11px;
+  font-size: 12px;
   line-height: 1.8;
 }
 .stock-header {
@@ -267,7 +258,7 @@ h2 {
   align-items: center;
   padding: 10px 0;
   border-top: 1px solid #e6e8dd;
-  font-size: 11px;
+  font-size: 12px;
 }
 .resource-name {
   display: flex;
@@ -275,30 +266,37 @@ h2 {
   gap: 5px;
 }
 .resource-icon {
-  display: inline-grid;
-  place-items: center;
-  width: 20px;
-  height: 20px;
+  display: inline-block;
+  width: 32px;
+  height: 32px;
+  box-sizing: border-box;
+  vertical-align: middle;
   flex-shrink: 0;
   margin-right: 3px;
   border-radius: 4px;
-  font-size: 13px;
+  object-fit: contain;
+  background-size: 200% 200%;
+  background-repeat: no-repeat;
 }
 .crystal {
   color: #416c5e;
-  background: #e2eddd;
+  background-color: #e2eddd;
+  background-position: left top;
 }
 .wood {
   color: #81582e;
-  background: #f0e6d8;
+  background-color: #f0e6d8;
+  background-position: right top;
 }
 .herb {
   color: #497440;
-  background: #e8efda;
+  background-color: #e8efda;
+  background-position: left bottom;
 }
 .iron {
   color: #637080;
-  background: #e7e9e8;
+  background-color: #e7e9e8;
+  background-position: right bottom;
 }
 .amount {
   font-variant-numeric: tabular-nums;
@@ -345,21 +343,21 @@ h2 {
   font-size: 8px;
 }
 .merchant-details {
-  --stall-color: #b9cba4;
+  --stall-color: var(--market-sage);
   --stall-dark: #4b6c3e;
   margin-top: 20px;
-  padding: 24px;
-  background: #fffefa;
-  border: 1px solid #ced8c5;
-  border-radius: 6px;
-  border-top: 4px solid var(--stall-color);
+  padding: 100px 85px 90px;
+  background: transparent;
+  border: 0 solid transparent;
+  border-image: url("/art/merchant-frame.png") 25% 17% 20% 17% fill / 100px 70px
+    80px;
 }
 .merchant-details.lavender {
-  --stall-color: #cec3dc;
+  --stall-color: var(--market-lavender);
   --stall-dark: #78648d;
 }
 .merchant-details.peach {
-  --stall-color: #e4c6a1;
+  --stall-color: var(--market-copper);
   --stall-dark: #966b3b;
 }
 .detail-heading {
