@@ -1,0 +1,8 @@
+{
+  "schema": "bot-bazaar-public-deployment-policy-v1",
+  "initial": {
+    "networkId": "testnet",
+    "contractId": "vaultkeeper-bazaar.testnet"
+  },
+  "migrations": []
+}

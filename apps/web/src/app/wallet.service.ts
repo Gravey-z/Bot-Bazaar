@@ -4,10 +4,12 @@ import { createWalletPort } from "./wallet-adapter";
 import { WalletContextStore } from "./wallet-context";
 import { WalletSession } from "./wallet-session";
 import type { WalletState } from "./wallet-session";
+import { DEPLOYMENT_SESSION } from "./deployment.service";
 
 @Injectable({ providedIn: "root" })
 export class WalletService {
   private readonly config = inject(PUBLIC_CONFIG);
+  private readonly deployment = inject(DEPLOYMENT_SESSION);
   readonly state = signal<WalletState>({
     identityVersion: 0,
     status: "disconnected",
@@ -27,9 +29,18 @@ export class WalletService {
   readonly context = new WalletContextStore(
     this.config,
     {
-      getItem: (key) => sessionStorage.getItem(key),
-      setItem: (key, value) => sessionStorage.setItem(key, value),
-      removeItem: (key) => sessionStorage.removeItem(key),
+      getItem: (key) => {
+        this.deployment.assertSelected();
+        return sessionStorage.getItem(key);
+      },
+      setItem: (key, value) => {
+        this.deployment.assertSelected();
+        sessionStorage.setItem(key, value);
+      },
+      removeItem: (key) => {
+        this.deployment.assertSelected();
+        sessionStorage.removeItem(key);
+      },
     },
     location.href,
   );

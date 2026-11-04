@@ -235,9 +235,18 @@ test("web generator whitelists public fields, honors environment precedence and 
         .map(([key, value]) => `${key}=${value}`)
         .join("\n"),
     );
-    await writeWebConfig(envFile, output, {
-      NEAR_CONTRACT_ID: "override.testnet",
-    });
+    await writeWebConfig(
+      envFile,
+      output,
+      {
+        NEAR_CONTRACT_ID: "override.testnet",
+      },
+      {
+        schema: "bot-bazaar-public-deployment-policy-v1",
+        initial: { networkId: "testnet", contractId: "override.testnet" },
+        migrations: [],
+      },
+    );
     const text = await readFile(output, "utf8");
     assert.doesNotMatch(
       text,

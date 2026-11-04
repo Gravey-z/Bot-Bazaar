@@ -7,6 +7,7 @@ dist/
 .angular/
 
 /apps/web/public/config.json
+/apps/web/public/deployment.json
 
 /deploy/omv7/compose.env
 /deploy/omv7/worker.env

@@ -1,0 +1,67 @@
+<section class="deployment" aria-label="Selected market">
+  <p class="mode">
+    {{
+      selection.published.mode === "rehearsal"
+        ? "Live rehearsal · NEAR Testnet · AI readiness not verified"
+        : "Public market · NEAR Testnet"
+    }}
+  </p>
+  <p class="identity">Contract: {{ selection.selected.contractId }}</p>
+  <p role="status">{{ state().message }}</p>
+  @if (selection.published.announcement) {
+    <p class="announcement">{{ selection.published.announcement }}</p>
+  }
+  @if (
+    selection.selected.contractId !== selection.published.current.contractId
+  ) {
+    <p>
+      Newly published market: {{ selection.published.current.contractId }}. It
+      has separate balances, inventory and one-time registration; progress is
+      not transferred.
+    </p>
+    @if (!reviewing()) {
+      <button
+        type="button"
+        [disabled]="!state().canSwitch"
+        (click)="reviewing.set(true)"
+      >
+        Review new market
+      </button>
+    } @else {
+      <p>
+        Opening the new market reloads this tab. Original transaction records
+        and their Testnet links remain in their original namespace.
+      </p>
+      <button
+        type="button"
+        [disabled]="!state().canSwitch"
+        (click)="openPublished()"
+      >
+        Open the separate new market
+      </button>
+      <button type="button" class="secondary" (click)="reviewing.set(false)">
+        Stay on original market
+      </button>
+    }
+  }
+  @if (message()) {
+    <p role="status">{{ message() }}</p>
+  }
+  @if (state().archives.length) {
+    <details>
+      <summary>Previous market transaction links</summary>
+      @for (archive of state().archives; track archive.contractId) {
+        <p>
+          {{ archive.contractId }} · {{ archive.status }} ·
+          <a
+            [href]="archive.url"
+            target="_blank"
+            rel="noopener noreferrer"
+            referrerpolicy="no-referrer"
+            >{{ archive.hash }}</a
+          >
+        </p>
+      }
+    </details>
+  }
+</section>

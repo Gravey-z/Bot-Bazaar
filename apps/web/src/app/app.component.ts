@@ -6,6 +6,7 @@ import { RegistrationComponent } from "./registration.component";
 import { PurchaseComponent } from "./purchase.component";
 import { TransactionComponent } from "./transaction.component";
 import { ActivityComponent } from "./activity.component";
+import { DeploymentComponent } from "./deployment.component";
 
 @Component({
   selector: "app-root",
@@ -16,6 +17,7 @@ import { ActivityComponent } from "./activity.component";
     PurchaseComponent,
     TransactionComponent,
     ActivityComponent,
+    DeploymentComponent,
   ],
   templateUrl: "./app.component.html",
   styleUrl: "./app.component.css",

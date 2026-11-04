@@ -2,6 +2,7 @@ import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { parseEnv } from "node:util";
+import { publicDeploymentDescriptor } from "./public-deployment-policy.mjs";
 
 import {
   ConfigurationError,
@@ -12,8 +13,11 @@ export async function writeWebConfig(
   envFile,
   outputFile,
   environment = process.env,
+  policy,
 ) {
   await rm(outputFile, { force: true });
+  const descriptorPath = path.join(path.dirname(outputFile), "deployment.json");
+  await rm(descriptorPath, { force: true });
   let local = {};
   try {
     local = parseEnv(await readFile(envFile, "utf8"));
@@ -30,8 +34,19 @@ export async function writeWebConfig(
     explorerUrl: env.NEAR_EXPLORER_URL,
     workerUrl: env.WORKER_URL,
   });
+  const deployment = publicDeploymentDescriptor(
+    config,
+    policy ??
+      JSON.parse(
+        await readFile(
+          new URL("../config/public-deployment.json", import.meta.url),
+          "utf8",
+        ),
+      ),
+  );
   await mkdir(path.dirname(outputFile), { recursive: true });
   await writeFile(outputFile, JSON.stringify(config) + "\n", "utf8");
+  await writeFile(descriptorPath, JSON.stringify(deployment) + "\n", "utf8");
 }
 
 if (

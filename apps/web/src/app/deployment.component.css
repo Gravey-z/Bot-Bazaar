@@ -1,0 +1,53 @@
+:host {
+  display: block;
+}
+.deployment {
+  margin: 12px 0;
+  padding: 14px 18px;
+  border: 1px solid #d7deca;
+  background: #f0f1e7;
+  border-radius: 6px;
+  color: #203e35;
+  font-size: 12px;
+  line-height: 1.7;
+}
+p {
+  margin: 3px 0;
+  overflow-wrap: anywhere;
+}
+.mode {
+  font-weight: 700;
+  letter-spacing: 0.4px;
+}
+.identity {
+  font-size: 11px;
+}
+.announcement {
+  border-left: 2px solid #ac8450;
+  padding-left: 10px;
+}
+button {
+  font: inherit;
+  border: 1px solid #203e35;
+  background: #203e35;
+  color: #fffefa;
+  border-radius: 4px;
+  padding: 7px 10px;
+  margin: 8px 8px 0 0;
+  cursor: pointer;
+}
+button.secondary {
+  background: transparent;
+  color: #203e35;
+}
+button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+a {
+  color: inherit;
+}
+details {
+  margin-top: 8px;
+  overflow-wrap: anywhere;
+}
