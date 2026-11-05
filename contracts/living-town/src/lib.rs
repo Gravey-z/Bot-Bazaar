@@ -4,8 +4,10 @@ use near_sdk::store::LookupMap;
 use near_sdk::{AccountId, PanicOnDefault, env, near, require};
 
 mod ownership;
+mod purchases;
 pub use ownership::{Command, Decimal};
 use ownership::{CommandRecord, Player, Shop};
+pub use purchases::MerchantId;
 
 const CONFIG: &str = include_str!("../../../config/living-town-v1.json");
 pub const ITEM_IDS: [&str; 6] = [
@@ -51,6 +53,7 @@ impl Inventory {
     }
 }
 #[near(serializers = [borsh])]
+#[derive(Clone)]
 struct Listing {
     id: u64,
     quantity: u64,
@@ -58,10 +61,13 @@ struct Listing {
     revision: u64,
 }
 #[near(serializers = [borsh])]
+#[derive(Clone)]
 struct Npc {
     gold: u64,
     held: Inventory,
     listings: [Option<Listing>; 6],
+    ledger_revision: u64,
+    reservations: purchases::Reservations,
 }
 
 #[near(serializers = [json])]
@@ -175,6 +181,8 @@ pub struct LivingTown {
     players: LookupMap<AccountId, Player>,
     shops: LookupMap<u64, Shop>,
     commands: LookupMap<AccountId, CommandRecord>,
+    next_trade_id: u64,
+    trades: LookupMap<u64, purchases::Trade>,
 }
 impl LivingTown {
     fn assert_versions(&self) {
@@ -196,19 +204,10 @@ impl LivingTown {
         for (index, npc) in self.npcs.iter().enumerate() {
             let owner = json!({"kind":"merchant","merchant_id":MERCHANTS[index]});
             shops.push(json!({"shop_id":(index+1).to_string(),"owner":owner,"name":(["Rex","Luna","Bolt"][index]),"revision":"1","production_slots":"1","policy_revision":"1","created_at_ns":self.genesis_time_ns.to_string(),"ownership_command_sequence":null}));
-            let mut available = npc.held;
-            let mut reserved = Inventory::default();
-            for (slot, listing) in npc.listings.iter().enumerate() {
-                if let Some(listing) = listing {
-                    available.quantities[slot] -= listing.quantity;
-                    reserved.quantities[slot] = listing.quantity;
-                }
-            }
-            let zero = Inventory::default().view();
-            ledgers.push(json!({"actor":owner,"revision":"1","gold":{"held":npc.gold.to_string(),"available":npc.gold.to_string(),"trade_reserved":"0","trade_inbound_reserved":"0"},"inventory":{"held":npc.held.view(),"available":available.view(),"listing_reserved":reserved.view(),"trade_reserved":zero,"production_output_reserved":zero,"trade_inbound_reserved":zero}}));
+            ledgers.push(purchases::npc_ledger(index, npc));
         }
         let zero = Inventory::default().view();
-        json!({"paused":self.paused,"registered_player_count":self.registered_player_count.to_string(),"epoch":((env::block_timestamp()-self.genesis_time_ns)/60_000_000_000).to_string(),"genesis_time_ns":self.genesis_time_ns.to_string(),"npc_shops":shops,"npc_ledgers":ledgers,"customer_pool":{"pool_id":"town_customers","gold":"100","epoch":((env::block_timestamp()-self.genesis_time_ns)/60_000_000_000).to_string(),"last_funded_epoch":"0","potion_units_bought":"0","tool_units_bought":"0","revision":"1"},"totals":{"initial_gold":"700","player_grants":self.issued_grants.to_string(),"customer_topups":"0","upgrade_burns":"0","treasury_burns":"0","seed_items":Inventory::new([10,10,20,20,0,0]).view(),"supplied_items":zero,"recipe_inputs_consumed":zero,"completed_outputs":zero,"customer_consumed":zero},"market_event":null,"next_shop_id":self.next_shop_id.to_string(),"next_listing_id":"5","next_job_id":"1","next_offer_id":"1","next_trade_id":"1","next_market_event_id":"1","retained_events_from":"1","limits":config()["limits"]})
+        json!({"paused":self.paused,"registered_player_count":self.registered_player_count.to_string(),"epoch":((env::block_timestamp()-self.genesis_time_ns)/60_000_000_000).to_string(),"genesis_time_ns":self.genesis_time_ns.to_string(),"npc_shops":shops,"npc_ledgers":ledgers,"customer_pool":{"pool_id":"town_customers","gold":"100","epoch":((env::block_timestamp()-self.genesis_time_ns)/60_000_000_000).to_string(),"last_funded_epoch":"0","potion_units_bought":"0","tool_units_bought":"0","revision":"1"},"totals":{"initial_gold":"700","player_grants":self.issued_grants.to_string(),"customer_topups":"0","upgrade_burns":"0","treasury_burns":"0","seed_items":Inventory::new([10,10,20,20,0,0]).view(),"supplied_items":zero,"recipe_inputs_consumed":zero,"completed_outputs":zero,"customer_consumed":zero},"market_event":null,"next_shop_id":self.next_shop_id.to_string(),"next_listing_id":"5","next_job_id":"1","next_offer_id":"1","next_trade_id":self.next_trade_id.to_string(),"next_market_event_id":"1","retained_events_from":"1","limits":config()["limits"]})
     }
 }
 #[near]
@@ -288,6 +287,8 @@ impl LivingTown {
                 gold: 200,
                 held: Inventory::new(held),
                 listings,
+                ledger_revision: 1,
+                reservations: purchases::Reservations::default(),
             }
         });
         let contract = Self {
@@ -308,6 +309,8 @@ impl LivingTown {
             players: LookupMap::new(b"lt:v2:players:".to_vec()),
             shops: LookupMap::new(b"lt:v2:shops:".to_vec()),
             commands: LookupMap::new(b"lt:v2:principals:".to_vec()),
+            next_trade_id: 1,
+            trades: LookupMap::new(b"lt:v2:trades:".to_vec()),
         };
         env::log_str(&format!(
             "EVENT_JSON:{}",
@@ -323,7 +326,7 @@ impl LivingTown {
     pub fn get_foundation(&self) -> Value {
         let _: EmptyArgs = input();
         self.assert_versions();
-        self.snapshot(json!({"owner_account_id":self.owner,"operator_account_id":self.operator,"merchant_controllers":{"rex":self.controllers[0],"luna":self.controllers[1],"bolt":self.controllers[2]},"item_ids":ITEM_IDS,"supported_methods":["initialize_town","get_foundation","get_town","register_player","create_shop","rename_shop","get_player","get_shop","get_player_shops","get_command"]}))
+        self.snapshot(json!({"owner_account_id":self.owner,"operator_account_id":self.operator,"merchant_controllers":{"rex":self.controllers[0],"luna":self.controllers[1],"bolt":self.controllers[2]},"item_ids":ITEM_IDS,"supported_methods":["initialize_town","get_foundation","get_town","register_player","create_shop","rename_shop","get_player","get_shop","get_player_shops","get_command","buy_from_merchant","get_listings","get_trade","get_shop_inventory"]}))
     }
 }
 

@@ -154,6 +154,120 @@ export const livingTownShop = object({
   created_at_ns: parseU64,
   ownership_command_sequence: nullable(positiveU64),
 });
+const exactNull = (v: unknown): null => {
+  check(v === null, "expected null");
+  return null;
+};
+const rawItem = choice(["crystal", "wood", "herb", "iron"] as const);
+const merchant = choice(["rex", "luna", "bolt"] as const);
+const listingShape = object({
+  listing_id: positiveU64,
+  shop_id: positiveU64,
+  owner: livingTownActor,
+  item_id: livingTownItem,
+  remaining_quantity: bounded(0n, 100n),
+  unit_price: bounded(1n, 100n),
+  revision: positiveU64,
+  active: boolean,
+});
+export function livingTownListing(
+  value: unknown,
+): ReturnType<typeof listingShape> {
+  const result = listingShape(value);
+  check(
+    result.active === BigInt(result.remaining_quantity) > 0n,
+    "V2 listing activity mismatch",
+  );
+  return result;
+}
+const rawTradeShape = object({
+  trade_id: positiveU64,
+  kind: literal("raw_purchase"),
+  buyer: object({ kind: literal("player"), account_id: accountId }),
+  customer_pool_id: exactNull,
+  seller: object({ kind: literal("merchant"), merchant_id: merchant }),
+  item_id: rawItem,
+  quantity: bounded(1n, 100n),
+  unit_price: bounded(1n, 100n),
+  total_price: bounded(1n, 10000n),
+  listing_id: positiveU64,
+  offer_id: exactNull,
+  consumed_quantity: literal("0"),
+  settled_at_ns: parseU64,
+  command_principal: (v: unknown) => {
+    check(
+      typeof v === "string" && v.startsWith("account:"),
+      "V2 purchase principal required",
+    );
+    accountId(v.slice(8));
+    return v;
+  },
+  command_sequence: positiveU64,
+  event_sequence: positiveU64,
+});
+export function livingTownRawTrade(
+  value: unknown,
+): ReturnType<typeof rawTradeShape> {
+  const result = rawTradeShape(value);
+  check(
+    BigInt(result.quantity) * BigInt(result.unit_price) ===
+      BigInt(result.total_price) &&
+      result.command_principal === `account:${result.buyer.account_id}`,
+    "V2 trade arithmetic/identity mismatch",
+  );
+  return result;
+}
+const purchaseEffectShape = object({
+  principal: (v: unknown) => {
+    check(typeof v === "string", "V2 principal required");
+    return v;
+  },
+  command_sequence: positiveU64,
+  payload_sha256: livingTownDigest,
+  replayed: boolean,
+  effect_revision: positiveU64,
+  effect_event_sequence: positiveU64,
+  outcome: object({
+    kind: literal("raw_purchased"),
+    trade: livingTownRawTrade,
+    listing: livingTownListing,
+    buyer: livingTownLedger,
+    seller: livingTownLedger,
+  }),
+});
+export function livingTownPurchaseEffect(
+  value: unknown,
+): ReturnType<typeof purchaseEffectShape> {
+  const r = purchaseEffectShape(value);
+  const { trade, listing, buyer, seller } = r.outcome;
+  check(
+    r.principal === trade.command_principal &&
+      r.command_sequence === trade.command_sequence &&
+      r.effect_revision === r.effect_event_sequence &&
+      r.effect_event_sequence === trade.event_sequence,
+    "V2 purchase effect mismatch",
+  );
+  check(
+    buyer.actor.kind === "player" &&
+      buyer.actor.account_id === trade.buyer.account_id &&
+      seller.actor.kind === "merchant" &&
+      seller.actor.merchant_id === trade.seller.merchant_id &&
+      listing.owner.kind === "merchant" &&
+      listing.owner.merchant_id === trade.seller.merchant_id,
+    "V2 purchase actors mismatch",
+  );
+  check(
+    listing.shop_id ===
+      String(["rex", "luna", "bolt"].indexOf(trade.seller.merchant_id) + 1) &&
+      listing.listing_id === trade.listing_id &&
+      listing.item_id === trade.item_id &&
+      listing.unit_price === trade.unit_price &&
+      BigInt(seller.inventory.listing_reserved[trade.item_id]) ===
+        BigInt(listing.remaining_quantity),
+    "V2 purchase listing mismatch",
+  );
+  return r;
+}
 const playerShape = object({
   account_id: accountId,
   ledger: livingTownLedger,

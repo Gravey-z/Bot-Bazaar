@@ -19,6 +19,10 @@ export const livingTownFoundationMethods = [
   "get_shop",
   "get_player_shops",
   "get_command",
+  "buy_from_merchant",
+  "get_listings",
+  "get_trade",
+  "get_shop_inventory",
 ] as const;
 export type LivingTownSix<T> = { readonly [K in LivingTownItem]: T };
 export const livingTownVersions = Object.freeze({

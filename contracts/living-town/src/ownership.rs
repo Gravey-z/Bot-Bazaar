@@ -157,11 +157,20 @@ pub(crate) struct Player {
     pub ledger_revision: u64,
     pub shop_id: Option<u64>,
     pub grant_sequence: u64,
+    pub reservations: super::purchases::Reservations,
 }
 impl Player {
+    pub(super) fn ledger(&self) -> Value {
+        super::purchases::ledger(
+            json!({"kind":"player","account_id":self.account_id}),
+            self.gold,
+            self.inventory,
+            self.ledger_revision,
+            &self.reservations,
+        )
+    }
     fn view(&self) -> Value {
-        let zero = Inventory::default().view();
-        json!({"account_id":self.account_id,"ledger":{"actor":{"kind":"player","account_id":self.account_id},"revision":self.ledger_revision.to_string(),"gold":{"held":self.gold.to_string(),"available":self.gold.to_string(),"trade_reserved":"0","trade_inbound_reserved":"0"},"inventory":{"held":self.inventory.view(),"available":self.inventory.view(),"listing_reserved":zero,"trade_reserved":zero,"production_output_reserved":zero,"trade_inbound_reserved":zero}},"shop_id":self.shop_id.map(|id|id.to_string()),"grant_issued":true,"grant_command_sequence":self.grant_sequence.to_string()})
+        json!({"account_id":self.account_id,"ledger":self.ledger(),"shop_id":self.shop_id.map(|id|id.to_string()),"grant_issued":true,"grant_command_sequence":self.grant_sequence.to_string()})
     }
 }
 #[near(serializers = [borsh])]
@@ -182,9 +191,10 @@ impl Shop {
 #[near(serializers = [borsh])]
 #[derive(Clone)]
 pub(crate) enum Outcome {
-    Registered(Player),
+    Registered(Box<Player>),
     Created(Shop),
     Renamed(Shop),
+    Purchased(Box<super::purchases::Purchase>),
 }
 impl Outcome {
     fn method(&self) -> &'static str {
@@ -192,6 +202,7 @@ impl Outcome {
             Self::Registered(_) => "register_player",
             Self::Created(_) => "create_shop",
             Self::Renamed(_) => "rename_shop",
+            Self::Purchased(_) => "buy_from_merchant",
         }
     }
     fn view(&self) -> Value {
@@ -199,6 +210,7 @@ impl Outcome {
             Self::Registered(p) => json!({"kind":"player_registered","player":p.view()}),
             Self::Created(s) => json!({"kind":"shop_created","shop":s.view()}),
             Self::Renamed(s) => json!({"kind":"shop_renamed","shop":s.view()}),
+            Self::Purchased(p) => p.view(),
         }
     }
 }
@@ -210,10 +222,10 @@ pub(crate) struct CommandRecord {
     pub revision: u64,
     pub outcome: Outcome,
 }
-fn hex(bytes: &[u8]) -> String {
+pub(super) fn hex(bytes: &[u8]) -> String {
     bytes.iter().map(|b| format!("{b:02x}")).collect()
 }
-fn next(value: u64) -> u64 {
+pub(super) fn next(value: u64) -> u64 {
     value
         .checked_add(1)
         .unwrap_or_else(|| env::panic_str("LT:E_ARITHMETIC_OVERFLOW"))
@@ -225,7 +237,7 @@ fn name_ok(name: &str) -> bool {
             .bytes()
             .all(|b| b.is_ascii_alphanumeric() || matches!(b, b' ' | b'_' | b'-'))
 }
-fn args<T: DeserializeOwned>(keys: &[&str]) -> T {
+pub(super) fn args<T: DeserializeOwned>(keys: &[&str]) -> T {
     let raw = env::input().unwrap_or_default();
     require!(raw.len() <= 8192, "LT:E_INVALID_ARGUMENT");
     let shape: Value =
@@ -283,7 +295,7 @@ struct LookupArgs {
 }
 
 impl LivingTown {
-    fn player_principal(&self) -> AccountId {
+    pub(super) fn player_principal(&self) -> AccountId {
         let id = env::predecessor_account_id();
         require!(
             id != env::current_account_id()
@@ -297,7 +309,7 @@ impl LivingTown {
     fn effect(&self, actor: &AccountId, record: &CommandRecord, replayed: bool) -> Value {
         json!({"principal":format!("account:{actor}"),"command_sequence":record.sequence.to_string(),"payload_sha256":hex(&record.digest),"replayed":replayed,"effect_revision":record.revision.to_string(),"effect_event_sequence":record.revision.to_string(),"outcome":record.outcome.view()})
     }
-    fn command_check(
+    pub(super) fn command_check(
         &self,
         actor: &AccountId,
         method: &str,
@@ -341,7 +353,7 @@ impl LivingTown {
         require!(!self.paused, "LT:E_MARKET_PAUSED");
         (digest, None)
     }
-    fn commit(
+    pub(super) fn commit(
         &mut self,
         actor: AccountId,
         command: Command,
@@ -365,6 +377,7 @@ impl LivingTown {
         self.players.flush();
         self.shops.flush();
         self.commands.flush();
+        self.trades.flush();
         env::state_write(self);
         let used = env::storage_usage();
         require!(used <= 16 * 1024 * 1024, "LT:E_STORAGE_CAPACITY");
@@ -412,6 +425,7 @@ impl LivingTown {
             ledger_revision: 1,
             shop_id: None,
             grant_sequence: command.sequence.0,
+            reservations: super::purchases::Reservations::default(),
         };
         self.registered_player_count = next(self.registered_player_count);
         self.issued_grants = self
@@ -419,7 +433,12 @@ impl LivingTown {
             .checked_add(100)
             .unwrap_or_else(|| env::panic_str("LT:E_ARITHMETIC_OVERFLOW"));
         self.players.insert(actor.clone(), player.clone());
-        self.commit(actor, command, digest, Outcome::Registered(player))
+        self.commit(
+            actor,
+            command,
+            digest,
+            Outcome::Registered(Box::new(player)),
+        )
     }
     pub fn create_shop(&mut self, name: String, command: Command) -> Value {
         let parsed: CreateArgs = args(&["name", "command"]);

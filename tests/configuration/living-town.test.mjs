@@ -19,6 +19,9 @@ import {
   livingTownTown,
   livingTownPlayer,
   livingTownOwnershipEffect,
+  livingTownListing,
+  livingTownRawTrade,
+  livingTownPurchaseEffect,
   decodeLivingTownSnapshot,
   livingTownJsonDigest,
   canonicalLivingTownJson,
@@ -365,5 +368,127 @@ test("ownership views and replay effects bind the player ledger, principal and o
     const bad = structuredClone(effect);
     mutate(bad);
     assert.throws(() => livingTownOwnershipEffect(bad));
+  }
+});
+
+test("raw purchase effects bind quoted listings, arithmetic, ledgers and command identity", () => {
+  const player = { kind: "player", account_id: "buyer.testnet" };
+  const seller = { kind: "merchant", merchant_id: "rex" };
+  const gold = (held) => ({
+    held,
+    available: held,
+    trade_reserved: "0",
+    trade_inbound_reserved: "0",
+  });
+  const buyerLedger = {
+    actor: player,
+    revision: "2",
+    gold: gold("96"),
+    inventory: inventory(),
+  };
+  buyerLedger.inventory.held.crystal = "1";
+  buyerLedger.inventory.available.crystal = "1";
+  const sellerLedger = {
+    actor: seller,
+    revision: "2",
+    gold: gold("204"),
+    inventory: inventory(),
+  };
+  sellerLedger.inventory.held.crystal = "9";
+  sellerLedger.inventory.available.crystal = "2";
+  sellerLedger.inventory.listing_reserved.crystal = "7";
+  const trade = {
+    trade_id: "1",
+    kind: "raw_purchase",
+    buyer: player,
+    customer_pool_id: null,
+    seller,
+    item_id: "crystal",
+    quantity: "1",
+    unit_price: "4",
+    total_price: "4",
+    listing_id: "1",
+    offer_id: null,
+    consumed_quantity: "0",
+    settled_at_ns: "20",
+    command_principal: "account:buyer.testnet",
+    command_sequence: "3",
+    event_sequence: "4",
+  };
+  const listing = {
+    listing_id: "1",
+    shop_id: "1",
+    owner: seller,
+    item_id: "crystal",
+    remaining_quantity: "7",
+    unit_price: "4",
+    revision: "2",
+    active: true,
+  };
+  const effect = {
+    principal: "account:buyer.testnet",
+    command_sequence: "3",
+    payload_sha256: "a".repeat(64),
+    replayed: false,
+    effect_revision: "4",
+    effect_event_sequence: "4",
+    outcome: {
+      kind: "raw_purchased",
+      trade,
+      listing,
+      buyer: buyerLedger,
+      seller: sellerLedger,
+    },
+  };
+  assert.deepEqual(livingTownPurchaseEffect(effect), effect);
+  assert.deepEqual(livingTownRawTrade(trade), trade);
+  assert.deepEqual(
+    livingTownListing({ ...listing, remaining_quantity: "0", active: false }),
+    { ...listing, remaining_quantity: "0", active: false },
+  );
+  for (const change of [
+    (v) => {
+      v.principal = "account:thief.testnet";
+    },
+    (v) => {
+      v.command_sequence = "4";
+    },
+    (v) => {
+      v.effect_event_sequence = "5";
+    },
+    (v) => {
+      v.outcome.trade.total_price = "5";
+    },
+    (v) => {
+      v.outcome.trade.quantity = 1;
+    },
+    (v) => {
+      v.outcome.trade.item_id = "health_potion";
+    },
+    (v) => {
+      v.outcome.trade.customer_pool_id = "town_customers";
+    },
+    (v) => {
+      v.outcome.listing.active = false;
+    },
+    (v) => {
+      v.outcome.listing.listing_id = "2";
+    },
+    (v) => {
+      v.outcome.buyer.actor.account_id = "other.testnet";
+    },
+    (v) => {
+      v.outcome.seller.actor.merchant_id = "bolt";
+    },
+    (v) => {
+      v.outcome.seller.inventory.available.crystal = "3";
+    },
+    (v) => {
+      v.outcome.trade.recipient = "thief.testnet";
+    },
+  ]) {
+    const bad = structuredClone(effect);
+    change(bad);
+    assert.throws(() => livingTownPurchaseEffect(bad));
   }
 });
