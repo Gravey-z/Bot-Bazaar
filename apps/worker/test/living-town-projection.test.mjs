@@ -251,6 +251,112 @@ test("snapshot rebuild preserves current balances, labels missing history and ne
   assert.equal(f.store.inventory("4", now).snapshot.data.gold.held, "96");
 });
 
+test("rebuild cannot hide a newer verified receipt behind an older finalized snapshot", (t) => {
+  const f = fixture(t);
+  f.store.commit(receipts[3], now);
+  const before = f.store.counts(),
+    cursor = f.store.cursor();
+  assert.equal(f.store.town(now).stale, true);
+  assert.throws(() => f.store.baseline(initial, now + 1), /cannot rewind/);
+  assert.deepEqual(f.store.counts(), before);
+  assert.deepEqual(f.store.cursor(), cursor);
+  assert.equal(f.store.town(now + 1).stale, true);
+  f.restart();
+  assert.throws(() => f.store.baseline(initial, now + 2), /cannot rewind/);
+  f.store.baseline(final, now + 3);
+  for (const receipt of receipts) f.store.commit(receipt, now + 3);
+  assert.equal(f.store.inventory("4", now + 3).snapshot.data.gold.held, "96");
+  assert.equal(f.store.town(now + 3).snapshot.data.totals.player_grants, "100");
+});
+
+test("conflicting receipt and event identities roll back without replacing ownership or balances", (t) => {
+  const f = fixture(t);
+  receipts.slice(0, 4).forEach((r) => f.store.commit(r, now));
+  const before = f.store.counts(),
+    cursor = f.store.cursor(),
+    inventory = f.store.inventory("4", now);
+  const collision = structuredClone(receipts[3]);
+  collision.proof.transactionHash = receipts[4].proof.transactionHash;
+  assert.throws(() => f.store.commit(collision, now), /UNIQUE/);
+  collision.status.executionReceiptId = receipts[4].status.executionReceiptId;
+  assert.throws(
+    () => f.store.commit(collision, now),
+    /conflicting event sequence/,
+  );
+  const changedRequest = structuredClone(receipts[3]);
+  changedRequest.proof.signerId = "other.testnet";
+  assert.throws(
+    () => f.store.commit(changedRequest, now),
+    /conflicting receipt request/,
+  );
+  assert.deepEqual(f.store.counts(), before);
+  assert.deepEqual(f.store.cursor(), cursor);
+  assert.deepEqual(f.store.inventory("4", now), inventory);
+  f.restart();
+  assert.deepEqual(f.store.counts(), before);
+});
+
+test("malformed and duplicate-owner rebuilds preserve the prior complete SQLite projection", (t) => {
+  const f = fixture(t, final);
+  const before = f.store.counts(),
+    cursor = f.store.cursor(),
+    inventory = f.store.inventory("4", now);
+  for (const mutate of [
+    (b) => {
+      b.shops[0].shop.data.owner.account_id = "other.testnet";
+    },
+    (b) => {
+      b.shops[0].ledger.market_revision = "1";
+    },
+    (b) => {
+      b.town.deployment.config_sha256 = "b".repeat(64);
+    },
+    (b) => {
+      b.town.data.next_shop_id = "6";
+      const duplicate = structuredClone(b.shops[0]);
+      duplicate.shop.data.shop_id = "5";
+      b.shops.push(duplicate);
+    },
+  ]) {
+    const broken = structuredClone(final);
+    mutate(broken);
+    assert.throws(() => f.store.baseline(broken, now + 1));
+    assert.deepEqual(f.store.counts(), before);
+    assert.deepEqual(f.store.cursor(), cursor);
+    assert.deepEqual(f.store.inventory("4", now), inventory);
+  }
+  f.restart();
+  assert.equal(f.store.inventory("4", now).snapshot.data.gold.held, "96");
+});
+
+test("repeated shuffled ingestion across rebuilds and restarts never reapplies grants or trades", (t) => {
+  const f = fixture(t);
+  for (const order of [
+    [5, 3, 1, 4, 2, 0],
+    [0, 0, 1, 2, 3, 4, 5],
+    [3, 2, 1, 0, 5, 4],
+  ]) {
+    for (const index of order) f.store.commit(receipts[index], now);
+    f.store.baseline(final, now);
+    f.restart();
+    for (const index of order)
+      assert.equal(f.store.commit(receipts[index], now), "duplicate");
+    assert.equal(f.store.observe(final.town, final.block, now), true);
+    assert.deepEqual(f.store.counts(), {
+      shops: 4,
+      ledgers: 4,
+      receipts: 6,
+      events: 4,
+    });
+    assert.equal(f.store.inventory("4", now).snapshot.data.gold.held, "96");
+    assert.equal(
+      f.store.inventory("4", now).snapshot.data.inventory.held.crystal,
+      "1",
+    );
+    assert.equal(f.store.town(now).snapshot.data.totals.player_grants, "100");
+  }
+});
+
 test("receipt event extraction ignores replay/failure logs and rejects forged successful event metadata", () => {
   assert.equal(receipts[4].event, null);
   assert.equal(receipts[5].event, null);

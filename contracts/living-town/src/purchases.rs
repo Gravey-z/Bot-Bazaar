@@ -536,7 +536,7 @@ mod tests {
     }
     #[test]
     fn promised_gold_items_and_floors_cannot_be_spent_or_overfilled() {
-        for case in 0..6 {
+        for case in 0..11 {
             let (mut buyer, mut seller) = fixture();
             match case {
                 0 => buyer.reservations.gold_trade = 100,
@@ -544,7 +544,19 @@ mod tests {
                 2 => buyer.reservations.inbound.quantities[0] = 1000,
                 3 => seller.reservations.gold_inbound = 999_800,
                 4 => seller.reservations.trade.quantities[0] = 3,
-                _ => seller.held.quantities[0] = 2,
+                5 => seller.held.quantities[0] = 2,
+                6 => buyer.gold = 3,
+                7 => buyer.inventory.quantities[0] = 1000,
+                8 => {
+                    buyer.inventory.quantities[0] = 999;
+                    buyer.reservations.inbound.quantities[0] = 1;
+                }
+                9 => {
+                    buyer.inventory.quantities[0] = 998;
+                    buyer.reservations.inbound.quantities[0] = 1;
+                    buyer.reservations.output.quantities[0] = 1;
+                }
+                _ => seller.listings[0].as_mut().unwrap().quantity = 0,
             }
             let before_buyer = near_sdk::borsh::to_vec(&buyer).unwrap();
             let before_seller = near_sdk::borsh::to_vec(&seller).unwrap();
@@ -562,5 +574,29 @@ mod tests {
             assert_eq!(near_sdk::borsh::to_vec(&buyer).unwrap(), before_buyer);
             assert_eq!(near_sdk::borsh::to_vec(&seller).unwrap(), before_seller);
         }
+    }
+    #[test]
+    fn exact_item_cap_can_be_reached_without_using_promised_capacity() {
+        let (mut buyer, mut seller) = fixture();
+        buyer.inventory.quantities[0] = 999;
+        settle(&mut buyer, &mut seller, 0, 1, 1, 4);
+        assert_eq!(buyer.inventory.quantities[0], 1000);
+        assert_eq!(buyer.gold, 96);
+        assert_eq!(seller.held.quantities[0], 9);
+        let before_buyer = near_sdk::borsh::to_vec(&buyer).unwrap();
+        let before_seller = near_sdk::borsh::to_vec(&seller).unwrap();
+        assert!(
+            std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| settle(
+                &mut buyer,
+                &mut seller,
+                0,
+                1,
+                2,
+                4
+            )))
+            .is_err()
+        );
+        assert_eq!(near_sdk::borsh::to_vec(&buyer).unwrap(), before_buyer);
+        assert_eq!(near_sdk::borsh::to_vec(&seller).unwrap(), before_seller);
     }
 }

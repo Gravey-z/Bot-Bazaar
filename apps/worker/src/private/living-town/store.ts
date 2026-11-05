@@ -247,8 +247,9 @@ export class LivingTownProjectionStore {
     const prior = this.state();
     requireValue(
       !prior ||
-        BigInt(t.event_sequence) >=
-          BigInt(prior.checkpoint.through_event_sequence),
+        (BigInt(t.event_sequence) >=
+          BigInt(prior.checkpoint.through_event_sequence) &&
+          BigInt(t.event_sequence) >= BigInt(prior.latestSeen)),
       "projection cannot rewind",
     );
     const entries = input.shops.map((row, i) => {

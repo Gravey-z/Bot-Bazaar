@@ -660,6 +660,69 @@ test("V2 journal fails closed on corrupt storage, changed identity and failed pe
   assert.equal(await e.read(), null);
 });
 
+test("two tabs submitting one prepared command open only one wallet request", async () => {
+  const f = journalFixture(),
+    first = f.create(),
+    second = f.create();
+  const attempt = await first.prepare(
+    fixture.player_id,
+    "register_player",
+    fixture.steps[0].args,
+  );
+  const results = await Promise.allSettled([
+    first.submit(attempt.id),
+    second.submit(attempt.id),
+  ]);
+  assert.equal(results.filter((r) => r.status === "fulfilled").length, 1);
+  assert.equal(f.signatures(), 1);
+  await second.restore();
+  await first.refresh();
+  await second.refresh();
+  assert.equal(f.signatures(), 1);
+  assert.equal(
+    (await second.read()).transactionHash,
+    fixture.steps[0].transaction_hash,
+  );
+});
+
+test("losing storage after wallet handoff retains a durable unknown attempt after restart", async () => {
+  let failWrites = false;
+  const f = journalFixture(async () => {
+    failWrites = true;
+    return { transaction: { hash: fixture.steps[0].transaction_hash } };
+  });
+  const set = f.s.setItem;
+  f.s.setItem = (k, v) => {
+    if (failWrites) throw Error("injected disk full after wallet");
+    set(k, v);
+  };
+  const journal = f.create(),
+    attempt = await journal.prepare(
+      fixture.player_id,
+      "register_player",
+      fixture.steps[0].args,
+    );
+  await assert.rejects(journal.submit(attempt.id), /disk full/);
+  assert.equal((await journal.read()).phase, "awaiting_wallet");
+  failWrites = false;
+  const restored = f.create();
+  await restored.restore();
+  assert.equal((await restored.read()).phase, "unknown");
+  await restored.refresh();
+  await assert.rejects(restored.submit(attempt.id));
+  await restored.recoverHash(attempt.id, fixture.steps[0].transaction_hash);
+  const step = fixture.steps[0];
+  f.setStatus(
+    await verifyLivingTownReceipt(step.receipt, proof(step), async () =>
+      block(step),
+    ),
+  );
+  await restored.refresh();
+  assert.equal(await restored.read(), null);
+  assert.equal((await restored.last()).phase, "confirmed");
+  assert.equal(f.signatures(), 1);
+});
+
 test("reviewed wallet port verifies the V2 deployment and active account before one encoded request", async () => {
   const calls = [];
   const output = await build({

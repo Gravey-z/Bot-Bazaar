@@ -22,7 +22,7 @@ impl TryFrom<String> for Decimal {
 mod tests {
     use super::*;
     use near_sdk::{NearToken, test_utils::VMContextBuilder, testing_env};
-    fn context(actor: &str, payload: Value, time: u64) {
+    pub(super) fn context(actor: &str, payload: Value, time: u64) {
         let mut ctx = VMContextBuilder::new()
             .current_account_id("town.testnet".parse().unwrap())
             .predecessor_account_id(actor.parse().unwrap())
@@ -33,7 +33,7 @@ mod tests {
         ctx.input = serde_json::to_vec(&payload).unwrap().into();
         testing_env!(ctx);
     }
-    fn initialize() -> LivingTown {
+    pub(super) fn initialize() -> LivingTown {
         context("town.testnet", json!({}), 1);
         let digest = config_digest();
         let payload = json!({"owner_account_id":"owner.testnet","merchant_controllers":{"rex":"rex.testnet","luna":"luna.testnet","bolt":"bolt.testnet"},"operator_account_id":"operator.testnet","network_genesis_hash":"11111111111111111111111111111111","config_sha256":digest});
@@ -599,3 +599,7 @@ impl LivingTown {
         self.snapshot(value)
     }
 }
+
+#[cfg(test)]
+#[path = "ownership_adversarial_tests.rs"]
+mod adversarial_tests;

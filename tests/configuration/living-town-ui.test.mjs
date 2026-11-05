@@ -1277,3 +1277,97 @@ test("focus and wallet/journal storage events request revalidation and unsubscri
     else globalThis.window = previous;
   }
 });
+
+test("real journal plus controller survives an unknown wallet handoff, account switch and reload without another signature", async () => {
+  const h = harness(),
+    storage = memoryStorage(),
+    opened = deferred(),
+    released = deferred();
+  h.setStage(1);
+  h.setAccounts([f.player_id]);
+  let signatures = 0,
+    rpcAvailable = false;
+  const step = f.steps[1];
+  const client = {
+    identity,
+    finalized: async () => ({
+      block: {
+        height: String(step.reference_block_height),
+        timestampNs: (
+          BigInt(step.args.command.valid_until_ns) - 500_000_000_000n
+        ).toString(),
+      },
+      getCommand: async (_account, seq) => ({
+        data: { kind: "not_applied", next_sequence: seq },
+      }),
+    }),
+    receipt: async (proof) => {
+      if (!rpcAvailable) throw Error("receipt RPC unavailable");
+      return verifyLivingTownReceipt(step.receipt, proof, async () =>
+        block(step),
+      );
+    },
+  };
+  const makeJournal = () =>
+    new LivingTownTransactions(
+      client,
+      storage,
+      async () => {
+        signatures++;
+        opened.resolve();
+        await released.promise;
+        throw Error("wallet outcome lost");
+      },
+      async (_name, work) => work(),
+      () => id,
+    );
+  let journal = makeJournal();
+  Object.assign(h.port, {
+    prepare: (account, method, args) =>
+      journal.prepare(account, method, { ...args, command: step.args.command }),
+    submit: (id) => journal.submit(id),
+    pending: () => journal.read(),
+    restore: () => journal.restore(),
+    discardPrepared: (id) => journal.discardPrepared(id),
+    recoverHash: (id, hash) => journal.recoverHash(id, hash),
+    reconcile: async () => {
+      const status = await journal.refresh();
+      if (status?.kind === "succeeded") h.setStage(2);
+      return status;
+    },
+  });
+  await h.c.start();
+  const action = h.c.act("create_shop", { name: step.args.name });
+  await opened.promise;
+  await h.c.act("create_shop", { name: step.args.name });
+  h.setAccounts(["other.testnet"]);
+  await h.c.syncAccounts();
+  assert.equal(h.c.state.observation, null);
+  released.resolve();
+  await action;
+  assert.equal(h.c.state.pending.phase, "unknown");
+  assert.equal(h.c.state.observation.shop, null);
+  assert.equal(signatures, 1);
+  const digest = h.c.state.pending.digest;
+  h.c.stop();
+  journal = makeJournal();
+  const restored = new LivingTownController(h.port, () => {});
+  await restored.start();
+  await restored.resumePrepared();
+  await restored.recover(step.transaction_hash);
+  await restored.checkTransaction();
+  assert.equal(restored.state.pending.accountId, f.player_id);
+  assert.equal(restored.state.pending.digest, digest);
+  assert.equal(restored.state.observation.ledger, null);
+  rpcAvailable = true;
+  await restored.checkTransaction();
+  assert.equal(restored.state.pending, null);
+  assert.equal(restored.state.observation.shop, null);
+  assert.equal((await journal.last()).phase, "confirmed");
+  h.setAccounts([f.player_id]);
+  await restored.syncAccounts();
+  assert.equal(restored.state.observation.shop.shop_id, "4");
+  assert.equal(restored.state.observation.ledger.gold.held, "100");
+  assert.equal(signatures, 1);
+  restored.stop();
+});
