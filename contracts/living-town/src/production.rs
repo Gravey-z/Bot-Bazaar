@@ -739,3 +739,7 @@ impl LivingTown {
 #[cfg(test)]
 #[path = "production_lifecycle_tests.rs"]
 mod lifecycle_tests;
+
+#[cfg(test)]
+#[path = "production_fault_tests.rs"]
+mod fault_tests;

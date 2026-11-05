@@ -244,3 +244,116 @@ async fn starts_consume_real_inputs_once_pin_jobs_and_rollback_storage_failure()
     );
     Ok(())
 }
+
+#[tokio::test]
+async fn concurrent_conflicting_starts_admit_one_batch_and_preserve_losing_state() -> Result<()> {
+    near_sdk::testing_env!(near_sdk::test_utils::VMContextBuilder::new().build());
+    let cfg: Value = serde_json::from_str(include_str!("../../config/living-town-v1.json"))?;
+    let digest: String = near_sdk::env::sha256_array(canonical(&cfg).as_bytes())
+        .iter()
+        .map(|b| format!("{b:02x}"))
+        .collect();
+    let worker = near_workspaces::sandbox().await?;
+    let c = worker.dev_deploy(&wasm()?).await?;
+    let a = worker.dev_create_account().await?;
+    c.call("initialize_town").args_json(json!({"owner_account_id":c.id(),"operator_account_id":"operator.testnet","merchant_controllers":{"rex":"rex.testnet","luna":"luna.testnet","bolt":"bolt.testnet"},"network_genesis_hash":"11111111111111111111111111111111","config_sha256":digest})).transact().await?.into_result()?;
+    a.call(c.id(), "register_player")
+        .args_json(json!({"command":command(&c,1).await?}))
+        .transact()
+        .await?
+        .into_result()?;
+    a.call(c.id(), "create_shop")
+        .args_json(json!({"name":"Start Race","command":command(&c,2).await?}))
+        .transact()
+        .await?
+        .into_result()?;
+    for (seq, merchant, item, q, cost) in [
+        (3, "rex", "crystal", "2", "8"),
+        (4, "luna", "herb", "4", "12"),
+    ] {
+        a.call(c.id(),"buy_from_merchant").args_json(json!({"merchant_id":merchant,"item_id":item,"quantity":q,"expected_listing_revision":"1","max_total_price":cost,"command":command(&c,seq).await?})).transact().await?.into_result()?;
+    }
+    let one = json!({"shop_id":"4","recipe_id":"health_potion","recipe_version":"1","quantity":"1","expected_shop_revision":"1","command":command(&c,5).await?});
+    let mut two = one.clone();
+    two["quantity"] = json!("2");
+    let before = view(&c, "get_shop_inventory", json!({"shop_id":"4"})).await?;
+    let (left, right) = tokio::join!(
+        a.call(c.id(), "start_production")
+            .args_json(one.clone())
+            .gas(near_workspaces::types::Gas::from_tgas(100))
+            .transact(),
+        a.call(c.id(), "start_production")
+            .args_json(two.clone())
+            .gas(near_workspaces::types::Gas::from_tgas(100))
+            .transact()
+    );
+    let results = [left?.into_result(), right?.into_result()];
+    ensure!(
+        results.iter().filter(|r| r.is_ok()).count() == 1,
+        "exactly one finalized Start must win"
+    );
+    let winner = results.iter().position(|r| r.is_ok()).unwrap();
+    let q = if winner == 0 { 1u64 } else { 2 };
+    for error in results.iter().filter_map(|r| r.as_ref().err()) {
+        ensure!(error.to_string().contains("LT:E_COMMAND_CONFLICT"));
+    }
+    let result: Value = results[winner].as_ref().unwrap().json()?;
+    assert_eq!(result["data"]["replayed"], false);
+    let after = view(&c, "get_shop_inventory", json!({"shop_id":"4"})).await?;
+    let inventory = &after["data"]["inventory"];
+    assert_eq!(after["data"]["gold"], before["data"]["gold"]);
+    for (item, held) in [
+        ("crystal", 2 - q),
+        ("herb", 4 - 2 * q),
+        ("wood", 0),
+        ("iron", 0),
+        ("health_potion", 0),
+        ("iron_tool", 0),
+    ] {
+        assert_eq!(inventory["held"][item], held.to_string());
+    }
+    assert_eq!(
+        inventory["production_output_reserved"]["health_potion"],
+        q.to_string()
+    );
+    for field in [
+        "listing_reserved",
+        "trade_reserved",
+        "trade_inbound_reserved",
+    ] {
+        assert_eq!(inventory[field], before["data"]["inventory"][field]);
+    }
+    let town = view(&c, "get_town", json!({})).await?;
+    assert_eq!(town["data"]["next_job_id"], "2");
+    assert_eq!(
+        town["data"]["totals"]["recipe_inputs_consumed"]["crystal"],
+        q.to_string()
+    );
+    assert_eq!(
+        town["data"]["totals"]["recipe_inputs_consumed"]["herb"],
+        (2 * q).to_string()
+    );
+    let stable = c.view_state().await?;
+    let replay: Value = a
+        .call(c.id(), "start_production")
+        .args_json(if winner == 0 {
+            one.clone()
+        } else {
+            two.clone()
+        })
+        .gas(near_workspaces::types::Gas::from_tgas(100))
+        .transact()
+        .await?
+        .into_result()?
+        .json()?;
+    assert_eq!(replay["data"]["replayed"], true);
+    assert_eq!(c.view_state().await?, stable);
+    let mut new = one;
+    new["command"] = command(&c, 6).await?;
+    new["expected_shop_revision"] = json!("2");
+    reject(&c, &a, "start_production", new, "LT:E_NO_PRODUCTION_SLOT").await?;
+    println!(
+        "PRODUCTION_FAULT_RACE finalized_calls=2 applied=1 command_conflicts=1 jobs=1 consumed_batches=1 replay_unchanged=true slot_rejection_unchanged=true"
+    );
+    Ok(())
+}
