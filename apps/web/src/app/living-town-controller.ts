@@ -1,4 +1,5 @@
 import type { LivingTownAttempt } from "./living-town-transactions";
+import { LivingTownIdentityError } from "@bot-bazaar/chain";
 import type {
   LivingTownReceiptStatus,
   LivingTownMethod,
@@ -11,6 +12,11 @@ import type {
 export type TownPlayer = ReturnType<typeof livingTownPlayer>;
 export type TownShop = ReturnType<typeof livingTownShop>;
 export type TownLedger = ReturnType<typeof livingTownLedger>;
+export interface TownShopPage {
+  shops: TownShop[];
+  nextCursor: string | null;
+  receivedAt: number;
+}
 export interface TownObservation {
   accountId: string | null;
   town: ReturnType<typeof livingTownTown>;
@@ -29,7 +35,8 @@ export interface TownPort {
   connect(): Promise<readonly { accountId: string }[]>;
   disconnect(): Promise<void>;
   subscribe(changed: () => void): () => void;
-  read(account: string | null): Promise<TownObservation>;
+  read(account: string | null, signal?: AbortSignal): Promise<TownObservation>;
+  browse(cursor: string | null, signal?: AbortSignal): Promise<TownShopPage>;
   prepare(
     account: string,
     method: LivingTownMethod,
@@ -52,6 +59,9 @@ export interface TownState {
   transactionAvailable: boolean;
   message: string;
   ownershipUrl: string | null;
+  directory: TownShopPage | null;
+  directoryBusy: boolean;
+  directoryMessage: string;
 }
 export const initialTownState: TownState = {
   phase: "preview",
@@ -63,6 +73,9 @@ export const initialTownState: TownState = {
   transactionAvailable: false,
   message: "",
   ownershipUrl: null,
+  directory: null,
+  directoryBusy: false,
+  directoryMessage: "",
 };
 export function describeTownAttempt(a: LivingTownAttempt): string {
   const args = a.call.args;
@@ -82,7 +95,14 @@ export class LivingTownController {
   private value: TownState = { ...initialTownState };
   private epoch = 0;
   private stopped = false;
+  private started = false;
+  private preferredAccount: string | null = null;
   private refreshing = false;
+  private accountEpoch = 0;
+  private checkingAccounts = false;
+  private browseEpoch = 0;
+  private readAbort: AbortController | undefined;
+  private browseAbort: AbortController | undefined;
   private unsubscribe?: () => void;
   constructor(
     private readonly port: TownPort | null,
@@ -99,7 +119,8 @@ export class LivingTownController {
     }
   }
   async start(): Promise<void> {
-    if (!this.port || this.stopped) return;
+    if (!this.port || this.stopped || this.started) return;
+    this.started = true;
     this.publish({ phase: "loading" });
     this.unsubscribe = this.port.subscribe(() => {
       void this.syncAccounts();
@@ -117,8 +138,9 @@ export class LivingTownController {
     await this.syncAccounts();
   }
   private select(account: string | null, accounts: readonly string[]): void {
+    this.preferredAccount = account;
     if (account !== this.value.accountId) {
-      this.epoch++;
+      this.invalidateReads();
       this.publish({
         accountId: account,
         accounts,
@@ -128,20 +150,73 @@ export class LivingTownController {
       });
     } else this.publish({ accounts });
   }
+  private invalidateReads(): void {
+    this.epoch++;
+    this.browseEpoch++;
+    this.readAbort?.abort();
+    this.browseAbort?.abort();
+    this.publish({
+      directory: null,
+      directoryBusy: false,
+      directoryMessage: "",
+    });
+  }
+  private beginAccountCheck(): number {
+    const request = ++this.accountEpoch;
+    this.checkingAccounts = true;
+    this.invalidateReads();
+    this.publish({
+      accountId: null,
+      accounts: [],
+      observation: null,
+      ownershipUrl: null,
+      phase: "loading",
+      message: this.value.transactionAvailable ? "" : this.value.message,
+    });
+    return request;
+  }
+  private clearUnverifiedIdentity(): void {
+    this.accountEpoch++;
+    this.preferredAccount = null;
+    this.browseEpoch++;
+    this.browseAbort?.abort();
+    this.publish({
+      phase: "unavailable",
+      accountId: null,
+      accounts: [],
+      observation: null,
+      ownershipUrl: null,
+      directory: null,
+      directoryBusy: false,
+      directoryMessage: "",
+      message:
+        "The town network or deployment could not be verified. Reconnect to the configured town before taking an action.",
+    });
+  }
   async syncAccounts(): Promise<void> {
     if (!this.port || this.stopped) return;
+    const preferred = this.value.accountId ?? this.preferredAccount,
+      request = this.beginAccountCheck();
     try {
       const accounts = (await this.port.accounts()).map((a) => a.accountId);
-      if (this.stopped) return;
+      if (this.stopped || request !== this.accountEpoch) return;
       this.select(
-        accounts.includes(this.value.accountId ?? "")
-          ? this.value.accountId
-          : (accounts[0] ?? null),
+        accounts.includes(preferred ?? "") ? preferred : (accounts[0] ?? null),
         accounts,
       );
-      await this.refresh();
+      try {
+        const pending = await this.port.pending();
+        if (request === this.accountEpoch) this.publish({ pending });
+      } catch {
+        if (request === this.accountEpoch)
+          this.publish({
+            transactionAvailable: false,
+            message:
+              "Saved transaction details are unavailable. New actions remain blocked.",
+          });
+      }
     } catch {
-      this.epoch++;
+      if (this.stopped || request !== this.accountEpoch) return;
       this.publish({
         phase: "unavailable",
         observation: null,
@@ -151,28 +226,39 @@ export class LivingTownController {
         message:
           "Wallet connection could not be checked. Refresh to try again.",
       });
-      await this.refresh();
+    } finally {
+      if (request === this.accountEpoch) {
+        this.checkingAccounts = false;
+        await this.refresh();
+      }
     }
   }
   async connect(): Promise<void> {
-    if (!this.port || this.value.busy) return;
+    if (!this.port || this.value.busy || this.stopped) return;
+    const request = this.beginAccountCheck();
     this.publish({ busy: true, message: "" });
     try {
       const rows = await this.port.connect();
+      if (request !== this.accountEpoch || this.stopped) return;
       this.select(
         rows[0]?.accountId ?? null,
         rows.map((a) => a.accountId),
       );
     } catch {
-      this.publish({ message: "Wallet connection was not completed." });
+      if (request === this.accountEpoch)
+        this.publish({ message: "Wallet connection was not completed." });
     } finally {
+      if (request === this.accountEpoch) this.checkingAccounts = false;
       this.publish({ busy: false });
+      await this.refresh();
     }
-    await this.refresh();
   }
   async disconnect(): Promise<void> {
-    if (!this.port || this.value.busy) return;
-    this.epoch++;
+    if (!this.port || this.value.busy || this.stopped) return;
+    this.accountEpoch++;
+    this.preferredAccount = null;
+    this.checkingAccounts = false;
+    this.invalidateReads();
     this.publish({
       accountId: null,
       accounts: [],
@@ -190,18 +276,32 @@ export class LivingTownController {
     await this.refresh();
   }
   async chooseAccount(account: string): Promise<void> {
-    if (!this.value.accounts.includes(account) || this.value.busy) return;
+    if (
+      this.stopped ||
+      !this.value.accounts.includes(account) ||
+      this.value.busy
+    )
+      return;
+    this.accountEpoch++;
+    this.checkingAccounts = false;
     this.select(account, this.value.accounts);
     await this.refresh();
   }
   async refresh(): Promise<void> {
-    if (!this.port || this.refreshing || this.value.busy || this.stopped)
+    if (
+      !this.port ||
+      this.refreshing ||
+      this.checkingAccounts ||
+      this.value.busy ||
+      this.stopped
+    )
       return;
     this.refreshing = true;
     const epoch = this.epoch,
       account = this.value.accountId;
+    const abort = (this.readAbort = new AbortController());
     try {
-      const observation = await this.port.read(account);
+      const observation = await this.port.read(account, abort.signal);
       if (
         this.stopped ||
         epoch !== this.epoch ||
@@ -217,8 +317,14 @@ export class LivingTownController {
         ownershipUrl: observation.ownershipUrl,
         phase: account ? "ready" : "disconnected",
       });
-    } catch {
-      if (epoch === this.epoch)
+    } catch (error) {
+      if (
+        epoch === this.epoch &&
+        !this.stopped &&
+        error instanceof LivingTownIdentityError
+      ) {
+        this.clearUnverifiedIdentity();
+      } else if (epoch === this.epoch)
         this.publish({
           phase: "unavailable",
           observation: this.value.observation
@@ -227,8 +333,48 @@ export class LivingTownController {
           message: readFailureMessage,
         });
     } finally {
+      if (this.readAbort === abort) this.readAbort = undefined;
       this.refreshing = false;
       if (epoch !== this.epoch && !this.stopped) void this.refresh();
+    }
+  }
+  async browseShops(restart = false): Promise<void> {
+    if (
+      !this.port ||
+      this.stopped ||
+      this.checkingAccounts ||
+      this.value.directoryBusy
+    )
+      return;
+    const cursor = restart ? null : (this.value.directory?.nextCursor ?? null);
+    if (!restart && this.value.directory && !cursor) return;
+    const epoch = ++this.browseEpoch;
+    const abort = (this.browseAbort = new AbortController());
+    this.publish({
+      directoryBusy: true,
+      directoryMessage: "",
+      ...(restart ? { directory: null } : {}),
+    });
+    try {
+      const directory = await this.port.browse(cursor, abort.signal);
+      if (epoch !== this.browseEpoch || this.stopped) return;
+      this.publish({ directory });
+    } catch (error) {
+      if (
+        epoch === this.browseEpoch &&
+        error instanceof LivingTownIdentityError
+      ) {
+        this.invalidateReads();
+        this.clearUnverifiedIdentity();
+      } else if (epoch === this.browseEpoch)
+        this.publish({
+          directory: null,
+          directoryMessage:
+            "The shop directory is unavailable or its snapshot expired. Start again to read a fresh page.",
+        });
+    } finally {
+      if (epoch === this.browseEpoch) this.publish({ directoryBusy: false });
+      if (this.browseAbort === abort) this.browseAbort = undefined;
     }
   }
   get canTransact(): boolean {
@@ -280,6 +426,7 @@ export class LivingTownController {
         account !== this.value.accountId
       ) {
         await this.port!.discardPrepared(attempt.id);
+        this.publish({ pending: await this.port!.pending() });
         return;
       }
       await this.port!.submit(attempt.id);
@@ -308,13 +455,17 @@ export class LivingTownController {
   async checkTransaction(): Promise<void> {
     if (!this.port || this.value.busy || this.stopped) return;
     this.epoch++;
+    const originalAccount = this.value.pending?.accountId;
     this.publish({ busy: true });
     try {
       const status = await this.port.reconcile();
       this.publish({ pending: await this.port.pending() });
       if (status?.kind === "succeeded")
         this.publish({
-          message: "Transaction confirmed. Your shop data will refresh.",
+          message:
+            originalAccount && originalAccount !== this.value.accountId
+              ? `Transaction confirmed for ${originalAccount}. The selected player's data will refresh.`
+              : "Transaction confirmed. Your shop data will refresh.",
         });
       else if (status?.kind === "failed")
         this.publish({
@@ -356,10 +507,13 @@ export class LivingTownController {
       a.phase !== "prepared" ||
       a.accountId !== this.value.accountId ||
       this.value.busy ||
+      !this.value.transactionAvailable ||
       this.value.phase !== "ready" ||
       this.value.observation?.stale ||
       this.value.observation?.town.paused ||
-      !this.value.observation?.ownershipKnown
+      !this.value.observation?.ownershipKnown ||
+      this.now() < this.value.observation.receivedAt ||
+      this.now() - this.value.observation.receivedAt > 30000
     )
       return;
     this.publish({ busy: true });
@@ -392,7 +546,8 @@ export class LivingTownController {
   }
   stop(): void {
     this.stopped = true;
-    this.epoch++;
+    this.accountEpoch++;
+    this.invalidateReads();
     this.unsubscribe?.();
   }
 }

@@ -198,6 +198,77 @@
         </article>
       </div>
     </section>
+    <section
+      class="shop-directory"
+      aria-labelledby="directory-title"
+      [attr.aria-busy]="state().directoryBusy"
+    >
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">BEYOND THE SQUARE</p>
+          <h2 id="directory-title">Player shops<span>.</span></h2>
+          <p>
+            Every player's shop has a place here. Browsing does not change your
+            manager.
+          </p>
+        </div>
+        <button
+          class="quiet"
+          type="button"
+          [disabled]="
+            screen.setup.kind !== 'ready' ||
+            state().directoryBusy ||
+            state().phase === 'loading'
+          "
+          (click)="screen.controller.browseShops(true)"
+        >
+          {{
+            state().directoryBusy
+              ? "Loading shops..."
+              : state().directory
+                ? "Start again"
+                : "Browse player shops"
+          }}
+        </button>
+      </div>
+      @if (state().directoryMessage) {
+        <p role="status">{{ state().directoryMessage }}</p>
+      }
+      @if (state().directory; as directory) {
+        <p class="muted">
+          Read-only snapshot from
+          {{ directory.receivedAt | date: "shortTime" }}. Each page checks up to
+          12 shop IDs.
+        </p>
+        <ul class="directory-shops">
+          @for (other of directory.shops; track other.shop_id) {
+            <li>
+              <strong>{{ other.name }}</strong
+              ><span>Shop #{{ other.shop_id }}</span>
+              @if (other.owner.kind === "player") {
+                <span>{{ other.owner.account_id }}</span>
+              }
+            </li>
+          } @empty {
+            <li>No player shops in this page.</li>
+          }
+        </ul>
+        @if (directory.nextCursor) {
+          <button
+            class="quiet"
+            type="button"
+            [disabled]="state().directoryBusy"
+            (click)="screen.controller.browseShops()"
+          >
+            Next page
+          </button>
+        } @else {
+          <p class="muted">End of this snapshot.</p>
+        }
+      } @else if (screen.setup.kind !== "ready") {
+        <p class="muted">Player shops appear when a town is connected.</p>
+      }
+    </section>
     @if (selected(); as listing) {
       <section
         class="purchase-review"

@@ -148,6 +148,7 @@ export class LivingTownComponent implements OnInit, OnDestroy {
         this.quantity.set("1");
         this.shopName.set("");
         this.renameName.set("");
+        this.recoveryHash.set("");
         this.tab.set("overview");
       }
     });

@@ -105,6 +105,7 @@ export {
 export type { LivingTownCall, LivingTownMethod } from "./living-town/calls.js";
 export {
   LivingTownClient,
+  LivingTownIdentityError,
   FinalizedLivingTownReader,
   parseLivingTownIdentity,
   livingTownPageArgs,

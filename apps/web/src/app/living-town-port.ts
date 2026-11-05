@@ -1,5 +1,6 @@
 import {
   LivingTownClient,
+  FinalizedLivingTownReader,
   createRpcTransport,
   livingTownReadEnvelope,
   livingTownTown,
@@ -17,6 +18,7 @@ import type {
   TownPort,
   TownObservation,
   TownShop,
+  TownShopPage,
 } from "./living-town-controller";
 import type { WalletStorage } from "./wallet-context";
 import { createWalletPort } from "./wallet-adapter";
@@ -80,6 +82,22 @@ export function createLivingTownPort(
 ): TownPort {
   const rpc = createRpcTransport(profile.public.rpcUrl, fetcher),
     client = new LivingTownClient(profile.identity, rpc);
+  // One immutable deployment per port/document. A new profile gets a new port
+  // and its own journal; outstanding work never changes signing targets.
+  profile = {
+    ...profile,
+    public: Object.freeze({ ...profile.public }),
+    identity: client.identity,
+  };
+  const scopedFetch =
+    (signal?: AbortSignal): typeof fetch =>
+    (input, init) =>
+      fetcher(input, {
+        ...init,
+        signal: signal
+          ? AbortSignal.any([signal, ...(init?.signal ? [init.signal] : [])])
+          : (init?.signal ?? null),
+      });
   let wallet: Promise<PortWallet> | undefined;
   const getWallet = (): Promise<PortWallet> =>
     (wallet ??= loadWallet().catch((error) => {
@@ -100,6 +118,7 @@ export function createLivingTownPort(
   async function ownership(
     account: string,
     shop: TownShop,
+    proofClient = client,
   ): Promise<string | null> {
     const k = key(account, shop);
     if (verified.has(k)) return verified.get(k)!;
@@ -127,7 +146,7 @@ export function createLivingTownPort(
         proof.call.args.command.sequence !== shop.ownership_command_sequence
       )
         return null;
-      const status = await client.receipt(proof);
+      const status = await proofClient.receipt(proof);
       if (
         status.kind !== "succeeded" ||
         status.result.data.outcome.kind !== "shop_created" ||
@@ -151,6 +170,18 @@ export function createLivingTownPort(
     if (!unsubscribe && changed) unsubscribe = w.subscribe(changed);
     return w;
   };
+  let directory:
+    | {
+        reader: Awaited<ReturnType<LivingTownClient["finalized"]>>;
+        nextId: bigint;
+        upperId: bigint;
+        revision: string;
+        startedAt: number;
+        cursor: string | null;
+        sessionId: string;
+      }
+    | undefined;
+  let directoryEpoch = 0;
   return {
     async accounts() {
       return (await initializeWallet()).accounts();
@@ -163,19 +194,37 @@ export function createLivingTownPort(
     },
     subscribe(callback) {
       changed = callback;
+      const onStorage = (event: StorageEvent): void => {
+        if (
+          event.key === null ||
+          event.key === "meteor-wallet:meteor-account-data" ||
+          event.key.startsWith("bot-bazaar:living-town:journal:") ||
+          event.key.startsWith("bot-bazaar:wallet:")
+        )
+          callback();
+      };
+      globalThis.window?.addEventListener("focus", callback);
+      globalThis.window?.addEventListener("storage", onStorage);
       return () => {
+        globalThis.window?.removeEventListener("focus", callback);
+        globalThis.window?.removeEventListener("storage", onStorage);
         unsubscribe?.();
         unsubscribe = undefined;
         changed = undefined;
       };
     },
-    async read(account): Promise<TownObservation> {
+    async read(account, signal): Promise<TownObservation> {
+      const readFetch = scopedFetch(signal);
+      const readClient = new LivingTownClient(
+        profile.identity,
+        createRpcTransport(profile.public.rpcUrl, readFetch),
+      );
       if (account === null) {
         try {
           const r = livingTownReadEnvelope(livingTownTown)(
             await readProjection(
               new URL("/api/town", profile.public.workerUrl),
-              fetcher,
+              readFetch,
             ),
           );
           if (
@@ -207,7 +256,7 @@ export function createLivingTownPort(
           /* A configured spectator can also use verified finalized public chain reads. */
         }
       }
-      const reader = await client.finalized(),
+      const reader = await readClient.finalized(),
         town = await reader.getTown(),
         player = account ? await reader.getPlayer(account) : null;
       const listings = await reader.getListings({
@@ -248,7 +297,77 @@ export function createLivingTownPort(
         stale: false,
         ownershipKnown: account !== null,
         source: "chain",
-        ownershipUrl: account && shop ? await ownership(account, shop) : null,
+        ownershipUrl:
+          account && shop ? await ownership(account, shop, readClient) : null,
+      };
+    },
+    async browse(cursor, signal): Promise<TownShopPage> {
+      const epoch = ++directoryEpoch;
+      const browseRpc = createRpcTransport(
+        profile.public.rpcUrl,
+        scopedFetch(signal),
+      );
+      let session = directory;
+      if (cursor === null) {
+        const reader = await new LivingTownClient(
+          profile.identity,
+          browseRpc,
+        ).finalized();
+        const town = await reader.getTown();
+        const upperId = BigInt(town.data.next_shop_id);
+        if (upperId > BigInt(town.data.limits.max_players) + 4n)
+          throw new Error("Shop directory capacity mismatch");
+        session = {
+          reader,
+          nextId: 1n,
+          upperId,
+          revision: town.market_revision,
+          startedAt: Date.now(),
+          cursor: null,
+          sessionId: crypto.randomUUID(),
+        };
+      } else if (!session || cursor !== session.cursor) {
+        throw new Error("Shop directory cursor mismatch");
+      }
+      if (
+        !session ||
+        Date.now() < session.startedAt ||
+        Date.now() - session.startedAt > 30000
+      )
+        throw new Error("Shop directory snapshot expired");
+      // Reuse the admitted finalized block with a new cancellable transport.
+      const reader = new FinalizedLivingTownReader(
+        browseRpc,
+        profile.identity,
+        session.reader.block,
+      );
+      const end =
+        session.nextId + 12n < session.upperId
+          ? session.nextId + 12n
+          : session.upperId;
+      const ids: string[] = [];
+      for (let id = session.nextId; id < end; id++) ids.push(id.toString());
+      const rows = await Promise.all(ids.map((id) => reader.getShop(id)));
+      if (
+        signal?.aborted ||
+        epoch !== directoryEpoch ||
+        Date.now() < session.startedAt ||
+        Date.now() - session.startedAt > 30000
+      )
+        throw new Error("Shop directory cancelled or expired");
+      if (rows.some((row) => row.market_revision !== session.revision))
+        throw new Error("Shop directory revision mismatch");
+      const nextCursor =
+        end < session.upperId
+          ? `${session.sessionId}:${reader.block.hash}:${end}`
+          : null;
+      directory = { ...session, nextId: end, cursor: nextCursor };
+      return {
+        shops: rows.flatMap((row) =>
+          row.data?.owner.kind === "player" ? [row.data] : [],
+        ),
+        nextCursor,
+        receivedAt: session.startedAt,
       };
     },
     async prepare(account, method, args) {

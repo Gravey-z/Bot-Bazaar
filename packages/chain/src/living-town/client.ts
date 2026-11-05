@@ -44,6 +44,10 @@ export const parseLivingTownIdentity = object({
   controllers: object({ rex: accountId, luna: accountId, bolt: accountId }),
 });
 export type LivingTownIdentity = ReturnType<typeof parseLivingTownIdentity>;
+export class LivingTownIdentityError extends Error {}
+function identityCheck(value: unknown, message: string): asserts value {
+  if (!value) throw new LivingTownIdentityError(message);
+}
 export const livingTownPageArgs = object({
   after_id: nullable(parseU64),
   limit: bounded(1n, 50n),
@@ -159,8 +163,14 @@ export class FinalizedLivingTownReader {
       method_name: method,
       args_base64: encodeArguments(args),
     });
+    const value = decodeLivingTownBytes(r["result"]);
+    identityCheck(
+      canonicalLivingTownJson(record(value)["deployment"]) ===
+        canonicalLivingTownJson(this.identity.deployment),
+      "V2 snapshot deployment mismatch",
+    );
     const result = decodeLivingTownSnapshot(
-      decodeLivingTownBytes(r["result"]),
+      value,
       this.identity.deployment,
       decode,
     );
@@ -366,13 +376,13 @@ export class LivingTownClient {
   }
   private async network() {
     const s = record(await this.rpc("status", {}));
-    check(
+    identityCheck(
       s["chain_id"] === "testnet" &&
         record(s["sync_info"])["syncing"] === false,
       "V2 network unavailable/mismatched",
     );
     const cfg = record(await this.rpc("EXPERIMENTAL_genesis_config", []));
-    check(cfg["chain_id"] === "testnet", "V2 genesis network mismatch");
+    identityCheck(cfg["chain_id"] === "testnet", "V2 genesis network mismatch");
     const height = rpcU64(cfg["genesis_height"]);
     check(
       BigInt(height) <= BigInt(Number.MAX_SAFE_INTEGER),
@@ -381,7 +391,7 @@ export class LivingTownClient {
     const genesis = record(
       record(await this.rpc("block", { block_id: Number(height) }))["header"],
     );
-    check(
+    identityCheck(
       rpcU64(genesis["height"]) === height &&
         hash32(genesis["hash"]) === this.identity.deployment.genesis_hash,
       "V2 genesis mismatch",
@@ -407,14 +417,14 @@ export class LivingTownClient {
   private async at(block: FinalizedBlock) {
     const r = new FinalizedLivingTownReader(this.rpc, this.identity, block);
     const account = await r.query("view_account");
-    check(
+    identityCheck(
       account["code_hash"] === this.identity.codeHash,
       "V2 deployed code mismatch",
     );
     const f = await r.getFoundation(),
       d = f.data,
       i = this.identity;
-    check(
+    identityCheck(
       d.owner_account_id === i.ownerId &&
         d.operator_account_id === i.operatorId &&
         canonicalLivingTownJson(d.merchant_controllers) ===

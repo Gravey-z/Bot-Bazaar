@@ -1035,3 +1035,35 @@ footer a {
     transition: none;
   }
 }
+.shop-directory {
+  margin-top: 32px;
+  padding: 24px;
+  border: 1px solid #d9d5c8;
+  border-radius: 16px;
+}
+.shop-directory .section-heading {
+  flex-wrap: wrap;
+  gap: 16px;
+}
+.shop-directory .section-heading p {
+  text-align: left;
+  max-width: 40ch;
+}
+.directory-shops {
+  padding: 0;
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 210px), 1fr));
+  gap: 12px;
+}
+.directory-shops li {
+  display: grid;
+  gap: 6px;
+  padding: 16px;
+  border: 1px solid #d9d5c8;
+  border-radius: 10px;
+  overflow-wrap: anywhere;
+}
+.directory-shops span {
+  font-size: 12px;
+}

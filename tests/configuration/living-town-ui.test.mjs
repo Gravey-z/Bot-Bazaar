@@ -52,7 +52,7 @@ const verified = await Promise.all(
 const result = await build({
   stdin: {
     contents:
-      "export * from './apps/web/src/app/living-town-controller.ts'; export * from './apps/web/src/app/living-town-port.ts'; export * from './apps/web/src/app/living-town-profile.ts';",
+      "export * from './apps/web/src/app/living-town-controller.ts'; export * from './apps/web/src/app/living-town-port.ts'; export * from './apps/web/src/app/living-town-profile.ts'; export * from './apps/web/src/app/living-town-transactions.ts'; export {LivingTownIdentityError} from './packages/chain/dist/index.js';",
     resolveDir: process.cwd(),
   },
   bundle: true,
@@ -88,6 +88,8 @@ const {
   loadLivingTownSetup,
   createLivingTownPort,
   townTransactionUrl,
+  LivingTownIdentityError,
+  LivingTownTransactions,
 } = await import(
   `data:text/javascript;base64,${Buffer.from(result.outputFiles[0].contents).toString("base64")}`
 );
@@ -520,7 +522,7 @@ test("fresh web profile is explicit and bounded; absent config opens preview wit
   );
 });
 
-function receiptRpc() {
+function receiptRpc(transform = ({ data }) => data) {
   return async (_url, options) => {
     const { id, method, params: p } = JSON.parse(options.body),
       last = f.steps.at(-1);
@@ -563,9 +565,18 @@ function receiptRpc() {
               ledger: copy(body(f.steps[3]).data.outcome.buyer),
             },
           };
-        else if (p.method_name === "get_shop")
+        else if (p.method_name === "get_shop") {
           snapshot = copy(f.final_views.get_shop);
-        else if (p.method_name === "get_shop_inventory")
+          const args = JSON.parse(
+            Buffer.from(p.args_base64, "base64").toString(),
+          );
+          if (args.shop_id !== "4")
+            snapshot.data = copy(
+              f.initial_town.data.npc_shops.find(
+                (s) => s.shop_id === args.shop_id,
+              ) ?? null,
+            );
+        } else if (p.method_name === "get_shop_inventory")
           snapshot = copy(f.final_views.get_shop_inventory);
         else if (p.method_name === "get_listings")
           snapshot = {
@@ -590,6 +601,7 @@ function receiptRpc() {
         };
       }
     } else throw Error("Unexpected RPC " + method);
+    data = transform({ method, params: p, data });
     return new Response(JSON.stringify({ jsonrpc: "2.0", id, result: data }));
   };
 }
@@ -783,4 +795,485 @@ test("spectators can read the town when wallet restoration is unavailable", asyn
   assert.equal(h.calls.sent.length, 0);
   assert.equal(h.c.canTransact, false);
   h.c.stop();
+});
+
+const deferred = () => {
+  let resolve;
+  const promise = new Promise((r) => {
+    resolve = r;
+  });
+  return { promise, resolve };
+};
+const memoryStorage = () => {
+  const map = new Map();
+  return {
+    map,
+    getItem: (k) => map.get(k) ?? null,
+    setItem: (k, v) => map.set(k, v),
+    removeItem: (k) => map.delete(k),
+  };
+};
+const sandboxProfile = () => ({
+  ...copy(named),
+  public: { ...named.public, contractId: f.contract_id },
+  identity: copy(identity),
+});
+const noWallet = async () => {
+  throw Error("Unexpected wallet request");
+};
+
+test("reconnect and fresh controller restore the same finalized shop without signing or granting again", async () => {
+  const h = harness();
+  h.setStage(4);
+  h.setAccounts([f.player_id]);
+  await h.c.start();
+  const original = copy(h.c.state.observation);
+  await h.c.disconnect();
+  assert.equal(h.c.state.observation.ledger, null);
+  await h.c.connect();
+  assert.deepEqual(h.c.state.observation, original);
+  h.c.stop();
+  const restored = new LivingTownController(h.port, () => {});
+  await restored.start();
+  assert.equal(restored.state.observation.shop.shop_id, "4");
+  assert.equal(restored.state.observation.ledger.gold.held, "96");
+  assert.deepEqual(h.calls.sent, []);
+  restored.stop();
+});
+
+test("wallet events clear the old manager immediately and the newest account check wins", async () => {
+  const h = harness();
+  h.setStage(4);
+  h.setAccounts([f.player_id]);
+  await h.c.start();
+  const old = deferred(),
+    latest = deferred();
+  let checks = 0;
+  h.port.accounts = () => (++checks === 1 ? old.promise : latest.promise);
+  const first = h.c.syncAccounts();
+  assert.equal(h.c.state.observation, null);
+  assert.equal(h.c.state.ownershipUrl, null);
+  assert.equal(h.c.canTransact, false);
+  const second = h.c.syncAccounts();
+  latest.resolve([{ accountId: "other.testnet" }]);
+  await second;
+  assert.equal(h.c.state.accountId, "other.testnet");
+  assert.equal(h.c.state.observation.ledger, null);
+  old.resolve([{ accountId: f.player_id }]);
+  await first;
+  assert.equal(h.c.state.accountId, "other.testnet");
+  assert.equal(h.c.state.observation.shop, null);
+  h.c.stop();
+});
+
+test("late account checks cannot undo disconnect or restore a destroyed document", async () => {
+  const h = harness();
+  h.setStage(4);
+  h.setAccounts([f.player_id]);
+  await h.c.start();
+  const wait = deferred();
+  h.port.accounts = () => wait.promise;
+  const checking = h.c.syncAccounts();
+  await h.c.disconnect();
+  wait.resolve([{ accountId: f.player_id }]);
+  await checking;
+  assert.equal(h.c.state.accountId, null);
+  assert.equal(h.c.state.observation.ledger, null);
+  const next = deferred();
+  h.port.accounts = () => next.promise;
+  const pending = h.c.syncAccounts();
+  h.c.stop();
+  const stopped = copy(h.c.state);
+  next.resolve([{ accountId: f.player_id }]);
+  await pending;
+  assert.deepEqual(h.c.state, stopped);
+});
+
+test("account switch aborts old reads and late inventory cannot enter another player's manager", async () => {
+  const h = harness();
+  h.setStage(4);
+  h.setAccounts([f.player_id, "other.testnet"]);
+  await h.c.start();
+  const read = h.port.read,
+    old = await read(f.player_id),
+    wait = deferred();
+  let oldSignal;
+  h.port.read = async (_account, signal) => {
+    oldSignal = signal;
+    return wait.promise;
+  };
+  const refreshing = h.c.refresh();
+  await h.c.chooseAccount("other.testnet");
+  assert(oldSignal.aborted);
+  assert.equal(h.c.state.observation, null);
+  const restored = deferred();
+  h.onState((s) => {
+    if (s.accountId === "other.testnet" && s.observation) restored.resolve();
+  });
+  h.port.read = read;
+  wait.resolve(old);
+  await refreshing;
+  await restored.promise;
+  assert.equal(h.c.state.observation.accountId, "other.testnet");
+  assert.equal(h.c.state.observation.ledger, null);
+  await h.c.chooseAccount(f.player_id);
+  assert.equal(h.c.state.observation.ledger.gold.held, "96");
+  assert.deepEqual(h.calls.sent, []);
+  h.c.stop();
+});
+
+test("network and deployment mismatch remove owned projections while retaining the original pending command", async () => {
+  for (const reason of ["network", "genesis", "code hash", "config"]) {
+    const h = harness();
+    h.setStage(1);
+    h.setAccounts([f.player_id]);
+    await h.port.prepare(f.player_id, "create_shop", { name: "Original Shop" });
+    await h.c.start();
+    const pending = copy(h.c.state.pending);
+    h.port.read = async () => {
+      throw new LivingTownIdentityError(reason);
+    };
+    await h.c.refresh();
+    assert.equal(h.c.state.accountId, null);
+    assert.equal(h.c.state.observation, null);
+    assert.equal(h.c.state.ownershipUrl, null);
+    assert.deepEqual(h.c.state.pending, pending);
+    await h.c.resumePrepared();
+    assert.deepEqual(h.calls.sent, []);
+    h.c.stop();
+  }
+});
+
+test("another account cannot resume the original request and confirmation cannot give it the original owner's shop", async () => {
+  const h = harness();
+  h.setStage(1);
+  h.setAccounts([f.player_id]);
+  await h.port.prepare(f.player_id, "create_shop", { name: "Original Shop" });
+  await h.c.start();
+  h.setAccounts(["other.testnet"]);
+  await h.c.syncAccounts();
+  await h.c.resumePrepared();
+  assert.deepEqual(h.calls.sent, []);
+  await h.c.checkTransaction();
+  assert.match(
+    h.c.state.message,
+    new RegExp(f.player_id.replaceAll(".", "\\.")),
+  );
+  assert.equal(h.c.state.observation.shop, null);
+  assert.equal(h.c.state.observation.ledger, null);
+  h.setAccounts([f.player_id]);
+  await h.c.syncAccounts();
+  assert.equal(h.c.state.observation.shop.shop_id, "4");
+  assert.deepEqual(h.calls.sent, []);
+  h.c.stop();
+});
+
+test("prepared recovery requires a fresh observation and wallet events reread another tab's journal", async () => {
+  const h = harness();
+  h.setStage(1);
+  h.setAccounts([f.player_id]);
+  await h.c.start();
+  await h.port.prepare(f.player_id, "create_shop", { name: "Original Shop" });
+  await h.c.syncAccounts();
+  assert(h.c.state.pending);
+  h.advanceClock(30001);
+  await h.c.resumePrepared();
+  assert.deepEqual(h.calls.sent, []);
+  await h.c.refresh();
+  await h.c.resumePrepared();
+  assert.equal(h.calls.sent.length, 1);
+  h.c.stop();
+});
+
+test("pending journals isolate fresh deployments and fail closed on same-address identity replacement", async () => {
+  const storage = memoryStorage();
+  const make = (i) =>
+    new LivingTownTransactions(
+      {
+        identity: i,
+        finalized: async () => ({
+          block: {
+            height: "1",
+            timestampNs: (
+              BigInt(f.steps[1].args.command.valid_until_ns) - 1n
+            ).toString(),
+          },
+          getCommand: async (_account, seq) => ({
+            data: { kind: "not_applied", next_sequence: seq },
+          }),
+        }),
+      },
+      storage,
+      noWallet,
+      async (_key, work) => work(),
+      () => id,
+    );
+  const first = make(identity);
+  await first.prepare(f.player_id, "create_shop", f.steps[1].args);
+  const otherIdentity = copy(identity);
+  otherIdentity.deployment.contract_id = "another-town.testnet";
+  const other = make(otherIdentity);
+  assert.equal(await other.restore(), null);
+  await other.prepare("other.testnet", "create_shop", f.steps[1].args);
+  assert.equal((await first.restore()).accountId, f.player_id);
+  assert.equal((await other.restore()).accountId, "other.testnet");
+  const before = [...storage.map];
+  for (const change of [
+    (i) => (i.codeHash = "11111111111111111111111111111111"),
+    (i) => (i.deployment.config_version = "2"),
+  ]) {
+    const replacement = copy(identity);
+    change(replacement);
+    await assert.rejects(async () => make(replacement).restore());
+  }
+  assert.deepEqual([...storage.map], before);
+});
+
+test("a port freezes its deployment and propagates read cancellation into RPC fetch", async () => {
+  const profile = sandboxProfile();
+  const port = createLivingTownPort(
+    profile,
+    memoryStorage(),
+    receiptRpc(),
+    noWallet,
+  );
+  profile.public.rpcUrl = "https://unreviewed.example";
+  profile.identity.codeHash = "11111111111111111111111111111111";
+  const value = await port.read(f.player_id);
+  assert.equal(value.ledger.gold.held, "96");
+  let signalSeen;
+  const abort = new AbortController();
+  const cancellable = createLivingTownPort(
+    sandboxProfile(),
+    memoryStorage(),
+    async (_url, options) => {
+      signalSeen = options.signal;
+      return new Promise((_resolve, reject) =>
+        signalSeen.addEventListener("abort", () => reject(Error("cancelled")), {
+          once: true,
+        }),
+      );
+    },
+    noWallet,
+  );
+  const pending = cancellable.read(f.player_id, abort.signal);
+  abort.abort();
+  await assert.rejects(pending);
+  assert(signalSeen.aborted);
+});
+
+test("actual RPC admission rejects a changed network, genesis, code hash and snapshot deployment", async () => {
+  for (const mutate of [
+    ({ method, data }) =>
+      method === "status" ? { ...data, chain_id: "mainnet" } : data,
+    ({ method, params, data }) =>
+      method === "block" && params.block_id === 7
+        ? {
+            header: {
+              ...data.header,
+              hash: f.steps[0].block.header.hash,
+            },
+          }
+        : data,
+    ({ method, params, data }) =>
+      method === "query" && params.request_type === "view_account"
+        ? { ...data, code_hash: "11111111111111111111111111111111" }
+        : data,
+    ({ method, params, data }) => {
+      if (method === "query" && params.method_name === "get_town") {
+        const snapshot = JSON.parse(Buffer.from(data.result).toString());
+        snapshot.deployment.config_version = "2";
+        return { ...data, result: [...Buffer.from(JSON.stringify(snapshot))] };
+      }
+      return data;
+    },
+  ]) {
+    const port = createLivingTownPort(
+      sandboxProfile(),
+      memoryStorage(),
+      receiptRpc(mutate),
+      noWallet,
+    );
+    await assert.rejects(port.read(f.player_id), LivingTownIdentityError);
+  }
+});
+
+function directoryRpc() {
+  const calls = [];
+  const rpc = receiptRpc(({ method, params, data }) => {
+    if (method !== "query" || params.request_type !== "call_function")
+      return data;
+    const args = JSON.parse(
+      Buffer.from(params.args_base64, "base64").toString(),
+    );
+    calls.push({ method: params.method_name, block: params.block_id, args });
+    const snapshot = JSON.parse(Buffer.from(data.result).toString());
+    if (params.method_name === "get_town") snapshot.data.next_shop_id = "1004";
+    if (params.method_name === "get_player") snapshot.data.shop_id = "1003";
+    if (params.method_name === "get_shop" && BigInt(args.shop_id) >= 4n) {
+      snapshot.data = {
+        ...copy(f.final_views.get_shop.data),
+        shop_id: args.shop_id,
+      };
+    }
+    return { ...data, result: [...Buffer.from(JSON.stringify(snapshot))] };
+  });
+  return { rpc, calls };
+}
+
+test("bounded read-only directory pins pages and ownership restoration is independent of facade or page slots", async () => {
+  const { rpc, calls } = directoryRpc();
+  const port = createLivingTownPort(
+    sandboxProfile(),
+    memoryStorage(),
+    rpc,
+    noWallet,
+  );
+  const first = await port.browse(null);
+  assert.deepEqual(
+    first.shops.map((s) => s.shop_id),
+    ["4", "5", "6", "7", "8", "9", "10", "11", "12"],
+  );
+  assert(first.nextCursor);
+  assert.equal(calls.filter((c) => c.method === "get_shop").length, 12);
+  const second = await port.browse(first.nextCursor);
+  assert.deepEqual(
+    second.shops.map((s) => s.shop_id),
+    Array.from({ length: 12 }, (_, i) => String(i + 13)),
+  );
+  assert.equal(new Set(calls.map((c) => c.block)).size, 1);
+  assert.equal(
+    calls.filter((c) => c.method === "get_shop_inventory").length,
+    0,
+  );
+  await assert.rejects(port.browse(first.nextCursor), /cursor mismatch/);
+  const owner = await port.read(f.player_id);
+  assert.equal(owner.shop.shop_id, "1003");
+  assert.equal(owner.ledger.gold.held, "96");
+  assert.equal(owner.ledger.actor.account_id, f.player_id);
+  const newPort = createLivingTownPort(
+    sandboxProfile(),
+    memoryStorage(),
+    rpc,
+    noWallet,
+  );
+  await assert.rejects(newPort.browse(second.nextCursor), /cursor mismatch/);
+  await newPort.browse(null);
+  await assert.rejects(newPort.browse(first.nextCursor), /cursor mismatch/);
+  const now = Date.now;
+  try {
+    Date.now = () => now() + 31000;
+    await assert.rejects(port.browse(second.nextCursor), /expired/);
+  } finally {
+    Date.now = now;
+  }
+});
+
+test("directory completion, cancellation and expiry never replace the owner's inventory", async () => {
+  const h = harness();
+  h.setStage(4);
+  h.setAccounts([f.player_id]);
+  await h.c.start();
+  const owner = copy(h.c.state.observation),
+    wait = deferred();
+  let signal;
+  h.port.browse = (_cursor, s) => {
+    signal = s;
+    return wait.promise;
+  };
+  const browsing = h.c.browseShops();
+  h.setAccounts(["other.testnet"]);
+  await h.c.syncAccounts();
+  assert(signal.aborted);
+  wait.resolve({
+    shops: [owner.shop],
+    nextCursor: null,
+    receivedAt: Date.now(),
+  });
+  await browsing;
+  assert.equal(h.c.state.directory, null);
+  assert.equal(h.c.state.observation.ledger, null);
+  h.port.browse = async () => {
+    throw Error("expired");
+  };
+  await h.c.browseShops(true);
+  assert.match(h.c.state.directoryMessage, /expired/);
+  assert.equal(h.c.state.observation.ledger, null);
+  h.c.stop();
+  const port = createLivingTownPort(
+    sandboxProfile(),
+    memoryStorage(),
+    receiptRpc(),
+    noWallet,
+  );
+  const only = await port.browse(null);
+  assert.equal(only.nextCursor, null);
+  assert.equal(only.shops.length, 1);
+});
+
+test("explicit account selection wins an overlapping journal check without leaving reads blocked", async () => {
+  const h = harness();
+  h.setStage(4);
+  h.setAccounts([f.player_id, "other.testnet"]);
+  await h.c.start();
+  const wait = deferred(),
+    entered = deferred();
+  h.port.pending = async () => {
+    entered.resolve();
+    return wait.promise;
+  };
+  const checking = h.c.syncAccounts();
+  await entered.promise;
+  await h.c.chooseAccount("other.testnet");
+  assert.equal(h.c.state.observation.accountId, "other.testnet");
+  wait.resolve(null);
+  await checking;
+  assert.equal(h.c.state.accountId, "other.testnet");
+  assert.equal(h.c.state.phase, "ready");
+  h.c.stop();
+});
+
+test("focus and wallet/journal storage events request revalidation and unsubscribe removes listeners", async () => {
+  const previous = globalThis.window,
+    target = new EventTarget();
+  globalThis.window = target;
+  let changed = 0,
+    unsubscribed = 0,
+    walletChanged;
+  try {
+    const port = createLivingTownPort(
+      sandboxProfile(),
+      memoryStorage(),
+      receiptRpc(),
+      async () => ({
+        accounts: async () => [],
+        subscribe: (cb) => {
+          walletChanged = cb;
+          return () => {
+            unsubscribed++;
+          };
+        },
+      }),
+    );
+    const stop = port.subscribe(() => {
+      changed++;
+    });
+    await port.accounts();
+    target.dispatchEvent(new Event("focus"));
+    walletChanged();
+    const storage = (key) =>
+      target.dispatchEvent(Object.assign(new Event("storage"), { key }));
+    storage("meteor-wallet:meteor-account-data");
+    storage("bot-bazaar:living-town:journal:1:testnet:example");
+    storage("unrelated-preference");
+    assert.equal(changed, 4);
+    stop();
+    target.dispatchEvent(new Event("focus"));
+    storage(null);
+    assert.equal(changed, 4);
+    assert.equal(unsubscribed, 1);
+  } finally {
+    if (previous === undefined) delete globalThis.window;
+    else globalThis.window = previous;
+  }
 });
