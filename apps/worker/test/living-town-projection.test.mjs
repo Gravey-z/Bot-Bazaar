@@ -438,6 +438,68 @@ test("production starts retain a visible gap until coherent snapshot recovery wi
   assert.equal(store.town(now + 1).history_complete, false);
 });
 
+test("completion snapshot recovery credits finalized output and preserves a newer running promise", (t) => {
+  const p = JSON.parse(
+    readFileSync(
+      new URL(
+        "../../../tests/fixtures/chain/living-town-completion-sandbox.json",
+        import.meta.url,
+      ),
+      "utf8",
+    ),
+  );
+  const f = p.steps[0].foundation,
+    identity = {
+      deployment: f.deployment,
+      codeHash: p.steps[0].account.code_hash,
+      ownerId: f.data.owner_account_id,
+      operatorId: f.data.operator_account_id,
+      controllers: f.data.merchant_controllers,
+    };
+  const dir = mkdtempSync(join(tmpdir(), "living-town-completion-")),
+    store = new LivingTownProjectionStore(dir, identity, true);
+  t.after(() => {
+    store.close();
+    assert(dir.startsWith(join(tmpdir(), "living-town-completion-")));
+    rmSync(dir, { recursive: true, force: true });
+  });
+  const baseline = (s) => ({
+    town: s.town,
+    block: block(s.block),
+    shops: s.shops.map((r) => ({ shop: r.shop, ledger: r.ledger })),
+  });
+  store.baseline(baseline(p.before), now);
+  assert.equal(
+    store.inventory("4", now).snapshot.data.inventory.held.health_potion,
+    "0",
+  );
+  store.invalidate();
+  store.baseline(baseline(p.completed), now + 1);
+  assert.equal(
+    store.inventory("4", now + 1).snapshot.data.inventory.held.health_potion,
+    "1",
+  );
+  assert.equal(
+    store.inventory("4", now + 1).snapshot.data.inventory
+      .production_output_reserved.health_potion,
+    "0",
+  );
+  store.baseline(baseline(p.after), now + 2);
+  const before = store.counts();
+  store.baseline(baseline(p.after), now + 3);
+  assert.deepEqual(store.counts(), before);
+  assert.equal(
+    store.inventory("4", now + 3).snapshot.data.inventory.held.health_potion,
+    "1",
+  );
+  assert.equal(
+    store.inventory("4", now + 3).snapshot.data.inventory
+      .production_output_reserved.health_potion,
+    "1",
+  );
+  assert.equal(store.town(now + 3).history_complete, false);
+});
+
 test("projector verifies receipt evidence, deduplicates before RPC and bounds coherent snapshot refresh", async (t) => {
   const f = fixture(t);
   let rpcReads = 0,

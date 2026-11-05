@@ -162,6 +162,127 @@ mod tests {
         assert_eq!(t.npcs[2].reservations.output.quantities[5], 1);
         assert!(t.commands.get(&"merchant:bolt".to_owned()).is_some());
         assert!(t.commands.get(&"account:bolt.testnet".to_owned()).is_none());
+        let ready = t.jobs.get(&1).unwrap().terms.ready_at_ns;
+        context("keeper.testnet", json!({"job_id":"1"}), ready);
+        t.paused = true;
+        t.complete_production(Decimal(1));
+        assert_eq!(t.npcs[2].held.quantities[5], 1);
+        assert_eq!(t.npcs[2].reservations.output.quantities[5], 0);
+        assert_eq!(
+            t.commands
+                .get(&"merchant:bolt".to_owned())
+                .unwrap()
+                .sequence,
+            1
+        );
+    }
+    #[test]
+    fn completion_boundary_permissionless_pause_and_reopen_are_exactly_once() {
+        let mut t = town();
+        start(&mut t, 3, 2);
+        let ready = t.jobs.get(&1).unwrap().terms.ready_at_ns;
+        let before = near_sdk::borsh::to_vec(&t).unwrap();
+        context("keeper.testnet", json!({"job_id":"1"}), ready - 1);
+        assert!(
+            std::panic::catch_unwind(std::panic::AssertUnwindSafe(
+                || t.complete_production(Decimal(1))
+            ))
+            .is_err()
+        );
+        assert_eq!(near_sdk::borsh::to_vec(&t).unwrap(), before);
+        context("keeper.testnet", json!({"job_id":"1"}), ready);
+        t.paused = true;
+        let applied = t.complete_production(Decimal(1));
+        let p = t
+            .players
+            .get(&"player.testnet".parse::<AccountId>().unwrap())
+            .unwrap();
+        assert_eq!(p.inventory.quantities[4], 2);
+        assert_eq!(p.reservations.output.quantities[4], 0);
+        assert_eq!(p.gold, 100);
+        assert!(t.active_jobs.get(&4).is_none());
+        assert_eq!(t.completed_outputs[4], 2);
+        assert_eq!(
+            t.commands
+                .get(&"account:player.testnet".to_owned())
+                .unwrap()
+                .sequence,
+            3
+        );
+        let bytes = near_sdk::borsh::to_vec(&t).unwrap();
+        drop(t);
+        let mut reopened: LivingTown = near_sdk::borsh::from_slice(&bytes).unwrap();
+        context("other.testnet", json!({"job_id":"1"}), ready + 1);
+        let replay = reopened.complete_production(Decimal(1));
+        assert_eq!(replay["data"]["replayed"], true);
+        assert_eq!(replay["data"]["outcome"], applied["data"]["outcome"]);
+        assert_eq!(near_sdk::borsh::to_vec(&reopened).unwrap(), bytes);
+    }
+    #[test]
+    fn valid_inventory_changes_cannot_strand_reserved_output_at_the_cap() {
+        let mut t = town();
+        start(&mut t, 3, 3);
+        let ready = t.jobs.get(&1).unwrap().terms.ready_at_ns;
+        let p = t
+            .players
+            .get_mut(&"player.testnet".parse::<AccountId>().unwrap())
+            .unwrap();
+        // Controlled future inventory/listing changes respect the same capacity
+        // promise; this does not claim an unimplemented product purchase path.
+        p.inventory.quantities[4] = 997;
+        p.reservations.listing.quantities[4] = 20;
+        p.reservations.trade.quantities[4] = 19;
+        p.gold = 50;
+        context("keeper.testnet", json!({"job_id":"1"}), ready);
+        t.complete_production(Decimal(1));
+        let p = t
+            .players
+            .get(&"player.testnet".parse::<AccountId>().unwrap())
+            .unwrap();
+        assert_eq!(p.inventory.quantities[4], 1000);
+        assert_eq!(p.reservations.output.quantities[4], 0);
+        assert_eq!(p.ledger()["inventory"]["available"]["health_potion"], "961");
+        assert_eq!(p.gold, 50);
+    }
+    #[test]
+    fn completed_ring_prunes_by_completion_without_removing_an_older_running_job() {
+        let mut t = town();
+        start(&mut t, 3, 1);
+        let template = t.jobs.get(&1).unwrap().clone();
+        // Synthetic job admission isolates retention, not economic solvability.
+        for id in 2..=258 {
+            let mut j = template.clone();
+            j.id = id;
+            j.shop_id = 1;
+            j.owner = Owner::Merchant(0);
+            t.jobs.insert(id, j);
+            t.active_jobs.insert(1, id);
+            t.next_job_id = id + 1;
+            t.npcs[0].reservations.output.quantities[4] = 1;
+            context(
+                "keeper.testnet",
+                json!({"job_id":id.to_string()}),
+                template.terms.ready_at_ns,
+            );
+            t.complete_production(Decimal(id));
+        }
+        assert_eq!(t.completed_jobs.len(), 256);
+        assert_eq!(t.pruned_jobs_through, 2);
+        assert!(t.jobs.get(&2).is_none());
+        assert!(t.jobs.get(&1).unwrap().completed_at_ns.is_none());
+        assert_eq!(t.active_jobs.get(&4), Some(&1));
+        context(
+            "keeper.testnet",
+            json!({"job_id":"2"}),
+            template.terms.ready_at_ns + 1,
+        );
+        assert!(
+            std::panic::catch_unwind(std::panic::AssertUnwindSafe(
+                || t.complete_production(Decimal(2))
+            ))
+            .is_err()
+        );
+        assert_eq!(t.npcs[0].held.quantities[4], 257);
     }
 }
 impl Owner {
@@ -186,6 +307,9 @@ pub(crate) struct Job {
     pub owner: Owner,
     pub terms: ProductionTerms,
     pub command_sequence: u64,
+    pub completed_at_ns: Option<u64>,
+    pub completion_revision: u64,
+    pub completion_ledger: Option<ValueLedger>,
 }
 impl Job {
     pub(super) fn view(&self) -> Value {
@@ -194,13 +318,32 @@ impl Job {
         row.insert("job_id".to_owned(), json!(self.id.to_string()));
         row.insert("shop_id".to_owned(), json!(self.shop_id.to_string()));
         row.insert("owner".to_owned(), self.owner.view());
-        row.insert("completed_at_ns".to_owned(), Value::Null);
-        row.insert("status".to_owned(), json!("running"));
+        row.insert(
+            "completed_at_ns".to_owned(),
+            self.completed_at_ns
+                .map(|n| json!(n.to_string()))
+                .unwrap_or(Value::Null),
+        );
+        row.insert(
+            "status".to_owned(),
+            json!(if self.completed_at_ns.is_some() {
+                "completed"
+            } else {
+                "running"
+            }),
+        );
         row.insert(
             "start_command_sequence".to_owned(),
             json!(self.command_sequence.to_string()),
         );
-        row.insert("revision".to_owned(), json!("1"));
+        row.insert(
+            "revision".to_owned(),
+            json!(if self.completed_at_ns.is_some() {
+                "2"
+            } else {
+                "1"
+            }),
+        );
         value
     }
 }
@@ -235,6 +378,37 @@ struct StartArgs {
     quantity: Decimal,
     expected_shop_revision: Decimal,
     command: Command,
+}
+#[derive(Deserialize)]
+#[serde(crate = "near_sdk::serde", deny_unknown_fields)]
+struct CompleteArgs {
+    job_id: Decimal,
+}
+
+fn credit(held: &mut Inventory, r: &mut purchases::Reservations, terms: &ProductionTerms) {
+    let slot = terms.output_item as usize;
+    let remaining = r.output.quantities[slot]
+        .checked_sub(terms.output_quantity)
+        .unwrap_or_else(|| env::panic_str("LT:E_INVALID_RESERVATION"));
+    let amount = held.quantities[slot]
+        .checked_add(terms.output_quantity)
+        .unwrap_or_else(|| env::panic_str("LT:E_ARITHMETIC_OVERFLOW"));
+    require!(
+        amount
+            .checked_add(remaining)
+            .and_then(|v| v.checked_add(r.inbound.quantities[slot]))
+            .is_some_and(|v| v <= 1000),
+        "LT:E_BALANCE_CAP"
+    );
+    held.quantities[slot] = amount;
+    r.output.quantities[slot] = remaining;
+}
+
+impl LivingTown {
+    fn completion_result(&self, job: &Job, replayed: bool) -> Value {
+        let l = job.completion_ledger.as_ref().expect("completed ledger");
+        self.snapshot(json!({"principal":null,"command_sequence":null,"payload_sha256":null,"replayed":replayed,"effect_revision":job.completion_revision.to_string(),"effect_event_sequence":job.completion_revision.to_string(),"outcome":{"kind":"production_completed","job":job.view(),"ledger":purchases::ledger(l.owner.view(),l.gold,l.held,l.revision,&l.reservations)}}))
+    }
 }
 #[derive(Deserialize)]
 #[serde(crate = "near_sdk::serde", deny_unknown_fields)]
@@ -293,6 +467,90 @@ fn consume(
 
 #[near]
 impl LivingTown {
+    pub fn complete_production(&mut self, job_id: Decimal) -> Value {
+        let p: CompleteArgs = args(&["job_id"]);
+        require!(p.job_id == job_id && job_id.0 > 0, "LT:E_INVALID_ARGUMENT");
+        self.assert_versions();
+        let mut job = self.jobs.get(&job_id.0).cloned().unwrap_or_else(|| {
+            env::panic_str(if job_id.0 < self.next_job_id {
+                "LT:E_JOB_PRUNED"
+            } else {
+                "LT:E_JOB_NOT_FOUND"
+            })
+        });
+        if job.completed_at_ns.is_some() {
+            return self.completion_result(&job, true);
+        }
+        require!(
+            env::block_timestamp() >= job.terms.ready_at_ns,
+            "LT:E_PRODUCTION_NOT_READY"
+        );
+        require!(
+            self.active_jobs.get(&job.shop_id) == Some(&job.id),
+            "LT:E_INVALID_PRODUCTION_SLOT"
+        );
+        let ledger = match &job.owner {
+            Owner::Player(a) => {
+                let mut player = self.players.get(a).expect("owner").clone();
+                let mut shop = self.shops.get(&job.shop_id).expect("shop").clone();
+                credit(&mut player.inventory, &mut player.reservations, &job.terms);
+                player.ledger_revision = next(player.ledger_revision);
+                shop.revision = next(shop.revision);
+                let l = ValueLedger {
+                    owner: job.owner.clone(),
+                    gold: player.gold,
+                    held: player.inventory,
+                    revision: player.ledger_revision,
+                    reservations: player.reservations.clone(),
+                };
+                self.players.insert(a.clone(), player);
+                self.shops.insert(shop.id, shop);
+                l
+            }
+            Owner::Merchant(i) => {
+                let mut npc = self.npcs[*i as usize].clone();
+                credit(&mut npc.held, &mut npc.reservations, &job.terms);
+                npc.ledger_revision = next(npc.ledger_revision);
+                npc.production_revision = next(npc.production_revision);
+                let mut promises = npc.reservations.clone();
+                for (i, l) in npc.listings.iter().enumerate() {
+                    promises.listing.quantities[i] = l.as_ref().map_or(0, |l| l.quantity);
+                }
+                let l = ValueLedger {
+                    owner: job.owner.clone(),
+                    gold: npc.gold,
+                    held: npc.held,
+                    revision: npc.ledger_revision,
+                    reservations: promises,
+                };
+                self.npcs[*i as usize] = npc;
+                l
+            }
+        };
+        let slot = job.terms.output_item as usize;
+        self.completed_outputs[slot] = self.completed_outputs[slot]
+            .checked_add(u128::from(job.terms.output_quantity))
+            .unwrap_or_else(|| env::panic_str("LT:E_ARITHMETIC_OVERFLOW"));
+        self.market_revision = next(self.market_revision);
+        job.completed_at_ns = Some(env::block_timestamp());
+        job.completion_revision = self.market_revision;
+        job.completion_ledger = Some(ledger);
+        self.active_jobs.remove(&job.shop_id);
+        self.jobs.insert(job.id, job.clone());
+        self.completed_jobs.push_back(job.id);
+        if self.completed_jobs.len() > 256 {
+            let old = self.completed_jobs.pop_front().expect("completed");
+            self.jobs.remove(&old);
+            self.pruned_jobs_through = self.pruned_jobs_through.max(old);
+        }
+        self.persist_economic_state(false);
+        let result = self.completion_result(&job, false);
+        let event = json!({"standard":"bot_bazaar_living_town","version":"2.0.0","event":"complete_production","data":[{"contract_id":env::current_account_id(),"config_version":self.config_version.to_string(),"event_sequence":self.market_revision.to_string(),"market_revision":self.market_revision.to_string(),"block_height":env::block_height().to_string(),"block_timestamp_ns":env::block_timestamp().to_string(),"predecessor_account_id":env::predecessor_account_id(),"principal":null,"command_sequence":null,"payload_sha256":null,"outcome":result["data"]["outcome"]}]});
+        let encoded = serde_json::to_string(&event).expect("event");
+        require!(encoded.len() <= 32768, "LT:E_STORAGE_CAPACITY");
+        env::log_str(&format!("EVENT_JSON:{encoded}"));
+        result
+    }
     pub fn start_production(
         &mut self,
         shop_id: Decimal,
@@ -406,6 +664,9 @@ impl LivingTown {
             owner,
             terms,
             command_sequence: command.sequence.0,
+            completed_at_ns: None,
+            completion_revision: 0,
+            completion_ledger: None,
         };
         self.next_job_id = next(job.id);
         self.active_jobs.insert(shop_id.0, job.id);
@@ -454,15 +715,23 @@ impl LivingTown {
             expected_market_revision.0 == self.market_revision,
             "LT:E_STALE_MARKET"
         );
-        let mut items = Vec::new();
-        let mut cursor = after_id.map(|v| v.0);
-        if status != "completed"
-            && let Some(id) = self.active_jobs.get(&shop_id.0)
-            && after_id.is_none_or(|v| *id > v.0)
-        {
-            items.push(self.jobs.get(id).expect("active job").view());
-            cursor = Some(*id);
+        let mut ids: Vec<u64> = self.completed_jobs.iter().copied().collect();
+        if let Some(id) = self.active_jobs.get(&shop_id.0) {
+            ids.push(*id);
         }
-        self.snapshot(json!({"items":items,"next_after_id":cursor.map(|v|v.to_string()),"has_more":false,"history_gap":false,"pruned_through":"0"}))
+        ids.sort_unstable();
+        let mut eligible = ids
+            .into_iter()
+            .filter_map(|id| self.jobs.get(&id))
+            .filter(|j| {
+                j.shop_id == shop_id.0
+                    && after_id.is_none_or(|a| j.id > a.0)
+                    && (status == "all" || (status == "completed") == j.completed_at_ns.is_some())
+            });
+        let rows: Vec<_> = eligible.by_ref().take(limit.0 as usize).collect();
+        let more = eligible.next().is_some();
+        let cursor = rows.last().map(|j| j.id).or(after_id.map(|a| a.0));
+        let items: Vec<_> = rows.iter().map(|j| j.view()).collect();
+        self.snapshot(json!({"items":items,"next_after_id":cursor.map(|id|id.to_string()),"has_more":more,"history_gap":self.pruned_jobs_through>0,"pruned_through":self.pruned_jobs_through.to_string()}))
     }
 }

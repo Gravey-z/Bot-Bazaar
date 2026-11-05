@@ -144,3 +144,14 @@ export {
   livingTownProductionJob,
   livingTownProductionEffect,
 } from "./living-town/production.js";
+export {
+  createLivingTownCompletionCall,
+  verifyLivingTownCompletionEffect,
+  verifyLivingTownCompletionReceipt,
+} from "./living-town/completion.js";
+export type {
+  LivingTownCompletionCall,
+  LivingTownCompletionProof,
+  LivingTownCompletionResult,
+  LivingTownCompletionStatus,
+} from "./living-town/completion.js";

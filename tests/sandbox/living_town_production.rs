@@ -3,16 +3,22 @@ use super::{canonical, wasm};
 use anyhow::{Result, ensure};
 use near_workspaces::{Account, Contract};
 use serde_json::{Value, json};
-async fn view(c: &Contract, m: &str, args: Value) -> Result<Value> {
+pub(super) async fn view(c: &Contract, m: &str, args: Value) -> Result<Value> {
     Ok(c.view(m).args_json(args).await?.json()?)
 }
-async fn command(c: &Contract, seq: u64) -> Result<Value> {
+pub(super) async fn command(c: &Contract, seq: u64) -> Result<Value> {
     let t = view(c, "get_town", json!({})).await?;
     Ok(
         json!({"sequence":seq.to_string(),"config_version":"1","valid_until_ns":(t["block_timestamp_ns"].as_str().unwrap().parse::<u64>()?+500_000_000_000).to_string()}),
     )
 }
-async fn reject(c: &Contract, a: &Account, m: &str, args: Value, code: &str) -> Result<()> {
+pub(super) async fn reject(
+    c: &Contract,
+    a: &Account,
+    m: &str,
+    args: Value,
+    code: &str,
+) -> Result<()> {
     let before = c.view_state().await?;
     let r = a
         .call(c.id(), m)
@@ -25,7 +31,7 @@ async fn reject(c: &Contract, a: &Account, m: &str, args: Value, code: &str) -> 
     assert_eq!(c.view_state().await?, before);
     Ok(())
 }
-fn base64(bytes: &[u8]) -> String {
+pub(super) fn base64(bytes: &[u8]) -> String {
     let alphabet = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
     let mut s = String::new();
     for c in bytes.chunks(3) {
@@ -47,7 +53,13 @@ fn base64(bytes: &[u8]) -> String {
     }
     s
 }
-fn pinned(url: &str, c: &Contract, block: &Value, m: &str, args: Value) -> Result<Value> {
+pub(super) fn pinned(
+    url: &str,
+    c: &Contract,
+    block: &Value,
+    m: &str,
+    args: Value,
+) -> Result<Value> {
     let r = rpc(
         url,
         "query",
@@ -56,7 +68,7 @@ fn pinned(url: &str, c: &Contract, block: &Value, m: &str, args: Value) -> Resul
     let bytes: Vec<u8> = serde_json::from_value(r["result"].clone())?;
     Ok(serde_json::from_slice(&bytes)?)
 }
-fn snapshot(url: &str, c: &Contract) -> Result<Value> {
+pub(super) fn snapshot(url: &str, c: &Contract) -> Result<Value> {
     let block = rpc(url, "block", json!({"finality":"final"}))?;
     let town = pinned(url, c, &block, "get_town", json!({}))?;
     let mut shops = Vec::new();

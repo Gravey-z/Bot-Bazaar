@@ -2,6 +2,8 @@ import {
   object,
   positiveU64,
   literal,
+  choice,
+  bounded,
   nullable,
   parseU64,
   check,
@@ -29,9 +31,9 @@ function decodeJob(value: unknown) {
     start_at_ns: (v: unknown) => v,
     ready_at_ns: (v: unknown) => v,
     completed_at_ns: nullable(parseU64),
-    status: literal("running"),
+    status: choice(["running", "completed"] as const),
     start_command_sequence: positiveU64,
-    revision: literal("1"),
+    revision: bounded(1n, 2n),
   })(value);
   const {
     job_id,
@@ -51,7 +53,14 @@ function decodeJob(value: unknown) {
           String(["rex", "luna", "bolt"].indexOf(owner.merchant_id) + 1),
     "Production shop owner mismatch",
   );
-  check(completed_at_ns === null, "Running job cannot be completed");
+  check(
+    status === "running"
+      ? completed_at_ns === null && revision === "1"
+      : completed_at_ns !== null &&
+          BigInt(completed_at_ns) >= BigInt(terms.ready_at_ns) &&
+          revision === "2",
+    "Production lifecycle mismatch",
+  );
   return {
     ...terms,
     job_id,
@@ -83,7 +92,8 @@ function decodeEffect(value: unknown) {
       ? `account:${j.owner.account_id}`
       : `merchant:${j.owner.merchant_id}`;
   check(
-    result.principal === principal &&
+    j.status === "running" &&
+      result.principal === principal &&
       JSON.stringify(j.owner) === JSON.stringify(l.actor) &&
       result.command_sequence === j.start_command_sequence &&
       result.effect_revision === result.effect_event_sequence &&

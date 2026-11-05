@@ -13,18 +13,22 @@ import {
   decodeLivingTownBase64,
   verifyLivingTownEffect,
 } from "./calls.js";
-import type { LivingTownCall } from "./calls.js";
+import type { LivingTownCall, LivingTownMethod } from "./calls.js";
 import type { LivingTownDeployment } from "@bot-bazaar/shared";
 import { canonicalLivingTownJson } from "./json.js";
 
-export interface LivingTownProof {
+export type LivingTownProof = LivingTownReceiptProof<LivingTownCall>;
+export interface LivingTownReceiptProof<C> {
   readonly transactionHash: string;
   readonly signerId: string;
   readonly deployment: LivingTownDeployment;
-  readonly call: LivingTownCall;
+  readonly call: C;
   readonly referenceBlockHeight: string;
 }
-export type LivingTownReceiptStatus =
+export type LivingTownReceiptStatus = LivingTownReceiptStatusOf<
+  Awaited<ReturnType<typeof verifyLivingTownEffect>>
+>;
+export type LivingTownReceiptStatusOf<R> =
   | { kind: "unknown" | "pending"; transactionHash: string }
   | {
       kind: "failed";
@@ -36,7 +40,7 @@ export type LivingTownReceiptStatus =
   | {
       kind: "succeeded";
       transactionHash: string;
-      result: Awaited<ReturnType<typeof verifyLivingTownEffect>>;
+      result: R;
       executionReceiptId: string;
       block: FinalizedBlock;
     };
@@ -44,14 +48,24 @@ function list(v: unknown, max = 128): unknown[] {
   check(Array.isArray(v) && v.length <= max, "invalid V2 receipt collection");
   return v;
 }
-export async function verifyLivingTownReceipt(
+export async function verifyLivingTownReceiptCore<
+  C extends { method: string; args: unknown; gas: string },
+  R extends { block_height: string; block_timestamp_ns: string },
+>(
   value: unknown,
-  proof: LivingTownProof,
+  proof: LivingTownReceiptProof<C>,
   verifyBlock: (hash: string) => Promise<FinalizedBlock>,
-): Promise<LivingTownReceiptStatus> {
+  normalize: (method: string, args: unknown) => C,
+  verifyEffect: (
+    value: unknown,
+    deployment: unknown,
+    signer: string,
+    call: C,
+  ) => Promise<R>,
+): Promise<LivingTownReceiptStatusOf<R>> {
   const transactionHash = hash32(proof.transactionHash),
     signer = accountId(proof.signerId),
-    call = createLivingTownCall(proof.call.method, proof.call.args);
+    call = normalize(proof.call.method, proof.call.args);
   positiveU64(proof.referenceBlockHeight);
   const r = record(value),
     milestone = r["final_execution_status"];
@@ -88,10 +102,7 @@ export async function verifyLivingTownReceipt(
       action["deposit"] === "0" &&
       rpcU64(action["gas"]) === call.gas &&
       canonicalLivingTownJson(
-        createLivingTownCall(
-          call.method,
-          decodeLivingTownBase64(action["args"]),
-        ).args,
+        normalize(call.method, decodeLivingTownBase64(action["args"])).args,
       ) === canonicalLivingTownJson(call.args),
     "V2 signed terms mismatch",
   );
@@ -172,7 +183,7 @@ export async function verifyLivingTownReceipt(
       record(record(executed["outcome"])["status"])["SuccessValue"] === encoded,
     "V2 return provenance mismatch",
   );
-  const result = await verifyLivingTownEffect(
+  const result = await verifyEffect(
     decodeLivingTownBase64(encoded),
     proof.deployment,
     signer,
@@ -190,4 +201,18 @@ export async function verifyLivingTownReceipt(
     executionReceiptId: rootId,
     block,
   };
+}
+
+export async function verifyLivingTownReceipt(
+  value: unknown,
+  proof: LivingTownProof,
+  verifyBlock: (hash: string) => Promise<FinalizedBlock>,
+): Promise<LivingTownReceiptStatus> {
+  return verifyLivingTownReceiptCore(
+    value,
+    proof,
+    verifyBlock,
+    (method, args) => createLivingTownCall(method as LivingTownMethod, args),
+    verifyLivingTownEffect,
+  );
 }

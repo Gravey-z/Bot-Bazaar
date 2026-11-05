@@ -1,0 +1,4598 @@
+{
+  "source": "actual local WASM sandbox with explicit fast-forward; synthetic declared genesis; not Testnet",
+  "contract_id": "dev-20261105192503-16702368371237.test.near",
+  "before": {
+    "block": {
+      "author": "test.near",
+      "chunks": [
+        {
+          "balance_burnt": "643693003500100000000",
+          "bandwidth_requests": {
+            "V1": {
+              "requests": []
+            }
+          },
+          "chunk_hash": "AWGdd3d2Rp9roMo1qG7yB4LoeUtK6svRfTTtcQvyDybZ",
+          "congestion_info": {
+            "allowed_shard": 0,
+            "buffered_receipts_gas": "0",
+            "delayed_receipts_gas": "0",
+            "receipt_bytes": 0
+          },
+          "encoded_length": 223,
+          "encoded_merkle_root": "FqagqfQe4p6pGNdoQVPMeHUvcVkcuCGn1gBFW9PP4hBm",
+          "gas_limit": 1000000000000000,
+          "gas_used": 8814819047856,
+          "height_created": 53,
+          "height_included": 53,
+          "outcome_root": "DSdZbuBDkhRM78VqFWuqkRq2AV4QWNFHjBiWW3YceY3C",
+          "outgoing_receipts_root": "5EuD29DELKLzZNM47CuYjLQ8jkcG1xonSoRaJErvbiJ7",
+          "prev_block_hash": "GG4FUrH64XPhGpPLenscgGTM9mChoUanNo4p5ZpeW64z",
+          "prev_state_root": "DowZXsbDtuV1qT9ja5f1SDjovMAdpyRuQaM4yTqMR1vA",
+          "proposed_split": null,
+          "rent_paid": "0",
+          "shard_id": 0,
+          "signature": "ed25519:3S5dg47ikorxdBGdPZqZviSmpBhFh5YTEpjmoPNJgu7fjwDrbUAzqPLtTRHvR8MazQRyu4AvHTRwRWQDMYcK7MM7",
+          "tx_root": "11111111111111111111111111111111",
+          "validator_proposals": [],
+          "validator_reward": "0"
+        }
+      ],
+      "header": {
+        "approvals": [
+          "ed25519:2o4ejnTw7Ugz9UQNrwYHsbGb8LNFKwQTYbDtXRrzDQ5xLdyoraDBH8W3vcHFfMwzAXECWSdSzvT2CyaeT8AU5z2V"
+        ],
+        "block_body_hash": "H9mLTVQs1pggbTCBASSwHww3LqZuDt2WNQvK5WbNXuoH",
+        "block_merkle_root": "7vKCc2ELq6EPpvJRB9Hiwg8uMvtZuJTdezMgeyqW51e9",
+        "block_ordinal": 54,
+        "challenges_result": [],
+        "challenges_root": "11111111111111111111111111111111",
+        "chunk_endorsements": [[1]],
+        "chunk_headers_root": "HBbRg8neFzfukzUV3ToLnWM9H39iyHAoLXQ8AkasiXYR",
+        "chunk_mask": [true],
+        "chunk_receipts_root": "BjaxFjNbsLF6Yae1yXttrmbFHJQcgNDRQwiiUCLjX9rB",
+        "chunk_tx_root": "7tkzFg8RHBmMw1ncRJZCCZAizgq4rwCftTKYLce8RU8t",
+        "chunks_included": 1,
+        "epoch_id": "11111111111111111111111111111111",
+        "epoch_sync_data_hash": null,
+        "gas_price": "100000000",
+        "hash": "3jURmHXG9jGBqh2UwKrfRnATXmnAEqR3vE1jeEghForc",
+        "height": 53,
+        "last_ds_final_block": "GG4FUrH64XPhGpPLenscgGTM9mChoUanNo4p5ZpeW64z",
+        "last_final_block": "JiHdC3nSezTgo6EJWXZ6qiVDyuj3RSgMJoCwWCnUPgK",
+        "latest_protocol_version": 86,
+        "next_bp_hash": "HW4mkSUPscYb5H1QTSvHXjKCJHJDiDzxdHVhkkyHQZh7",
+        "next_epoch_id": "FqG7omE5bvhn7wdpLRVvNcadstXzM4XJ76XMmxx15sg9",
+        "outcome_root": "HxbVhxy2rwPVoJ8UTUsBViR7gavVTiXcSTb4SnYAL15C",
+        "prev_hash": "GG4FUrH64XPhGpPLenscgGTM9mChoUanNo4p5ZpeW64z",
+        "prev_height": 52,
+        "prev_state_root": "Am4TSoLD98WgwkxUMm1sSCq6baPEUytLxo7ksWy7mCfr",
+        "random_value": "9jZuxgX6VckLZxCZccbJiLETWYMVSZ8MsHk4WczBfzcg",
+        "rent_paid": "0",
+        "shard_split": null,
+        "signature": "ed25519:4fGC85PPkJ8yucxh4HswT1mDS1gpWg9aD3bbo2NJszQ4UxjQqqQ9RpkC2YYrGCjJ7DKDwEMek1avz7LChDQHYF4c",
+        "timestamp": 1793906710146212400,
+        "timestamp_nanosec": "1793906710146212367",
+        "total_supply": "2050029999960395505310291800000000",
+        "validator_proposals": [],
+        "validator_reward": "0"
+      }
+    },
+    "town": {
+      "deployment": {
+        "network_id": "testnet",
+        "genesis_hash": "11111111111111111111111111111111",
+        "contract_id": "dev-20261105192503-16702368371237.test.near",
+        "api_version": "2.0.0",
+        "state_schema": "1",
+        "command_schema": "1",
+        "config_version": "1",
+        "config_sha256": "a932efb48c70a73ce46472cd754288649541b34604e2ea49a4093961e71a2d10"
+      },
+      "market_revision": "11",
+      "event_sequence": "11",
+      "block_height": "53",
+      "block_timestamp_ns": "1793906710146212367",
+      "data": {
+        "paused": false,
+        "registered_player_count": "2",
+        "epoch": "0",
+        "genesis_time_ns": "1793906704677920945",
+        "npc_shops": [
+          {
+            "shop_id": "1",
+            "owner": {
+              "kind": "merchant",
+              "merchant_id": "rex"
+            },
+            "name": "Rex",
+            "revision": "1",
+            "production_slots": "1",
+            "policy_revision": "1",
+            "created_at_ns": "1793906704677920945",
+            "ownership_command_sequence": null
+          },
+          {
+            "shop_id": "2",
+            "owner": {
+              "kind": "merchant",
+              "merchant_id": "luna"
+            },
+            "name": "Luna",
+            "revision": "1",
+            "production_slots": "1",
+            "policy_revision": "1",
+            "created_at_ns": "1793906704677920945",
+            "ownership_command_sequence": null
+          },
+          {
+            "shop_id": "3",
+            "owner": {
+              "kind": "merchant",
+              "merchant_id": "bolt"
+            },
+            "name": "Bolt",
+            "revision": "1",
+            "production_slots": "1",
+            "policy_revision": "1",
+            "created_at_ns": "1793906704677920945",
+            "ownership_command_sequence": null
+          }
+        ],
+        "npc_ledgers": [
+          {
+            "actor": {
+              "kind": "merchant",
+              "merchant_id": "rex"
+            },
+            "revision": "2",
+            "gold": {
+              "held": "204",
+              "available": "204",
+              "trade_reserved": "0",
+              "trade_inbound_reserved": "0"
+            },
+            "inventory": {
+              "held": {
+                "crystal": "9",
+                "wood": "0",
+                "herb": "0",
+                "iron": "0",
+                "health_potion": "0",
+                "iron_tool": "0"
+              },
+              "available": {
+                "crystal": "2",
+                "wood": "0",
+                "herb": "0",
+                "iron": "0",
+                "health_potion": "0",
+                "iron_tool": "0"
+              },
+              "listing_reserved": {
+                "crystal": "7",
+                "wood": "0",
+                "herb": "0",
+                "iron": "0",
+                "health_potion": "0",
+                "iron_tool": "0"
+              },
+              "trade_reserved": {
+                "crystal": "0",
+                "wood": "0",
+                "herb": "0",
+                "iron": "0",
+                "health_potion": "0",
+                "iron_tool": "0"
+              },
+              "production_output_reserved": {
+                "crystal": "0",
+                "wood": "0",
+                "herb": "0",
+                "iron": "0",
+                "health_potion": "0",
+                "iron_tool": "0"
+              },
+              "trade_inbound_reserved": {
+                "crystal": "0",
+                "wood": "0",
+                "herb": "0",
+                "iron": "0",
+                "health_potion": "0",
+                "iron_tool": "0"
+              }
+            }
+          },
+          {
+            "actor": {
+              "kind": "merchant",
+              "merchant_id": "luna"
+            },
+            "revision": "2",
+            "gold": {
+              "held": "206",
+              "available": "206",
+              "trade_reserved": "0",
+              "trade_inbound_reserved": "0"
+            },
+            "inventory": {
+              "held": {
+                "crystal": "0",
+                "wood": "0",
+                "herb": "18",
+                "iron": "0",
+                "health_potion": "0",
+                "iron_tool": "0"
+              },
+              "available": {
+                "crystal": "0",
+                "wood": "0",
+                "herb": "8",
+                "iron": "0",
+                "health_potion": "0",
+                "iron_tool": "0"
+              },
+              "listing_reserved": {
+                "crystal": "0",
+                "wood": "0",
+                "herb": "10",
+                "iron": "0",
+                "health_potion": "0",
+                "iron_tool": "0"
+              },
+              "trade_reserved": {
+                "crystal": "0",
+                "wood": "0",
+                "herb": "0",
+                "iron": "0",
+                "health_potion": "0",
+                "iron_tool": "0"
+              },
+              "production_output_reserved": {
+                "crystal": "0",
+                "wood": "0",
+                "herb": "0",
+                "iron": "0",
+                "health_potion": "0",
+                "iron_tool": "0"
+              },
+              "trade_inbound_reserved": {
+                "crystal": "0",
+                "wood": "0",
+                "herb": "0",
+                "iron": "0",
+                "health_potion": "0",
+                "iron_tool": "0"
+              }
+            }
+          },
+          {
+            "actor": {
+              "kind": "merchant",
+              "merchant_id": "bolt"
+            },
+            "revision": "3",
+            "gold": {
+              "held": "212",
+              "available": "212",
+              "trade_reserved": "0",
+              "trade_inbound_reserved": "0"
+            },
+            "inventory": {
+              "held": {
+                "crystal": "0",
+                "wood": "9",
+                "herb": "0",
+                "iron": "18",
+                "health_potion": "0",
+                "iron_tool": "0"
+              },
+              "available": {
+                "crystal": "0",
+                "wood": "2",
+                "herb": "0",
+                "iron": "4",
+                "health_potion": "0",
+                "iron_tool": "0"
+              },
+              "listing_reserved": {
+                "crystal": "0",
+                "wood": "7",
+                "herb": "0",
+                "iron": "14",
+                "health_potion": "0",
+                "iron_tool": "0"
+              },
+              "trade_reserved": {
+                "crystal": "0",
+                "wood": "0",
+                "herb": "0",
+                "iron": "0",
+                "health_potion": "0",
+                "iron_tool": "0"
+              },
+              "production_output_reserved": {
+                "crystal": "0",
+                "wood": "0",
+                "herb": "0",
+                "iron": "0",
+                "health_potion": "0",
+                "iron_tool": "0"
+              },
+              "trade_inbound_reserved": {
+                "crystal": "0",
+                "wood": "0",
+                "herb": "0",
+                "iron": "0",
+                "health_potion": "0",
+                "iron_tool": "0"
+              }
+            }
+          }
+        ],
+        "customer_pool": {
+          "pool_id": "town_customers",
+          "gold": "100",
+          "epoch": "0",
+          "last_funded_epoch": "0",
+          "potion_units_bought": "0",
+          "tool_units_bought": "0",
+          "revision": "1"
+        },
+        "totals": {
+          "initial_gold": "700",
+          "player_grants": "200",
+          "customer_topups": "0",
+          "upgrade_burns": "0",
+          "treasury_burns": "0",
+          "seed_items": {
+            "crystal": "10",
+            "wood": "10",
+            "herb": "20",
+            "iron": "20",
+            "health_potion": "0",
+            "iron_tool": "0"
+          },
+          "supplied_items": {
+            "crystal": "0",
+            "wood": "0",
+            "herb": "0",
+            "iron": "0",
+            "health_potion": "0",
+            "iron_tool": "0"
+          },
+          "recipe_inputs_consumed": {
+            "crystal": "1",
+            "wood": "1",
+            "herb": "2",
+            "iron": "2",
+            "health_potion": "0",
+            "iron_tool": "0"
+          },
+          "completed_outputs": {
+            "crystal": "0",
+            "wood": "0",
+            "herb": "0",
+            "iron": "0",
+            "health_potion": "0",
+            "iron_tool": "0"
+          },
+          "customer_consumed": {
+            "crystal": "0",
+            "wood": "0",
+            "herb": "0",
+            "iron": "0",
+            "health_potion": "0",
+            "iron_tool": "0"
+          }
+        },
+        "market_event": null,
+        "next_shop_id": "6",
+        "next_listing_id": "5",
+        "next_job_id": "3",
+        "next_offer_id": "1",
+        "next_trade_id": "5",
+        "next_market_event_id": "1",
+        "retained_events_from": "1",
+        "limits": {
+          "max_players": "1000",
+          "max_actor_gold": "1000000",
+          "max_actor_item": "1000",
+          "max_listing_quantity": "100",
+          "max_purchase_quantity": "100",
+          "max_unit_price": "100",
+          "max_total_price": "10000",
+          "max_batch_quantity": "10",
+          "max_page_size": "50",
+          "max_expire_batch": "24",
+          "max_name_bytes": "32",
+          "max_command_lifetime_seconds": "600",
+          "max_offer_lifetime_seconds": "600",
+          "retained_command_results": "1",
+          "retained_jobs": "256",
+          "retained_trades": "256",
+          "retained_events": "256",
+          "max_active_offers": "12",
+          "max_recipe_versions": "4"
+        }
+      }
+    },
+    "shops": [
+      {
+        "shop": {
+          "deployment": {
+            "network_id": "testnet",
+            "genesis_hash": "11111111111111111111111111111111",
+            "contract_id": "dev-20261105192503-16702368371237.test.near",
+            "api_version": "2.0.0",
+            "state_schema": "1",
+            "command_schema": "1",
+            "config_version": "1",
+            "config_sha256": "a932efb48c70a73ce46472cd754288649541b34604e2ea49a4093961e71a2d10"
+          },
+          "market_revision": "11",
+          "event_sequence": "11",
+          "block_height": "53",
+          "block_timestamp_ns": "1793906710146212367",
+          "data": {
+            "shop_id": "4",
+            "owner": {
+              "kind": "player",
+              "account_id": "dev-20261105192504-16515429008234.test.near"
+            },
+            "name": "Potions",
+            "revision": "2",
+            "production_slots": "1",
+            "policy_revision": "1",
+            "created_at_ns": "1793906706583213117",
+            "ownership_command_sequence": "2"
+          }
+        },
+        "ledger": {
+          "deployment": {
+            "network_id": "testnet",
+            "genesis_hash": "11111111111111111111111111111111",
+            "contract_id": "dev-20261105192503-16702368371237.test.near",
+            "api_version": "2.0.0",
+            "state_schema": "1",
+            "command_schema": "1",
+            "config_version": "1",
+            "config_sha256": "a932efb48c70a73ce46472cd754288649541b34604e2ea49a4093961e71a2d10"
+          },
+          "market_revision": "11",
+          "event_sequence": "11",
+          "block_height": "53",
+          "block_timestamp_ns": "1793906710146212367",
+          "data": {
+            "actor": {
+              "kind": "player",
+              "account_id": "dev-20261105192504-16515429008234.test.near"
+            },
+            "revision": "4",
+            "gold": {
+              "held": "90",
+              "available": "90",
+              "trade_reserved": "0",
+              "trade_inbound_reserved": "0"
+            },
+            "inventory": {
+              "held": {
+                "crystal": "0",
+                "wood": "0",
+                "herb": "0",
+                "iron": "0",
+                "health_potion": "0",
+                "iron_tool": "0"
+              },
+              "available": {
+                "crystal": "0",
+                "wood": "0",
+                "herb": "0",
+                "iron": "0",
+                "health_potion": "0",
+                "iron_tool": "0"
+              },
+              "listing_reserved": {
+                "crystal": "0",
+                "wood": "0",
+                "herb": "0",
+                "iron": "0",
+                "health_potion": "0",
+                "iron_tool": "0"
+              },
+              "trade_reserved": {
+                "crystal": "0",
+                "wood": "0",
+                "herb": "0",
+                "iron": "0",
+                "health_potion": "0",
+                "iron_tool": "0"
+              },
+              "production_output_reserved": {
+                "crystal": "0",
+                "wood": "0",
+                "herb": "0",
+                "iron": "0",
+                "health_potion": "1",
+                "iron_tool": "0"
+              },
+              "trade_inbound_reserved": {
+                "crystal": "0",
+                "wood": "0",
+                "herb": "0",
+                "iron": "0",
+                "health_potion": "0",
+                "iron_tool": "0"
+              }
+            }
+          }
+        },
+        "jobs": {
+          "deployment": {
+            "network_id": "testnet",
+            "genesis_hash": "11111111111111111111111111111111",
+            "contract_id": "dev-20261105192503-16702368371237.test.near",
+            "api_version": "2.0.0",
+            "state_schema": "1",
+            "command_schema": "1",
+            "config_version": "1",
+            "config_sha256": "a932efb48c70a73ce46472cd754288649541b34604e2ea49a4093961e71a2d10"
+          },
+          "market_revision": "11",
+          "event_sequence": "11",
+          "block_height": "53",
+          "block_timestamp_ns": "1793906710146212367",
+          "data": {
+            "items": [
+              {
+                "recipe_id": "health_potion",
+                "recipe_version": "1",
+                "config_version": "1",
+                "quantity": "1",
+                "inputs_consumed": {
+                  "crystal": "1",
+                  "wood": "0",
+                  "herb": "2",
+                  "iron": "0",
+                  "health_potion": "0",
+                  "iron_tool": "0"
+                },
+                "output_item": "health_potion",
+                "output_quantity": "1",
+                "start_at_ns": "1793906709254111699",
+                "ready_at_ns": "1793906829254111699",
+                "job_id": "1",
+                "shop_id": "4",
+                "owner": {
+                  "kind": "player",
+                  "account_id": "dev-20261105192504-16515429008234.test.near"
+                },
+                "completed_at_ns": null,
+                "status": "running",
+                "start_command_sequence": "5",
+                "revision": "1"
+              }
+            ],
+            "next_after_id": "1",
+            "has_more": false,
+            "history_gap": false,
+            "pruned_through": "0"
+          }
+        }
+      },
+      {
+        "shop": {
+          "deployment": {
+            "network_id": "testnet",
+            "genesis_hash": "11111111111111111111111111111111",
+            "contract_id": "dev-20261105192503-16702368371237.test.near",
+            "api_version": "2.0.0",
+            "state_schema": "1",
+            "command_schema": "1",
+            "config_version": "1",
+            "config_sha256": "a932efb48c70a73ce46472cd754288649541b34604e2ea49a4093961e71a2d10"
+          },
+          "market_revision": "11",
+          "event_sequence": "11",
+          "block_height": "53",
+          "block_timestamp_ns": "1793906710146212367",
+          "data": {
+            "shop_id": "5",
+            "owner": {
+              "kind": "player",
+              "account_id": "dev-20261105192505-83860567816751.test.near"
+            },
+            "name": "Tools",
+            "revision": "2",
+            "production_slots": "1",
+            "policy_revision": "1",
+            "created_at_ns": "1793906707346777092",
+            "ownership_command_sequence": "2"
+          }
+        },
+        "ledger": {
+          "deployment": {
+            "network_id": "testnet",
+            "genesis_hash": "11111111111111111111111111111111",
+            "contract_id": "dev-20261105192503-16702368371237.test.near",
+            "api_version": "2.0.0",
+            "state_schema": "1",
+            "command_schema": "1",
+            "config_version": "1",
+            "config_sha256": "a932efb48c70a73ce46472cd754288649541b34604e2ea49a4093961e71a2d10"
+          },
+          "market_revision": "11",
+          "event_sequence": "11",
+          "block_height": "53",
+          "block_timestamp_ns": "1793906710146212367",
+          "data": {
+            "actor": {
+              "kind": "player",
+              "account_id": "dev-20261105192505-83860567816751.test.near"
+            },
+            "revision": "4",
+            "gold": {
+              "held": "88",
+              "available": "88",
+              "trade_reserved": "0",
+              "trade_inbound_reserved": "0"
+            },
+            "inventory": {
+              "held": {
+                "crystal": "0",
+                "wood": "0",
+                "herb": "0",
+                "iron": "0",
+                "health_potion": "0",
+                "iron_tool": "0"
+              },
+              "available": {
+                "crystal": "0",
+                "wood": "0",
+                "herb": "0",
+                "iron": "0",
+                "health_potion": "0",
+                "iron_tool": "0"
+              },
+              "listing_reserved": {
+                "crystal": "0",
+                "wood": "0",
+                "herb": "0",
+                "iron": "0",
+                "health_potion": "0",
+                "iron_tool": "0"
+              },
+              "trade_reserved": {
+                "crystal": "0",
+                "wood": "0",
+                "herb": "0",
+                "iron": "0",
+                "health_potion": "0",
+                "iron_tool": "0"
+              },
+              "production_output_reserved": {
+                "crystal": "0",
+                "wood": "0",
+                "herb": "0",
+                "iron": "0",
+                "health_potion": "0",
+                "iron_tool": "1"
+              },
+              "trade_inbound_reserved": {
+                "crystal": "0",
+                "wood": "0",
+                "herb": "0",
+                "iron": "0",
+                "health_potion": "0",
+                "iron_tool": "0"
+              }
+            }
+          }
+        },
+        "jobs": {
+          "deployment": {
+            "network_id": "testnet",
+            "genesis_hash": "11111111111111111111111111111111",
+            "contract_id": "dev-20261105192503-16702368371237.test.near",
+            "api_version": "2.0.0",
+            "state_schema": "1",
+            "command_schema": "1",
+            "config_version": "1",
+            "config_sha256": "a932efb48c70a73ce46472cd754288649541b34604e2ea49a4093961e71a2d10"
+          },
+          "market_revision": "11",
+          "event_sequence": "11",
+          "block_height": "53",
+          "block_timestamp_ns": "1793906710146212367",
+          "data": {
+            "items": [
+              {
+                "recipe_id": "iron_tool",
+                "recipe_version": "1",
+                "config_version": "1",
+                "quantity": "1",
+                "inputs_consumed": {
+                  "crystal": "0",
+                  "wood": "1",
+                  "herb": "0",
+                  "iron": "2",
+                  "health_potion": "0",
+                  "iron_tool": "0"
+                },
+                "output_item": "iron_tool",
+                "output_quantity": "1",
+                "start_at_ns": "1793906710020716424",
+                "ready_at_ns": "1793906890020716424",
+                "job_id": "2",
+                "shop_id": "5",
+                "owner": {
+                  "kind": "player",
+                  "account_id": "dev-20261105192505-83860567816751.test.near"
+                },
+                "completed_at_ns": null,
+                "status": "running",
+                "start_command_sequence": "5",
+                "revision": "1"
+              }
+            ],
+            "next_after_id": "2",
+            "has_more": false,
+            "history_gap": false,
+            "pruned_through": "0"
+          }
+        }
+      }
+    ]
+  },
+  "completed": {
+    "block": {
+      "author": "test.near",
+      "chunks": [
+        {
+          "balance_burnt": "0",
+          "bandwidth_requests": {
+            "V1": {
+              "requests": []
+            }
+          },
+          "chunk_hash": "3yDNRCHLQazuePkMNLFTzCZMLSPLvLcKDYmugrzvgFcb",
+          "congestion_info": {
+            "allowed_shard": 0,
+            "buffered_receipts_gas": "0",
+            "delayed_receipts_gas": "0",
+            "receipt_bytes": 0
+          },
+          "encoded_length": 8,
+          "encoded_merkle_root": "79Bt7ivt9Qhp3c6dJYnueaTyPVweYxZRpQHASRRAiyuy",
+          "gas_limit": 1000000000000000,
+          "gas_used": 446365125000,
+          "height_created": 1088,
+          "height_included": 1088,
+          "outcome_root": "3GQ498TAVNShs3ufvEjg1hozfWJA21dgDeRGTTvmE4ry",
+          "outgoing_receipts_root": "H4Rd6SGeEBTbxkitsCdzfu9xL9HtZ2eHoPCQXUeZ6bW4",
+          "prev_block_hash": "9q5MAYYrrVNj9W2Rxp9mzEMezQABpgpHwhngjw5ChSmA",
+          "prev_state_root": "HfXviC3qtsNZk6YSvzb3473wRFQqSu6145g4bBE9v9AE",
+          "proposed_split": null,
+          "rent_paid": "0",
+          "shard_id": 0,
+          "signature": "ed25519:2SFfPfYHtQEhqLZDfFQactGBoFoZm93L1tR72hCxdkpJ4AUpVV6GhQAHJRZND9Xu7RsH6fYPijbznQjtqbKgMktc",
+          "tx_root": "11111111111111111111111111111111",
+          "validator_proposals": [],
+          "validator_reward": "0"
+        }
+      ],
+      "header": {
+        "approvals": [
+          "ed25519:3MWgUgnaB7hvDvHKYRWGH5TNRVUfzxe82AEvoXa7XdmtdcRbCXjvziQ7XutwWJfoVaXd2gZJAxWbvcf3PNwraAoa"
+        ],
+        "block_body_hash": "DsNZCdD4UpHRBkvQrJUXToUdGeFJAjjf2D5xFs6KfBW8",
+        "block_merkle_root": "J2BhUG1P5wXWjttq6cC9ZiGV6HwkzBEuzB8kkCTHxbdn",
+        "block_ordinal": 153,
+        "challenges_result": [],
+        "challenges_root": "11111111111111111111111111111111",
+        "chunk_endorsements": [[1]],
+        "chunk_headers_root": "5SExtrG479huFj7ZuatM2CKk6Ko6XTGEBf4jQqwJpNyq",
+        "chunk_mask": [true],
+        "chunk_receipts_root": "9ETNjrt6MkwTgSVMMbpukfxRshSD1avBUUa4R4NuqwHv",
+        "chunk_tx_root": "7tkzFg8RHBmMw1ncRJZCCZAizgq4rwCftTKYLce8RU8t",
+        "chunks_included": 1,
+        "epoch_id": "AhJYCnPVBWfg7i39GuLiVfpUo4JCTKRCxMs3iZ5EEgE",
+        "epoch_sync_data_hash": null,
+        "gas_price": "100000000",
+        "hash": "3cCroKzJUsekyQJSyQgXeNRDM3vgyJFaLqEir4vK3U31",
+        "height": 1088,
+        "last_ds_final_block": "9q5MAYYrrVNj9W2Rxp9mzEMezQABpgpHwhngjw5ChSmA",
+        "last_final_block": "HJc9gnHooKT5mYapXPxJNTDWqHNeWA2vvjhncX2NbrsP",
+        "latest_protocol_version": 86,
+        "next_bp_hash": "2w2zDkvAkU45hzCWd2X5vuuB7gY4cY1XgC23vxMznciJ",
+        "next_epoch_id": "BjecJxFXNRuYqQtsu7JFDDgujPNef1NAaRURAQrQGq4T",
+        "outcome_root": "GPvFNnyCY4qC3X1U3GsnnnrtqhFYYTb3ZQ85Jxg1jsFT",
+        "prev_hash": "9q5MAYYrrVNj9W2Rxp9mzEMezQABpgpHwhngjw5ChSmA",
+        "prev_height": 1087,
+        "prev_state_root": "Ez1ZzEyTUSSpkmFyPgWcB3kwpRTA9jnKuuuykJS6a4Ru",
+        "random_value": "59fJPoTgtHcQQiHHBuy1q6BZpfdYgJFmgjdFoFuQJ6KC",
+        "rent_paid": "0",
+        "shard_split": null,
+        "signature": "ed25519:45yGfPSfT414grjFrTFcpU7G2KGR1X7XVUGLukVybJe7MkxXBaJb7kvwbM6nRXftq9hFkWBhku5KtMezAhpjSh9k",
+        "timestamp": 1793907012899000300,
+        "timestamp_nanosec": "1793907012899000267",
+        "total_supply": "2050030131307645350501788118663442",
+        "validator_proposals": [],
+        "validator_reward": "0"
+      }
+    },
+    "town": {
+      "deployment": {
+        "network_id": "testnet",
+        "genesis_hash": "11111111111111111111111111111111",
+        "contract_id": "dev-20261105192503-16702368371237.test.near",
+        "api_version": "2.0.0",
+        "state_schema": "1",
+        "command_schema": "1",
+        "config_version": "1",
+        "config_sha256": "a932efb48c70a73ce46472cd754288649541b34604e2ea49a4093961e71a2d10"
+      },
+      "market_revision": "13",
+      "event_sequence": "13",
+      "block_height": "1088",
+      "block_timestamp_ns": "1793907012899000267",
+      "data": {
+        "paused": false,
+        "registered_player_count": "2",
+        "epoch": "5",
+        "genesis_time_ns": "1793906704677920945",
+        "npc_shops": [
+          {
+            "shop_id": "1",
+            "owner": {
+              "kind": "merchant",
+              "merchant_id": "rex"
+            },
+            "name": "Rex",
+            "revision": "1",
+            "production_slots": "1",
+            "policy_revision": "1",
+            "created_at_ns": "1793906704677920945",
+            "ownership_command_sequence": null
+          },
+          {
+            "shop_id": "2",
+            "owner": {
+              "kind": "merchant",
+              "merchant_id": "luna"
+            },
+            "name": "Luna",
+            "revision": "1",
+            "production_slots": "1",
+            "policy_revision": "1",
+            "created_at_ns": "1793906704677920945",
+            "ownership_command_sequence": null
+          },
+          {
+            "shop_id": "3",
+            "owner": {
+              "kind": "merchant",
+              "merchant_id": "bolt"
+            },
+            "name": "Bolt",
+            "revision": "1",
+            "production_slots": "1",
+            "policy_revision": "1",
+            "created_at_ns": "1793906704677920945",
+            "ownership_command_sequence": null
+          }
+        ],
+        "npc_ledgers": [
+          {
+            "actor": {
+              "kind": "merchant",
+              "merchant_id": "rex"
+            },
+            "revision": "2",
+            "gold": {
+              "held": "204",
+              "available": "204",
+              "trade_reserved": "0",
+              "trade_inbound_reserved": "0"
+            },
+            "inventory": {
+              "held": {
+                "crystal": "9",
+                "wood": "0",
+                "herb": "0",
+                "iron": "0",
+                "health_potion": "0",
+                "iron_tool": "0"
+              },
+              "available": {
+                "crystal": "2",
+                "wood": "0",
+                "herb": "0",
+                "iron": "0",
+                "health_potion": "0",
+                "iron_tool": "0"
+              },
+              "listing_reserved": {
+                "crystal": "7",
+                "wood": "0",
+                "herb": "0",
+                "iron": "0",
+                "health_potion": "0",
+                "iron_tool": "0"
+              },
+              "trade_reserved": {
+                "crystal": "0",
+                "wood": "0",
+                "herb": "0",
+                "iron": "0",
+                "health_potion": "0",
+                "iron_tool": "0"
+              },
+              "production_output_reserved": {
+                "crystal": "0",
+                "wood": "0",
+                "herb": "0",
+                "iron": "0",
+                "health_potion": "0",
+                "iron_tool": "0"
+              },
+              "trade_inbound_reserved": {
+                "crystal": "0",
+                "wood": "0",
+                "herb": "0",
+                "iron": "0",
+                "health_potion": "0",
+                "iron_tool": "0"
+              }
+            }
+          },
+          {
+            "actor": {
+              "kind": "merchant",
+              "merchant_id": "luna"
+            },
+            "revision": "2",
+            "gold": {
+              "held": "206",
+              "available": "206",
+              "trade_reserved": "0",
+              "trade_inbound_reserved": "0"
+            },
+            "inventory": {
+              "held": {
+                "crystal": "0",
+                "wood": "0",
+                "herb": "18",
+                "iron": "0",
+                "health_potion": "0",
+                "iron_tool": "0"
+              },
+              "available": {
+                "crystal": "0",
+                "wood": "0",
+                "herb": "8",
+                "iron": "0",
+                "health_potion": "0",
+                "iron_tool": "0"
+              },
+              "listing_reserved": {
+                "crystal": "0",
+                "wood": "0",
+                "herb": "10",
+                "iron": "0",
+                "health_potion": "0",
+                "iron_tool": "0"
+              },
+              "trade_reserved": {
+                "crystal": "0",
+                "wood": "0",
+                "herb": "0",
+                "iron": "0",
+                "health_potion": "0",
+                "iron_tool": "0"
+              },
+              "production_output_reserved": {
+                "crystal": "0",
+                "wood": "0",
+                "herb": "0",
+                "iron": "0",
+                "health_potion": "0",
+                "iron_tool": "0"
+              },
+              "trade_inbound_reserved": {
+                "crystal": "0",
+                "wood": "0",
+                "herb": "0",
+                "iron": "0",
+                "health_potion": "0",
+                "iron_tool": "0"
+              }
+            }
+          },
+          {
+            "actor": {
+              "kind": "merchant",
+              "merchant_id": "bolt"
+            },
+            "revision": "3",
+            "gold": {
+              "held": "212",
+              "available": "212",
+              "trade_reserved": "0",
+              "trade_inbound_reserved": "0"
+            },
+            "inventory": {
+              "held": {
+                "crystal": "0",
+                "wood": "9",
+                "herb": "0",
+                "iron": "18",
+                "health_potion": "0",
+                "iron_tool": "0"
+              },
+              "available": {
+                "crystal": "0",
+                "wood": "2",
+                "herb": "0",
+                "iron": "4",
+                "health_potion": "0",
+                "iron_tool": "0"
+              },
+              "listing_reserved": {
+                "crystal": "0",
+                "wood": "7",
+                "herb": "0",
+                "iron": "14",
+                "health_potion": "0",
+                "iron_tool": "0"
+              },
+              "trade_reserved": {
+                "crystal": "0",
+                "wood": "0",
+                "herb": "0",
+                "iron": "0",
+                "health_potion": "0",
+                "iron_tool": "0"
+              },
+              "production_output_reserved": {
+                "crystal": "0",
+                "wood": "0",
+                "herb": "0",
+                "iron": "0",
+                "health_potion": "0",
+                "iron_tool": "0"
+              },
+              "trade_inbound_reserved": {
+                "crystal": "0",
+                "wood": "0",
+                "herb": "0",
+                "iron": "0",
+                "health_potion": "0",
+                "iron_tool": "0"
+              }
+            }
+          }
+        ],
+        "customer_pool": {
+          "pool_id": "town_customers",
+          "gold": "100",
+          "epoch": "5",
+          "last_funded_epoch": "0",
+          "potion_units_bought": "0",
+          "tool_units_bought": "0",
+          "revision": "1"
+        },
+        "totals": {
+          "initial_gold": "700",
+          "player_grants": "200",
+          "customer_topups": "0",
+          "upgrade_burns": "0",
+          "treasury_burns": "0",
+          "seed_items": {
+            "crystal": "10",
+            "wood": "10",
+            "herb": "20",
+            "iron": "20",
+            "health_potion": "0",
+            "iron_tool": "0"
+          },
+          "supplied_items": {
+            "crystal": "0",
+            "wood": "0",
+            "herb": "0",
+            "iron": "0",
+            "health_potion": "0",
+            "iron_tool": "0"
+          },
+          "recipe_inputs_consumed": {
+            "crystal": "1",
+            "wood": "1",
+            "herb": "2",
+            "iron": "2",
+            "health_potion": "0",
+            "iron_tool": "0"
+          },
+          "completed_outputs": {
+            "crystal": "0",
+            "wood": "0",
+            "herb": "0",
+            "iron": "0",
+            "health_potion": "1",
+            "iron_tool": "1"
+          },
+          "customer_consumed": {
+            "crystal": "0",
+            "wood": "0",
+            "herb": "0",
+            "iron": "0",
+            "health_potion": "0",
+            "iron_tool": "0"
+          }
+        },
+        "market_event": null,
+        "next_shop_id": "6",
+        "next_listing_id": "5",
+        "next_job_id": "3",
+        "next_offer_id": "1",
+        "next_trade_id": "5",
+        "next_market_event_id": "1",
+        "retained_events_from": "1",
+        "limits": {
+          "max_players": "1000",
+          "max_actor_gold": "1000000",
+          "max_actor_item": "1000",
+          "max_listing_quantity": "100",
+          "max_purchase_quantity": "100",
+          "max_unit_price": "100",
+          "max_total_price": "10000",
+          "max_batch_quantity": "10",
+          "max_page_size": "50",
+          "max_expire_batch": "24",
+          "max_name_bytes": "32",
+          "max_command_lifetime_seconds": "600",
+          "max_offer_lifetime_seconds": "600",
+          "retained_command_results": "1",
+          "retained_jobs": "256",
+          "retained_trades": "256",
+          "retained_events": "256",
+          "max_active_offers": "12",
+          "max_recipe_versions": "4"
+        }
+      }
+    },
+    "shops": [
+      {
+        "shop": {
+          "deployment": {
+            "network_id": "testnet",
+            "genesis_hash": "11111111111111111111111111111111",
+            "contract_id": "dev-20261105192503-16702368371237.test.near",
+            "api_version": "2.0.0",
+            "state_schema": "1",
+            "command_schema": "1",
+            "config_version": "1",
+            "config_sha256": "a932efb48c70a73ce46472cd754288649541b34604e2ea49a4093961e71a2d10"
+          },
+          "market_revision": "13",
+          "event_sequence": "13",
+          "block_height": "1088",
+          "block_timestamp_ns": "1793907012899000267",
+          "data": {
+            "shop_id": "4",
+            "owner": {
+              "kind": "player",
+              "account_id": "dev-20261105192504-16515429008234.test.near"
+            },
+            "name": "Potions",
+            "revision": "3",
+            "production_slots": "1",
+            "policy_revision": "1",
+            "created_at_ns": "1793906706583213117",
+            "ownership_command_sequence": "2"
+          }
+        },
+        "ledger": {
+          "deployment": {
+            "network_id": "testnet",
+            "genesis_hash": "11111111111111111111111111111111",
+            "contract_id": "dev-20261105192503-16702368371237.test.near",
+            "api_version": "2.0.0",
+            "state_schema": "1",
+            "command_schema": "1",
+            "config_version": "1",
+            "config_sha256": "a932efb48c70a73ce46472cd754288649541b34604e2ea49a4093961e71a2d10"
+          },
+          "market_revision": "13",
+          "event_sequence": "13",
+          "block_height": "1088",
+          "block_timestamp_ns": "1793907012899000267",
+          "data": {
+            "actor": {
+              "kind": "player",
+              "account_id": "dev-20261105192504-16515429008234.test.near"
+            },
+            "revision": "5",
+            "gold": {
+              "held": "90",
+              "available": "90",
+              "trade_reserved": "0",
+              "trade_inbound_reserved": "0"
+            },
+            "inventory": {
+              "held": {
+                "crystal": "0",
+                "wood": "0",
+                "herb": "0",
+                "iron": "0",
+                "health_potion": "1",
+                "iron_tool": "0"
+              },
+              "available": {
+                "crystal": "0",
+                "wood": "0",
+                "herb": "0",
+                "iron": "0",
+                "health_potion": "1",
+                "iron_tool": "0"
+              },
+              "listing_reserved": {
+                "crystal": "0",
+                "wood": "0",
+                "herb": "0",
+                "iron": "0",
+                "health_potion": "0",
+                "iron_tool": "0"
+              },
+              "trade_reserved": {
+                "crystal": "0",
+                "wood": "0",
+                "herb": "0",
+                "iron": "0",
+                "health_potion": "0",
+                "iron_tool": "0"
+              },
+              "production_output_reserved": {
+                "crystal": "0",
+                "wood": "0",
+                "herb": "0",
+                "iron": "0",
+                "health_potion": "0",
+                "iron_tool": "0"
+              },
+              "trade_inbound_reserved": {
+                "crystal": "0",
+                "wood": "0",
+                "herb": "0",
+                "iron": "0",
+                "health_potion": "0",
+                "iron_tool": "0"
+              }
+            }
+          }
+        },
+        "jobs": {
+          "deployment": {
+            "network_id": "testnet",
+            "genesis_hash": "11111111111111111111111111111111",
+            "contract_id": "dev-20261105192503-16702368371237.test.near",
+            "api_version": "2.0.0",
+            "state_schema": "1",
+            "command_schema": "1",
+            "config_version": "1",
+            "config_sha256": "a932efb48c70a73ce46472cd754288649541b34604e2ea49a4093961e71a2d10"
+          },
+          "market_revision": "13",
+          "event_sequence": "13",
+          "block_height": "1088",
+          "block_timestamp_ns": "1793907012899000267",
+          "data": {
+            "items": [
+              {
+                "recipe_id": "health_potion",
+                "recipe_version": "1",
+                "config_version": "1",
+                "quantity": "1",
+                "inputs_consumed": {
+                  "crystal": "1",
+                  "wood": "0",
+                  "herb": "2",
+                  "iron": "0",
+                  "health_potion": "0",
+                  "iron_tool": "0"
+                },
+                "output_item": "health_potion",
+                "output_quantity": "1",
+                "start_at_ns": "1793906709254111699",
+                "ready_at_ns": "1793906829254111699",
+                "job_id": "1",
+                "shop_id": "4",
+                "owner": {
+                  "kind": "player",
+                  "account_id": "dev-20261105192504-16515429008234.test.near"
+                },
+                "completed_at_ns": "1793907011894524079",
+                "status": "completed",
+                "start_command_sequence": "5",
+                "revision": "2"
+              }
+            ],
+            "next_after_id": "1",
+            "has_more": false,
+            "history_gap": false,
+            "pruned_through": "0"
+          }
+        }
+      },
+      {
+        "shop": {
+          "deployment": {
+            "network_id": "testnet",
+            "genesis_hash": "11111111111111111111111111111111",
+            "contract_id": "dev-20261105192503-16702368371237.test.near",
+            "api_version": "2.0.0",
+            "state_schema": "1",
+            "command_schema": "1",
+            "config_version": "1",
+            "config_sha256": "a932efb48c70a73ce46472cd754288649541b34604e2ea49a4093961e71a2d10"
+          },
+          "market_revision": "13",
+          "event_sequence": "13",
+          "block_height": "1088",
+          "block_timestamp_ns": "1793907012899000267",
+          "data": {
+            "shop_id": "5",
+            "owner": {
+              "kind": "player",
+              "account_id": "dev-20261105192505-83860567816751.test.near"
+            },
+            "name": "Tools",
+            "revision": "3",
+            "production_slots": "1",
+            "policy_revision": "1",
+            "created_at_ns": "1793906707346777092",
+            "ownership_command_sequence": "2"
+          }
+        },
+        "ledger": {
+          "deployment": {
+            "network_id": "testnet",
+            "genesis_hash": "11111111111111111111111111111111",
+            "contract_id": "dev-20261105192503-16702368371237.test.near",
+            "api_version": "2.0.0",
+            "state_schema": "1",
+            "command_schema": "1",
+            "config_version": "1",
+            "config_sha256": "a932efb48c70a73ce46472cd754288649541b34604e2ea49a4093961e71a2d10"
+          },
+          "market_revision": "13",
+          "event_sequence": "13",
+          "block_height": "1088",
+          "block_timestamp_ns": "1793907012899000267",
+          "data": {
+            "actor": {
+              "kind": "player",
+              "account_id": "dev-20261105192505-83860567816751.test.near"
+            },
+            "revision": "5",
+            "gold": {
+              "held": "88",
+              "available": "88",
+              "trade_reserved": "0",
+              "trade_inbound_reserved": "0"
+            },
+            "inventory": {
+              "held": {
+                "crystal": "0",
+                "wood": "0",
+                "herb": "0",
+                "iron": "0",
+                "health_potion": "0",
+                "iron_tool": "1"
+              },
+              "available": {
+                "crystal": "0",
+                "wood": "0",
+                "herb": "0",
+                "iron": "0",
+                "health_potion": "0",
+                "iron_tool": "1"
+              },
+              "listing_reserved": {
+                "crystal": "0",
+                "wood": "0",
+                "herb": "0",
+                "iron": "0",
+                "health_potion": "0",
+                "iron_tool": "0"
+              },
+              "trade_reserved": {
+                "crystal": "0",
+                "wood": "0",
+                "herb": "0",
+                "iron": "0",
+                "health_potion": "0",
+                "iron_tool": "0"
+              },
+              "production_output_reserved": {
+                "crystal": "0",
+                "wood": "0",
+                "herb": "0",
+                "iron": "0",
+                "health_potion": "0",
+                "iron_tool": "0"
+              },
+              "trade_inbound_reserved": {
+                "crystal": "0",
+                "wood": "0",
+                "herb": "0",
+                "iron": "0",
+                "health_potion": "0",
+                "iron_tool": "0"
+              }
+            }
+          }
+        },
+        "jobs": {
+          "deployment": {
+            "network_id": "testnet",
+            "genesis_hash": "11111111111111111111111111111111",
+            "contract_id": "dev-20261105192503-16702368371237.test.near",
+            "api_version": "2.0.0",
+            "state_schema": "1",
+            "command_schema": "1",
+            "config_version": "1",
+            "config_sha256": "a932efb48c70a73ce46472cd754288649541b34604e2ea49a4093961e71a2d10"
+          },
+          "market_revision": "13",
+          "event_sequence": "13",
+          "block_height": "1088",
+          "block_timestamp_ns": "1793907012899000267",
+          "data": {
+            "items": [
+              {
+                "recipe_id": "iron_tool",
+                "recipe_version": "1",
+                "config_version": "1",
+                "quantity": "1",
+                "inputs_consumed": {
+                  "crystal": "0",
+                  "wood": "1",
+                  "herb": "0",
+                  "iron": "2",
+                  "health_potion": "0",
+                  "iron_tool": "0"
+                },
+                "output_item": "iron_tool",
+                "output_quantity": "1",
+                "start_at_ns": "1793906710020716424",
+                "ready_at_ns": "1793906890020716424",
+                "job_id": "2",
+                "shop_id": "5",
+                "owner": {
+                  "kind": "player",
+                  "account_id": "dev-20261105192505-83860567816751.test.near"
+                },
+                "completed_at_ns": "1793907012652649304",
+                "status": "completed",
+                "start_command_sequence": "5",
+                "revision": "2"
+              }
+            ],
+            "next_after_id": "2",
+            "has_more": false,
+            "history_gap": false,
+            "pruned_through": "0"
+          }
+        }
+      }
+    ]
+  },
+  "after": {
+    "block": {
+      "author": "test.near",
+      "chunks": [
+        {
+          "balance_burnt": "339281113273600000000",
+          "bandwidth_requests": {
+            "V1": {
+              "requests": []
+            }
+          },
+          "chunk_hash": "XSXydby3Pg4tQknGCJrEAG1jooqsnc4RRbRE5YjzkhS",
+          "congestion_info": {
+            "allowed_shard": 0,
+            "buffered_receipts_gas": "0",
+            "delayed_receipts_gas": "0",
+            "receipt_bytes": 0
+          },
+          "encoded_length": 223,
+          "encoded_merkle_root": "14Snfo5qHrgr3Lkkg7JPfN6nzQ77TuPbUGi82CbeB5wN",
+          "gas_limit": 1000000000000000,
+          "gas_used": 4466244495699,
+          "height_created": 1110,
+          "height_included": 1110,
+          "outcome_root": "B233aWaNAVFRAU4vCoWAtTkKmNWBcRAhAhE31aTid1mK",
+          "outgoing_receipts_root": "9xHKz6YsxsFsV3BLq7XLbqTDnkszN9fekiYUwbmK1erz",
+          "prev_block_hash": "9JKFjukLdtTGBJdvumYXV4uwFa2vuYvWJCHCHAemebso",
+          "prev_state_root": "BiJYzJZ6aprJ8rWHTvJoku2D2YKZE3jmLZjqNWN8j1Ba",
+          "proposed_split": null,
+          "rent_paid": "0",
+          "shard_id": 0,
+          "signature": "ed25519:3wJ4hTTyQ9dQgCBX9ooZYDRS7Eu9Rq7s2jYP5GcyuhRBeezunfWXciNxsKrCVFoRfcvXSKkNHnaBxFu8tX5XKCnU",
+          "tx_root": "11111111111111111111111111111111",
+          "validator_proposals": [],
+          "validator_reward": "0"
+        }
+      ],
+      "header": {
+        "approvals": [
+          "ed25519:2zDW9Zs8dtpMAysyULkHkZZPgW4g6XHS9L6h5LxPawu2RxGrKn6eKAwZUPXtuJKY8jCa4Jne2MyAXeWdqxvdpEDB"
+        ],
+        "block_body_hash": "8gQJdMnRrZMU3wgRXogBHE7HdrwfS2fPtcLbCiFMLhwS",
+        "block_merkle_root": "Bmfj1rosN2kUsmSQEYA8VR8BLCmrU5rFv4V9ZJuXSRQ9",
+        "block_ordinal": 175,
+        "challenges_result": [],
+        "challenges_root": "11111111111111111111111111111111",
+        "chunk_endorsements": [[1]],
+        "chunk_headers_root": "CWpMc2TzqbYJvZsScfJspT1DdgaAqv4QeEv22MMZY8RF",
+        "chunk_mask": [true],
+        "chunk_receipts_root": "CQ6P9w6KxgoRv1QGRYAi6ioGSL32e4oDKvnPUnnAU1cT",
+        "chunk_tx_root": "7tkzFg8RHBmMw1ncRJZCCZAizgq4rwCftTKYLce8RU8t",
+        "chunks_included": 1,
+        "epoch_id": "AhJYCnPVBWfg7i39GuLiVfpUo4JCTKRCxMs3iZ5EEgE",
+        "epoch_sync_data_hash": null,
+        "gas_price": "100000000",
+        "hash": "71n7rzxh9ASuYonFdf9Md6EZYq9LnxhYgZ7CuTkrp4fM",
+        "height": 1110,
+        "last_ds_final_block": "9JKFjukLdtTGBJdvumYXV4uwFa2vuYvWJCHCHAemebso",
+        "last_final_block": "C9nXvebaH734ZnVYmuqfWgy4wJAyceCQtP75yEw2WUqH",
+        "latest_protocol_version": 86,
+        "next_bp_hash": "2w2zDkvAkU45hzCWd2X5vuuB7gY4cY1XgC23vxMznciJ",
+        "next_epoch_id": "BjecJxFXNRuYqQtsu7JFDDgujPNef1NAaRURAQrQGq4T",
+        "outcome_root": "B6VUCuX87P7PKTvZcpwJZmoF3HReoSCUWfhHBF8TixYu",
+        "prev_hash": "9JKFjukLdtTGBJdvumYXV4uwFa2vuYvWJCHCHAemebso",
+        "prev_height": 1109,
+        "prev_state_root": "Dmkei31PPtdYpqPjq98z6rVXaVPx2PsJnwBp3p6m9bGt",
+        "random_value": "Hw7snenapVujxgYTjBKACv2AeLV8qDdtsKES5PAgtu2s",
+        "rent_paid": "0",
+        "shard_split": null,
+        "signature": "ed25519:3sS9ym9Rah5bMUb249xv8kgaT4U6XzqgqVwBL7FFRha2tDVdFASzNxTqcPKkjAxQSBucCHLjErfNog8L8huXS3Xm",
+        "timestamp": 1793907015685356000,
+        "timestamp_nanosec": "1793907015685355927",
+        "total_supply": "2050030131304942164055117318663442",
+        "validator_proposals": [],
+        "validator_reward": "0"
+      }
+    },
+    "town": {
+      "deployment": {
+        "network_id": "testnet",
+        "genesis_hash": "11111111111111111111111111111111",
+        "contract_id": "dev-20261105192503-16702368371237.test.near",
+        "api_version": "2.0.0",
+        "state_schema": "1",
+        "command_schema": "1",
+        "config_version": "1",
+        "config_sha256": "a932efb48c70a73ce46472cd754288649541b34604e2ea49a4093961e71a2d10"
+      },
+      "market_revision": "16",
+      "event_sequence": "16",
+      "block_height": "1110",
+      "block_timestamp_ns": "1793907015685355927",
+      "data": {
+        "paused": false,
+        "registered_player_count": "2",
+        "epoch": "5",
+        "genesis_time_ns": "1793906704677920945",
+        "npc_shops": [
+          {
+            "shop_id": "1",
+            "owner": {
+              "kind": "merchant",
+              "merchant_id": "rex"
+            },
+            "name": "Rex",
+            "revision": "1",
+            "production_slots": "1",
+            "policy_revision": "1",
+            "created_at_ns": "1793906704677920945",
+            "ownership_command_sequence": null
+          },
+          {
+            "shop_id": "2",
+            "owner": {
+              "kind": "merchant",
+              "merchant_id": "luna"
+            },
+            "name": "Luna",
+            "revision": "1",
+            "production_slots": "1",
+            "policy_revision": "1",
+            "created_at_ns": "1793906704677920945",
+            "ownership_command_sequence": null
+          },
+          {
+            "shop_id": "3",
+            "owner": {
+              "kind": "merchant",
+              "merchant_id": "bolt"
+            },
+            "name": "Bolt",
+            "revision": "1",
+            "production_slots": "1",
+            "policy_revision": "1",
+            "created_at_ns": "1793906704677920945",
+            "ownership_command_sequence": null
+          }
+        ],
+        "npc_ledgers": [
+          {
+            "actor": {
+              "kind": "merchant",
+              "merchant_id": "rex"
+            },
+            "revision": "3",
+            "gold": {
+              "held": "208",
+              "available": "208",
+              "trade_reserved": "0",
+              "trade_inbound_reserved": "0"
+            },
+            "inventory": {
+              "held": {
+                "crystal": "8",
+                "wood": "0",
+                "herb": "0",
+                "iron": "0",
+                "health_potion": "0",
+                "iron_tool": "0"
+              },
+              "available": {
+                "crystal": "2",
+                "wood": "0",
+                "herb": "0",
+                "iron": "0",
+                "health_potion": "0",
+                "iron_tool": "0"
+              },
+              "listing_reserved": {
+                "crystal": "6",
+                "wood": "0",
+                "herb": "0",
+                "iron": "0",
+                "health_potion": "0",
+                "iron_tool": "0"
+              },
+              "trade_reserved": {
+                "crystal": "0",
+                "wood": "0",
+                "herb": "0",
+                "iron": "0",
+                "health_potion": "0",
+                "iron_tool": "0"
+              },
+              "production_output_reserved": {
+                "crystal": "0",
+                "wood": "0",
+                "herb": "0",
+                "iron": "0",
+                "health_potion": "0",
+                "iron_tool": "0"
+              },
+              "trade_inbound_reserved": {
+                "crystal": "0",
+                "wood": "0",
+                "herb": "0",
+                "iron": "0",
+                "health_potion": "0",
+                "iron_tool": "0"
+              }
+            }
+          },
+          {
+            "actor": {
+              "kind": "merchant",
+              "merchant_id": "luna"
+            },
+            "revision": "3",
+            "gold": {
+              "held": "212",
+              "available": "212",
+              "trade_reserved": "0",
+              "trade_inbound_reserved": "0"
+            },
+            "inventory": {
+              "held": {
+                "crystal": "0",
+                "wood": "0",
+                "herb": "16",
+                "iron": "0",
+                "health_potion": "0",
+                "iron_tool": "0"
+              },
+              "available": {
+                "crystal": "0",
+                "wood": "0",
+                "herb": "8",
+                "iron": "0",
+                "health_potion": "0",
+                "iron_tool": "0"
+              },
+              "listing_reserved": {
+                "crystal": "0",
+                "wood": "0",
+                "herb": "8",
+                "iron": "0",
+                "health_potion": "0",
+                "iron_tool": "0"
+              },
+              "trade_reserved": {
+                "crystal": "0",
+                "wood": "0",
+                "herb": "0",
+                "iron": "0",
+                "health_potion": "0",
+                "iron_tool": "0"
+              },
+              "production_output_reserved": {
+                "crystal": "0",
+                "wood": "0",
+                "herb": "0",
+                "iron": "0",
+                "health_potion": "0",
+                "iron_tool": "0"
+              },
+              "trade_inbound_reserved": {
+                "crystal": "0",
+                "wood": "0",
+                "herb": "0",
+                "iron": "0",
+                "health_potion": "0",
+                "iron_tool": "0"
+              }
+            }
+          },
+          {
+            "actor": {
+              "kind": "merchant",
+              "merchant_id": "bolt"
+            },
+            "revision": "3",
+            "gold": {
+              "held": "212",
+              "available": "212",
+              "trade_reserved": "0",
+              "trade_inbound_reserved": "0"
+            },
+            "inventory": {
+              "held": {
+                "crystal": "0",
+                "wood": "9",
+                "herb": "0",
+                "iron": "18",
+                "health_potion": "0",
+                "iron_tool": "0"
+              },
+              "available": {
+                "crystal": "0",
+                "wood": "2",
+                "herb": "0",
+                "iron": "4",
+                "health_potion": "0",
+                "iron_tool": "0"
+              },
+              "listing_reserved": {
+                "crystal": "0",
+                "wood": "7",
+                "herb": "0",
+                "iron": "14",
+                "health_potion": "0",
+                "iron_tool": "0"
+              },
+              "trade_reserved": {
+                "crystal": "0",
+                "wood": "0",
+                "herb": "0",
+                "iron": "0",
+                "health_potion": "0",
+                "iron_tool": "0"
+              },
+              "production_output_reserved": {
+                "crystal": "0",
+                "wood": "0",
+                "herb": "0",
+                "iron": "0",
+                "health_potion": "0",
+                "iron_tool": "0"
+              },
+              "trade_inbound_reserved": {
+                "crystal": "0",
+                "wood": "0",
+                "herb": "0",
+                "iron": "0",
+                "health_potion": "0",
+                "iron_tool": "0"
+              }
+            }
+          }
+        ],
+        "customer_pool": {
+          "pool_id": "town_customers",
+          "gold": "100",
+          "epoch": "5",
+          "last_funded_epoch": "0",
+          "potion_units_bought": "0",
+          "tool_units_bought": "0",
+          "revision": "1"
+        },
+        "totals": {
+          "initial_gold": "700",
+          "player_grants": "200",
+          "customer_topups": "0",
+          "upgrade_burns": "0",
+          "treasury_burns": "0",
+          "seed_items": {
+            "crystal": "10",
+            "wood": "10",
+            "herb": "20",
+            "iron": "20",
+            "health_potion": "0",
+            "iron_tool": "0"
+          },
+          "supplied_items": {
+            "crystal": "0",
+            "wood": "0",
+            "herb": "0",
+            "iron": "0",
+            "health_potion": "0",
+            "iron_tool": "0"
+          },
+          "recipe_inputs_consumed": {
+            "crystal": "2",
+            "wood": "1",
+            "herb": "4",
+            "iron": "2",
+            "health_potion": "0",
+            "iron_tool": "0"
+          },
+          "completed_outputs": {
+            "crystal": "0",
+            "wood": "0",
+            "herb": "0",
+            "iron": "0",
+            "health_potion": "1",
+            "iron_tool": "1"
+          },
+          "customer_consumed": {
+            "crystal": "0",
+            "wood": "0",
+            "herb": "0",
+            "iron": "0",
+            "health_potion": "0",
+            "iron_tool": "0"
+          }
+        },
+        "market_event": null,
+        "next_shop_id": "6",
+        "next_listing_id": "5",
+        "next_job_id": "4",
+        "next_offer_id": "1",
+        "next_trade_id": "7",
+        "next_market_event_id": "1",
+        "retained_events_from": "1",
+        "limits": {
+          "max_players": "1000",
+          "max_actor_gold": "1000000",
+          "max_actor_item": "1000",
+          "max_listing_quantity": "100",
+          "max_purchase_quantity": "100",
+          "max_unit_price": "100",
+          "max_total_price": "10000",
+          "max_batch_quantity": "10",
+          "max_page_size": "50",
+          "max_expire_batch": "24",
+          "max_name_bytes": "32",
+          "max_command_lifetime_seconds": "600",
+          "max_offer_lifetime_seconds": "600",
+          "retained_command_results": "1",
+          "retained_jobs": "256",
+          "retained_trades": "256",
+          "retained_events": "256",
+          "max_active_offers": "12",
+          "max_recipe_versions": "4"
+        }
+      }
+    },
+    "shops": [
+      {
+        "shop": {
+          "deployment": {
+            "network_id": "testnet",
+            "genesis_hash": "11111111111111111111111111111111",
+            "contract_id": "dev-20261105192503-16702368371237.test.near",
+            "api_version": "2.0.0",
+            "state_schema": "1",
+            "command_schema": "1",
+            "config_version": "1",
+            "config_sha256": "a932efb48c70a73ce46472cd754288649541b34604e2ea49a4093961e71a2d10"
+          },
+          "market_revision": "16",
+          "event_sequence": "16",
+          "block_height": "1110",
+          "block_timestamp_ns": "1793907015685355927",
+          "data": {
+            "shop_id": "4",
+            "owner": {
+              "kind": "player",
+              "account_id": "dev-20261105192504-16515429008234.test.near"
+            },
+            "name": "Potions",
+            "revision": "4",
+            "production_slots": "1",
+            "policy_revision": "1",
+            "created_at_ns": "1793906706583213117",
+            "ownership_command_sequence": "2"
+          }
+        },
+        "ledger": {
+          "deployment": {
+            "network_id": "testnet",
+            "genesis_hash": "11111111111111111111111111111111",
+            "contract_id": "dev-20261105192503-16702368371237.test.near",
+            "api_version": "2.0.0",
+            "state_schema": "1",
+            "command_schema": "1",
+            "config_version": "1",
+            "config_sha256": "a932efb48c70a73ce46472cd754288649541b34604e2ea49a4093961e71a2d10"
+          },
+          "market_revision": "16",
+          "event_sequence": "16",
+          "block_height": "1110",
+          "block_timestamp_ns": "1793907015685355927",
+          "data": {
+            "actor": {
+              "kind": "player",
+              "account_id": "dev-20261105192504-16515429008234.test.near"
+            },
+            "revision": "8",
+            "gold": {
+              "held": "80",
+              "available": "80",
+              "trade_reserved": "0",
+              "trade_inbound_reserved": "0"
+            },
+            "inventory": {
+              "held": {
+                "crystal": "0",
+                "wood": "0",
+                "herb": "0",
+                "iron": "0",
+                "health_potion": "1",
+                "iron_tool": "0"
+              },
+              "available": {
+                "crystal": "0",
+                "wood": "0",
+                "herb": "0",
+                "iron": "0",
+                "health_potion": "1",
+                "iron_tool": "0"
+              },
+              "listing_reserved": {
+                "crystal": "0",
+                "wood": "0",
+                "herb": "0",
+                "iron": "0",
+                "health_potion": "0",
+                "iron_tool": "0"
+              },
+              "trade_reserved": {
+                "crystal": "0",
+                "wood": "0",
+                "herb": "0",
+                "iron": "0",
+                "health_potion": "0",
+                "iron_tool": "0"
+              },
+              "production_output_reserved": {
+                "crystal": "0",
+                "wood": "0",
+                "herb": "0",
+                "iron": "0",
+                "health_potion": "1",
+                "iron_tool": "0"
+              },
+              "trade_inbound_reserved": {
+                "crystal": "0",
+                "wood": "0",
+                "herb": "0",
+                "iron": "0",
+                "health_potion": "0",
+                "iron_tool": "0"
+              }
+            }
+          }
+        },
+        "jobs": {
+          "deployment": {
+            "network_id": "testnet",
+            "genesis_hash": "11111111111111111111111111111111",
+            "contract_id": "dev-20261105192503-16702368371237.test.near",
+            "api_version": "2.0.0",
+            "state_schema": "1",
+            "command_schema": "1",
+            "config_version": "1",
+            "config_sha256": "a932efb48c70a73ce46472cd754288649541b34604e2ea49a4093961e71a2d10"
+          },
+          "market_revision": "16",
+          "event_sequence": "16",
+          "block_height": "1110",
+          "block_timestamp_ns": "1793907015685355927",
+          "data": {
+            "items": [
+              {
+                "recipe_id": "health_potion",
+                "recipe_version": "1",
+                "config_version": "1",
+                "quantity": "1",
+                "inputs_consumed": {
+                  "crystal": "1",
+                  "wood": "0",
+                  "herb": "2",
+                  "iron": "0",
+                  "health_potion": "0",
+                  "iron_tool": "0"
+                },
+                "output_item": "health_potion",
+                "output_quantity": "1",
+                "start_at_ns": "1793906709254111699",
+                "ready_at_ns": "1793906829254111699",
+                "job_id": "1",
+                "shop_id": "4",
+                "owner": {
+                  "kind": "player",
+                  "account_id": "dev-20261105192504-16515429008234.test.near"
+                },
+                "completed_at_ns": "1793907011894524079",
+                "status": "completed",
+                "start_command_sequence": "5",
+                "revision": "2"
+              },
+              {
+                "recipe_id": "health_potion",
+                "recipe_version": "1",
+                "config_version": "1",
+                "quantity": "1",
+                "inputs_consumed": {
+                  "crystal": "1",
+                  "wood": "0",
+                  "herb": "2",
+                  "iron": "0",
+                  "health_potion": "0",
+                  "iron_tool": "0"
+                },
+                "output_item": "health_potion",
+                "output_quantity": "1",
+                "start_at_ns": "1793907014801731498",
+                "ready_at_ns": "1793907134801731498",
+                "job_id": "3",
+                "shop_id": "4",
+                "owner": {
+                  "kind": "player",
+                  "account_id": "dev-20261105192504-16515429008234.test.near"
+                },
+                "completed_at_ns": null,
+                "status": "running",
+                "start_command_sequence": "8",
+                "revision": "1"
+              }
+            ],
+            "next_after_id": "3",
+            "has_more": false,
+            "history_gap": false,
+            "pruned_through": "0"
+          }
+        }
+      },
+      {
+        "shop": {
+          "deployment": {
+            "network_id": "testnet",
+            "genesis_hash": "11111111111111111111111111111111",
+            "contract_id": "dev-20261105192503-16702368371237.test.near",
+            "api_version": "2.0.0",
+            "state_schema": "1",
+            "command_schema": "1",
+            "config_version": "1",
+            "config_sha256": "a932efb48c70a73ce46472cd754288649541b34604e2ea49a4093961e71a2d10"
+          },
+          "market_revision": "16",
+          "event_sequence": "16",
+          "block_height": "1110",
+          "block_timestamp_ns": "1793907015685355927",
+          "data": {
+            "shop_id": "5",
+            "owner": {
+              "kind": "player",
+              "account_id": "dev-20261105192505-83860567816751.test.near"
+            },
+            "name": "Tools",
+            "revision": "3",
+            "production_slots": "1",
+            "policy_revision": "1",
+            "created_at_ns": "1793906707346777092",
+            "ownership_command_sequence": "2"
+          }
+        },
+        "ledger": {
+          "deployment": {
+            "network_id": "testnet",
+            "genesis_hash": "11111111111111111111111111111111",
+            "contract_id": "dev-20261105192503-16702368371237.test.near",
+            "api_version": "2.0.0",
+            "state_schema": "1",
+            "command_schema": "1",
+            "config_version": "1",
+            "config_sha256": "a932efb48c70a73ce46472cd754288649541b34604e2ea49a4093961e71a2d10"
+          },
+          "market_revision": "16",
+          "event_sequence": "16",
+          "block_height": "1110",
+          "block_timestamp_ns": "1793907015685355927",
+          "data": {
+            "actor": {
+              "kind": "player",
+              "account_id": "dev-20261105192505-83860567816751.test.near"
+            },
+            "revision": "5",
+            "gold": {
+              "held": "88",
+              "available": "88",
+              "trade_reserved": "0",
+              "trade_inbound_reserved": "0"
+            },
+            "inventory": {
+              "held": {
+                "crystal": "0",
+                "wood": "0",
+                "herb": "0",
+                "iron": "0",
+                "health_potion": "0",
+                "iron_tool": "1"
+              },
+              "available": {
+                "crystal": "0",
+                "wood": "0",
+                "herb": "0",
+                "iron": "0",
+                "health_potion": "0",
+                "iron_tool": "1"
+              },
+              "listing_reserved": {
+                "crystal": "0",
+                "wood": "0",
+                "herb": "0",
+                "iron": "0",
+                "health_potion": "0",
+                "iron_tool": "0"
+              },
+              "trade_reserved": {
+                "crystal": "0",
+                "wood": "0",
+                "herb": "0",
+                "iron": "0",
+                "health_potion": "0",
+                "iron_tool": "0"
+              },
+              "production_output_reserved": {
+                "crystal": "0",
+                "wood": "0",
+                "herb": "0",
+                "iron": "0",
+                "health_potion": "0",
+                "iron_tool": "0"
+              },
+              "trade_inbound_reserved": {
+                "crystal": "0",
+                "wood": "0",
+                "herb": "0",
+                "iron": "0",
+                "health_potion": "0",
+                "iron_tool": "0"
+              }
+            }
+          }
+        },
+        "jobs": {
+          "deployment": {
+            "network_id": "testnet",
+            "genesis_hash": "11111111111111111111111111111111",
+            "contract_id": "dev-20261105192503-16702368371237.test.near",
+            "api_version": "2.0.0",
+            "state_schema": "1",
+            "command_schema": "1",
+            "config_version": "1",
+            "config_sha256": "a932efb48c70a73ce46472cd754288649541b34604e2ea49a4093961e71a2d10"
+          },
+          "market_revision": "16",
+          "event_sequence": "16",
+          "block_height": "1110",
+          "block_timestamp_ns": "1793907015685355927",
+          "data": {
+            "items": [
+              {
+                "recipe_id": "iron_tool",
+                "recipe_version": "1",
+                "config_version": "1",
+                "quantity": "1",
+                "inputs_consumed": {
+                  "crystal": "0",
+                  "wood": "1",
+                  "herb": "0",
+                  "iron": "2",
+                  "health_potion": "0",
+                  "iron_tool": "0"
+                },
+                "output_item": "iron_tool",
+                "output_quantity": "1",
+                "start_at_ns": "1793906710020716424",
+                "ready_at_ns": "1793906890020716424",
+                "job_id": "2",
+                "shop_id": "5",
+                "owner": {
+                  "kind": "player",
+                  "account_id": "dev-20261105192505-83860567816751.test.near"
+                },
+                "completed_at_ns": "1793907012652649304",
+                "status": "completed",
+                "start_command_sequence": "5",
+                "revision": "2"
+              }
+            ],
+            "next_after_id": "2",
+            "has_more": false,
+            "history_gap": false,
+            "pruned_through": "0"
+          }
+        }
+      }
+    ]
+  },
+  "steps": [
+    {
+      "method": "complete_production",
+      "args": {
+        "job_id": "1"
+      },
+      "signer_id": "dev-20261105192505-92652368616048.test.near",
+      "transaction_hash": "6KhKbn2EiiWSFyqVMxJcGTs4wYtuqYRxTQbfdQxnrAeT",
+      "reference_block_height": "56",
+      "gas_burnt": "3230387059130",
+      "receipt": {
+        "final_execution_status": "FINAL",
+        "receipts_outcome": [
+          {
+            "block_hash": "GdL15xY5CdCbpD8azoNcWWa2kx5nwGMm6uaAENnWrobQ",
+            "id": "BAauFC5iuDKbQxzPU8EEWv28iqcwf7XxxViFddre575t",
+            "outcome": {
+              "executor_id": "dev-20261105192503-16702368371237.test.near",
+              "gas_burnt": 2920753996535,
+              "logs": [],
+              "metadata": {
+                "contracts": [
+                  {
+                    "local": "F8puNhtHcSf5mFEKcoPSmAoR2bXrBQthBjzuHgMjK84y"
+                  }
+                ],
+                "gas_profile": [
+                  {
+                    "cost": "BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "5030594109"
+                  },
+                  {
+                    "cost": "CONTRACT_LOADING_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "35445963"
+                  },
+                  {
+                    "cost": "CONTRACT_LOADING_BYTES",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "376252296655"
+                  },
+                  {
+                    "cost": "READ_MEMORY_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "10439452800"
+                  },
+                  {
+                    "cost": "READ_MEMORY_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "6792982071"
+                  },
+                  {
+                    "cost": "READ_REGISTER_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "15102991116"
+                  },
+                  {
+                    "cost": "READ_REGISTER_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "181846890"
+                  },
+                  {
+                    "cost": "SHA256_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "4540970250"
+                  },
+                  {
+                    "cost": "SHA256_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "41915956038"
+                  },
+                  {
+                    "cost": "STORAGE_READ_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "112713691498"
+                  },
+                  {
+                    "cost": "STORAGE_READ_KEY_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "742860792"
+                  },
+                  {
+                    "cost": "STORAGE_READ_VALUE_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "9937088084"
+                  },
+                  {
+                    "cost": "UTF8_DECODING_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "3111779061"
+                  },
+                  {
+                    "cost": "UTF8_DECODING_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "7289511975"
+                  },
+                  {
+                    "cost": "WASM_INSTRUCTION",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "1389790384884"
+                  },
+                  {
+                    "cost": "WRITE_MEMORY_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "19626564027"
+                  },
+                  {
+                    "cost": "WRITE_MEMORY_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "5068939692"
+                  },
+                  {
+                    "cost": "WRITE_REGISTER_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "17193134916"
+                  },
+                  {
+                    "cost": "WRITE_REGISTER_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "6854219892"
+                  }
+                ],
+                "version": 4
+              },
+              "receipt_ids": ["3CtuhdRmpDMgEHSEYJCJsXGUMRaVyA7YDEvW35G2jUZG"],
+              "status": {
+                "Failure": {
+                  "ActionError": {
+                    "index": 0,
+                    "kind": {
+                      "FunctionCallError": {
+                        "ExecutionError": "Smart contract panicked: LT:E_PRODUCTION_NOT_READY"
+                      }
+                    }
+                  }
+                }
+              },
+              "tokens_burnt": "292075399653500000000"
+            },
+            "proof": []
+          },
+          {
+            "block_hash": "6aPTmYN6bn4EwvoU8cwFgSbvCPE2nRGdzm8cau6pf63i",
+            "id": "3CtuhdRmpDMgEHSEYJCJsXGUMRaVyA7YDEvW35G2jUZG",
+            "outcome": {
+              "executor_id": "dev-20261105192505-92652368616048.test.near",
+              "gas_burnt": 223182562500,
+              "logs": [],
+              "metadata": {
+                "contracts": [null],
+                "gas_profile": [],
+                "version": 4
+              },
+              "receipt_ids": [],
+              "status": {
+                "SuccessValue": ""
+              },
+              "tokens_burnt": "0"
+            },
+            "proof": []
+          }
+        ],
+        "status": {
+          "Failure": {
+            "ActionError": {
+              "index": 0,
+              "kind": {
+                "FunctionCallError": {
+                  "ExecutionError": "Smart contract panicked: LT:E_PRODUCTION_NOT_READY"
+                }
+              }
+            }
+          }
+        },
+        "transaction": {
+          "actions": [
+            {
+              "FunctionCall": {
+                "args": "eyJqb2JfaWQiOiIxIn0=",
+                "deposit": "0",
+                "gas": 100000000000000,
+                "method_name": "complete_production"
+              }
+            }
+          ],
+          "hash": "6KhKbn2EiiWSFyqVMxJcGTs4wYtuqYRxTQbfdQxnrAeT",
+          "nonce": 18000001,
+          "priority_fee": 0,
+          "public_key": "ed25519:Dv2twECJuBr6vN2sNBeCoj2wRm8EWuzJQMFXk8FNc59",
+          "receiver_id": "dev-20261105192503-16702368371237.test.near",
+          "signature": "ed25519:2tMn9JREouXffZcT9miyxr7tzfNSNGDLXQZu5L5B7nkmbtpdEE45e5B7F8WaZ5pThop3F8WeJ8RdgT1fTKrzobFy",
+          "signer_id": "dev-20261105192505-92652368616048.test.near"
+        },
+        "transaction_outcome": {
+          "block_hash": "2wzhQMRSAEA7VXgeCJ8qYEzyDYQ8vUUMsmPXmCxdBMxw",
+          "id": "6KhKbn2EiiWSFyqVMxJcGTs4wYtuqYRxTQbfdQxnrAeT",
+          "outcome": {
+            "executor_id": "dev-20261105192505-92652368616048.test.near",
+            "gas_burnt": 309633062595,
+            "logs": [],
+            "metadata": {
+              "gas_profile": null,
+              "version": 1
+            },
+            "receipt_ids": ["BAauFC5iuDKbQxzPU8EEWv28iqcwf7XxxViFddre575t"],
+            "status": {
+              "SuccessReceiptId": "BAauFC5iuDKbQxzPU8EEWv28iqcwf7XxxViFddre575t"
+            },
+            "tokens_burnt": "30963306259500000000"
+          },
+          "proof": []
+        }
+      },
+      "block": {
+        "author": "test.near",
+        "chunks": [
+          {
+            "balance_burnt": "30963306259500000000",
+            "bandwidth_requests": {
+              "V1": {
+                "requests": []
+              }
+            },
+            "chunk_hash": "64j5cLoC1D3VsLZq58NPfvbEvFpVjsxkwEWTucGNGnW3",
+            "congestion_info": {
+              "allowed_shard": 0,
+              "buffered_receipts_gas": "0",
+              "delayed_receipts_gas": "0",
+              "receipt_bytes": 0
+            },
+            "encoded_length": 309,
+            "encoded_merkle_root": "9CbcLTgA1jFDyR887Uobbw2umCces763cASPdnwiQMg9",
+            "gas_limit": 1000000000000000,
+            "gas_used": 309633062595,
+            "height_created": 59,
+            "height_included": 59,
+            "outcome_root": "83b31hTKNUXNKGoQJmNHBTmT1ost2n9jXthe34N8XvgR",
+            "outgoing_receipts_root": "EXhTVfKT8hRCuqaMsL5KUkM5JxcRBiQ34mEtn1U7bAMw",
+            "prev_block_hash": "2wzhQMRSAEA7VXgeCJ8qYEzyDYQ8vUUMsmPXmCxdBMxw",
+            "prev_state_root": "142PuegUqVRWQJUfpi8BRmTLb7LHrpCHMyBXS3awWM5n",
+            "proposed_split": null,
+            "rent_paid": "0",
+            "shard_id": 0,
+            "signature": "ed25519:ntkgrbmNufAXHu5hvxSGDYa2AeZFnJ9zxKNgnGRBQVRnrT2UUu5ixZJxmFQVU2AqpmZAaaJ5RenrJzDUuudR1cU",
+            "tx_root": "11111111111111111111111111111111",
+            "validator_proposals": [],
+            "validator_reward": "0"
+          }
+        ],
+        "header": {
+          "approvals": [
+            "ed25519:21Jp1piajGCVp414pSivcyMyF5UWNgnmjN9BwgCZJHzkyAMRMrp7PH3h8nJwqFr3e97e3DvmdjKXK5NpT85FM5Ag"
+          ],
+          "block_body_hash": "6CNvjBDge2H7T1icGPKKcyo8HkND6uJtcLe7CHpvskqw",
+          "block_merkle_root": "HPmzmeDosqncPteeGQgyLQCd7Q7tBwDNusMMftg5yioZ",
+          "block_ordinal": 60,
+          "challenges_result": [],
+          "challenges_root": "11111111111111111111111111111111",
+          "chunk_endorsements": [[1]],
+          "chunk_headers_root": "74NcLRZGE1CLfahcGMZ9Zjc349HT1V1oSK7xCFcSHfax",
+          "chunk_mask": [true],
+          "chunk_receipts_root": "7sLUZd3rbdMgWC98VPSD1QUFsH4VaYXZfECGTwBqCPTp",
+          "chunk_tx_root": "7tkzFg8RHBmMw1ncRJZCCZAizgq4rwCftTKYLce8RU8t",
+          "chunks_included": 1,
+          "epoch_id": "11111111111111111111111111111111",
+          "epoch_sync_data_hash": null,
+          "gas_price": "100000000",
+          "hash": "GdL15xY5CdCbpD8azoNcWWa2kx5nwGMm6uaAENnWrobQ",
+          "height": 59,
+          "last_ds_final_block": "2wzhQMRSAEA7VXgeCJ8qYEzyDYQ8vUUMsmPXmCxdBMxw",
+          "last_final_block": "3BuzDXG5XzLahxo9yexUc9YbyNwaAUzDGAPh9Qi9vLja",
+          "latest_protocol_version": 86,
+          "next_bp_hash": "HW4mkSUPscYb5H1QTSvHXjKCJHJDiDzxdHVhkkyHQZh7",
+          "next_epoch_id": "FqG7omE5bvhn7wdpLRVvNcadstXzM4XJ76XMmxx15sg9",
+          "outcome_root": "6QrfaonoMf4UPrKN3dF21WVpVPYiWUqD45WJBVG9fEMY",
+          "prev_hash": "2wzhQMRSAEA7VXgeCJ8qYEzyDYQ8vUUMsmPXmCxdBMxw",
+          "prev_height": 58,
+          "prev_state_root": "AZxqUSVD3fwmnfQf36vjvK4nuDgQas8JWFo9zrYgJoH3",
+          "random_value": "3d6Wmwn8a4ZVDJckFmgScDPqLzUs3nYmA3KZ96MoSYEQ",
+          "rent_paid": "0",
+          "shard_split": null,
+          "signature": "ed25519:5gEeXvKhcrpbnQuJUJkeRB4JuV8XUnb3N5fCfbShQrWq95pwfvfAD7YaM9h1nF3n1HTipoEPrE3yDSpeAb4K4vh9",
+          "timestamp": 1793906710907577900,
+          "timestamp_nanosec": "1793906710907577789",
+          "total_supply": "2050029999960364542004032300000000",
+          "validator_proposals": [],
+          "validator_reward": "0"
+        }
+      },
+      "account": {
+        "amount": "100001622477978698700000000",
+        "block_hash": "GdL15xY5CdCbpD8azoNcWWa2kx5nwGMm6uaAENnWrobQ",
+        "block_height": 59,
+        "code_hash": "F8puNhtHcSf5mFEKcoPSmAoR2bXrBQthBjzuHgMjK84y",
+        "locked": "0",
+        "storage_paid_at": 0,
+        "storage_usage": 351043
+      },
+      "foundation": {
+        "deployment": {
+          "network_id": "testnet",
+          "genesis_hash": "11111111111111111111111111111111",
+          "contract_id": "dev-20261105192503-16702368371237.test.near",
+          "api_version": "2.0.0",
+          "state_schema": "1",
+          "command_schema": "1",
+          "config_version": "1",
+          "config_sha256": "a932efb48c70a73ce46472cd754288649541b34604e2ea49a4093961e71a2d10"
+        },
+        "market_revision": "11",
+        "event_sequence": "11",
+        "block_height": "59",
+        "block_timestamp_ns": "1793906710907577789",
+        "data": {
+          "owner_account_id": "dev-20261105192503-16702368371237.test.near",
+          "operator_account_id": "operator.testnet",
+          "merchant_controllers": {
+            "rex": "rex.testnet",
+            "luna": "luna.testnet",
+            "bolt": "bolt.testnet"
+          },
+          "item_ids": [
+            "crystal",
+            "wood",
+            "herb",
+            "iron",
+            "health_potion",
+            "iron_tool"
+          ],
+          "supported_methods": [
+            "initialize_town",
+            "get_foundation",
+            "get_town",
+            "register_player",
+            "create_shop",
+            "rename_shop",
+            "get_player",
+            "get_shop",
+            "get_player_shops",
+            "get_command",
+            "buy_from_merchant",
+            "get_listings",
+            "get_trade",
+            "get_shop_inventory",
+            "get_recipes",
+            "start_production",
+            "get_production_jobs",
+            "complete_production"
+          ]
+        }
+      },
+      "result": null
+    },
+    {
+      "method": "complete_production",
+      "args": {
+        "job_id": "1"
+      },
+      "signer_id": "dev-20261105192505-92652368616048.test.near",
+      "transaction_hash": "B5WnjKqe8dw6hpD5VwMNLvCR8yWoG5pEn5gkCTxQDDya",
+      "reference_block_height": "1077",
+      "gas_burnt": "6801241552410",
+      "receipt": {
+        "final_execution_status": "FINAL",
+        "receipts_outcome": [
+          {
+            "block_hash": "BjecJxFXNRuYqQtsu7JFDDgujPNef1NAaRURAQrQGq4T",
+            "id": "9UjuLVyxsrCUD2JbzqS2fCror1nav8G5peY5eMMYq3ut",
+            "outcome": {
+              "executor_id": "dev-20261105192503-16702368371237.test.near",
+              "gas_burnt": 6491608489815,
+              "logs": [
+                "EVENT_JSON:{\"standard\":\"bot_bazaar_living_town\",\"version\":\"2.0.0\",\"event\":\"complete_production\",\"data\":[{\"contract_id\":\"dev-20261105192503-16702368371237.test.near\",\"config_version\":\"1\",\"event_sequence\":\"12\",\"market_revision\":\"12\",\"block_height\":\"1080\",\"block_timestamp_ns\":\"1793907011894524079\",\"predecessor_account_id\":\"dev-20261105192505-92652368616048.test.near\",\"principal\":null,\"command_sequence\":null,\"payload_sha256\":null,\"outcome\":{\"kind\":\"production_completed\",\"job\":{\"recipe_id\":\"health_potion\",\"recipe_version\":\"1\",\"config_version\":\"1\",\"quantity\":\"1\",\"inputs_consumed\":{\"crystal\":\"1\",\"wood\":\"0\",\"herb\":\"2\",\"iron\":\"0\",\"health_potion\":\"0\",\"iron_tool\":\"0\"},\"output_item\":\"health_potion\",\"output_quantity\":\"1\",\"start_at_ns\":\"1793906709254111699\",\"ready_at_ns\":\"1793906829254111699\",\"job_id\":\"1\",\"shop_id\":\"4\",\"owner\":{\"kind\":\"player\",\"account_id\":\"dev-20261105192504-16515429008234.test.near\"},\"completed_at_ns\":\"1793907011894524079\",\"status\":\"completed\",\"start_command_sequence\":\"5\",\"revision\":\"2\"},\"ledger\":{\"actor\":{\"kind\":\"player\",\"account_id\":\"dev-20261105192504-16515429008234.test.near\"},\"revision\":\"5\",\"gold\":{\"held\":\"90\",\"available\":\"90\",\"trade_reserved\":\"0\",\"trade_inbound_reserved\":\"0\"},\"inventory\":{\"held\":{\"crystal\":\"0\",\"wood\":\"0\",\"herb\":\"0\",\"iron\":\"0\",\"health_potion\":\"1\",\"iron_tool\":\"0\"},\"available\":{\"crystal\":\"0\",\"wood\":\"0\",\"herb\":\"0\",\"iron\":\"0\",\"health_potion\":\"1\",\"iron_tool\":\"0\"},\"listing_reserved\":{\"crystal\":\"0\",\"wood\":\"0\",\"herb\":\"0\",\"iron\":\"0\",\"health_potion\":\"0\",\"iron_tool\":\"0\"},\"trade_reserved\":{\"crystal\":\"0\",\"wood\":\"0\",\"herb\":\"0\",\"iron\":\"0\",\"health_potion\":\"0\",\"iron_tool\":\"0\"},\"production_output_reserved\":{\"crystal\":\"0\",\"wood\":\"0\",\"herb\":\"0\",\"iron\":\"0\",\"health_potion\":\"0\",\"iron_tool\":\"0\"},\"trade_inbound_reserved\":{\"crystal\":\"0\",\"wood\":\"0\",\"herb\":\"0\",\"iron\":\"0\",\"health_potion\":\"0\",\"iron_tool\":\"0\"}}}}}]}"
+              ],
+              "metadata": {
+                "contracts": [
+                  {
+                    "local": "F8puNhtHcSf5mFEKcoPSmAoR2bXrBQthBjzuHgMjK84y"
+                  }
+                ],
+                "gas_profile": [
+                  {
+                    "cost": "BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "11649796884"
+                  },
+                  {
+                    "cost": "CONTRACT_LOADING_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "35445963"
+                  },
+                  {
+                    "cost": "CONTRACT_LOADING_BYTES",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "376252296655"
+                  },
+                  {
+                    "cost": "LOG_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "3543313050"
+                  },
+                  {
+                    "cost": "LOG_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "24325371813"
+                  },
+                  {
+                    "cost": "READ_CACHED_TRIE_NODE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "66120000000"
+                  },
+                  {
+                    "cost": "READ_MEMORY_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "49587400800"
+                  },
+                  {
+                    "cost": "READ_MEMORY_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "37849872681"
+                  },
+                  {
+                    "cost": "READ_REGISTER_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "27688817046"
+                  },
+                  {
+                    "cost": "READ_REGISTER_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "233099130"
+                  },
+                  {
+                    "cost": "SHA256_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "4540970250"
+                  },
+                  {
+                    "cost": "SHA256_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "41915956038"
+                  },
+                  {
+                    "cost": "STORAGE_READ_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "281784228745"
+                  },
+                  {
+                    "cost": "STORAGE_READ_KEY_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "4054781823"
+                  },
+                  {
+                    "cost": "STORAGE_READ_VALUE_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "12372263820"
+                  },
+                  {
+                    "cost": "STORAGE_REMOVE_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "53473030500"
+                  },
+                  {
+                    "cost": "STORAGE_REMOVE_KEY_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "993729984"
+                  },
+                  {
+                    "cost": "STORAGE_REMOVE_RET_VALUE_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "92252448"
+                  },
+                  {
+                    "cost": "STORAGE_WRITE_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "320983680000"
+                  },
+                  {
+                    "cost": "STORAGE_WRITE_EVICTED_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "121917297372"
+                  },
+                  {
+                    "cost": "STORAGE_WRITE_KEY_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "7753115370"
+                  },
+                  {
+                    "cost": "STORAGE_WRITE_VALUE_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "128168603148"
+                  },
+                  {
+                    "cost": "TOUCHING_TRIE_NODE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "50160000000"
+                  },
+                  {
+                    "cost": "UTF8_DECODING_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "3111779061"
+                  },
+                  {
+                    "cost": "UTF8_DECODING_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "537382822797"
+                  },
+                  {
+                    "cost": "WASM_INSTRUCTION",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "3322500999048"
+                  },
+                  {
+                    "cost": "WRITE_MEMORY_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "36449333193"
+                  },
+                  {
+                    "cost": "WRITE_MEMORY_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "6528881484"
+                  },
+                  {
+                    "cost": "WRITE_REGISTER_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "48713882262"
+                  },
+                  {
+                    "cost": "WRITE_REGISTER_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "23292182628"
+                  }
+                ],
+                "version": 4
+              },
+              "receipt_ids": ["5DEW2TAZhyRVF1hTnP5SL555vHaj61FWuTZdys1y8jKu"],
+              "status": {
+                "SuccessValue": "eyJkZXBsb3ltZW50Ijp7Im5ldHdvcmtfaWQiOiJ0ZXN0bmV0IiwiZ2VuZXNpc19oYXNoIjoiMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTEiLCJjb250cmFjdF9pZCI6ImRldi0yMDI2MTEwNTE5MjUwMy0xNjcwMjM2ODM3MTIzNy50ZXN0Lm5lYXIiLCJhcGlfdmVyc2lvbiI6IjIuMC4wIiwic3RhdGVfc2NoZW1hIjoiMSIsImNvbW1hbmRfc2NoZW1hIjoiMSIsImNvbmZpZ192ZXJzaW9uIjoiMSIsImNvbmZpZ19zaGEyNTYiOiJhOTMyZWZiNDhjNzBhNzNjZTQ2NDcyY2Q3NTQyODg2NDk1NDFiMzQ2MDRlMmVhNDlhNDA5Mzk2MWU3MWEyZDEwIn0sIm1hcmtldF9yZXZpc2lvbiI6IjEyIiwiZXZlbnRfc2VxdWVuY2UiOiIxMiIsImJsb2NrX2hlaWdodCI6IjEwODAiLCJibG9ja190aW1lc3RhbXBfbnMiOiIxNzkzOTA3MDExODk0NTI0MDc5IiwiZGF0YSI6eyJwcmluY2lwYWwiOm51bGwsImNvbW1hbmRfc2VxdWVuY2UiOm51bGwsInBheWxvYWRfc2hhMjU2IjpudWxsLCJyZXBsYXllZCI6ZmFsc2UsImVmZmVjdF9yZXZpc2lvbiI6IjEyIiwiZWZmZWN0X2V2ZW50X3NlcXVlbmNlIjoiMTIiLCJvdXRjb21lIjp7ImtpbmQiOiJwcm9kdWN0aW9uX2NvbXBsZXRlZCIsImpvYiI6eyJyZWNpcGVfaWQiOiJoZWFsdGhfcG90aW9uIiwicmVjaXBlX3ZlcnNpb24iOiIxIiwiY29uZmlnX3ZlcnNpb24iOiIxIiwicXVhbnRpdHkiOiIxIiwiaW5wdXRzX2NvbnN1bWVkIjp7ImNyeXN0YWwiOiIxIiwid29vZCI6IjAiLCJoZXJiIjoiMiIsImlyb24iOiIwIiwiaGVhbHRoX3BvdGlvbiI6IjAiLCJpcm9uX3Rvb2wiOiIwIn0sIm91dHB1dF9pdGVtIjoiaGVhbHRoX3BvdGlvbiIsIm91dHB1dF9xdWFudGl0eSI6IjEiLCJzdGFydF9hdF9ucyI6IjE3OTM5MDY3MDkyNTQxMTE2OTkiLCJyZWFkeV9hdF9ucyI6IjE3OTM5MDY4MjkyNTQxMTE2OTkiLCJqb2JfaWQiOiIxIiwic2hvcF9pZCI6IjQiLCJvd25lciI6eyJraW5kIjoicGxheWVyIiwiYWNjb3VudF9pZCI6ImRldi0yMDI2MTEwNTE5MjUwNC0xNjUxNTQyOTAwODIzNC50ZXN0Lm5lYXIifSwiY29tcGxldGVkX2F0X25zIjoiMTc5MzkwNzAxMTg5NDUyNDA3OSIsInN0YXR1cyI6ImNvbXBsZXRlZCIsInN0YXJ0X2NvbW1hbmRfc2VxdWVuY2UiOiI1IiwicmV2aXNpb24iOiIyIn0sImxlZGdlciI6eyJhY3RvciI6eyJraW5kIjoicGxheWVyIiwiYWNjb3VudF9pZCI6ImRldi0yMDI2MTEwNTE5MjUwNC0xNjUxNTQyOTAwODIzNC50ZXN0Lm5lYXIifSwicmV2aXNpb24iOiI1IiwiZ29sZCI6eyJoZWxkIjoiOTAiLCJhdmFpbGFibGUiOiI5MCIsInRyYWRlX3Jlc2VydmVkIjoiMCIsInRyYWRlX2luYm91bmRfcmVzZXJ2ZWQiOiIwIn0sImludmVudG9yeSI6eyJoZWxkIjp7ImNyeXN0YWwiOiIwIiwid29vZCI6IjAiLCJoZXJiIjoiMCIsImlyb24iOiIwIiwiaGVhbHRoX3BvdGlvbiI6IjEiLCJpcm9uX3Rvb2wiOiIwIn0sImF2YWlsYWJsZSI6eyJjcnlzdGFsIjoiMCIsIndvb2QiOiIwIiwiaGVyYiI6IjAiLCJpcm9uIjoiMCIsImhlYWx0aF9wb3Rpb24iOiIxIiwiaXJvbl90b29sIjoiMCJ9LCJsaXN0aW5nX3Jlc2VydmVkIjp7ImNyeXN0YWwiOiIwIiwid29vZCI6IjAiLCJoZXJiIjoiMCIsImlyb24iOiIwIiwiaGVhbHRoX3BvdGlvbiI6IjAiLCJpcm9uX3Rvb2wiOiIwIn0sInRyYWRlX3Jlc2VydmVkIjp7ImNyeXN0YWwiOiIwIiwid29vZCI6IjAiLCJoZXJiIjoiMCIsImlyb24iOiIwIiwiaGVhbHRoX3BvdGlvbiI6IjAiLCJpcm9uX3Rvb2wiOiIwIn0sInByb2R1Y3Rpb25fb3V0cHV0X3Jlc2VydmVkIjp7ImNyeXN0YWwiOiIwIiwid29vZCI6IjAiLCJoZXJiIjoiMCIsImlyb24iOiIwIiwiaGVhbHRoX3BvdGlvbiI6IjAiLCJpcm9uX3Rvb2wiOiIwIn0sInRyYWRlX2luYm91bmRfcmVzZXJ2ZWQiOnsiY3J5c3RhbCI6IjAiLCJ3b29kIjoiMCIsImhlcmIiOiIwIiwiaXJvbiI6IjAiLCJoZWFsdGhfcG90aW9uIjoiMCIsImlyb25fdG9vbCI6IjAifX19fX19"
+              },
+              "tokens_burnt": "649160848981500000000"
+            },
+            "proof": []
+          },
+          {
+            "block_hash": "55VRkjJ57w9NbGNjGw6g3fqv5KCTAb8tSUyrWAdzzCRu",
+            "id": "5DEW2TAZhyRVF1hTnP5SL555vHaj61FWuTZdys1y8jKu",
+            "outcome": {
+              "executor_id": "dev-20261105192505-92652368616048.test.near",
+              "gas_burnt": 223182562500,
+              "logs": [],
+              "metadata": {
+                "contracts": [null],
+                "gas_profile": [],
+                "version": 4
+              },
+              "receipt_ids": [],
+              "status": {
+                "SuccessValue": ""
+              },
+              "tokens_burnt": "0"
+            },
+            "proof": []
+          }
+        ],
+        "status": {
+          "SuccessValue": "eyJkZXBsb3ltZW50Ijp7Im5ldHdvcmtfaWQiOiJ0ZXN0bmV0IiwiZ2VuZXNpc19oYXNoIjoiMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTEiLCJjb250cmFjdF9pZCI6ImRldi0yMDI2MTEwNTE5MjUwMy0xNjcwMjM2ODM3MTIzNy50ZXN0Lm5lYXIiLCJhcGlfdmVyc2lvbiI6IjIuMC4wIiwic3RhdGVfc2NoZW1hIjoiMSIsImNvbW1hbmRfc2NoZW1hIjoiMSIsImNvbmZpZ192ZXJzaW9uIjoiMSIsImNvbmZpZ19zaGEyNTYiOiJhOTMyZWZiNDhjNzBhNzNjZTQ2NDcyY2Q3NTQyODg2NDk1NDFiMzQ2MDRlMmVhNDlhNDA5Mzk2MWU3MWEyZDEwIn0sIm1hcmtldF9yZXZpc2lvbiI6IjEyIiwiZXZlbnRfc2VxdWVuY2UiOiIxMiIsImJsb2NrX2hlaWdodCI6IjEwODAiLCJibG9ja190aW1lc3RhbXBfbnMiOiIxNzkzOTA3MDExODk0NTI0MDc5IiwiZGF0YSI6eyJwcmluY2lwYWwiOm51bGwsImNvbW1hbmRfc2VxdWVuY2UiOm51bGwsInBheWxvYWRfc2hhMjU2IjpudWxsLCJyZXBsYXllZCI6ZmFsc2UsImVmZmVjdF9yZXZpc2lvbiI6IjEyIiwiZWZmZWN0X2V2ZW50X3NlcXVlbmNlIjoiMTIiLCJvdXRjb21lIjp7ImtpbmQiOiJwcm9kdWN0aW9uX2NvbXBsZXRlZCIsImpvYiI6eyJyZWNpcGVfaWQiOiJoZWFsdGhfcG90aW9uIiwicmVjaXBlX3ZlcnNpb24iOiIxIiwiY29uZmlnX3ZlcnNpb24iOiIxIiwicXVhbnRpdHkiOiIxIiwiaW5wdXRzX2NvbnN1bWVkIjp7ImNyeXN0YWwiOiIxIiwid29vZCI6IjAiLCJoZXJiIjoiMiIsImlyb24iOiIwIiwiaGVhbHRoX3BvdGlvbiI6IjAiLCJpcm9uX3Rvb2wiOiIwIn0sIm91dHB1dF9pdGVtIjoiaGVhbHRoX3BvdGlvbiIsIm91dHB1dF9xdWFudGl0eSI6IjEiLCJzdGFydF9hdF9ucyI6IjE3OTM5MDY3MDkyNTQxMTE2OTkiLCJyZWFkeV9hdF9ucyI6IjE3OTM5MDY4MjkyNTQxMTE2OTkiLCJqb2JfaWQiOiIxIiwic2hvcF9pZCI6IjQiLCJvd25lciI6eyJraW5kIjoicGxheWVyIiwiYWNjb3VudF9pZCI6ImRldi0yMDI2MTEwNTE5MjUwNC0xNjUxNTQyOTAwODIzNC50ZXN0Lm5lYXIifSwiY29tcGxldGVkX2F0X25zIjoiMTc5MzkwNzAxMTg5NDUyNDA3OSIsInN0YXR1cyI6ImNvbXBsZXRlZCIsInN0YXJ0X2NvbW1hbmRfc2VxdWVuY2UiOiI1IiwicmV2aXNpb24iOiIyIn0sImxlZGdlciI6eyJhY3RvciI6eyJraW5kIjoicGxheWVyIiwiYWNjb3VudF9pZCI6ImRldi0yMDI2MTEwNTE5MjUwNC0xNjUxNTQyOTAwODIzNC50ZXN0Lm5lYXIifSwicmV2aXNpb24iOiI1IiwiZ29sZCI6eyJoZWxkIjoiOTAiLCJhdmFpbGFibGUiOiI5MCIsInRyYWRlX3Jlc2VydmVkIjoiMCIsInRyYWRlX2luYm91bmRfcmVzZXJ2ZWQiOiIwIn0sImludmVudG9yeSI6eyJoZWxkIjp7ImNyeXN0YWwiOiIwIiwid29vZCI6IjAiLCJoZXJiIjoiMCIsImlyb24iOiIwIiwiaGVhbHRoX3BvdGlvbiI6IjEiLCJpcm9uX3Rvb2wiOiIwIn0sImF2YWlsYWJsZSI6eyJjcnlzdGFsIjoiMCIsIndvb2QiOiIwIiwiaGVyYiI6IjAiLCJpcm9uIjoiMCIsImhlYWx0aF9wb3Rpb24iOiIxIiwiaXJvbl90b29sIjoiMCJ9LCJsaXN0aW5nX3Jlc2VydmVkIjp7ImNyeXN0YWwiOiIwIiwid29vZCI6IjAiLCJoZXJiIjoiMCIsImlyb24iOiIwIiwiaGVhbHRoX3BvdGlvbiI6IjAiLCJpcm9uX3Rvb2wiOiIwIn0sInRyYWRlX3Jlc2VydmVkIjp7ImNyeXN0YWwiOiIwIiwid29vZCI6IjAiLCJoZXJiIjoiMCIsImlyb24iOiIwIiwiaGVhbHRoX3BvdGlvbiI6IjAiLCJpcm9uX3Rvb2wiOiIwIn0sInByb2R1Y3Rpb25fb3V0cHV0X3Jlc2VydmVkIjp7ImNyeXN0YWwiOiIwIiwid29vZCI6IjAiLCJoZXJiIjoiMCIsImlyb24iOiIwIiwiaGVhbHRoX3BvdGlvbiI6IjAiLCJpcm9uX3Rvb2wiOiIwIn0sInRyYWRlX2luYm91bmRfcmVzZXJ2ZWQiOnsiY3J5c3RhbCI6IjAiLCJ3b29kIjoiMCIsImhlcmIiOiIwIiwiaXJvbiI6IjAiLCJoZWFsdGhfcG90aW9uIjoiMCIsImlyb25fdG9vbCI6IjAifX19fX19"
+        },
+        "transaction": {
+          "actions": [
+            {
+              "FunctionCall": {
+                "args": "eyJqb2JfaWQiOiIxIn0=",
+                "deposit": "0",
+                "gas": 100000000000000,
+                "method_name": "complete_production"
+              }
+            }
+          ],
+          "hash": "B5WnjKqe8dw6hpD5VwMNLvCR8yWoG5pEn5gkCTxQDDya",
+          "nonce": 18000005,
+          "priority_fee": 0,
+          "public_key": "ed25519:Dv2twECJuBr6vN2sNBeCoj2wRm8EWuzJQMFXk8FNc59",
+          "receiver_id": "dev-20261105192503-16702368371237.test.near",
+          "signature": "ed25519:5xA3GnCgTWGaZ64DpkSVqCRogUxRY95DE1PL1csxgYptMVGcFDzHoPyMQinUBJAcB8FJCLDK366NdiazU2LvJPV3",
+          "signer_id": "dev-20261105192505-92652368616048.test.near"
+        },
+        "transaction_outcome": {
+          "block_hash": "Gs7icSRjt1LoZqvCmJSdnAzZwPt4ayQThXh12VHXQJB6",
+          "id": "B5WnjKqe8dw6hpD5VwMNLvCR8yWoG5pEn5gkCTxQDDya",
+          "outcome": {
+            "executor_id": "dev-20261105192505-92652368616048.test.near",
+            "gas_burnt": 309633062595,
+            "logs": [],
+            "metadata": {
+              "gas_profile": null,
+              "version": 1
+            },
+            "receipt_ids": ["9UjuLVyxsrCUD2JbzqS2fCror1nav8G5peY5eMMYq3ut"],
+            "status": {
+              "SuccessReceiptId": "9UjuLVyxsrCUD2JbzqS2fCror1nav8G5peY5eMMYq3ut"
+            },
+            "tokens_burnt": "30963306259500000000"
+          },
+          "proof": []
+        }
+      },
+      "block": {
+        "author": "test.near",
+        "chunks": [
+          {
+            "balance_burnt": "30963306259500000000",
+            "bandwidth_requests": {
+              "V1": {
+                "requests": []
+              }
+            },
+            "chunk_hash": "DJtoyWYQE7WaJjPWyZYfJCkD9gfSacnz5awiBeQR6wV2",
+            "congestion_info": {
+              "allowed_shard": 0,
+              "buffered_receipts_gas": "0",
+              "delayed_receipts_gas": "0",
+              "receipt_bytes": 0
+            },
+            "encoded_length": 309,
+            "encoded_merkle_root": "8YFeVwsYF6dews2WvyUaKs2w189V9ZnrWZN8YXZVPHYD",
+            "gas_limit": 1000000000000000,
+            "gas_used": 309633062595,
+            "height_created": 1080,
+            "height_included": 1080,
+            "outcome_root": "wgUCGJKiR65FamYBTp9FvRD4ihHbqttUVitZyjETE56",
+            "outgoing_receipts_root": "3TjjLRmB2THJUCKTYEyVygmdqum7gcxuTm8HwrdR1Z1g",
+            "prev_block_hash": "Gs7icSRjt1LoZqvCmJSdnAzZwPt4ayQThXh12VHXQJB6",
+            "prev_state_root": "JDhYZCcLayxxycgSagqzrQ86Siv5vxwwnBZMv9wvAPw4",
+            "proposed_split": null,
+            "rent_paid": "0",
+            "shard_id": 0,
+            "signature": "ed25519:43e5Jq7ZKcpqdBc9AuCewiVvBWcAfts4DqRGC5EnRBv8pGGktB4e8jYESnn9GNkiY7PSv4GjMyhcn4Lbi3SutaxL",
+            "tx_root": "11111111111111111111111111111111",
+            "validator_proposals": [],
+            "validator_reward": "0"
+          }
+        ],
+        "header": {
+          "approvals": [
+            "ed25519:3LXNDW8aSitRzitgnp9PJ9XLTmWwpEtAaD2utwiExMJGu72SyGYbMH3EEE2De2AGbgGXf28cWzDcEwPKU8Az8GG2"
+          ],
+          "block_body_hash": "3QvR1sRrjr23rd7t8uD7nUKeYMEGU2uzmLy9h2oHB2Hr",
+          "block_merkle_root": "BV5XicGs7niMvnt43NA4L3cZWsFJ27vYSJuygooJjgF2",
+          "block_ordinal": 145,
+          "challenges_result": [],
+          "challenges_root": "11111111111111111111111111111111",
+          "chunk_endorsements": [[1]],
+          "chunk_headers_root": "GUVqwKA8YCiwTyrdj4SATgxtpXxYRy4srs5fgSwCHqZS",
+          "chunk_mask": [true],
+          "chunk_receipts_root": "23RDT3sFaE7Zs5LLFiPCqPnmqRxaVssoRMsX19Gi7tst",
+          "chunk_tx_root": "7tkzFg8RHBmMw1ncRJZCCZAizgq4rwCftTKYLce8RU8t",
+          "chunks_included": 1,
+          "epoch_id": "A7tMYhgM9heNy8QN3rPwnwU2WCjyhmrCP1r4y7oihPZE",
+          "epoch_sync_data_hash": null,
+          "gas_price": "100000000",
+          "hash": "BjecJxFXNRuYqQtsu7JFDDgujPNef1NAaRURAQrQGq4T",
+          "height": 1080,
+          "last_ds_final_block": "Gs7icSRjt1LoZqvCmJSdnAzZwPt4ayQThXh12VHXQJB6",
+          "last_final_block": "8eMVTXAFD5Mf9Nxy8xfpRQPQPjDYBK7hhSLXig7kdqgD",
+          "latest_protocol_version": 86,
+          "next_bp_hash": "2w2zDkvAkU45hzCWd2X5vuuB7gY4cY1XgC23vxMznciJ",
+          "next_epoch_id": "AhJYCnPVBWfg7i39GuLiVfpUo4JCTKRCxMs3iZ5EEgE",
+          "outcome_root": "B22y8ijwXqj6TnbSqs33H3jSkq7EtiUz51L1SnCjmbeS",
+          "prev_hash": "Gs7icSRjt1LoZqvCmJSdnAzZwPt4ayQThXh12VHXQJB6",
+          "prev_height": 1079,
+          "prev_state_root": "9Wwjf739KyHinA6aCzZgz6dNs4wt54QcFZopvpqk8AQ9",
+          "random_value": "6X61gy3hG9L4w7Gg3wQxavSiXVZuN7nNWWBtDc6HqCDS",
+          "rent_paid": "0",
+          "shard_split": null,
+          "signature": "ed25519:2VvQ7NPuGEMuBzTyG75J16oKTCTXtmxWPjzGzJVDbVjdd96FmUZH2gvdcbDQUHZ66e1La6scq3bEmAkrvUzz35tm",
+          "timestamp": 1793907011894524200,
+          "timestamp_nanosec": "1793907011894524079",
+          "total_supply": "2050030125858318959285423738312798",
+          "validator_proposals": [],
+          "validator_reward": "0"
+        }
+      },
+      "account": {
+        "amount": "3861596467743619700000000",
+        "block_hash": "BjecJxFXNRuYqQtsu7JFDDgujPNef1NAaRURAQrQGq4T",
+        "block_height": 1080,
+        "code_hash": "F8puNhtHcSf5mFEKcoPSmAoR2bXrBQthBjzuHgMjK84y",
+        "locked": "0",
+        "storage_paid_at": 0,
+        "storage_usage": 351305
+      },
+      "foundation": {
+        "deployment": {
+          "network_id": "testnet",
+          "genesis_hash": "11111111111111111111111111111111",
+          "contract_id": "dev-20261105192503-16702368371237.test.near",
+          "api_version": "2.0.0",
+          "state_schema": "1",
+          "command_schema": "1",
+          "config_version": "1",
+          "config_sha256": "a932efb48c70a73ce46472cd754288649541b34604e2ea49a4093961e71a2d10"
+        },
+        "market_revision": "12",
+        "event_sequence": "12",
+        "block_height": "1080",
+        "block_timestamp_ns": "1793907011894524079",
+        "data": {
+          "owner_account_id": "dev-20261105192503-16702368371237.test.near",
+          "operator_account_id": "operator.testnet",
+          "merchant_controllers": {
+            "rex": "rex.testnet",
+            "luna": "luna.testnet",
+            "bolt": "bolt.testnet"
+          },
+          "item_ids": [
+            "crystal",
+            "wood",
+            "herb",
+            "iron",
+            "health_potion",
+            "iron_tool"
+          ],
+          "supported_methods": [
+            "initialize_town",
+            "get_foundation",
+            "get_town",
+            "register_player",
+            "create_shop",
+            "rename_shop",
+            "get_player",
+            "get_shop",
+            "get_player_shops",
+            "get_command",
+            "buy_from_merchant",
+            "get_listings",
+            "get_trade",
+            "get_shop_inventory",
+            "get_recipes",
+            "start_production",
+            "get_production_jobs",
+            "complete_production"
+          ]
+        }
+      },
+      "result": {
+        "deployment": {
+          "network_id": "testnet",
+          "genesis_hash": "11111111111111111111111111111111",
+          "contract_id": "dev-20261105192503-16702368371237.test.near",
+          "api_version": "2.0.0",
+          "state_schema": "1",
+          "command_schema": "1",
+          "config_version": "1",
+          "config_sha256": "a932efb48c70a73ce46472cd754288649541b34604e2ea49a4093961e71a2d10"
+        },
+        "market_revision": "12",
+        "event_sequence": "12",
+        "block_height": "1080",
+        "block_timestamp_ns": "1793907011894524079",
+        "data": {
+          "principal": null,
+          "command_sequence": null,
+          "payload_sha256": null,
+          "replayed": false,
+          "effect_revision": "12",
+          "effect_event_sequence": "12",
+          "outcome": {
+            "kind": "production_completed",
+            "job": {
+              "recipe_id": "health_potion",
+              "recipe_version": "1",
+              "config_version": "1",
+              "quantity": "1",
+              "inputs_consumed": {
+                "crystal": "1",
+                "wood": "0",
+                "herb": "2",
+                "iron": "0",
+                "health_potion": "0",
+                "iron_tool": "0"
+              },
+              "output_item": "health_potion",
+              "output_quantity": "1",
+              "start_at_ns": "1793906709254111699",
+              "ready_at_ns": "1793906829254111699",
+              "job_id": "1",
+              "shop_id": "4",
+              "owner": {
+                "kind": "player",
+                "account_id": "dev-20261105192504-16515429008234.test.near"
+              },
+              "completed_at_ns": "1793907011894524079",
+              "status": "completed",
+              "start_command_sequence": "5",
+              "revision": "2"
+            },
+            "ledger": {
+              "actor": {
+                "kind": "player",
+                "account_id": "dev-20261105192504-16515429008234.test.near"
+              },
+              "revision": "5",
+              "gold": {
+                "held": "90",
+                "available": "90",
+                "trade_reserved": "0",
+                "trade_inbound_reserved": "0"
+              },
+              "inventory": {
+                "held": {
+                  "crystal": "0",
+                  "wood": "0",
+                  "herb": "0",
+                  "iron": "0",
+                  "health_potion": "1",
+                  "iron_tool": "0"
+                },
+                "available": {
+                  "crystal": "0",
+                  "wood": "0",
+                  "herb": "0",
+                  "iron": "0",
+                  "health_potion": "1",
+                  "iron_tool": "0"
+                },
+                "listing_reserved": {
+                  "crystal": "0",
+                  "wood": "0",
+                  "herb": "0",
+                  "iron": "0",
+                  "health_potion": "0",
+                  "iron_tool": "0"
+                },
+                "trade_reserved": {
+                  "crystal": "0",
+                  "wood": "0",
+                  "herb": "0",
+                  "iron": "0",
+                  "health_potion": "0",
+                  "iron_tool": "0"
+                },
+                "production_output_reserved": {
+                  "crystal": "0",
+                  "wood": "0",
+                  "herb": "0",
+                  "iron": "0",
+                  "health_potion": "0",
+                  "iron_tool": "0"
+                },
+                "trade_inbound_reserved": {
+                  "crystal": "0",
+                  "wood": "0",
+                  "herb": "0",
+                  "iron": "0",
+                  "health_potion": "0",
+                  "iron_tool": "0"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "method": "complete_production",
+      "args": {
+        "job_id": "2"
+      },
+      "signer_id": "dev-20261105192505-92652368616048.test.near",
+      "transaction_hash": "4NpqvMQxGWFNr1PddUMcTRRMhqDJqpkX79R2Tx6jCcrx",
+      "reference_block_height": "1083",
+      "gas_burnt": "4761747542070",
+      "receipt": {
+        "final_execution_status": "FINAL",
+        "receipts_outcome": [
+          {
+            "block_hash": "HJc9gnHooKT5mYapXPxJNTDWqHNeWA2vvjhncX2NbrsP",
+            "id": "Hg7NdCUXvzCdPSbAzybeKHcgx7RVu7PBUr1PsZY6AQaB",
+            "outcome": {
+              "executor_id": "dev-20261105192503-16702368371237.test.near",
+              "gas_burnt": 4452114479475,
+              "logs": [],
+              "metadata": {
+                "contracts": [
+                  {
+                    "local": "F8puNhtHcSf5mFEKcoPSmAoR2bXrBQthBjzuHgMjK84y"
+                  }
+                ],
+                "gas_profile": [
+                  {
+                    "cost": "BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "6354434664"
+                  },
+                  {
+                    "cost": "CONTRACT_LOADING_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "35445963"
+                  },
+                  {
+                    "cost": "CONTRACT_LOADING_BYTES",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "376252296655"
+                  },
+                  {
+                    "cost": "READ_MEMORY_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "15659179200"
+                  },
+                  {
+                    "cost": "READ_MEMORY_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "20306720886"
+                  },
+                  {
+                    "cost": "READ_REGISTER_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "17620156302"
+                  },
+                  {
+                    "cost": "READ_REGISTER_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "219990384"
+                  },
+                  {
+                    "cost": "SHA256_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "4540970250"
+                  },
+                  {
+                    "cost": "SHA256_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "41915956038"
+                  },
+                  {
+                    "cost": "STORAGE_READ_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "112713691498"
+                  },
+                  {
+                    "cost": "STORAGE_READ_KEY_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "742860792"
+                  },
+                  {
+                    "cost": "STORAGE_READ_VALUE_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "11867273460"
+                  },
+                  {
+                    "cost": "STORAGE_WRITE_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "64196736000"
+                  },
+                  {
+                    "cost": "STORAGE_WRITE_EVICTED_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "51612512349"
+                  },
+                  {
+                    "cost": "STORAGE_WRITE_KEY_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "352414335"
+                  },
+                  {
+                    "cost": "STORAGE_WRITE_VALUE_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "49846792173"
+                  },
+                  {
+                    "cost": "WASM_INSTRUCTION",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "2723831645964"
+                  },
+                  {
+                    "cost": "WRITE_MEMORY_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "22430358888"
+                  },
+                  {
+                    "cost": "WRITE_MEMORY_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "6123039456"
+                  },
+                  {
+                    "cost": "WRITE_REGISTER_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "22924179888"
+                  },
+                  {
+                    "cost": "WRITE_REGISTER_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "14434538508"
+                  }
+                ],
+                "version": 4
+              },
+              "receipt_ids": ["G5JgF3bponiMHHJ4xypRCsKrVbkufeo4gxxjHMSk7uHN"],
+              "status": {
+                "SuccessValue": "eyJkZXBsb3ltZW50Ijp7Im5ldHdvcmtfaWQiOiJ0ZXN0bmV0IiwiZ2VuZXNpc19oYXNoIjoiMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTEiLCJjb250cmFjdF9pZCI6ImRldi0yMDI2MTEwNTE5MjUwMy0xNjcwMjM2ODM3MTIzNy50ZXN0Lm5lYXIiLCJhcGlfdmVyc2lvbiI6IjIuMC4wIiwic3RhdGVfc2NoZW1hIjoiMSIsImNvbW1hbmRfc2NoZW1hIjoiMSIsImNvbmZpZ192ZXJzaW9uIjoiMSIsImNvbmZpZ19zaGEyNTYiOiJhOTMyZWZiNDhjNzBhNzNjZTQ2NDcyY2Q3NTQyODg2NDk1NDFiMzQ2MDRlMmVhNDlhNDA5Mzk2MWU3MWEyZDEwIn0sIm1hcmtldF9yZXZpc2lvbiI6IjEzIiwiZXZlbnRfc2VxdWVuY2UiOiIxMyIsImJsb2NrX2hlaWdodCI6IjEwODYiLCJibG9ja190aW1lc3RhbXBfbnMiOiIxNzkzOTA3MDEyNjUyNjQ5MzA0IiwiZGF0YSI6eyJwcmluY2lwYWwiOm51bGwsImNvbW1hbmRfc2VxdWVuY2UiOm51bGwsInBheWxvYWRfc2hhMjU2IjpudWxsLCJyZXBsYXllZCI6dHJ1ZSwiZWZmZWN0X3JldmlzaW9uIjoiMTMiLCJlZmZlY3RfZXZlbnRfc2VxdWVuY2UiOiIxMyIsIm91dGNvbWUiOnsia2luZCI6InByb2R1Y3Rpb25fY29tcGxldGVkIiwiam9iIjp7InJlY2lwZV9pZCI6Imlyb25fdG9vbCIsInJlY2lwZV92ZXJzaW9uIjoiMSIsImNvbmZpZ192ZXJzaW9uIjoiMSIsInF1YW50aXR5IjoiMSIsImlucHV0c19jb25zdW1lZCI6eyJjcnlzdGFsIjoiMCIsIndvb2QiOiIxIiwiaGVyYiI6IjAiLCJpcm9uIjoiMiIsImhlYWx0aF9wb3Rpb24iOiIwIiwiaXJvbl90b29sIjoiMCJ9LCJvdXRwdXRfaXRlbSI6Imlyb25fdG9vbCIsIm91dHB1dF9xdWFudGl0eSI6IjEiLCJzdGFydF9hdF9ucyI6IjE3OTM5MDY3MTAwMjA3MTY0MjQiLCJyZWFkeV9hdF9ucyI6IjE3OTM5MDY4OTAwMjA3MTY0MjQiLCJqb2JfaWQiOiIyIiwic2hvcF9pZCI6IjUiLCJvd25lciI6eyJraW5kIjoicGxheWVyIiwiYWNjb3VudF9pZCI6ImRldi0yMDI2MTEwNTE5MjUwNS04Mzg2MDU2NzgxNjc1MS50ZXN0Lm5lYXIifSwiY29tcGxldGVkX2F0X25zIjoiMTc5MzkwNzAxMjY1MjY0OTMwNCIsInN0YXR1cyI6ImNvbXBsZXRlZCIsInN0YXJ0X2NvbW1hbmRfc2VxdWVuY2UiOiI1IiwicmV2aXNpb24iOiIyIn0sImxlZGdlciI6eyJhY3RvciI6eyJraW5kIjoicGxheWVyIiwiYWNjb3VudF9pZCI6ImRldi0yMDI2MTEwNTE5MjUwNS04Mzg2MDU2NzgxNjc1MS50ZXN0Lm5lYXIifSwicmV2aXNpb24iOiI1IiwiZ29sZCI6eyJoZWxkIjoiODgiLCJhdmFpbGFibGUiOiI4OCIsInRyYWRlX3Jlc2VydmVkIjoiMCIsInRyYWRlX2luYm91bmRfcmVzZXJ2ZWQiOiIwIn0sImludmVudG9yeSI6eyJoZWxkIjp7ImNyeXN0YWwiOiIwIiwid29vZCI6IjAiLCJoZXJiIjoiMCIsImlyb24iOiIwIiwiaGVhbHRoX3BvdGlvbiI6IjAiLCJpcm9uX3Rvb2wiOiIxIn0sImF2YWlsYWJsZSI6eyJjcnlzdGFsIjoiMCIsIndvb2QiOiIwIiwiaGVyYiI6IjAiLCJpcm9uIjoiMCIsImhlYWx0aF9wb3Rpb24iOiIwIiwiaXJvbl90b29sIjoiMSJ9LCJsaXN0aW5nX3Jlc2VydmVkIjp7ImNyeXN0YWwiOiIwIiwid29vZCI6IjAiLCJoZXJiIjoiMCIsImlyb24iOiIwIiwiaGVhbHRoX3BvdGlvbiI6IjAiLCJpcm9uX3Rvb2wiOiIwIn0sInRyYWRlX3Jlc2VydmVkIjp7ImNyeXN0YWwiOiIwIiwid29vZCI6IjAiLCJoZXJiIjoiMCIsImlyb24iOiIwIiwiaGVhbHRoX3BvdGlvbiI6IjAiLCJpcm9uX3Rvb2wiOiIwIn0sInByb2R1Y3Rpb25fb3V0cHV0X3Jlc2VydmVkIjp7ImNyeXN0YWwiOiIwIiwid29vZCI6IjAiLCJoZXJiIjoiMCIsImlyb24iOiIwIiwiaGVhbHRoX3BvdGlvbiI6IjAiLCJpcm9uX3Rvb2wiOiIwIn0sInRyYWRlX2luYm91bmRfcmVzZXJ2ZWQiOnsiY3J5c3RhbCI6IjAiLCJ3b29kIjoiMCIsImhlcmIiOiIwIiwiaXJvbiI6IjAiLCJoZWFsdGhfcG90aW9uIjoiMCIsImlyb25fdG9vbCI6IjAifX19fX19"
+              },
+              "tokens_burnt": "445211447947500000000"
+            },
+            "proof": [
+              {
+                "direction": "Left",
+                "hash": "DgcoQXcRjUpQYmw5Q2eci5GTm3QjSYszQBdoGRZ3nMgX"
+              }
+            ]
+          },
+          {
+            "block_hash": "9q5MAYYrrVNj9W2Rxp9mzEMezQABpgpHwhngjw5ChSmA",
+            "id": "G5JgF3bponiMHHJ4xypRCsKrVbkufeo4gxxjHMSk7uHN",
+            "outcome": {
+              "executor_id": "dev-20261105192505-92652368616048.test.near",
+              "gas_burnt": 223182562500,
+              "logs": [],
+              "metadata": {
+                "contracts": [null],
+                "gas_profile": [],
+                "version": 4
+              },
+              "receipt_ids": [],
+              "status": {
+                "SuccessValue": ""
+              },
+              "tokens_burnt": "0"
+            },
+            "proof": [
+              {
+                "direction": "Left",
+                "hash": "54wrtGrUp7J4XbhdFjUQ4ynwmepwfhm1PczAWXzZSSDq"
+              }
+            ]
+          }
+        ],
+        "status": {
+          "SuccessValue": "eyJkZXBsb3ltZW50Ijp7Im5ldHdvcmtfaWQiOiJ0ZXN0bmV0IiwiZ2VuZXNpc19oYXNoIjoiMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTEiLCJjb250cmFjdF9pZCI6ImRldi0yMDI2MTEwNTE5MjUwMy0xNjcwMjM2ODM3MTIzNy50ZXN0Lm5lYXIiLCJhcGlfdmVyc2lvbiI6IjIuMC4wIiwic3RhdGVfc2NoZW1hIjoiMSIsImNvbW1hbmRfc2NoZW1hIjoiMSIsImNvbmZpZ192ZXJzaW9uIjoiMSIsImNvbmZpZ19zaGEyNTYiOiJhOTMyZWZiNDhjNzBhNzNjZTQ2NDcyY2Q3NTQyODg2NDk1NDFiMzQ2MDRlMmVhNDlhNDA5Mzk2MWU3MWEyZDEwIn0sIm1hcmtldF9yZXZpc2lvbiI6IjEzIiwiZXZlbnRfc2VxdWVuY2UiOiIxMyIsImJsb2NrX2hlaWdodCI6IjEwODYiLCJibG9ja190aW1lc3RhbXBfbnMiOiIxNzkzOTA3MDEyNjUyNjQ5MzA0IiwiZGF0YSI6eyJwcmluY2lwYWwiOm51bGwsImNvbW1hbmRfc2VxdWVuY2UiOm51bGwsInBheWxvYWRfc2hhMjU2IjpudWxsLCJyZXBsYXllZCI6dHJ1ZSwiZWZmZWN0X3JldmlzaW9uIjoiMTMiLCJlZmZlY3RfZXZlbnRfc2VxdWVuY2UiOiIxMyIsIm91dGNvbWUiOnsia2luZCI6InByb2R1Y3Rpb25fY29tcGxldGVkIiwiam9iIjp7InJlY2lwZV9pZCI6Imlyb25fdG9vbCIsInJlY2lwZV92ZXJzaW9uIjoiMSIsImNvbmZpZ192ZXJzaW9uIjoiMSIsInF1YW50aXR5IjoiMSIsImlucHV0c19jb25zdW1lZCI6eyJjcnlzdGFsIjoiMCIsIndvb2QiOiIxIiwiaGVyYiI6IjAiLCJpcm9uIjoiMiIsImhlYWx0aF9wb3Rpb24iOiIwIiwiaXJvbl90b29sIjoiMCJ9LCJvdXRwdXRfaXRlbSI6Imlyb25fdG9vbCIsIm91dHB1dF9xdWFudGl0eSI6IjEiLCJzdGFydF9hdF9ucyI6IjE3OTM5MDY3MTAwMjA3MTY0MjQiLCJyZWFkeV9hdF9ucyI6IjE3OTM5MDY4OTAwMjA3MTY0MjQiLCJqb2JfaWQiOiIyIiwic2hvcF9pZCI6IjUiLCJvd25lciI6eyJraW5kIjoicGxheWVyIiwiYWNjb3VudF9pZCI6ImRldi0yMDI2MTEwNTE5MjUwNS04Mzg2MDU2NzgxNjc1MS50ZXN0Lm5lYXIifSwiY29tcGxldGVkX2F0X25zIjoiMTc5MzkwNzAxMjY1MjY0OTMwNCIsInN0YXR1cyI6ImNvbXBsZXRlZCIsInN0YXJ0X2NvbW1hbmRfc2VxdWVuY2UiOiI1IiwicmV2aXNpb24iOiIyIn0sImxlZGdlciI6eyJhY3RvciI6eyJraW5kIjoicGxheWVyIiwiYWNjb3VudF9pZCI6ImRldi0yMDI2MTEwNTE5MjUwNS04Mzg2MDU2NzgxNjc1MS50ZXN0Lm5lYXIifSwicmV2aXNpb24iOiI1IiwiZ29sZCI6eyJoZWxkIjoiODgiLCJhdmFpbGFibGUiOiI4OCIsInRyYWRlX3Jlc2VydmVkIjoiMCIsInRyYWRlX2luYm91bmRfcmVzZXJ2ZWQiOiIwIn0sImludmVudG9yeSI6eyJoZWxkIjp7ImNyeXN0YWwiOiIwIiwid29vZCI6IjAiLCJoZXJiIjoiMCIsImlyb24iOiIwIiwiaGVhbHRoX3BvdGlvbiI6IjAiLCJpcm9uX3Rvb2wiOiIxIn0sImF2YWlsYWJsZSI6eyJjcnlzdGFsIjoiMCIsIndvb2QiOiIwIiwiaGVyYiI6IjAiLCJpcm9uIjoiMCIsImhlYWx0aF9wb3Rpb24iOiIwIiwiaXJvbl90b29sIjoiMSJ9LCJsaXN0aW5nX3Jlc2VydmVkIjp7ImNyeXN0YWwiOiIwIiwid29vZCI6IjAiLCJoZXJiIjoiMCIsImlyb24iOiIwIiwiaGVhbHRoX3BvdGlvbiI6IjAiLCJpcm9uX3Rvb2wiOiIwIn0sInRyYWRlX3Jlc2VydmVkIjp7ImNyeXN0YWwiOiIwIiwid29vZCI6IjAiLCJoZXJiIjoiMCIsImlyb24iOiIwIiwiaGVhbHRoX3BvdGlvbiI6IjAiLCJpcm9uX3Rvb2wiOiIwIn0sInByb2R1Y3Rpb25fb3V0cHV0X3Jlc2VydmVkIjp7ImNyeXN0YWwiOiIwIiwid29vZCI6IjAiLCJoZXJiIjoiMCIsImlyb24iOiIwIiwiaGVhbHRoX3BvdGlvbiI6IjAiLCJpcm9uX3Rvb2wiOiIwIn0sInRyYWRlX2luYm91bmRfcmVzZXJ2ZWQiOnsiY3J5c3RhbCI6IjAiLCJ3b29kIjoiMCIsImhlcmIiOiIwIiwiaXJvbiI6IjAiLCJoZWFsdGhfcG90aW9uIjoiMCIsImlyb25fdG9vbCI6IjAifX19fX19"
+        },
+        "transaction": {
+          "actions": [
+            {
+              "FunctionCall": {
+                "args": "eyJqb2JfaWQiOiIyIn0=",
+                "deposit": "0",
+                "gas": 100000000000000,
+                "method_name": "complete_production"
+              }
+            }
+          ],
+          "hash": "4NpqvMQxGWFNr1PddUMcTRRMhqDJqpkX79R2Tx6jCcrx",
+          "nonce": 18000006,
+          "priority_fee": 0,
+          "public_key": "ed25519:Dv2twECJuBr6vN2sNBeCoj2wRm8EWuzJQMFXk8FNc59",
+          "receiver_id": "dev-20261105192503-16702368371237.test.near",
+          "signature": "ed25519:WakJ9nEMCNy5eqmP4FUtZjrjXRhw5LpY94JwuiPFSSnYB4LFAqNRrV4qBeC7NLjJm4Twk6JZzYsARrqa6t5TTeF",
+          "signer_id": "dev-20261105192505-92652368616048.test.near"
+        },
+        "transaction_outcome": {
+          "block_hash": "qHCWhTs581odqa1WHJuBJQu2kqWBwyVTPeeKEf1CADJ",
+          "id": "4NpqvMQxGWFNr1PddUMcTRRMhqDJqpkX79R2Tx6jCcrx",
+          "outcome": {
+            "executor_id": "dev-20261105192505-92652368616048.test.near",
+            "gas_burnt": 309633062595,
+            "logs": [],
+            "metadata": {
+              "gas_profile": null,
+              "version": 1
+            },
+            "receipt_ids": ["Hg7NdCUXvzCdPSbAzybeKHcgx7RVu7PBUr1PsZY6AQaB"],
+            "status": {
+              "SuccessReceiptId": "Hg7NdCUXvzCdPSbAzybeKHcgx7RVu7PBUr1PsZY6AQaB"
+            },
+            "tokens_burnt": "30963306259500000000"
+          },
+          "proof": [
+            {
+              "direction": "Left",
+              "hash": "4UwhAAsAkFXLGMg4J5b7RonfS7oSaAZ4hMp1zy1DkmoA"
+            }
+          ]
+        }
+      },
+      "block": {
+        "author": "test.near",
+        "chunks": [
+          {
+            "balance_burnt": "61926612519000000000",
+            "bandwidth_requests": {
+              "V1": {
+                "requests": []
+              }
+            },
+            "chunk_hash": "89D3PVH8Na1VkFRf6QxFoFVkkbN79XEAt3hX6d6oJ5eN",
+            "congestion_info": {
+              "allowed_shard": 0,
+              "buffered_receipts_gas": "0",
+              "delayed_receipts_gas": "0",
+              "receipt_bytes": 0
+            },
+            "encoded_length": 610,
+            "encoded_merkle_root": "6tYAubhC3n49ZD9MVrtGBfswdFtK8JN1E2gkMTaK8Qoo",
+            "gas_limit": 1000000000000000,
+            "gas_used": 619266125190,
+            "height_created": 1086,
+            "height_included": 1086,
+            "outcome_root": "7JgsKd4uxMNLUdXbT7qV854wUnWQrvTWUiABK9AGivyn",
+            "outgoing_receipts_root": "AkSGmswS4pSJNxuJcXvssdbRfKzGuQarygCjUpdoW6Xp",
+            "prev_block_hash": "qHCWhTs581odqa1WHJuBJQu2kqWBwyVTPeeKEf1CADJ",
+            "prev_state_root": "Cra5wTGT3LTYgHpZRprDAs9mEK38UgCshtdoxmgmniE",
+            "proposed_split": null,
+            "rent_paid": "0",
+            "shard_id": 0,
+            "signature": "ed25519:T7gTrEZh3rmKKUNyiKsbNncFyWfLR53aSKCzpNkWXyy2qMTaYnJcCS3TuVgE1WZikhBDG3FEXm6eiRG5eobuwhZ",
+            "tx_root": "11111111111111111111111111111111",
+            "validator_proposals": [],
+            "validator_reward": "0"
+          }
+        ],
+        "header": {
+          "approvals": [
+            "ed25519:26pBoD4beKngpueijpwUdkZw8hoq2cveF7SSgRNiSMV4TKQALhyu5Xe83abQ1xtX8GUvefqYRkUJcjD9KLtiAy3a"
+          ],
+          "block_body_hash": "6LvsPap3VKDHsN8s4SM4hcV9jX8Psc4znU5PES7BQ8Bf",
+          "block_merkle_root": "9w877qui7kzdZfLVeognsMvj9LR1kKFu7rhiQo3uiVxY",
+          "block_ordinal": 151,
+          "challenges_result": [],
+          "challenges_root": "11111111111111111111111111111111",
+          "chunk_endorsements": [[1]],
+          "chunk_headers_root": "6d5w3BqQigycEv6yvDLoJdmN72hJPm571HjPLKz4J2ty",
+          "chunk_mask": [true],
+          "chunk_receipts_root": "APHoFGSHtnqpKZA4y1vVcDEhv1bjJgCCL46aonNb4xs8",
+          "chunk_tx_root": "7tkzFg8RHBmMw1ncRJZCCZAizgq4rwCftTKYLce8RU8t",
+          "chunks_included": 1,
+          "epoch_id": "AhJYCnPVBWfg7i39GuLiVfpUo4JCTKRCxMs3iZ5EEgE",
+          "epoch_sync_data_hash": null,
+          "gas_price": "100000000",
+          "hash": "HJc9gnHooKT5mYapXPxJNTDWqHNeWA2vvjhncX2NbrsP",
+          "height": 1086,
+          "last_ds_final_block": "qHCWhTs581odqa1WHJuBJQu2kqWBwyVTPeeKEf1CADJ",
+          "last_final_block": "Fo6VNskrsBGPHm3rAzZJ8eh9mA6TcZhsdxsyHgtMRqof",
+          "latest_protocol_version": 86,
+          "next_bp_hash": "2w2zDkvAkU45hzCWd2X5vuuB7gY4cY1XgC23vxMznciJ",
+          "next_epoch_id": "BjecJxFXNRuYqQtsu7JFDDgujPNef1NAaRURAQrQGq4T",
+          "outcome_root": "CdwpakjNccRLQg2bygCvfNTutC4Lg4ip5WA2JWU1KxHs",
+          "prev_hash": "qHCWhTs581odqa1WHJuBJQu2kqWBwyVTPeeKEf1CADJ",
+          "prev_height": 1085,
+          "prev_state_root": "5Fbiu1qL7CQphbmAEfmenj4f8ps7TBf1Ng26LtHJ5B7H",
+          "random_value": "7WH5C5TGRDPNfEse7kVHEECCtLftd54Xtd3xNw3mcSks",
+          "rent_paid": "0",
+          "shard_split": null,
+          "signature": "ed25519:4dxnaunbetxQoYWQEGdYwAsiL483ese7ZuBwyNojiiFxCign6nAJ1z435aDBDWEcFdYW1tgVA3qqbKkBrfamZQwx",
+          "timestamp": 1793907012652649200,
+          "timestamp_nanosec": "1793907012652649304",
+          "total_supply": "2050030131308464238083814118663442",
+          "validator_proposals": [],
+          "validator_reward": "0"
+        }
+      },
+      "account": {
+        "amount": "3861871293854274500000000",
+        "block_hash": "HJc9gnHooKT5mYapXPxJNTDWqHNeWA2vvjhncX2NbrsP",
+        "block_height": 1086,
+        "code_hash": "F8puNhtHcSf5mFEKcoPSmAoR2bXrBQthBjzuHgMjK84y",
+        "locked": "0",
+        "storage_paid_at": 0,
+        "storage_usage": 351567
+      },
+      "foundation": {
+        "deployment": {
+          "network_id": "testnet",
+          "genesis_hash": "11111111111111111111111111111111",
+          "contract_id": "dev-20261105192503-16702368371237.test.near",
+          "api_version": "2.0.0",
+          "state_schema": "1",
+          "command_schema": "1",
+          "config_version": "1",
+          "config_sha256": "a932efb48c70a73ce46472cd754288649541b34604e2ea49a4093961e71a2d10"
+        },
+        "market_revision": "13",
+        "event_sequence": "13",
+        "block_height": "1086",
+        "block_timestamp_ns": "1793907012652649304",
+        "data": {
+          "owner_account_id": "dev-20261105192503-16702368371237.test.near",
+          "operator_account_id": "operator.testnet",
+          "merchant_controllers": {
+            "rex": "rex.testnet",
+            "luna": "luna.testnet",
+            "bolt": "bolt.testnet"
+          },
+          "item_ids": [
+            "crystal",
+            "wood",
+            "herb",
+            "iron",
+            "health_potion",
+            "iron_tool"
+          ],
+          "supported_methods": [
+            "initialize_town",
+            "get_foundation",
+            "get_town",
+            "register_player",
+            "create_shop",
+            "rename_shop",
+            "get_player",
+            "get_shop",
+            "get_player_shops",
+            "get_command",
+            "buy_from_merchant",
+            "get_listings",
+            "get_trade",
+            "get_shop_inventory",
+            "get_recipes",
+            "start_production",
+            "get_production_jobs",
+            "complete_production"
+          ]
+        }
+      },
+      "result": {
+        "deployment": {
+          "network_id": "testnet",
+          "genesis_hash": "11111111111111111111111111111111",
+          "contract_id": "dev-20261105192503-16702368371237.test.near",
+          "api_version": "2.0.0",
+          "state_schema": "1",
+          "command_schema": "1",
+          "config_version": "1",
+          "config_sha256": "a932efb48c70a73ce46472cd754288649541b34604e2ea49a4093961e71a2d10"
+        },
+        "market_revision": "13",
+        "event_sequence": "13",
+        "block_height": "1086",
+        "block_timestamp_ns": "1793907012652649304",
+        "data": {
+          "principal": null,
+          "command_sequence": null,
+          "payload_sha256": null,
+          "replayed": true,
+          "effect_revision": "13",
+          "effect_event_sequence": "13",
+          "outcome": {
+            "kind": "production_completed",
+            "job": {
+              "recipe_id": "iron_tool",
+              "recipe_version": "1",
+              "config_version": "1",
+              "quantity": "1",
+              "inputs_consumed": {
+                "crystal": "0",
+                "wood": "1",
+                "herb": "0",
+                "iron": "2",
+                "health_potion": "0",
+                "iron_tool": "0"
+              },
+              "output_item": "iron_tool",
+              "output_quantity": "1",
+              "start_at_ns": "1793906710020716424",
+              "ready_at_ns": "1793906890020716424",
+              "job_id": "2",
+              "shop_id": "5",
+              "owner": {
+                "kind": "player",
+                "account_id": "dev-20261105192505-83860567816751.test.near"
+              },
+              "completed_at_ns": "1793907012652649304",
+              "status": "completed",
+              "start_command_sequence": "5",
+              "revision": "2"
+            },
+            "ledger": {
+              "actor": {
+                "kind": "player",
+                "account_id": "dev-20261105192505-83860567816751.test.near"
+              },
+              "revision": "5",
+              "gold": {
+                "held": "88",
+                "available": "88",
+                "trade_reserved": "0",
+                "trade_inbound_reserved": "0"
+              },
+              "inventory": {
+                "held": {
+                  "crystal": "0",
+                  "wood": "0",
+                  "herb": "0",
+                  "iron": "0",
+                  "health_potion": "0",
+                  "iron_tool": "1"
+                },
+                "available": {
+                  "crystal": "0",
+                  "wood": "0",
+                  "herb": "0",
+                  "iron": "0",
+                  "health_potion": "0",
+                  "iron_tool": "1"
+                },
+                "listing_reserved": {
+                  "crystal": "0",
+                  "wood": "0",
+                  "herb": "0",
+                  "iron": "0",
+                  "health_potion": "0",
+                  "iron_tool": "0"
+                },
+                "trade_reserved": {
+                  "crystal": "0",
+                  "wood": "0",
+                  "herb": "0",
+                  "iron": "0",
+                  "health_potion": "0",
+                  "iron_tool": "0"
+                },
+                "production_output_reserved": {
+                  "crystal": "0",
+                  "wood": "0",
+                  "herb": "0",
+                  "iron": "0",
+                  "health_potion": "0",
+                  "iron_tool": "0"
+                },
+                "trade_inbound_reserved": {
+                  "crystal": "0",
+                  "wood": "0",
+                  "herb": "0",
+                  "iron": "0",
+                  "health_potion": "0",
+                  "iron_tool": "0"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "method": "complete_production",
+      "args": {
+        "job_id": "2"
+      },
+      "signer_id": "dev-20261105192504-16515429008234.test.near",
+      "transaction_hash": "EvTUpvaveF4CXPii8Uv46ruiQAECvrjkpSL6yCbsnBgY",
+      "reference_block_height": "1083",
+      "gas_burnt": "6794655509928",
+      "receipt": {
+        "final_execution_status": "FINAL",
+        "receipts_outcome": [
+          {
+            "block_hash": "HJc9gnHooKT5mYapXPxJNTDWqHNeWA2vvjhncX2NbrsP",
+            "id": "4cx9usQSuyrZZ7re9kAm1cvMgcambxxXbhmd2zNKAt2m",
+            "outcome": {
+              "executor_id": "dev-20261105192503-16702368371237.test.near",
+              "gas_burnt": 6485022447333,
+              "logs": [
+                "EVENT_JSON:{\"standard\":\"bot_bazaar_living_town\",\"version\":\"2.0.0\",\"event\":\"complete_production\",\"data\":[{\"contract_id\":\"dev-20261105192503-16702368371237.test.near\",\"config_version\":\"1\",\"event_sequence\":\"13\",\"market_revision\":\"13\",\"block_height\":\"1086\",\"block_timestamp_ns\":\"1793907012652649304\",\"predecessor_account_id\":\"dev-20261105192504-16515429008234.test.near\",\"principal\":null,\"command_sequence\":null,\"payload_sha256\":null,\"outcome\":{\"kind\":\"production_completed\",\"job\":{\"recipe_id\":\"iron_tool\",\"recipe_version\":\"1\",\"config_version\":\"1\",\"quantity\":\"1\",\"inputs_consumed\":{\"crystal\":\"0\",\"wood\":\"1\",\"herb\":\"0\",\"iron\":\"2\",\"health_potion\":\"0\",\"iron_tool\":\"0\"},\"output_item\":\"iron_tool\",\"output_quantity\":\"1\",\"start_at_ns\":\"1793906710020716424\",\"ready_at_ns\":\"1793906890020716424\",\"job_id\":\"2\",\"shop_id\":\"5\",\"owner\":{\"kind\":\"player\",\"account_id\":\"dev-20261105192505-83860567816751.test.near\"},\"completed_at_ns\":\"1793907012652649304\",\"status\":\"completed\",\"start_command_sequence\":\"5\",\"revision\":\"2\"},\"ledger\":{\"actor\":{\"kind\":\"player\",\"account_id\":\"dev-20261105192505-83860567816751.test.near\"},\"revision\":\"5\",\"gold\":{\"held\":\"88\",\"available\":\"88\",\"trade_reserved\":\"0\",\"trade_inbound_reserved\":\"0\"},\"inventory\":{\"held\":{\"crystal\":\"0\",\"wood\":\"0\",\"herb\":\"0\",\"iron\":\"0\",\"health_potion\":\"0\",\"iron_tool\":\"1\"},\"available\":{\"crystal\":\"0\",\"wood\":\"0\",\"herb\":\"0\",\"iron\":\"0\",\"health_potion\":\"0\",\"iron_tool\":\"1\"},\"listing_reserved\":{\"crystal\":\"0\",\"wood\":\"0\",\"herb\":\"0\",\"iron\":\"0\",\"health_potion\":\"0\",\"iron_tool\":\"0\"},\"trade_reserved\":{\"crystal\":\"0\",\"wood\":\"0\",\"herb\":\"0\",\"iron\":\"0\",\"health_potion\":\"0\",\"iron_tool\":\"0\"},\"production_output_reserved\":{\"crystal\":\"0\",\"wood\":\"0\",\"herb\":\"0\",\"iron\":\"0\",\"health_potion\":\"0\",\"iron_tool\":\"0\"},\"trade_inbound_reserved\":{\"crystal\":\"0\",\"wood\":\"0\",\"herb\":\"0\",\"iron\":\"0\",\"health_potion\":\"0\",\"iron_tool\":\"0\"}}}}}]}"
+              ],
+              "metadata": {
+                "contracts": [
+                  {
+                    "local": "F8puNhtHcSf5mFEKcoPSmAoR2bXrBQthBjzuHgMjK84y"
+                  }
+                ],
+                "gas_profile": [
+                  {
+                    "cost": "BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "11649796884"
+                  },
+                  {
+                    "cost": "CONTRACT_LOADING_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "35445963"
+                  },
+                  {
+                    "cost": "CONTRACT_LOADING_BYTES",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "376252296655"
+                  },
+                  {
+                    "cost": "LOG_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "3543313050"
+                  },
+                  {
+                    "cost": "LOG_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "24219781485"
+                  },
+                  {
+                    "cost": "READ_CACHED_TRIE_NODE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "66120000000"
+                  },
+                  {
+                    "cost": "READ_MEMORY_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "49587400800"
+                  },
+                  {
+                    "cost": "READ_MEMORY_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "37842270015"
+                  },
+                  {
+                    "cost": "READ_REGISTER_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "27688817046"
+                  },
+                  {
+                    "cost": "READ_REGISTER_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "233690502"
+                  },
+                  {
+                    "cost": "SHA256_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "4540970250"
+                  },
+                  {
+                    "cost": "SHA256_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "41915956038"
+                  },
+                  {
+                    "cost": "STORAGE_READ_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "281784228745"
+                  },
+                  {
+                    "cost": "STORAGE_READ_KEY_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "4054781823"
+                  },
+                  {
+                    "cost": "STORAGE_READ_VALUE_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "12405929844"
+                  },
+                  {
+                    "cost": "STORAGE_REMOVE_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "53473030500"
+                  },
+                  {
+                    "cost": "STORAGE_REMOVE_KEY_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "993729984"
+                  },
+                  {
+                    "cost": "STORAGE_REMOVE_RET_VALUE_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "92252448"
+                  },
+                  {
+                    "cost": "STORAGE_WRITE_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "320983680000"
+                  },
+                  {
+                    "cost": "STORAGE_WRITE_EVICTED_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "122366939670"
+                  },
+                  {
+                    "cost": "STORAGE_WRITE_KEY_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "7753115370"
+                  },
+                  {
+                    "cost": "STORAGE_WRITE_VALUE_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "128602862694"
+                  },
+                  {
+                    "cost": "TOUCHING_TRIE_NODE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "45600000000"
+                  },
+                  {
+                    "cost": "UTF8_DECODING_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "3111779061"
+                  },
+                  {
+                    "cost": "UTF8_DECODING_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "535050178965"
+                  },
+                  {
+                    "cost": "WASM_INSTRUCTION",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "3321910260240"
+                  },
+                  {
+                    "cost": "WRITE_MEMORY_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "36449333193"
+                  },
+                  {
+                    "cost": "WRITE_MEMORY_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "6545224116"
+                  },
+                  {
+                    "cost": "WRITE_REGISTER_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "48713882262"
+                  },
+                  {
+                    "cost": "WRITE_REGISTER_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "23368213908"
+                  }
+                ],
+                "version": 4
+              },
+              "receipt_ids": ["8HSPGRxrKrswgFbPZy3CWAhXbjtjSHb9vHH2vHBYJVwD"],
+              "status": {
+                "SuccessValue": "eyJkZXBsb3ltZW50Ijp7Im5ldHdvcmtfaWQiOiJ0ZXN0bmV0IiwiZ2VuZXNpc19oYXNoIjoiMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTEiLCJjb250cmFjdF9pZCI6ImRldi0yMDI2MTEwNTE5MjUwMy0xNjcwMjM2ODM3MTIzNy50ZXN0Lm5lYXIiLCJhcGlfdmVyc2lvbiI6IjIuMC4wIiwic3RhdGVfc2NoZW1hIjoiMSIsImNvbW1hbmRfc2NoZW1hIjoiMSIsImNvbmZpZ192ZXJzaW9uIjoiMSIsImNvbmZpZ19zaGEyNTYiOiJhOTMyZWZiNDhjNzBhNzNjZTQ2NDcyY2Q3NTQyODg2NDk1NDFiMzQ2MDRlMmVhNDlhNDA5Mzk2MWU3MWEyZDEwIn0sIm1hcmtldF9yZXZpc2lvbiI6IjEzIiwiZXZlbnRfc2VxdWVuY2UiOiIxMyIsImJsb2NrX2hlaWdodCI6IjEwODYiLCJibG9ja190aW1lc3RhbXBfbnMiOiIxNzkzOTA3MDEyNjUyNjQ5MzA0IiwiZGF0YSI6eyJwcmluY2lwYWwiOm51bGwsImNvbW1hbmRfc2VxdWVuY2UiOm51bGwsInBheWxvYWRfc2hhMjU2IjpudWxsLCJyZXBsYXllZCI6ZmFsc2UsImVmZmVjdF9yZXZpc2lvbiI6IjEzIiwiZWZmZWN0X2V2ZW50X3NlcXVlbmNlIjoiMTMiLCJvdXRjb21lIjp7ImtpbmQiOiJwcm9kdWN0aW9uX2NvbXBsZXRlZCIsImpvYiI6eyJyZWNpcGVfaWQiOiJpcm9uX3Rvb2wiLCJyZWNpcGVfdmVyc2lvbiI6IjEiLCJjb25maWdfdmVyc2lvbiI6IjEiLCJxdWFudGl0eSI6IjEiLCJpbnB1dHNfY29uc3VtZWQiOnsiY3J5c3RhbCI6IjAiLCJ3b29kIjoiMSIsImhlcmIiOiIwIiwiaXJvbiI6IjIiLCJoZWFsdGhfcG90aW9uIjoiMCIsImlyb25fdG9vbCI6IjAifSwib3V0cHV0X2l0ZW0iOiJpcm9uX3Rvb2wiLCJvdXRwdXRfcXVhbnRpdHkiOiIxIiwic3RhcnRfYXRfbnMiOiIxNzkzOTA2NzEwMDIwNzE2NDI0IiwicmVhZHlfYXRfbnMiOiIxNzkzOTA2ODkwMDIwNzE2NDI0Iiwiam9iX2lkIjoiMiIsInNob3BfaWQiOiI1Iiwib3duZXIiOnsia2luZCI6InBsYXllciIsImFjY291bnRfaWQiOiJkZXYtMjAyNjExMDUxOTI1MDUtODM4NjA1Njc4MTY3NTEudGVzdC5uZWFyIn0sImNvbXBsZXRlZF9hdF9ucyI6IjE3OTM5MDcwMTI2NTI2NDkzMDQiLCJzdGF0dXMiOiJjb21wbGV0ZWQiLCJzdGFydF9jb21tYW5kX3NlcXVlbmNlIjoiNSIsInJldmlzaW9uIjoiMiJ9LCJsZWRnZXIiOnsiYWN0b3IiOnsia2luZCI6InBsYXllciIsImFjY291bnRfaWQiOiJkZXYtMjAyNjExMDUxOTI1MDUtODM4NjA1Njc4MTY3NTEudGVzdC5uZWFyIn0sInJldmlzaW9uIjoiNSIsImdvbGQiOnsiaGVsZCI6Ijg4IiwiYXZhaWxhYmxlIjoiODgiLCJ0cmFkZV9yZXNlcnZlZCI6IjAiLCJ0cmFkZV9pbmJvdW5kX3Jlc2VydmVkIjoiMCJ9LCJpbnZlbnRvcnkiOnsiaGVsZCI6eyJjcnlzdGFsIjoiMCIsIndvb2QiOiIwIiwiaGVyYiI6IjAiLCJpcm9uIjoiMCIsImhlYWx0aF9wb3Rpb24iOiIwIiwiaXJvbl90b29sIjoiMSJ9LCJhdmFpbGFibGUiOnsiY3J5c3RhbCI6IjAiLCJ3b29kIjoiMCIsImhlcmIiOiIwIiwiaXJvbiI6IjAiLCJoZWFsdGhfcG90aW9uIjoiMCIsImlyb25fdG9vbCI6IjEifSwibGlzdGluZ19yZXNlcnZlZCI6eyJjcnlzdGFsIjoiMCIsIndvb2QiOiIwIiwiaGVyYiI6IjAiLCJpcm9uIjoiMCIsImhlYWx0aF9wb3Rpb24iOiIwIiwiaXJvbl90b29sIjoiMCJ9LCJ0cmFkZV9yZXNlcnZlZCI6eyJjcnlzdGFsIjoiMCIsIndvb2QiOiIwIiwiaGVyYiI6IjAiLCJpcm9uIjoiMCIsImhlYWx0aF9wb3Rpb24iOiIwIiwiaXJvbl90b29sIjoiMCJ9LCJwcm9kdWN0aW9uX291dHB1dF9yZXNlcnZlZCI6eyJjcnlzdGFsIjoiMCIsIndvb2QiOiIwIiwiaGVyYiI6IjAiLCJpcm9uIjoiMCIsImhlYWx0aF9wb3Rpb24iOiIwIiwiaXJvbl90b29sIjoiMCJ9LCJ0cmFkZV9pbmJvdW5kX3Jlc2VydmVkIjp7ImNyeXN0YWwiOiIwIiwid29vZCI6IjAiLCJoZXJiIjoiMCIsImlyb24iOiIwIiwiaGVhbHRoX3BvdGlvbiI6IjAiLCJpcm9uX3Rvb2wiOiIwIn19fX19fQ=="
+              },
+              "tokens_burnt": "648502244733300000000"
+            },
+            "proof": [
+              {
+                "direction": "Right",
+                "hash": "EEyL2CKFXuPWVsDeeYWKENiiHDxSiSvBY7aDugya6Pu9"
+              }
+            ]
+          },
+          {
+            "block_hash": "9q5MAYYrrVNj9W2Rxp9mzEMezQABpgpHwhngjw5ChSmA",
+            "id": "8HSPGRxrKrswgFbPZy3CWAhXbjtjSHb9vHH2vHBYJVwD",
+            "outcome": {
+              "executor_id": "dev-20261105192504-16515429008234.test.near",
+              "gas_burnt": 223182562500,
+              "logs": [],
+              "metadata": {
+                "contracts": [null],
+                "gas_profile": [],
+                "version": 4
+              },
+              "receipt_ids": [],
+              "status": {
+                "SuccessValue": ""
+              },
+              "tokens_burnt": "0"
+            },
+            "proof": [
+              {
+                "direction": "Right",
+                "hash": "3U2eNyzTN4J7kyg1T1AsNDy6Fd7yKWGfx8YtDpsqg3Ly"
+              }
+            ]
+          }
+        ],
+        "status": {
+          "SuccessValue": "eyJkZXBsb3ltZW50Ijp7Im5ldHdvcmtfaWQiOiJ0ZXN0bmV0IiwiZ2VuZXNpc19oYXNoIjoiMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTEiLCJjb250cmFjdF9pZCI6ImRldi0yMDI2MTEwNTE5MjUwMy0xNjcwMjM2ODM3MTIzNy50ZXN0Lm5lYXIiLCJhcGlfdmVyc2lvbiI6IjIuMC4wIiwic3RhdGVfc2NoZW1hIjoiMSIsImNvbW1hbmRfc2NoZW1hIjoiMSIsImNvbmZpZ192ZXJzaW9uIjoiMSIsImNvbmZpZ19zaGEyNTYiOiJhOTMyZWZiNDhjNzBhNzNjZTQ2NDcyY2Q3NTQyODg2NDk1NDFiMzQ2MDRlMmVhNDlhNDA5Mzk2MWU3MWEyZDEwIn0sIm1hcmtldF9yZXZpc2lvbiI6IjEzIiwiZXZlbnRfc2VxdWVuY2UiOiIxMyIsImJsb2NrX2hlaWdodCI6IjEwODYiLCJibG9ja190aW1lc3RhbXBfbnMiOiIxNzkzOTA3MDEyNjUyNjQ5MzA0IiwiZGF0YSI6eyJwcmluY2lwYWwiOm51bGwsImNvbW1hbmRfc2VxdWVuY2UiOm51bGwsInBheWxvYWRfc2hhMjU2IjpudWxsLCJyZXBsYXllZCI6ZmFsc2UsImVmZmVjdF9yZXZpc2lvbiI6IjEzIiwiZWZmZWN0X2V2ZW50X3NlcXVlbmNlIjoiMTMiLCJvdXRjb21lIjp7ImtpbmQiOiJwcm9kdWN0aW9uX2NvbXBsZXRlZCIsImpvYiI6eyJyZWNpcGVfaWQiOiJpcm9uX3Rvb2wiLCJyZWNpcGVfdmVyc2lvbiI6IjEiLCJjb25maWdfdmVyc2lvbiI6IjEiLCJxdWFudGl0eSI6IjEiLCJpbnB1dHNfY29uc3VtZWQiOnsiY3J5c3RhbCI6IjAiLCJ3b29kIjoiMSIsImhlcmIiOiIwIiwiaXJvbiI6IjIiLCJoZWFsdGhfcG90aW9uIjoiMCIsImlyb25fdG9vbCI6IjAifSwib3V0cHV0X2l0ZW0iOiJpcm9uX3Rvb2wiLCJvdXRwdXRfcXVhbnRpdHkiOiIxIiwic3RhcnRfYXRfbnMiOiIxNzkzOTA2NzEwMDIwNzE2NDI0IiwicmVhZHlfYXRfbnMiOiIxNzkzOTA2ODkwMDIwNzE2NDI0Iiwiam9iX2lkIjoiMiIsInNob3BfaWQiOiI1Iiwib3duZXIiOnsia2luZCI6InBsYXllciIsImFjY291bnRfaWQiOiJkZXYtMjAyNjExMDUxOTI1MDUtODM4NjA1Njc4MTY3NTEudGVzdC5uZWFyIn0sImNvbXBsZXRlZF9hdF9ucyI6IjE3OTM5MDcwMTI2NTI2NDkzMDQiLCJzdGF0dXMiOiJjb21wbGV0ZWQiLCJzdGFydF9jb21tYW5kX3NlcXVlbmNlIjoiNSIsInJldmlzaW9uIjoiMiJ9LCJsZWRnZXIiOnsiYWN0b3IiOnsia2luZCI6InBsYXllciIsImFjY291bnRfaWQiOiJkZXYtMjAyNjExMDUxOTI1MDUtODM4NjA1Njc4MTY3NTEudGVzdC5uZWFyIn0sInJldmlzaW9uIjoiNSIsImdvbGQiOnsiaGVsZCI6Ijg4IiwiYXZhaWxhYmxlIjoiODgiLCJ0cmFkZV9yZXNlcnZlZCI6IjAiLCJ0cmFkZV9pbmJvdW5kX3Jlc2VydmVkIjoiMCJ9LCJpbnZlbnRvcnkiOnsiaGVsZCI6eyJjcnlzdGFsIjoiMCIsIndvb2QiOiIwIiwiaGVyYiI6IjAiLCJpcm9uIjoiMCIsImhlYWx0aF9wb3Rpb24iOiIwIiwiaXJvbl90b29sIjoiMSJ9LCJhdmFpbGFibGUiOnsiY3J5c3RhbCI6IjAiLCJ3b29kIjoiMCIsImhlcmIiOiIwIiwiaXJvbiI6IjAiLCJoZWFsdGhfcG90aW9uIjoiMCIsImlyb25fdG9vbCI6IjEifSwibGlzdGluZ19yZXNlcnZlZCI6eyJjcnlzdGFsIjoiMCIsIndvb2QiOiIwIiwiaGVyYiI6IjAiLCJpcm9uIjoiMCIsImhlYWx0aF9wb3Rpb24iOiIwIiwiaXJvbl90b29sIjoiMCJ9LCJ0cmFkZV9yZXNlcnZlZCI6eyJjcnlzdGFsIjoiMCIsIndvb2QiOiIwIiwiaGVyYiI6IjAiLCJpcm9uIjoiMCIsImhlYWx0aF9wb3Rpb24iOiIwIiwiaXJvbl90b29sIjoiMCJ9LCJwcm9kdWN0aW9uX291dHB1dF9yZXNlcnZlZCI6eyJjcnlzdGFsIjoiMCIsIndvb2QiOiIwIiwiaGVyYiI6IjAiLCJpcm9uIjoiMCIsImhlYWx0aF9wb3Rpb24iOiIwIiwiaXJvbl90b29sIjoiMCJ9LCJ0cmFkZV9pbmJvdW5kX3Jlc2VydmVkIjp7ImNyeXN0YWwiOiIwIiwid29vZCI6IjAiLCJoZXJiIjoiMCIsImlyb24iOiIwIiwiaGVhbHRoX3BvdGlvbiI6IjAiLCJpcm9uX3Rvb2wiOiIwIn19fX19fQ=="
+        },
+        "transaction": {
+          "actions": [
+            {
+              "FunctionCall": {
+                "args": "eyJqb2JfaWQiOiIyIn0=",
+                "deposit": "0",
+                "gas": 100000000000000,
+                "method_name": "complete_production"
+              }
+            }
+          ],
+          "hash": "EvTUpvaveF4CXPii8Uv46ruiQAECvrjkpSL6yCbsnBgY",
+          "nonce": 12000006,
+          "priority_fee": 0,
+          "public_key": "ed25519:GebTEgD4P96AQGv6Lq4GSVLv4r4V68sYfuEZ3M5mDBu",
+          "receiver_id": "dev-20261105192503-16702368371237.test.near",
+          "signature": "ed25519:5rxXBrdM3Uykahs5KwshFzFAzRcaaeFWafHQYtZkX8xDTFiiHqsccmi6fpSoXcVKip4mC5AXs2Ru3YDMCPcMu7z5",
+          "signer_id": "dev-20261105192504-16515429008234.test.near"
+        },
+        "transaction_outcome": {
+          "block_hash": "qHCWhTs581odqa1WHJuBJQu2kqWBwyVTPeeKEf1CADJ",
+          "id": "EvTUpvaveF4CXPii8Uv46ruiQAECvrjkpSL6yCbsnBgY",
+          "outcome": {
+            "executor_id": "dev-20261105192504-16515429008234.test.near",
+            "gas_burnt": 309633062595,
+            "logs": [],
+            "metadata": {
+              "gas_profile": null,
+              "version": 1
+            },
+            "receipt_ids": ["4cx9usQSuyrZZ7re9kAm1cvMgcambxxXbhmd2zNKAt2m"],
+            "status": {
+              "SuccessReceiptId": "4cx9usQSuyrZZ7re9kAm1cvMgcambxxXbhmd2zNKAt2m"
+            },
+            "tokens_burnt": "30963306259500000000"
+          },
+          "proof": [
+            {
+              "direction": "Right",
+              "hash": "5qCDbUkPqrsphtfzxHj8jxEvDJvEzvmERuu36QkCCNHV"
+            }
+          ]
+        }
+      },
+      "block": {
+        "author": "test.near",
+        "chunks": [
+          {
+            "balance_burnt": "61926612519000000000",
+            "bandwidth_requests": {
+              "V1": {
+                "requests": []
+              }
+            },
+            "chunk_hash": "89D3PVH8Na1VkFRf6QxFoFVkkbN79XEAt3hX6d6oJ5eN",
+            "congestion_info": {
+              "allowed_shard": 0,
+              "buffered_receipts_gas": "0",
+              "delayed_receipts_gas": "0",
+              "receipt_bytes": 0
+            },
+            "encoded_length": 610,
+            "encoded_merkle_root": "6tYAubhC3n49ZD9MVrtGBfswdFtK8JN1E2gkMTaK8Qoo",
+            "gas_limit": 1000000000000000,
+            "gas_used": 619266125190,
+            "height_created": 1086,
+            "height_included": 1086,
+            "outcome_root": "7JgsKd4uxMNLUdXbT7qV854wUnWQrvTWUiABK9AGivyn",
+            "outgoing_receipts_root": "AkSGmswS4pSJNxuJcXvssdbRfKzGuQarygCjUpdoW6Xp",
+            "prev_block_hash": "qHCWhTs581odqa1WHJuBJQu2kqWBwyVTPeeKEf1CADJ",
+            "prev_state_root": "Cra5wTGT3LTYgHpZRprDAs9mEK38UgCshtdoxmgmniE",
+            "proposed_split": null,
+            "rent_paid": "0",
+            "shard_id": 0,
+            "signature": "ed25519:T7gTrEZh3rmKKUNyiKsbNncFyWfLR53aSKCzpNkWXyy2qMTaYnJcCS3TuVgE1WZikhBDG3FEXm6eiRG5eobuwhZ",
+            "tx_root": "11111111111111111111111111111111",
+            "validator_proposals": [],
+            "validator_reward": "0"
+          }
+        ],
+        "header": {
+          "approvals": [
+            "ed25519:26pBoD4beKngpueijpwUdkZw8hoq2cveF7SSgRNiSMV4TKQALhyu5Xe83abQ1xtX8GUvefqYRkUJcjD9KLtiAy3a"
+          ],
+          "block_body_hash": "6LvsPap3VKDHsN8s4SM4hcV9jX8Psc4znU5PES7BQ8Bf",
+          "block_merkle_root": "9w877qui7kzdZfLVeognsMvj9LR1kKFu7rhiQo3uiVxY",
+          "block_ordinal": 151,
+          "challenges_result": [],
+          "challenges_root": "11111111111111111111111111111111",
+          "chunk_endorsements": [[1]],
+          "chunk_headers_root": "6d5w3BqQigycEv6yvDLoJdmN72hJPm571HjPLKz4J2ty",
+          "chunk_mask": [true],
+          "chunk_receipts_root": "APHoFGSHtnqpKZA4y1vVcDEhv1bjJgCCL46aonNb4xs8",
+          "chunk_tx_root": "7tkzFg8RHBmMw1ncRJZCCZAizgq4rwCftTKYLce8RU8t",
+          "chunks_included": 1,
+          "epoch_id": "AhJYCnPVBWfg7i39GuLiVfpUo4JCTKRCxMs3iZ5EEgE",
+          "epoch_sync_data_hash": null,
+          "gas_price": "100000000",
+          "hash": "HJc9gnHooKT5mYapXPxJNTDWqHNeWA2vvjhncX2NbrsP",
+          "height": 1086,
+          "last_ds_final_block": "qHCWhTs581odqa1WHJuBJQu2kqWBwyVTPeeKEf1CADJ",
+          "last_final_block": "Fo6VNskrsBGPHm3rAzZJ8eh9mA6TcZhsdxsyHgtMRqof",
+          "latest_protocol_version": 86,
+          "next_bp_hash": "2w2zDkvAkU45hzCWd2X5vuuB7gY4cY1XgC23vxMznciJ",
+          "next_epoch_id": "BjecJxFXNRuYqQtsu7JFDDgujPNef1NAaRURAQrQGq4T",
+          "outcome_root": "CdwpakjNccRLQg2bygCvfNTutC4Lg4ip5WA2JWU1KxHs",
+          "prev_hash": "qHCWhTs581odqa1WHJuBJQu2kqWBwyVTPeeKEf1CADJ",
+          "prev_height": 1085,
+          "prev_state_root": "5Fbiu1qL7CQphbmAEfmenj4f8ps7TBf1Ng26LtHJ5B7H",
+          "random_value": "7WH5C5TGRDPNfEse7kVHEECCtLftd54Xtd3xNw3mcSks",
+          "rent_paid": "0",
+          "shard_split": null,
+          "signature": "ed25519:4dxnaunbetxQoYWQEGdYwAsiL483ese7ZuBwyNojiiFxCign6nAJ1z435aDBDWEcFdYW1tgVA3qqbKkBrfamZQwx",
+          "timestamp": 1793907012652649200,
+          "timestamp_nanosec": "1793907012652649304",
+          "total_supply": "2050030131308464238083814118663442",
+          "validator_proposals": [],
+          "validator_reward": "0"
+        }
+      },
+      "account": {
+        "amount": "3861871293854274500000000",
+        "block_hash": "HJc9gnHooKT5mYapXPxJNTDWqHNeWA2vvjhncX2NbrsP",
+        "block_height": 1086,
+        "code_hash": "F8puNhtHcSf5mFEKcoPSmAoR2bXrBQthBjzuHgMjK84y",
+        "locked": "0",
+        "storage_paid_at": 0,
+        "storage_usage": 351567
+      },
+      "foundation": {
+        "deployment": {
+          "network_id": "testnet",
+          "genesis_hash": "11111111111111111111111111111111",
+          "contract_id": "dev-20261105192503-16702368371237.test.near",
+          "api_version": "2.0.0",
+          "state_schema": "1",
+          "command_schema": "1",
+          "config_version": "1",
+          "config_sha256": "a932efb48c70a73ce46472cd754288649541b34604e2ea49a4093961e71a2d10"
+        },
+        "market_revision": "13",
+        "event_sequence": "13",
+        "block_height": "1086",
+        "block_timestamp_ns": "1793907012652649304",
+        "data": {
+          "owner_account_id": "dev-20261105192503-16702368371237.test.near",
+          "operator_account_id": "operator.testnet",
+          "merchant_controllers": {
+            "rex": "rex.testnet",
+            "luna": "luna.testnet",
+            "bolt": "bolt.testnet"
+          },
+          "item_ids": [
+            "crystal",
+            "wood",
+            "herb",
+            "iron",
+            "health_potion",
+            "iron_tool"
+          ],
+          "supported_methods": [
+            "initialize_town",
+            "get_foundation",
+            "get_town",
+            "register_player",
+            "create_shop",
+            "rename_shop",
+            "get_player",
+            "get_shop",
+            "get_player_shops",
+            "get_command",
+            "buy_from_merchant",
+            "get_listings",
+            "get_trade",
+            "get_shop_inventory",
+            "get_recipes",
+            "start_production",
+            "get_production_jobs",
+            "complete_production"
+          ]
+        }
+      },
+      "result": {
+        "deployment": {
+          "network_id": "testnet",
+          "genesis_hash": "11111111111111111111111111111111",
+          "contract_id": "dev-20261105192503-16702368371237.test.near",
+          "api_version": "2.0.0",
+          "state_schema": "1",
+          "command_schema": "1",
+          "config_version": "1",
+          "config_sha256": "a932efb48c70a73ce46472cd754288649541b34604e2ea49a4093961e71a2d10"
+        },
+        "market_revision": "13",
+        "event_sequence": "13",
+        "block_height": "1086",
+        "block_timestamp_ns": "1793907012652649304",
+        "data": {
+          "principal": null,
+          "command_sequence": null,
+          "payload_sha256": null,
+          "replayed": false,
+          "effect_revision": "13",
+          "effect_event_sequence": "13",
+          "outcome": {
+            "kind": "production_completed",
+            "job": {
+              "recipe_id": "iron_tool",
+              "recipe_version": "1",
+              "config_version": "1",
+              "quantity": "1",
+              "inputs_consumed": {
+                "crystal": "0",
+                "wood": "1",
+                "herb": "0",
+                "iron": "2",
+                "health_potion": "0",
+                "iron_tool": "0"
+              },
+              "output_item": "iron_tool",
+              "output_quantity": "1",
+              "start_at_ns": "1793906710020716424",
+              "ready_at_ns": "1793906890020716424",
+              "job_id": "2",
+              "shop_id": "5",
+              "owner": {
+                "kind": "player",
+                "account_id": "dev-20261105192505-83860567816751.test.near"
+              },
+              "completed_at_ns": "1793907012652649304",
+              "status": "completed",
+              "start_command_sequence": "5",
+              "revision": "2"
+            },
+            "ledger": {
+              "actor": {
+                "kind": "player",
+                "account_id": "dev-20261105192505-83860567816751.test.near"
+              },
+              "revision": "5",
+              "gold": {
+                "held": "88",
+                "available": "88",
+                "trade_reserved": "0",
+                "trade_inbound_reserved": "0"
+              },
+              "inventory": {
+                "held": {
+                  "crystal": "0",
+                  "wood": "0",
+                  "herb": "0",
+                  "iron": "0",
+                  "health_potion": "0",
+                  "iron_tool": "1"
+                },
+                "available": {
+                  "crystal": "0",
+                  "wood": "0",
+                  "herb": "0",
+                  "iron": "0",
+                  "health_potion": "0",
+                  "iron_tool": "1"
+                },
+                "listing_reserved": {
+                  "crystal": "0",
+                  "wood": "0",
+                  "herb": "0",
+                  "iron": "0",
+                  "health_potion": "0",
+                  "iron_tool": "0"
+                },
+                "trade_reserved": {
+                  "crystal": "0",
+                  "wood": "0",
+                  "herb": "0",
+                  "iron": "0",
+                  "health_potion": "0",
+                  "iron_tool": "0"
+                },
+                "production_output_reserved": {
+                  "crystal": "0",
+                  "wood": "0",
+                  "herb": "0",
+                  "iron": "0",
+                  "health_potion": "0",
+                  "iron_tool": "0"
+                },
+                "trade_inbound_reserved": {
+                  "crystal": "0",
+                  "wood": "0",
+                  "herb": "0",
+                  "iron": "0",
+                  "health_potion": "0",
+                  "iron_tool": "0"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "method": "complete_production",
+      "args": {
+        "job_id": "1"
+      },
+      "signer_id": "dev-20261105192505-83860567816751.test.near",
+      "transaction_hash": "7juvYuVMKJtvTDnBpgAugk6KG6mYC4LV3P5vRiDNcGk6",
+      "reference_block_height": "1106",
+      "gas_burnt": "4775877558294",
+      "receipt": {
+        "final_execution_status": "FINAL",
+        "receipts_outcome": [
+          {
+            "block_hash": "9JKFjukLdtTGBJdvumYXV4uwFa2vuYvWJCHCHAemebso",
+            "id": "ERGGXesmMy7nCQV27keNwQ7vcw1yBS68nY8UFP5of3rH",
+            "outcome": {
+              "executor_id": "dev-20261105192503-16702368371237.test.near",
+              "gas_burnt": 4466244495699,
+              "logs": [],
+              "metadata": {
+                "contracts": [
+                  {
+                    "local": "F8puNhtHcSf5mFEKcoPSmAoR2bXrBQthBjzuHgMjK84y"
+                  }
+                ],
+                "gas_profile": [
+                  {
+                    "cost": "BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "6354434664"
+                  },
+                  {
+                    "cost": "CONTRACT_LOADING_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "35445963"
+                  },
+                  {
+                    "cost": "CONTRACT_LOADING_BYTES",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "376252296655"
+                  },
+                  {
+                    "cost": "READ_CACHED_TRIE_NODE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "2280000000"
+                  },
+                  {
+                    "cost": "READ_MEMORY_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "15659179200"
+                  },
+                  {
+                    "cost": "READ_MEMORY_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "20337131550"
+                  },
+                  {
+                    "cost": "READ_REGISTER_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "17620156302"
+                  },
+                  {
+                    "cost": "READ_REGISTER_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "219990384"
+                  },
+                  {
+                    "cost": "SHA256_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "4540970250"
+                  },
+                  {
+                    "cost": "SHA256_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "41915956038"
+                  },
+                  {
+                    "cost": "STORAGE_READ_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "112713691498"
+                  },
+                  {
+                    "cost": "STORAGE_READ_KEY_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "742860792"
+                  },
+                  {
+                    "cost": "STORAGE_READ_VALUE_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "11867273460"
+                  },
+                  {
+                    "cost": "STORAGE_WRITE_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "64196736000"
+                  },
+                  {
+                    "cost": "STORAGE_WRITE_EVICTED_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "51612512349"
+                  },
+                  {
+                    "cost": "STORAGE_WRITE_KEY_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "352414335"
+                  },
+                  {
+                    "cost": "STORAGE_WRITE_VALUE_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "49846792173"
+                  },
+                  {
+                    "cost": "TOUCHING_TRIE_NODE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "11400000000"
+                  },
+                  {
+                    "cost": "WASM_INSTRUCTION",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "2724251251524"
+                  },
+                  {
+                    "cost": "WRITE_MEMORY_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "22430358888"
+                  },
+                  {
+                    "cost": "WRITE_MEMORY_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "6123039456"
+                  },
+                  {
+                    "cost": "WRITE_REGISTER_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "22924179888"
+                  },
+                  {
+                    "cost": "WRITE_REGISTER_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "14434538508"
+                  }
+                ],
+                "version": 4
+              },
+              "receipt_ids": ["8SnkKvTc3cjRUnd1TRYCfkNHhx9t4JJJ4skUMh4Qhaqn"],
+              "status": {
+                "SuccessValue": "eyJkZXBsb3ltZW50Ijp7Im5ldHdvcmtfaWQiOiJ0ZXN0bmV0IiwiZ2VuZXNpc19oYXNoIjoiMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTEiLCJjb250cmFjdF9pZCI6ImRldi0yMDI2MTEwNTE5MjUwMy0xNjcwMjM2ODM3MTIzNy50ZXN0Lm5lYXIiLCJhcGlfdmVyc2lvbiI6IjIuMC4wIiwic3RhdGVfc2NoZW1hIjoiMSIsImNvbW1hbmRfc2NoZW1hIjoiMSIsImNvbmZpZ192ZXJzaW9uIjoiMSIsImNvbmZpZ19zaGEyNTYiOiJhOTMyZWZiNDhjNzBhNzNjZTQ2NDcyY2Q3NTQyODg2NDk1NDFiMzQ2MDRlMmVhNDlhNDA5Mzk2MWU3MWEyZDEwIn0sIm1hcmtldF9yZXZpc2lvbiI6IjE2IiwiZXZlbnRfc2VxdWVuY2UiOiIxNiIsImJsb2NrX2hlaWdodCI6IjExMDkiLCJibG9ja190aW1lc3RhbXBfbnMiOiIxNzkzOTA3MDE1NTYzNjMzNjY1IiwiZGF0YSI6eyJwcmluY2lwYWwiOm51bGwsImNvbW1hbmRfc2VxdWVuY2UiOm51bGwsInBheWxvYWRfc2hhMjU2IjpudWxsLCJyZXBsYXllZCI6dHJ1ZSwiZWZmZWN0X3JldmlzaW9uIjoiMTIiLCJlZmZlY3RfZXZlbnRfc2VxdWVuY2UiOiIxMiIsIm91dGNvbWUiOnsia2luZCI6InByb2R1Y3Rpb25fY29tcGxldGVkIiwiam9iIjp7InJlY2lwZV9pZCI6ImhlYWx0aF9wb3Rpb24iLCJyZWNpcGVfdmVyc2lvbiI6IjEiLCJjb25maWdfdmVyc2lvbiI6IjEiLCJxdWFudGl0eSI6IjEiLCJpbnB1dHNfY29uc3VtZWQiOnsiY3J5c3RhbCI6IjEiLCJ3b29kIjoiMCIsImhlcmIiOiIyIiwiaXJvbiI6IjAiLCJoZWFsdGhfcG90aW9uIjoiMCIsImlyb25fdG9vbCI6IjAifSwib3V0cHV0X2l0ZW0iOiJoZWFsdGhfcG90aW9uIiwib3V0cHV0X3F1YW50aXR5IjoiMSIsInN0YXJ0X2F0X25zIjoiMTc5MzkwNjcwOTI1NDExMTY5OSIsInJlYWR5X2F0X25zIjoiMTc5MzkwNjgyOTI1NDExMTY5OSIsImpvYl9pZCI6IjEiLCJzaG9wX2lkIjoiNCIsIm93bmVyIjp7ImtpbmQiOiJwbGF5ZXIiLCJhY2NvdW50X2lkIjoiZGV2LTIwMjYxMTA1MTkyNTA0LTE2NTE1NDI5MDA4MjM0LnRlc3QubmVhciJ9LCJjb21wbGV0ZWRfYXRfbnMiOiIxNzkzOTA3MDExODk0NTI0MDc5Iiwic3RhdHVzIjoiY29tcGxldGVkIiwic3RhcnRfY29tbWFuZF9zZXF1ZW5jZSI6IjUiLCJyZXZpc2lvbiI6IjIifSwibGVkZ2VyIjp7ImFjdG9yIjp7ImtpbmQiOiJwbGF5ZXIiLCJhY2NvdW50X2lkIjoiZGV2LTIwMjYxMTA1MTkyNTA0LTE2NTE1NDI5MDA4MjM0LnRlc3QubmVhciJ9LCJyZXZpc2lvbiI6IjUiLCJnb2xkIjp7ImhlbGQiOiI5MCIsImF2YWlsYWJsZSI6IjkwIiwidHJhZGVfcmVzZXJ2ZWQiOiIwIiwidHJhZGVfaW5ib3VuZF9yZXNlcnZlZCI6IjAifSwiaW52ZW50b3J5Ijp7ImhlbGQiOnsiY3J5c3RhbCI6IjAiLCJ3b29kIjoiMCIsImhlcmIiOiIwIiwiaXJvbiI6IjAiLCJoZWFsdGhfcG90aW9uIjoiMSIsImlyb25fdG9vbCI6IjAifSwiYXZhaWxhYmxlIjp7ImNyeXN0YWwiOiIwIiwid29vZCI6IjAiLCJoZXJiIjoiMCIsImlyb24iOiIwIiwiaGVhbHRoX3BvdGlvbiI6IjEiLCJpcm9uX3Rvb2wiOiIwIn0sImxpc3RpbmdfcmVzZXJ2ZWQiOnsiY3J5c3RhbCI6IjAiLCJ3b29kIjoiMCIsImhlcmIiOiIwIiwiaXJvbiI6IjAiLCJoZWFsdGhfcG90aW9uIjoiMCIsImlyb25fdG9vbCI6IjAifSwidHJhZGVfcmVzZXJ2ZWQiOnsiY3J5c3RhbCI6IjAiLCJ3b29kIjoiMCIsImhlcmIiOiIwIiwiaXJvbiI6IjAiLCJoZWFsdGhfcG90aW9uIjoiMCIsImlyb25fdG9vbCI6IjAifSwicHJvZHVjdGlvbl9vdXRwdXRfcmVzZXJ2ZWQiOnsiY3J5c3RhbCI6IjAiLCJ3b29kIjoiMCIsImhlcmIiOiIwIiwiaXJvbiI6IjAiLCJoZWFsdGhfcG90aW9uIjoiMCIsImlyb25fdG9vbCI6IjAifSwidHJhZGVfaW5ib3VuZF9yZXNlcnZlZCI6eyJjcnlzdGFsIjoiMCIsIndvb2QiOiIwIiwiaGVyYiI6IjAiLCJpcm9uIjoiMCIsImhlYWx0aF9wb3Rpb24iOiIwIiwiaXJvbl90b29sIjoiMCJ9fX19fX0="
+              },
+              "tokens_burnt": "446624449569900000000"
+            },
+            "proof": []
+          },
+          {
+            "block_hash": "71n7rzxh9ASuYonFdf9Md6EZYq9LnxhYgZ7CuTkrp4fM",
+            "id": "8SnkKvTc3cjRUnd1TRYCfkNHhx9t4JJJ4skUMh4Qhaqn",
+            "outcome": {
+              "executor_id": "dev-20261105192505-83860567816751.test.near",
+              "gas_burnt": 223182562500,
+              "logs": [],
+              "metadata": {
+                "contracts": [null],
+                "gas_profile": [],
+                "version": 4
+              },
+              "receipt_ids": [],
+              "status": {
+                "SuccessValue": ""
+              },
+              "tokens_burnt": "0"
+            },
+            "proof": []
+          }
+        ],
+        "status": {
+          "SuccessValue": "eyJkZXBsb3ltZW50Ijp7Im5ldHdvcmtfaWQiOiJ0ZXN0bmV0IiwiZ2VuZXNpc19oYXNoIjoiMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTEiLCJjb250cmFjdF9pZCI6ImRldi0yMDI2MTEwNTE5MjUwMy0xNjcwMjM2ODM3MTIzNy50ZXN0Lm5lYXIiLCJhcGlfdmVyc2lvbiI6IjIuMC4wIiwic3RhdGVfc2NoZW1hIjoiMSIsImNvbW1hbmRfc2NoZW1hIjoiMSIsImNvbmZpZ192ZXJzaW9uIjoiMSIsImNvbmZpZ19zaGEyNTYiOiJhOTMyZWZiNDhjNzBhNzNjZTQ2NDcyY2Q3NTQyODg2NDk1NDFiMzQ2MDRlMmVhNDlhNDA5Mzk2MWU3MWEyZDEwIn0sIm1hcmtldF9yZXZpc2lvbiI6IjE2IiwiZXZlbnRfc2VxdWVuY2UiOiIxNiIsImJsb2NrX2hlaWdodCI6IjExMDkiLCJibG9ja190aW1lc3RhbXBfbnMiOiIxNzkzOTA3MDE1NTYzNjMzNjY1IiwiZGF0YSI6eyJwcmluY2lwYWwiOm51bGwsImNvbW1hbmRfc2VxdWVuY2UiOm51bGwsInBheWxvYWRfc2hhMjU2IjpudWxsLCJyZXBsYXllZCI6dHJ1ZSwiZWZmZWN0X3JldmlzaW9uIjoiMTIiLCJlZmZlY3RfZXZlbnRfc2VxdWVuY2UiOiIxMiIsIm91dGNvbWUiOnsia2luZCI6InByb2R1Y3Rpb25fY29tcGxldGVkIiwiam9iIjp7InJlY2lwZV9pZCI6ImhlYWx0aF9wb3Rpb24iLCJyZWNpcGVfdmVyc2lvbiI6IjEiLCJjb25maWdfdmVyc2lvbiI6IjEiLCJxdWFudGl0eSI6IjEiLCJpbnB1dHNfY29uc3VtZWQiOnsiY3J5c3RhbCI6IjEiLCJ3b29kIjoiMCIsImhlcmIiOiIyIiwiaXJvbiI6IjAiLCJoZWFsdGhfcG90aW9uIjoiMCIsImlyb25fdG9vbCI6IjAifSwib3V0cHV0X2l0ZW0iOiJoZWFsdGhfcG90aW9uIiwib3V0cHV0X3F1YW50aXR5IjoiMSIsInN0YXJ0X2F0X25zIjoiMTc5MzkwNjcwOTI1NDExMTY5OSIsInJlYWR5X2F0X25zIjoiMTc5MzkwNjgyOTI1NDExMTY5OSIsImpvYl9pZCI6IjEiLCJzaG9wX2lkIjoiNCIsIm93bmVyIjp7ImtpbmQiOiJwbGF5ZXIiLCJhY2NvdW50X2lkIjoiZGV2LTIwMjYxMTA1MTkyNTA0LTE2NTE1NDI5MDA4MjM0LnRlc3QubmVhciJ9LCJjb21wbGV0ZWRfYXRfbnMiOiIxNzkzOTA3MDExODk0NTI0MDc5Iiwic3RhdHVzIjoiY29tcGxldGVkIiwic3RhcnRfY29tbWFuZF9zZXF1ZW5jZSI6IjUiLCJyZXZpc2lvbiI6IjIifSwibGVkZ2VyIjp7ImFjdG9yIjp7ImtpbmQiOiJwbGF5ZXIiLCJhY2NvdW50X2lkIjoiZGV2LTIwMjYxMTA1MTkyNTA0LTE2NTE1NDI5MDA4MjM0LnRlc3QubmVhciJ9LCJyZXZpc2lvbiI6IjUiLCJnb2xkIjp7ImhlbGQiOiI5MCIsImF2YWlsYWJsZSI6IjkwIiwidHJhZGVfcmVzZXJ2ZWQiOiIwIiwidHJhZGVfaW5ib3VuZF9yZXNlcnZlZCI6IjAifSwiaW52ZW50b3J5Ijp7ImhlbGQiOnsiY3J5c3RhbCI6IjAiLCJ3b29kIjoiMCIsImhlcmIiOiIwIiwiaXJvbiI6IjAiLCJoZWFsdGhfcG90aW9uIjoiMSIsImlyb25fdG9vbCI6IjAifSwiYXZhaWxhYmxlIjp7ImNyeXN0YWwiOiIwIiwid29vZCI6IjAiLCJoZXJiIjoiMCIsImlyb24iOiIwIiwiaGVhbHRoX3BvdGlvbiI6IjEiLCJpcm9uX3Rvb2wiOiIwIn0sImxpc3RpbmdfcmVzZXJ2ZWQiOnsiY3J5c3RhbCI6IjAiLCJ3b29kIjoiMCIsImhlcmIiOiIwIiwiaXJvbiI6IjAiLCJoZWFsdGhfcG90aW9uIjoiMCIsImlyb25fdG9vbCI6IjAifSwidHJhZGVfcmVzZXJ2ZWQiOnsiY3J5c3RhbCI6IjAiLCJ3b29kIjoiMCIsImhlcmIiOiIwIiwiaXJvbiI6IjAiLCJoZWFsdGhfcG90aW9uIjoiMCIsImlyb25fdG9vbCI6IjAifSwicHJvZHVjdGlvbl9vdXRwdXRfcmVzZXJ2ZWQiOnsiY3J5c3RhbCI6IjAiLCJ3b29kIjoiMCIsImhlcmIiOiIwIiwiaXJvbiI6IjAiLCJoZWFsdGhfcG90aW9uIjoiMCIsImlyb25fdG9vbCI6IjAifSwidHJhZGVfaW5ib3VuZF9yZXNlcnZlZCI6eyJjcnlzdGFsIjoiMCIsIndvb2QiOiIwIiwiaGVyYiI6IjAiLCJpcm9uIjoiMCIsImhlYWx0aF9wb3Rpb24iOiIwIiwiaXJvbl90b29sIjoiMCJ9fX19fX0="
+        },
+        "transaction": {
+          "actions": [
+            {
+              "FunctionCall": {
+                "args": "eyJqb2JfaWQiOiIxIn0=",
+                "deposit": "0",
+                "gas": 100000000000000,
+                "method_name": "complete_production"
+              }
+            }
+          ],
+          "hash": "7juvYuVMKJtvTDnBpgAugk6KG6mYC4LV3P5vRiDNcGk6",
+          "nonce": 15000006,
+          "priority_fee": 0,
+          "public_key": "ed25519:5PzKgBpKUHGCXPDoE8hoAbospPZugGYkTUQhBFzPHKeP",
+          "receiver_id": "dev-20261105192503-16702368371237.test.near",
+          "signature": "ed25519:xhGAiT23WaVytqwpryNUJ4z6AyChtRude6vGYW2S2GtmeWDJxhY1PgQzRUYhuxQPNrxojf2syb8PHt2M1iwpLcT",
+          "signer_id": "dev-20261105192505-83860567816751.test.near"
+        },
+        "transaction_outcome": {
+          "block_hash": "C9nXvebaH734ZnVYmuqfWgy4wJAyceCQtP75yEw2WUqH",
+          "id": "7juvYuVMKJtvTDnBpgAugk6KG6mYC4LV3P5vRiDNcGk6",
+          "outcome": {
+            "executor_id": "dev-20261105192505-83860567816751.test.near",
+            "gas_burnt": 309633062595,
+            "logs": [],
+            "metadata": {
+              "gas_profile": null,
+              "version": 1
+            },
+            "receipt_ids": ["ERGGXesmMy7nCQV27keNwQ7vcw1yBS68nY8UFP5of3rH"],
+            "status": {
+              "SuccessReceiptId": "ERGGXesmMy7nCQV27keNwQ7vcw1yBS68nY8UFP5of3rH"
+            },
+            "tokens_burnt": "30963306259500000000"
+          },
+          "proof": []
+        }
+      },
+      "block": {
+        "author": "test.near",
+        "chunks": [
+          {
+            "balance_burnt": "30963306259500000000",
+            "bandwidth_requests": {
+              "V1": {
+                "requests": []
+              }
+            },
+            "chunk_hash": "2qjKfRGTQjmU6GNnqVkestYRuTphiJ5H1pVbuHb2s88M",
+            "congestion_info": {
+              "allowed_shard": 0,
+              "buffered_receipts_gas": "0",
+              "delayed_receipts_gas": "0",
+              "receipt_bytes": 0
+            },
+            "encoded_length": 309,
+            "encoded_merkle_root": "6wPjsAKWGs9oqo2jHDJ9vqeuoaRudpD6T6rYuoUuCPjT",
+            "gas_limit": 1000000000000000,
+            "gas_used": 309633062595,
+            "height_created": 1109,
+            "height_included": 1109,
+            "outcome_root": "Ad3Pgq66tSj5U8FdFKJEjQUSSSPac9eP61LgmG9ceGU1",
+            "outgoing_receipts_root": "s1yVxaSj6x88nrRfqxfatiCJgjuS24NHS6W5S29tSN8",
+            "prev_block_hash": "C9nXvebaH734ZnVYmuqfWgy4wJAyceCQtP75yEw2WUqH",
+            "prev_state_root": "7iyFw8iHJjxTbVDvmCiPufZuCMAnQGEuNV66owyHBJk8",
+            "proposed_split": null,
+            "rent_paid": "0",
+            "shard_id": 0,
+            "signature": "ed25519:2WzcB1EPL6mocoGXi8fEPFd2kKDJdhs8iKThn1QKhUZnP6rKgTPv4CkYaUvrFJpYrpwJdarGssPdqbsMN4Puwqxi",
+            "tx_root": "11111111111111111111111111111111",
+            "validator_proposals": [],
+            "validator_reward": "0"
+          }
+        ],
+        "header": {
+          "approvals": [
+            "ed25519:4dFpKicb8xjMFMtnWUiKh8AKaVJmAET3Egd1aAzFPXyNHBLYNgBzqEZXt55LHZVYASxGtvUuQRUL7zjp9Herecct"
+          ],
+          "block_body_hash": "8oDNngzpBzsfzE7AMo6V4kJxrje4FARZ4LhQtrjWETbe",
+          "block_merkle_root": "CbA9Ex8Qzx2ksg5PoxQjzDRGf6RDEaJ6uBcEA35QcPe8",
+          "block_ordinal": 174,
+          "challenges_result": [],
+          "challenges_root": "11111111111111111111111111111111",
+          "chunk_endorsements": [[1]],
+          "chunk_headers_root": "GM6T6Fvbaae711MUQ9fzyMu444JWGc6BL4Vq5J4KMVug",
+          "chunk_mask": [true],
+          "chunk_receipts_root": "6ZQTSEna4MMnpvM26FwGusmAR5A6B5SY4gE7UtJr3Fz6",
+          "chunk_tx_root": "7tkzFg8RHBmMw1ncRJZCCZAizgq4rwCftTKYLce8RU8t",
+          "chunks_included": 1,
+          "epoch_id": "AhJYCnPVBWfg7i39GuLiVfpUo4JCTKRCxMs3iZ5EEgE",
+          "epoch_sync_data_hash": null,
+          "gas_price": "100000000",
+          "hash": "9JKFjukLdtTGBJdvumYXV4uwFa2vuYvWJCHCHAemebso",
+          "height": 1109,
+          "last_ds_final_block": "C9nXvebaH734ZnVYmuqfWgy4wJAyceCQtP75yEw2WUqH",
+          "last_final_block": "BQRGAADEDc7sL87BE7yqWtZwicwDBzh9tSbN89ayim6X",
+          "latest_protocol_version": 86,
+          "next_bp_hash": "2w2zDkvAkU45hzCWd2X5vuuB7gY4cY1XgC23vxMznciJ",
+          "next_epoch_id": "BjecJxFXNRuYqQtsu7JFDDgujPNef1NAaRURAQrQGq4T",
+          "outcome_root": "WQjDk1tnDvMuygWWi6G5hD375xPJ7g5tpSdugU6eFFX",
+          "prev_hash": "C9nXvebaH734ZnVYmuqfWgy4wJAyceCQtP75yEw2WUqH",
+          "prev_height": 1108,
+          "prev_state_root": "Hpxj33X3HPxTJVfiCnwZeoE3JWpHPuB2iSL6oNq6djW7",
+          "random_value": "48QNqrJaboGkrqrbSNR1HsktJ1dW3HiXE44WHxfwRzmE",
+          "rent_paid": "0",
+          "shard_split": null,
+          "signature": "ed25519:38azYJr8vF2UrRn7pxKYfL1MzaBSmDmtjEk1UsgcZAGGLciwuQXCrFJQbvXEB8LxCvJ7r7cJKoUt1xoDg9rwUdFD",
+          "timestamp": 1793907015563633700,
+          "timestamp_nanosec": "1793907015563633665",
+          "total_supply": "2050030131305281445168390918663442",
+          "validator_proposals": [],
+          "validator_reward": "0"
+        }
+      },
+      "account": {
+        "amount": "4862804190018997700000000",
+        "block_hash": "9JKFjukLdtTGBJdvumYXV4uwFa2vuYvWJCHCHAemebso",
+        "block_height": 1109,
+        "code_hash": "F8puNhtHcSf5mFEKcoPSmAoR2bXrBQthBjzuHgMjK84y",
+        "locked": "0",
+        "storage_paid_at": 0,
+        "storage_usage": 352228
+      },
+      "foundation": {
+        "deployment": {
+          "network_id": "testnet",
+          "genesis_hash": "11111111111111111111111111111111",
+          "contract_id": "dev-20261105192503-16702368371237.test.near",
+          "api_version": "2.0.0",
+          "state_schema": "1",
+          "command_schema": "1",
+          "config_version": "1",
+          "config_sha256": "a932efb48c70a73ce46472cd754288649541b34604e2ea49a4093961e71a2d10"
+        },
+        "market_revision": "16",
+        "event_sequence": "16",
+        "block_height": "1109",
+        "block_timestamp_ns": "1793907015563633665",
+        "data": {
+          "owner_account_id": "dev-20261105192503-16702368371237.test.near",
+          "operator_account_id": "operator.testnet",
+          "merchant_controllers": {
+            "rex": "rex.testnet",
+            "luna": "luna.testnet",
+            "bolt": "bolt.testnet"
+          },
+          "item_ids": [
+            "crystal",
+            "wood",
+            "herb",
+            "iron",
+            "health_potion",
+            "iron_tool"
+          ],
+          "supported_methods": [
+            "initialize_town",
+            "get_foundation",
+            "get_town",
+            "register_player",
+            "create_shop",
+            "rename_shop",
+            "get_player",
+            "get_shop",
+            "get_player_shops",
+            "get_command",
+            "buy_from_merchant",
+            "get_listings",
+            "get_trade",
+            "get_shop_inventory",
+            "get_recipes",
+            "start_production",
+            "get_production_jobs",
+            "complete_production"
+          ]
+        }
+      },
+      "result": {
+        "deployment": {
+          "network_id": "testnet",
+          "genesis_hash": "11111111111111111111111111111111",
+          "contract_id": "dev-20261105192503-16702368371237.test.near",
+          "api_version": "2.0.0",
+          "state_schema": "1",
+          "command_schema": "1",
+          "config_version": "1",
+          "config_sha256": "a932efb48c70a73ce46472cd754288649541b34604e2ea49a4093961e71a2d10"
+        },
+        "market_revision": "16",
+        "event_sequence": "16",
+        "block_height": "1109",
+        "block_timestamp_ns": "1793907015563633665",
+        "data": {
+          "principal": null,
+          "command_sequence": null,
+          "payload_sha256": null,
+          "replayed": true,
+          "effect_revision": "12",
+          "effect_event_sequence": "12",
+          "outcome": {
+            "kind": "production_completed",
+            "job": {
+              "recipe_id": "health_potion",
+              "recipe_version": "1",
+              "config_version": "1",
+              "quantity": "1",
+              "inputs_consumed": {
+                "crystal": "1",
+                "wood": "0",
+                "herb": "2",
+                "iron": "0",
+                "health_potion": "0",
+                "iron_tool": "0"
+              },
+              "output_item": "health_potion",
+              "output_quantity": "1",
+              "start_at_ns": "1793906709254111699",
+              "ready_at_ns": "1793906829254111699",
+              "job_id": "1",
+              "shop_id": "4",
+              "owner": {
+                "kind": "player",
+                "account_id": "dev-20261105192504-16515429008234.test.near"
+              },
+              "completed_at_ns": "1793907011894524079",
+              "status": "completed",
+              "start_command_sequence": "5",
+              "revision": "2"
+            },
+            "ledger": {
+              "actor": {
+                "kind": "player",
+                "account_id": "dev-20261105192504-16515429008234.test.near"
+              },
+              "revision": "5",
+              "gold": {
+                "held": "90",
+                "available": "90",
+                "trade_reserved": "0",
+                "trade_inbound_reserved": "0"
+              },
+              "inventory": {
+                "held": {
+                  "crystal": "0",
+                  "wood": "0",
+                  "herb": "0",
+                  "iron": "0",
+                  "health_potion": "1",
+                  "iron_tool": "0"
+                },
+                "available": {
+                  "crystal": "0",
+                  "wood": "0",
+                  "herb": "0",
+                  "iron": "0",
+                  "health_potion": "1",
+                  "iron_tool": "0"
+                },
+                "listing_reserved": {
+                  "crystal": "0",
+                  "wood": "0",
+                  "herb": "0",
+                  "iron": "0",
+                  "health_potion": "0",
+                  "iron_tool": "0"
+                },
+                "trade_reserved": {
+                  "crystal": "0",
+                  "wood": "0",
+                  "herb": "0",
+                  "iron": "0",
+                  "health_potion": "0",
+                  "iron_tool": "0"
+                },
+                "production_output_reserved": {
+                  "crystal": "0",
+                  "wood": "0",
+                  "herb": "0",
+                  "iron": "0",
+                  "health_potion": "0",
+                  "iron_tool": "0"
+                },
+                "trade_inbound_reserved": {
+                  "crystal": "0",
+                  "wood": "0",
+                  "herb": "0",
+                  "iron": "0",
+                  "health_potion": "0",
+                  "iron_tool": "0"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
+}

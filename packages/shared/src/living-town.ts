@@ -26,6 +26,7 @@ export const livingTownFoundationMethods = [
   "get_recipes",
   "start_production",
   "get_production_jobs",
+  "complete_production",
 ] as const;
 export const livingTownRecipeIds = ["health_potion", "iron_tool"] as const;
 export type LivingTownRecipeId = (typeof livingTownRecipeIds)[number];

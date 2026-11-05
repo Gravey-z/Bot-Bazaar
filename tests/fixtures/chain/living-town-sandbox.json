@@ -1,7 +1,7 @@
 {
   "source": "actual disposable local sandbox; synthetic declared V2 genesis; not Testnet",
-  "contract_id": "dev-20261105185914-31020427396687.test.near",
-  "player_id": "dev-20261105185915-91010644860492.test.near",
+  "contract_id": "dev-20261105192442-98096917287809.test.near",
+  "player_id": "dev-20261105192443-73047256399939.test.near",
   "steps": [
     {
       "method": "register_player",
@@ -9,28 +9,28 @@
         "command": {
           "sequence": "1",
           "config_version": "1",
-          "valid_until_ns": "1793905655511457846"
+          "valid_until_ns": "1793907183665083291"
         }
       },
-      "transaction_hash": "BEJft8BAGUUne6S3X9pAHtEP7de5X5RijbovbS3KJtg7",
-      "reference_block_height": 11,
-      "gas_burnt": "7287215677548",
+      "transaction_hash": "6qbPnTTSco1i7YwhnWDKP7zbDv4v5dT3VBUKsdvUPxGd",
+      "reference_block_height": 9,
+      "gas_burnt": "7315542820988",
       "receipt": {
         "final_execution_status": "FINAL",
         "receipts_outcome": [
           {
-            "block_hash": "BbpxjJXavHg9jQhPpbHisqdNvApiA7du5Vn2zM4kgMzR",
-            "id": "2a3WWKjs73E84FT44gyeVoZPQNX2CY54P36eqeD2JG6Z",
+            "block_hash": "BMY5CTd8KapFaCAvHK7n1fe4A8sEh76rG5B6szTBvJhX",
+            "id": "DaQyyyXPmiyryFqaCi89zcFGcNZeqxRavMErtBz9kyhr",
             "outcome": {
-              "executor_id": "dev-20261105185914-31020427396687.test.near",
-              "gas_burnt": 6974244754903,
+              "executor_id": "dev-20261105192442-98096917287809.test.near",
+              "gas_burnt": 7002571898343,
               "logs": [
-                "EVENT_JSON:{\"standard\":\"bot_bazaar_living_town\",\"version\":\"2.0.0\",\"event\":\"register_player\",\"data\":[{\"contract_id\":\"dev-20261105185914-31020427396687.test.near\",\"config_version\":\"1\",\"event_sequence\":\"2\",\"market_revision\":\"2\",\"block_height\":\"16\",\"block_timestamp_ns\":\"1793905155895535150\",\"predecessor_account_id\":\"dev-20261105185915-91010644860492.test.near\",\"principal\":\"account:dev-20261105185915-91010644860492.test.near\",\"command_sequence\":\"1\",\"payload_sha256\":\"99f94df6cc880030d953ca6639fc84f3ee6dc0db88cfdf74d1f6ec848b6c2843\",\"outcome\":{\"kind\":\"player_registered\",\"player\":{\"account_id\":\"dev-20261105185915-91010644860492.test.near\",\"ledger\":{\"actor\":{\"kind\":\"player\",\"account_id\":\"dev-20261105185915-91010644860492.test.near\"},\"revision\":\"1\",\"gold\":{\"held\":\"100\",\"available\":\"100\",\"trade_reserved\":\"0\",\"trade_inbound_reserved\":\"0\"},\"inventory\":{\"held\":{\"crystal\":\"0\",\"wood\":\"0\",\"herb\":\"0\",\"iron\":\"0\",\"health_potion\":\"0\",\"iron_tool\":\"0\"},\"available\":{\"crystal\":\"0\",\"wood\":\"0\",\"herb\":\"0\",\"iron\":\"0\",\"health_potion\":\"0\",\"iron_tool\":\"0\"},\"listing_reserved\":{\"crystal\":\"0\",\"wood\":\"0\",\"herb\":\"0\",\"iron\":\"0\",\"health_potion\":\"0\",\"iron_tool\":\"0\"},\"trade_reserved\":{\"crystal\":\"0\",\"wood\":\"0\",\"herb\":\"0\",\"iron\":\"0\",\"health_potion\":\"0\",\"iron_tool\":\"0\"},\"production_output_reserved\":{\"crystal\":\"0\",\"wood\":\"0\",\"herb\":\"0\",\"iron\":\"0\",\"health_potion\":\"0\",\"iron_tool\":\"0\"},\"trade_inbound_reserved\":{\"crystal\":\"0\",\"wood\":\"0\",\"herb\":\"0\",\"iron\":\"0\",\"health_potion\":\"0\",\"iron_tool\":\"0\"}}},\"shop_id\":null,\"grant_issued\":true,\"grant_command_sequence\":\"1\"}}}]}"
+                "EVENT_JSON:{\"standard\":\"bot_bazaar_living_town\",\"version\":\"2.0.0\",\"event\":\"register_player\",\"data\":[{\"contract_id\":\"dev-20261105192442-98096917287809.test.near\",\"config_version\":\"1\",\"event_sequence\":\"2\",\"market_revision\":\"2\",\"block_height\":\"14\",\"block_timestamp_ns\":\"1793906684048958013\",\"predecessor_account_id\":\"dev-20261105192443-73047256399939.test.near\",\"principal\":\"account:dev-20261105192443-73047256399939.test.near\",\"command_sequence\":\"1\",\"payload_sha256\":\"97414ed91f49636a03581597ab91ddad6e31688a9c08959a2b4e2dfeb8161af1\",\"outcome\":{\"kind\":\"player_registered\",\"player\":{\"account_id\":\"dev-20261105192443-73047256399939.test.near\",\"ledger\":{\"actor\":{\"kind\":\"player\",\"account_id\":\"dev-20261105192443-73047256399939.test.near\"},\"revision\":\"1\",\"gold\":{\"held\":\"100\",\"available\":\"100\",\"trade_reserved\":\"0\",\"trade_inbound_reserved\":\"0\"},\"inventory\":{\"held\":{\"crystal\":\"0\",\"wood\":\"0\",\"herb\":\"0\",\"iron\":\"0\",\"health_potion\":\"0\",\"iron_tool\":\"0\"},\"available\":{\"crystal\":\"0\",\"wood\":\"0\",\"herb\":\"0\",\"iron\":\"0\",\"health_potion\":\"0\",\"iron_tool\":\"0\"},\"listing_reserved\":{\"crystal\":\"0\",\"wood\":\"0\",\"herb\":\"0\",\"iron\":\"0\",\"health_potion\":\"0\",\"iron_tool\":\"0\"},\"trade_reserved\":{\"crystal\":\"0\",\"wood\":\"0\",\"herb\":\"0\",\"iron\":\"0\",\"health_potion\":\"0\",\"iron_tool\":\"0\"},\"production_output_reserved\":{\"crystal\":\"0\",\"wood\":\"0\",\"herb\":\"0\",\"iron\":\"0\",\"health_potion\":\"0\",\"iron_tool\":\"0\"},\"trade_inbound_reserved\":{\"crystal\":\"0\",\"wood\":\"0\",\"herb\":\"0\",\"iron\":\"0\",\"health_potion\":\"0\",\"iron_tool\":\"0\"}}},\"shop_id\":null,\"grant_issued\":true,\"grant_command_sequence\":\"1\"}}}]}"
               ],
               "metadata": {
                 "contracts": [
                   {
-                    "local": "7cpdwYxv9DHP9N4RkriZqjHy9GuDxwLjTPReyQmFuDBT"
+                    "local": "F8puNhtHcSf5mFEKcoPSmAoR2bXrBQthBjzuHgMjK84y"
                   }
                 ],
                 "gas_profile": [
@@ -47,7 +47,7 @@
                   {
                     "cost": "CONTRACT_LOADING_BYTES",
                     "cost_category": "WASM_HOST_COST",
-                    "gas_used": "357159133895"
+                    "gas_used": "376252296655"
                   },
                   {
                     "cost": "LOG_BASE",
@@ -72,7 +72,7 @@
                   {
                     "cost": "READ_MEMORY_BYTE",
                     "cost_category": "WASM_HOST_COST",
-                    "gas_used": "35610887544"
+                    "gas_used": "36431975472"
                   },
                   {
                     "cost": "READ_REGISTER_BASE",
@@ -82,7 +82,7 @@
                   {
                     "cost": "READ_REGISTER_BYTE",
                     "cost_category": "WASM_HOST_COST",
-                    "gas_used": "186972114"
+                    "gas_used": "197616810"
                   },
                   {
                     "cost": "SHA256_BASE",
@@ -117,7 +117,7 @@
                   {
                     "cost": "STORAGE_READ_VALUE_BYTE",
                     "cost_category": "WASM_HOST_COST",
-                    "gas_used": "8321118932"
+                    "gas_used": "8927107364"
                   },
                   {
                     "cost": "STORAGE_WRITE_BASE",
@@ -127,7 +127,7 @@
                   {
                     "cost": "STORAGE_WRITE_EVICTED_BYTE",
                     "cost_category": "WASM_HOST_COST",
-                    "gas_used": "95259932562"
+                    "gas_used": "102197270874"
                   },
                   {
                     "cost": "STORAGE_WRITE_KEY_BYTE",
@@ -137,7 +137,7 @@
                   {
                     "cost": "STORAGE_WRITE_VALUE_BYTE",
                     "cost_category": "WASM_HOST_COST",
-                    "gas_used": "113869056669"
+                    "gas_used": "120569061093"
                   },
                   {
                     "cost": "TOUCHING_TRIE_NODE",
@@ -157,7 +157,7 @@
                   {
                     "cost": "WASM_INSTRUCTION",
                     "cost_category": "WASM_HOST_COST",
-                    "gas_used": "4328966072508"
+                    "gas_used": "4321599115284"
                   },
                   {
                     "cost": "WRITE_MEMORY_BASE",
@@ -167,7 +167,7 @@
                   {
                     "cost": "WRITE_MEMORY_BYTE",
                     "cost_category": "WASM_HOST_COST",
-                    "gas_used": "5254156188"
+                    "gas_used": "5548323564"
                   },
                   {
                     "cost": "WRITE_REGISTER_BASE",
@@ -177,24 +177,24 @@
                   {
                     "cost": "WRITE_REGISTER_BYTE",
                     "cost_category": "WASM_HOST_COST",
-                    "gas_used": "17483392836"
+                    "gas_used": "18715099572"
                   }
                 ],
                 "version": 4
               },
-              "receipt_ids": ["8YSd4iW4p9vmpRDJwwHYuCTrdeACR9HCUpWahtXjes2f"],
+              "receipt_ids": ["2Anqrgsc8sUxutHq1whj9hxqTKCnmUK8smCgjDT75tuK"],
               "status": {
-                "SuccessValue": "eyJkZXBsb3ltZW50Ijp7Im5ldHdvcmtfaWQiOiJ0ZXN0bmV0IiwiZ2VuZXNpc19oYXNoIjoiMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTEiLCJjb250cmFjdF9pZCI6ImRldi0yMDI2MTEwNTE4NTkxNC0zMTAyMDQyNzM5NjY4Ny50ZXN0Lm5lYXIiLCJhcGlfdmVyc2lvbiI6IjIuMC4wIiwic3RhdGVfc2NoZW1hIjoiMSIsImNvbW1hbmRfc2NoZW1hIjoiMSIsImNvbmZpZ192ZXJzaW9uIjoiMSIsImNvbmZpZ19zaGEyNTYiOiJhOTMyZWZiNDhjNzBhNzNjZTQ2NDcyY2Q3NTQyODg2NDk1NDFiMzQ2MDRlMmVhNDlhNDA5Mzk2MWU3MWEyZDEwIn0sIm1hcmtldF9yZXZpc2lvbiI6IjIiLCJldmVudF9zZXF1ZW5jZSI6IjIiLCJibG9ja19oZWlnaHQiOiIxNiIsImJsb2NrX3RpbWVzdGFtcF9ucyI6IjE3OTM5MDUxNTU4OTU1MzUxNTAiLCJkYXRhIjp7InByaW5jaXBhbCI6ImFjY291bnQ6ZGV2LTIwMjYxMTA1MTg1OTE1LTkxMDEwNjQ0ODYwNDkyLnRlc3QubmVhciIsImNvbW1hbmRfc2VxdWVuY2UiOiIxIiwicGF5bG9hZF9zaGEyNTYiOiI5OWY5NGRmNmNjODgwMDMwZDk1M2NhNjYzOWZjODRmM2VlNmRjMGRiODhjZmRmNzRkMWY2ZWM4NDhiNmMyODQzIiwicmVwbGF5ZWQiOmZhbHNlLCJlZmZlY3RfcmV2aXNpb24iOiIyIiwiZWZmZWN0X2V2ZW50X3NlcXVlbmNlIjoiMiIsIm91dGNvbWUiOnsia2luZCI6InBsYXllcl9yZWdpc3RlcmVkIiwicGxheWVyIjp7ImFjY291bnRfaWQiOiJkZXYtMjAyNjExMDUxODU5MTUtOTEwMTA2NDQ4NjA0OTIudGVzdC5uZWFyIiwibGVkZ2VyIjp7ImFjdG9yIjp7ImtpbmQiOiJwbGF5ZXIiLCJhY2NvdW50X2lkIjoiZGV2LTIwMjYxMTA1MTg1OTE1LTkxMDEwNjQ0ODYwNDkyLnRlc3QubmVhciJ9LCJyZXZpc2lvbiI6IjEiLCJnb2xkIjp7ImhlbGQiOiIxMDAiLCJhdmFpbGFibGUiOiIxMDAiLCJ0cmFkZV9yZXNlcnZlZCI6IjAiLCJ0cmFkZV9pbmJvdW5kX3Jlc2VydmVkIjoiMCJ9LCJpbnZlbnRvcnkiOnsiaGVsZCI6eyJjcnlzdGFsIjoiMCIsIndvb2QiOiIwIiwiaGVyYiI6IjAiLCJpcm9uIjoiMCIsImhlYWx0aF9wb3Rpb24iOiIwIiwiaXJvbl90b29sIjoiMCJ9LCJhdmFpbGFibGUiOnsiY3J5c3RhbCI6IjAiLCJ3b29kIjoiMCIsImhlcmIiOiIwIiwiaXJvbiI6IjAiLCJoZWFsdGhfcG90aW9uIjoiMCIsImlyb25fdG9vbCI6IjAifSwibGlzdGluZ19yZXNlcnZlZCI6eyJjcnlzdGFsIjoiMCIsIndvb2QiOiIwIiwiaGVyYiI6IjAiLCJpcm9uIjoiMCIsImhlYWx0aF9wb3Rpb24iOiIwIiwiaXJvbl90b29sIjoiMCJ9LCJ0cmFkZV9yZXNlcnZlZCI6eyJjcnlzdGFsIjoiMCIsIndvb2QiOiIwIiwiaGVyYiI6IjAiLCJpcm9uIjoiMCIsImhlYWx0aF9wb3Rpb24iOiIwIiwiaXJvbl90b29sIjoiMCJ9LCJwcm9kdWN0aW9uX291dHB1dF9yZXNlcnZlZCI6eyJjcnlzdGFsIjoiMCIsIndvb2QiOiIwIiwiaGVyYiI6IjAiLCJpcm9uIjoiMCIsImhlYWx0aF9wb3Rpb24iOiIwIiwiaXJvbl90b29sIjoiMCJ9LCJ0cmFkZV9pbmJvdW5kX3Jlc2VydmVkIjp7ImNyeXN0YWwiOiIwIiwid29vZCI6IjAiLCJoZXJiIjoiMCIsImlyb24iOiIwIiwiaGVhbHRoX3BvdGlvbiI6IjAiLCJpcm9uX3Rvb2wiOiIwIn19fSwic2hvcF9pZCI6bnVsbCwiZ3JhbnRfaXNzdWVkIjp0cnVlLCJncmFudF9jb21tYW5kX3NlcXVlbmNlIjoiMSJ9fX19"
+                "SuccessValue": "eyJkZXBsb3ltZW50Ijp7Im5ldHdvcmtfaWQiOiJ0ZXN0bmV0IiwiZ2VuZXNpc19oYXNoIjoiMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTEiLCJjb250cmFjdF9pZCI6ImRldi0yMDI2MTEwNTE5MjQ0Mi05ODA5NjkxNzI4NzgwOS50ZXN0Lm5lYXIiLCJhcGlfdmVyc2lvbiI6IjIuMC4wIiwic3RhdGVfc2NoZW1hIjoiMSIsImNvbW1hbmRfc2NoZW1hIjoiMSIsImNvbmZpZ192ZXJzaW9uIjoiMSIsImNvbmZpZ19zaGEyNTYiOiJhOTMyZWZiNDhjNzBhNzNjZTQ2NDcyY2Q3NTQyODg2NDk1NDFiMzQ2MDRlMmVhNDlhNDA5Mzk2MWU3MWEyZDEwIn0sIm1hcmtldF9yZXZpc2lvbiI6IjIiLCJldmVudF9zZXF1ZW5jZSI6IjIiLCJibG9ja19oZWlnaHQiOiIxNCIsImJsb2NrX3RpbWVzdGFtcF9ucyI6IjE3OTM5MDY2ODQwNDg5NTgwMTMiLCJkYXRhIjp7InByaW5jaXBhbCI6ImFjY291bnQ6ZGV2LTIwMjYxMTA1MTkyNDQzLTczMDQ3MjU2Mzk5OTM5LnRlc3QubmVhciIsImNvbW1hbmRfc2VxdWVuY2UiOiIxIiwicGF5bG9hZF9zaGEyNTYiOiI5NzQxNGVkOTFmNDk2MzZhMDM1ODE1OTdhYjkxZGRhZDZlMzE2ODhhOWMwODk1OWEyYjRlMmRmZWI4MTYxYWYxIiwicmVwbGF5ZWQiOmZhbHNlLCJlZmZlY3RfcmV2aXNpb24iOiIyIiwiZWZmZWN0X2V2ZW50X3NlcXVlbmNlIjoiMiIsIm91dGNvbWUiOnsia2luZCI6InBsYXllcl9yZWdpc3RlcmVkIiwicGxheWVyIjp7ImFjY291bnRfaWQiOiJkZXYtMjAyNjExMDUxOTI0NDMtNzMwNDcyNTYzOTk5MzkudGVzdC5uZWFyIiwibGVkZ2VyIjp7ImFjdG9yIjp7ImtpbmQiOiJwbGF5ZXIiLCJhY2NvdW50X2lkIjoiZGV2LTIwMjYxMTA1MTkyNDQzLTczMDQ3MjU2Mzk5OTM5LnRlc3QubmVhciJ9LCJyZXZpc2lvbiI6IjEiLCJnb2xkIjp7ImhlbGQiOiIxMDAiLCJhdmFpbGFibGUiOiIxMDAiLCJ0cmFkZV9yZXNlcnZlZCI6IjAiLCJ0cmFkZV9pbmJvdW5kX3Jlc2VydmVkIjoiMCJ9LCJpbnZlbnRvcnkiOnsiaGVsZCI6eyJjcnlzdGFsIjoiMCIsIndvb2QiOiIwIiwiaGVyYiI6IjAiLCJpcm9uIjoiMCIsImhlYWx0aF9wb3Rpb24iOiIwIiwiaXJvbl90b29sIjoiMCJ9LCJhdmFpbGFibGUiOnsiY3J5c3RhbCI6IjAiLCJ3b29kIjoiMCIsImhlcmIiOiIwIiwiaXJvbiI6IjAiLCJoZWFsdGhfcG90aW9uIjoiMCIsImlyb25fdG9vbCI6IjAifSwibGlzdGluZ19yZXNlcnZlZCI6eyJjcnlzdGFsIjoiMCIsIndvb2QiOiIwIiwiaGVyYiI6IjAiLCJpcm9uIjoiMCIsImhlYWx0aF9wb3Rpb24iOiIwIiwiaXJvbl90b29sIjoiMCJ9LCJ0cmFkZV9yZXNlcnZlZCI6eyJjcnlzdGFsIjoiMCIsIndvb2QiOiIwIiwiaGVyYiI6IjAiLCJpcm9uIjoiMCIsImhlYWx0aF9wb3Rpb24iOiIwIiwiaXJvbl90b29sIjoiMCJ9LCJwcm9kdWN0aW9uX291dHB1dF9yZXNlcnZlZCI6eyJjcnlzdGFsIjoiMCIsIndvb2QiOiIwIiwiaGVyYiI6IjAiLCJpcm9uIjoiMCIsImhlYWx0aF9wb3Rpb24iOiIwIiwiaXJvbl90b29sIjoiMCJ9LCJ0cmFkZV9pbmJvdW5kX3Jlc2VydmVkIjp7ImNyeXN0YWwiOiIwIiwid29vZCI6IjAiLCJoZXJiIjoiMCIsImlyb24iOiIwIiwiaGVhbHRoX3BvdGlvbiI6IjAiLCJpcm9uX3Rvb2wiOiIwIn19fSwic2hvcF9pZCI6bnVsbCwiZ3JhbnRfaXNzdWVkIjp0cnVlLCJncmFudF9jb21tYW5kX3NlcXVlbmNlIjoiMSJ9fX19"
               },
-              "tokens_burnt": "697424475490300000000"
+              "tokens_burnt": "700257189834300000000"
             },
             "proof": []
           },
           {
-            "block_hash": "FkSa7eRjsXipVkG2XLFr7V8RKRgwsye99EwBRme7Reg7",
-            "id": "8YSd4iW4p9vmpRDJwwHYuCTrdeACR9HCUpWahtXjes2f",
+            "block_hash": "DdZYjw9SVgho8R8haMydjyiyLxA7BDtVxrGG57Ph6hDK",
+            "id": "2Anqrgsc8sUxutHq1whj9hxqTKCnmUK8smCgjDT75tuK",
             "outcome": {
-              "executor_id": "dev-20261105185915-91010644860492.test.near",
+              "executor_id": "dev-20261105192443-73047256399939.test.near",
               "gas_burnt": 223182562500,
               "logs": [],
               "metadata": {
@@ -212,41 +212,41 @@
           }
         ],
         "status": {
-          "SuccessValue": "eyJkZXBsb3ltZW50Ijp7Im5ldHdvcmtfaWQiOiJ0ZXN0bmV0IiwiZ2VuZXNpc19oYXNoIjoiMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTEiLCJjb250cmFjdF9pZCI6ImRldi0yMDI2MTEwNTE4NTkxNC0zMTAyMDQyNzM5NjY4Ny50ZXN0Lm5lYXIiLCJhcGlfdmVyc2lvbiI6IjIuMC4wIiwic3RhdGVfc2NoZW1hIjoiMSIsImNvbW1hbmRfc2NoZW1hIjoiMSIsImNvbmZpZ192ZXJzaW9uIjoiMSIsImNvbmZpZ19zaGEyNTYiOiJhOTMyZWZiNDhjNzBhNzNjZTQ2NDcyY2Q3NTQyODg2NDk1NDFiMzQ2MDRlMmVhNDlhNDA5Mzk2MWU3MWEyZDEwIn0sIm1hcmtldF9yZXZpc2lvbiI6IjIiLCJldmVudF9zZXF1ZW5jZSI6IjIiLCJibG9ja19oZWlnaHQiOiIxNiIsImJsb2NrX3RpbWVzdGFtcF9ucyI6IjE3OTM5MDUxNTU4OTU1MzUxNTAiLCJkYXRhIjp7InByaW5jaXBhbCI6ImFjY291bnQ6ZGV2LTIwMjYxMTA1MTg1OTE1LTkxMDEwNjQ0ODYwNDkyLnRlc3QubmVhciIsImNvbW1hbmRfc2VxdWVuY2UiOiIxIiwicGF5bG9hZF9zaGEyNTYiOiI5OWY5NGRmNmNjODgwMDMwZDk1M2NhNjYzOWZjODRmM2VlNmRjMGRiODhjZmRmNzRkMWY2ZWM4NDhiNmMyODQzIiwicmVwbGF5ZWQiOmZhbHNlLCJlZmZlY3RfcmV2aXNpb24iOiIyIiwiZWZmZWN0X2V2ZW50X3NlcXVlbmNlIjoiMiIsIm91dGNvbWUiOnsia2luZCI6InBsYXllcl9yZWdpc3RlcmVkIiwicGxheWVyIjp7ImFjY291bnRfaWQiOiJkZXYtMjAyNjExMDUxODU5MTUtOTEwMTA2NDQ4NjA0OTIudGVzdC5uZWFyIiwibGVkZ2VyIjp7ImFjdG9yIjp7ImtpbmQiOiJwbGF5ZXIiLCJhY2NvdW50X2lkIjoiZGV2LTIwMjYxMTA1MTg1OTE1LTkxMDEwNjQ0ODYwNDkyLnRlc3QubmVhciJ9LCJyZXZpc2lvbiI6IjEiLCJnb2xkIjp7ImhlbGQiOiIxMDAiLCJhdmFpbGFibGUiOiIxMDAiLCJ0cmFkZV9yZXNlcnZlZCI6IjAiLCJ0cmFkZV9pbmJvdW5kX3Jlc2VydmVkIjoiMCJ9LCJpbnZlbnRvcnkiOnsiaGVsZCI6eyJjcnlzdGFsIjoiMCIsIndvb2QiOiIwIiwiaGVyYiI6IjAiLCJpcm9uIjoiMCIsImhlYWx0aF9wb3Rpb24iOiIwIiwiaXJvbl90b29sIjoiMCJ9LCJhdmFpbGFibGUiOnsiY3J5c3RhbCI6IjAiLCJ3b29kIjoiMCIsImhlcmIiOiIwIiwiaXJvbiI6IjAiLCJoZWFsdGhfcG90aW9uIjoiMCIsImlyb25fdG9vbCI6IjAifSwibGlzdGluZ19yZXNlcnZlZCI6eyJjcnlzdGFsIjoiMCIsIndvb2QiOiIwIiwiaGVyYiI6IjAiLCJpcm9uIjoiMCIsImhlYWx0aF9wb3Rpb24iOiIwIiwiaXJvbl90b29sIjoiMCJ9LCJ0cmFkZV9yZXNlcnZlZCI6eyJjcnlzdGFsIjoiMCIsIndvb2QiOiIwIiwiaGVyYiI6IjAiLCJpcm9uIjoiMCIsImhlYWx0aF9wb3Rpb24iOiIwIiwiaXJvbl90b29sIjoiMCJ9LCJwcm9kdWN0aW9uX291dHB1dF9yZXNlcnZlZCI6eyJjcnlzdGFsIjoiMCIsIndvb2QiOiIwIiwiaGVyYiI6IjAiLCJpcm9uIjoiMCIsImhlYWx0aF9wb3Rpb24iOiIwIiwiaXJvbl90b29sIjoiMCJ9LCJ0cmFkZV9pbmJvdW5kX3Jlc2VydmVkIjp7ImNyeXN0YWwiOiIwIiwid29vZCI6IjAiLCJoZXJiIjoiMCIsImlyb24iOiIwIiwiaGVhbHRoX3BvdGlvbiI6IjAiLCJpcm9uX3Rvb2wiOiIwIn19fSwic2hvcF9pZCI6bnVsbCwiZ3JhbnRfaXNzdWVkIjp0cnVlLCJncmFudF9jb21tYW5kX3NlcXVlbmNlIjoiMSJ9fX19"
+          "SuccessValue": "eyJkZXBsb3ltZW50Ijp7Im5ldHdvcmtfaWQiOiJ0ZXN0bmV0IiwiZ2VuZXNpc19oYXNoIjoiMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTEiLCJjb250cmFjdF9pZCI6ImRldi0yMDI2MTEwNTE5MjQ0Mi05ODA5NjkxNzI4NzgwOS50ZXN0Lm5lYXIiLCJhcGlfdmVyc2lvbiI6IjIuMC4wIiwic3RhdGVfc2NoZW1hIjoiMSIsImNvbW1hbmRfc2NoZW1hIjoiMSIsImNvbmZpZ192ZXJzaW9uIjoiMSIsImNvbmZpZ19zaGEyNTYiOiJhOTMyZWZiNDhjNzBhNzNjZTQ2NDcyY2Q3NTQyODg2NDk1NDFiMzQ2MDRlMmVhNDlhNDA5Mzk2MWU3MWEyZDEwIn0sIm1hcmtldF9yZXZpc2lvbiI6IjIiLCJldmVudF9zZXF1ZW5jZSI6IjIiLCJibG9ja19oZWlnaHQiOiIxNCIsImJsb2NrX3RpbWVzdGFtcF9ucyI6IjE3OTM5MDY2ODQwNDg5NTgwMTMiLCJkYXRhIjp7InByaW5jaXBhbCI6ImFjY291bnQ6ZGV2LTIwMjYxMTA1MTkyNDQzLTczMDQ3MjU2Mzk5OTM5LnRlc3QubmVhciIsImNvbW1hbmRfc2VxdWVuY2UiOiIxIiwicGF5bG9hZF9zaGEyNTYiOiI5NzQxNGVkOTFmNDk2MzZhMDM1ODE1OTdhYjkxZGRhZDZlMzE2ODhhOWMwODk1OWEyYjRlMmRmZWI4MTYxYWYxIiwicmVwbGF5ZWQiOmZhbHNlLCJlZmZlY3RfcmV2aXNpb24iOiIyIiwiZWZmZWN0X2V2ZW50X3NlcXVlbmNlIjoiMiIsIm91dGNvbWUiOnsia2luZCI6InBsYXllcl9yZWdpc3RlcmVkIiwicGxheWVyIjp7ImFjY291bnRfaWQiOiJkZXYtMjAyNjExMDUxOTI0NDMtNzMwNDcyNTYzOTk5MzkudGVzdC5uZWFyIiwibGVkZ2VyIjp7ImFjdG9yIjp7ImtpbmQiOiJwbGF5ZXIiLCJhY2NvdW50X2lkIjoiZGV2LTIwMjYxMTA1MTkyNDQzLTczMDQ3MjU2Mzk5OTM5LnRlc3QubmVhciJ9LCJyZXZpc2lvbiI6IjEiLCJnb2xkIjp7ImhlbGQiOiIxMDAiLCJhdmFpbGFibGUiOiIxMDAiLCJ0cmFkZV9yZXNlcnZlZCI6IjAiLCJ0cmFkZV9pbmJvdW5kX3Jlc2VydmVkIjoiMCJ9LCJpbnZlbnRvcnkiOnsiaGVsZCI6eyJjcnlzdGFsIjoiMCIsIndvb2QiOiIwIiwiaGVyYiI6IjAiLCJpcm9uIjoiMCIsImhlYWx0aF9wb3Rpb24iOiIwIiwiaXJvbl90b29sIjoiMCJ9LCJhdmFpbGFibGUiOnsiY3J5c3RhbCI6IjAiLCJ3b29kIjoiMCIsImhlcmIiOiIwIiwiaXJvbiI6IjAiLCJoZWFsdGhfcG90aW9uIjoiMCIsImlyb25fdG9vbCI6IjAifSwibGlzdGluZ19yZXNlcnZlZCI6eyJjcnlzdGFsIjoiMCIsIndvb2QiOiIwIiwiaGVyYiI6IjAiLCJpcm9uIjoiMCIsImhlYWx0aF9wb3Rpb24iOiIwIiwiaXJvbl90b29sIjoiMCJ9LCJ0cmFkZV9yZXNlcnZlZCI6eyJjcnlzdGFsIjoiMCIsIndvb2QiOiIwIiwiaGVyYiI6IjAiLCJpcm9uIjoiMCIsImhlYWx0aF9wb3Rpb24iOiIwIiwiaXJvbl90b29sIjoiMCJ9LCJwcm9kdWN0aW9uX291dHB1dF9yZXNlcnZlZCI6eyJjcnlzdGFsIjoiMCIsIndvb2QiOiIwIiwiaGVyYiI6IjAiLCJpcm9uIjoiMCIsImhlYWx0aF9wb3Rpb24iOiIwIiwiaXJvbl90b29sIjoiMCJ9LCJ0cmFkZV9pbmJvdW5kX3Jlc2VydmVkIjp7ImNyeXN0YWwiOiIwIiwid29vZCI6IjAiLCJoZXJiIjoiMCIsImlyb24iOiIwIiwiaGVhbHRoX3BvdGlvbiI6IjAiLCJpcm9uX3Rvb2wiOiIwIn19fSwic2hvcF9pZCI6bnVsbCwiZ3JhbnRfaXNzdWVkIjp0cnVlLCJncmFudF9jb21tYW5kX3NlcXVlbmNlIjoiMSJ9fX19"
         },
         "transaction": {
           "actions": [
             {
               "FunctionCall": {
-                "args": "eyJjb21tYW5kIjp7InNlcXVlbmNlIjoiMSIsImNvbmZpZ192ZXJzaW9uIjoiMSIsInZhbGlkX3VudGlsX25zIjoiMTc5MzkwNTY1NTUxMTQ1Nzg0NiJ9fQ==",
+                "args": "eyJjb21tYW5kIjp7InNlcXVlbmNlIjoiMSIsImNvbmZpZ192ZXJzaW9uIjoiMSIsInZhbGlkX3VudGlsX25zIjoiMTc5MzkwNzE4MzY2NTA4MzI5MSJ9fQ==",
                 "deposit": "0",
                 "gas": 100000000000000,
                 "method_name": "register_player"
               }
             }
           ],
-          "hash": "BEJft8BAGUUne6S3X9pAHtEP7de5X5RijbovbS3KJtg7",
-          "nonce": 12000001,
+          "hash": "6qbPnTTSco1i7YwhnWDKP7zbDv4v5dT3VBUKsdvUPxGd",
+          "nonce": 10000001,
           "priority_fee": 0,
-          "public_key": "ed25519:Fr79b6NQxMdHJYgzURHt57g7jLRAwj93kMV4YrvHk6ah",
-          "receiver_id": "dev-20261105185914-31020427396687.test.near",
-          "signature": "ed25519:3AM9mLfuvN1G7ykJ3KGPzoLZsQ78sudoXdtZs22jDUx6YwoF7APrkx9HuqYQxr8bNLiSu8dxtYdVAC9Zdm1rL5Bn",
-          "signer_id": "dev-20261105185915-91010644860492.test.near"
+          "public_key": "ed25519:DngkCRnU3fcC2PadS7PCXfNSxH1SeTyMTKz3gdEefK9g",
+          "receiver_id": "dev-20261105192442-98096917287809.test.near",
+          "signature": "ed25519:5vCtnVWPMz6NJxqdP6VeZHZzexk9tC8eskmf4SiciY3WRrqauBK8bCtUeCBTvkvHuB4zV7UvQ8v3cag5eqNiigbz",
+          "signer_id": "dev-20261105192443-73047256399939.test.near"
         },
         "transaction_outcome": {
-          "block_hash": "CshMdxjyCtgYTDWyYgRBQa2m4RkD1STU1AWPGQfZ3bWf",
-          "id": "BEJft8BAGUUne6S3X9pAHtEP7de5X5RijbovbS3KJtg7",
+          "block_hash": "BBdY7ErbRnWgqHNsVgumyCrBDiCZzr3HTpGpKVRkFmnc",
+          "id": "6qbPnTTSco1i7YwhnWDKP7zbDv4v5dT3VBUKsdvUPxGd",
           "outcome": {
-            "executor_id": "dev-20261105185915-91010644860492.test.near",
+            "executor_id": "dev-20261105192443-73047256399939.test.near",
             "gas_burnt": 312970922645,
             "logs": [],
             "metadata": {
               "gas_profile": null,
               "version": 1
             },
-            "receipt_ids": ["2a3WWKjs73E84FT44gyeVoZPQNX2CY54P36eqeD2JG6Z"],
+            "receipt_ids": ["DaQyyyXPmiyryFqaCi89zcFGcNZeqxRavMErtBz9kyhr"],
             "status": {
-              "SuccessReceiptId": "2a3WWKjs73E84FT44gyeVoZPQNX2CY54P36eqeD2JG6Z"
+              "SuccessReceiptId": "DaQyyyXPmiyryFqaCi89zcFGcNZeqxRavMErtBz9kyhr"
             },
             "tokens_burnt": "31297092264500000000"
           },
@@ -263,7 +263,7 @@
                 "requests": []
               }
             },
-            "chunk_hash": "8xo5QBfvhPc3cYxYLc4aJeSSCD47mX5KcnbYB1KQBA1c",
+            "chunk_hash": "8Acmzee4ay5fY7XV2kbWcRnmR9QzW1bZtVNjqriNCYZq",
             "congestion_info": {
               "allowed_shard": 0,
               "buffered_receipts_gas": "0",
@@ -271,19 +271,19 @@
               "receipt_bytes": 0
             },
             "encoded_length": 379,
-            "encoded_merkle_root": "2Lp8Hf5YDogcZyfQ7oRxVKtyxaHxgnburosJX2q86q8x",
+            "encoded_merkle_root": "9hqxoa36EXNP6WbHLYuxA4uJVUFy8k4GzmtgKsd65XMN",
             "gas_limit": 1000000000000000,
             "gas_used": 312970922645,
-            "height_created": 16,
-            "height_included": 16,
-            "outcome_root": "AcMHG8QDEdH9HGaSRTnhqDGgVxtdk1NL8GLk6gQwX8Jr",
-            "outgoing_receipts_root": "6NT3JW2vbdag2pdMf6SoMy7ojGfPM5rWo4U7YmWQvDSd",
-            "prev_block_hash": "CshMdxjyCtgYTDWyYgRBQa2m4RkD1STU1AWPGQfZ3bWf",
-            "prev_state_root": "CVFuCfJvsnTYXEB1N8k6bXsiGJR3faRZcP9Pf9hXhrKY",
+            "height_created": 14,
+            "height_included": 14,
+            "outcome_root": "F6zDecg8jchUNitfjMpMsNxp8i7M6a2Vr3S1CBQmSTdq",
+            "outgoing_receipts_root": "JDZyQJn8KpzqPAzBAeUMmWvbLmYszQJzwm8qrxBr8wfB",
+            "prev_block_hash": "BBdY7ErbRnWgqHNsVgumyCrBDiCZzr3HTpGpKVRkFmnc",
+            "prev_state_root": "5BcXPQAmrDnmeWxJWeXoxrS4sXUY2sfjyBkkvXDWqc9T",
             "proposed_split": null,
             "rent_paid": "0",
             "shard_id": 0,
-            "signature": "ed25519:N8465r9JW2byakiDSSSujL8RHUiYBgNE61RbYZCPrkfJj4rTYYP9yd9qBwLBW2k8r5rB22nuQfSTi7mKj8ayFwY",
+            "signature": "ed25519:3TMBWGXsWPZjSLVRkri1MrPAei1FyGejbW9wWV4uYnGKFsjRgm9C6RKT9txvezEwScuyPDqjEJAnwgt4pojfMQvC",
             "tx_root": "11111111111111111111111111111111",
             "validator_proposals": [],
             "validator_reward": "0"
@@ -291,56 +291,56 @@
         ],
         "header": {
           "approvals": [
-            "ed25519:2RMuRDpRKpdYr5mGd2tfTzNSNxohwzCU8AZbAHvAbcXXQJ2JHXVwavEQmmVAbtmjvc94TX4Hw4Ci4ftFndmucZpn"
+            "ed25519:4QpfjXiQ7sSMFofZCtTT8q43QTUNEGz43QAJ4o2XFSrCm9AUWu2c3jx9Km6fk6rjd1PK7DyvtSTaxtubu7ZXowq3"
           ],
-          "block_body_hash": "AKK9s2HUgryUjDDw9F2MWdm3tJ1gh5dPA5dbb6QBv3pT",
-          "block_merkle_root": "3rZ7aTyRcVK1KqnN6FhxoYZc8gD5exSbiKmysTFxbEda",
-          "block_ordinal": 17,
+          "block_body_hash": "DfYTGrQjuU7xRjXjHSPDy5huPzuqXgiQ4u7PhZdQ5Zbi",
+          "block_merkle_root": "FcZpRWBRQ1ynhv8j8yaz7Qwi4LYEWRfy17SJcnKMyrcU",
+          "block_ordinal": 15,
           "challenges_result": [],
           "challenges_root": "11111111111111111111111111111111",
           "chunk_endorsements": [[1]],
-          "chunk_headers_root": "4p2NknfMM9Tbd5QzBqK32C4mugLcVR664B9KXdbtCH8j",
+          "chunk_headers_root": "AqN5atpVPbgiAM5TupeLPHDbtBvxyvqRKs54ZiPpUmig",
           "chunk_mask": [true],
-          "chunk_receipts_root": "DhJcXh5ehYR9P2wTsbcxijSrXMvJBUbBJXmHohpJm6L7",
+          "chunk_receipts_root": "9FMv9L86WSiqih2jvB1NKGauk5SkCySvqorNVHh6EdqT",
           "chunk_tx_root": "7tkzFg8RHBmMw1ncRJZCCZAizgq4rwCftTKYLce8RU8t",
           "chunks_included": 1,
           "epoch_id": "11111111111111111111111111111111",
           "epoch_sync_data_hash": null,
           "gas_price": "100000000",
-          "hash": "BbpxjJXavHg9jQhPpbHisqdNvApiA7du5Vn2zM4kgMzR",
-          "height": 16,
-          "last_ds_final_block": "CshMdxjyCtgYTDWyYgRBQa2m4RkD1STU1AWPGQfZ3bWf",
-          "last_final_block": "Fz9tHjH3FgUReBLxXUuHi53dx3v1K2YigoBn4EDNN7dy",
+          "hash": "BMY5CTd8KapFaCAvHK7n1fe4A8sEh76rG5B6szTBvJhX",
+          "height": 14,
+          "last_ds_final_block": "BBdY7ErbRnWgqHNsVgumyCrBDiCZzr3HTpGpKVRkFmnc",
+          "last_final_block": "ARmvtscEZ5poNE1YDqzoVCJdcsC1bkGXoRNuGVw4rnTD",
           "latest_protocol_version": 86,
-          "next_bp_hash": "98FGcFVb9svfashbU92Y1whc9J5z5ZksQVN7PCj2CNGQ",
-          "next_epoch_id": "CgPLGzrPA2SAaVMdo9FmJrwu2VM9HPNMdxZ7HryxTNks",
-          "outcome_root": "AfXrrZx6MxuBKEQhJ527VAdNnWfWvPByPyu46dRVYPLr",
-          "prev_hash": "CshMdxjyCtgYTDWyYgRBQa2m4RkD1STU1AWPGQfZ3bWf",
-          "prev_height": 15,
-          "prev_state_root": "6W3zgukGfDYjUcdQ2eJzsnekAsiGxroJpfD6mn11bJoH",
-          "random_value": "GFf4DJ8NefxwoyWBJadwMJoER3BxatyQq8whQazWjaAg",
+          "next_bp_hash": "2ZQDMLAPQ1gtVCqkXmS7h44EJy65zYVr9GroA85vpMHt",
+          "next_epoch_id": "Eck5bzSwsHgG6qD7HBzXtweXQ7okmSMtx6inGMsTEC5j",
+          "outcome_root": "CwwGGKJ4wDHe25RRmoTfoDEheaeSNgAsS8HakBgk3f4i",
+          "prev_hash": "BBdY7ErbRnWgqHNsVgumyCrBDiCZzr3HTpGpKVRkFmnc",
+          "prev_height": 13,
+          "prev_state_root": "BVGzFiQW1oKchPBx9oC8EbzU83gxH4BLFmCMyVnjBWP1",
+          "random_value": "HGosjYNSyMALZCccMH4FAKmGz415WDxuwfTF7VpsAnoq",
           "rent_paid": "0",
           "shard_split": null,
-          "signature": "ed25519:5hbHoLQArL8r8wF9R3aHmxyJpag71JqTmZAhkYmfmTGVkii7UxPtKHwjymYNy84L3KzdQoFrxM1Rx7pXnsro9yVL",
-          "timestamp": 1793905155895535000,
-          "timestamp_nanosec": "1793905155895535150",
-          "total_supply": "2050029999981308821064110600000000",
+          "signature": "ed25519:3pB7C4eLwxQqdU6zPZHTEUaUGe87hCC9oui63Fan7Uz8miBXcFZDUkerH5HbcGdAiENLUFDrQt5ghfeu7LrMgcQv",
+          "timestamp": 1793906684048958000,
+          "timestamp_nanosec": "1793906684048958013",
+          "total_supply": "2050029999981109748060741000000000",
           "validator_proposals": [],
           "validator_reward": "0"
         }
       },
       "account": {
-        "amount": "99999470311590944000000000",
-        "block_hash": "BbpxjJXavHg9jQhPpbHisqdNvApiA7du5Vn2zM4kgMzR",
-        "block_height": 16,
-        "code_hash": "7cpdwYxv9DHP9N4RkriZqjHy9GuDxwLjTPReyQmFuDBT",
+        "amount": "99999468851873772800000000",
+        "block_hash": "BMY5CTd8KapFaCAvHK7n1fe4A8sEh76rG5B6szTBvJhX",
+        "block_height": 14,
+        "code_hash": "F8puNhtHcSf5mFEKcoPSmAoR2bXrBQthBjzuHgMjK84y",
         "locked": "0",
         "storage_paid_at": 0,
-        "storage_usage": 330509
+        "storage_usage": 348145
       },
       "foundation": {
-        "block_hash": "BbpxjJXavHg9jQhPpbHisqdNvApiA7du5Vn2zM4kgMzR",
-        "block_height": 16,
+        "block_hash": "BMY5CTd8KapFaCAvHK7n1fe4A8sEh76rG5B6szTBvJhX",
+        "block_height": 14,
         "logs": [],
         "result": [
           123, 34, 100, 101, 112, 108, 111, 121, 109, 101, 110, 116, 34, 58,
@@ -350,8 +350,8 @@
           49, 49, 49, 49, 49, 49, 49, 49, 49, 49, 49, 49, 49, 49, 49, 49, 49,
           49, 49, 49, 49, 49, 49, 49, 49, 49, 49, 34, 44, 34, 99, 111, 110, 116,
           114, 97, 99, 116, 95, 105, 100, 34, 58, 34, 100, 101, 118, 45, 50, 48,
-          50, 54, 49, 49, 48, 53, 49, 56, 53, 57, 49, 52, 45, 51, 49, 48, 50,
-          48, 52, 50, 55, 51, 57, 54, 54, 56, 55, 46, 116, 101, 115, 116, 46,
+          50, 54, 49, 49, 48, 53, 49, 57, 50, 52, 52, 50, 45, 57, 56, 48, 57,
+          54, 57, 49, 55, 50, 56, 55, 56, 48, 57, 46, 116, 101, 115, 116, 46,
           110, 101, 97, 114, 34, 44, 34, 97, 112, 105, 95, 118, 101, 114, 115,
           105, 111, 110, 34, 58, 34, 50, 46, 48, 46, 48, 34, 44, 34, 115, 116,
           97, 116, 101, 95, 115, 99, 104, 101, 109, 97, 34, 58, 34, 49, 34, 44,
@@ -366,14 +366,14 @@
           114, 107, 101, 116, 95, 114, 101, 118, 105, 115, 105, 111, 110, 34,
           58, 34, 50, 34, 44, 34, 101, 118, 101, 110, 116, 95, 115, 101, 113,
           117, 101, 110, 99, 101, 34, 58, 34, 50, 34, 44, 34, 98, 108, 111, 99,
-          107, 95, 104, 101, 105, 103, 104, 116, 34, 58, 34, 49, 54, 34, 44, 34,
+          107, 95, 104, 101, 105, 103, 104, 116, 34, 58, 34, 49, 52, 34, 44, 34,
           98, 108, 111, 99, 107, 95, 116, 105, 109, 101, 115, 116, 97, 109, 112,
-          95, 110, 115, 34, 58, 34, 49, 55, 57, 51, 57, 48, 53, 49, 53, 53, 56,
-          57, 53, 53, 51, 53, 49, 53, 48, 34, 44, 34, 100, 97, 116, 97, 34, 58,
+          95, 110, 115, 34, 58, 34, 49, 55, 57, 51, 57, 48, 54, 54, 56, 52, 48,
+          52, 56, 57, 53, 56, 48, 49, 51, 34, 44, 34, 100, 97, 116, 97, 34, 58,
           123, 34, 111, 119, 110, 101, 114, 95, 97, 99, 99, 111, 117, 110, 116,
           95, 105, 100, 34, 58, 34, 100, 101, 118, 45, 50, 48, 50, 54, 49, 49,
-          48, 53, 49, 56, 53, 57, 49, 52, 45, 51, 49, 48, 50, 48, 52, 50, 55,
-          51, 57, 54, 54, 56, 55, 46, 116, 101, 115, 116, 46, 110, 101, 97, 114,
+          48, 53, 49, 57, 50, 52, 52, 50, 45, 57, 56, 48, 57, 54, 57, 49, 55,
+          50, 56, 55, 56, 48, 57, 46, 116, 101, 115, 116, 46, 110, 101, 97, 114,
           34, 44, 34, 111, 112, 101, 114, 97, 116, 111, 114, 95, 97, 99, 99,
           111, 117, 110, 116, 95, 105, 100, 34, 58, 34, 111, 112, 101, 114, 97,
           116, 111, 114, 46, 116, 101, 115, 116, 110, 101, 116, 34, 44, 34, 109,
@@ -407,7 +407,8 @@
           99, 105, 112, 101, 115, 34, 44, 34, 115, 116, 97, 114, 116, 95, 112,
           114, 111, 100, 117, 99, 116, 105, 111, 110, 34, 44, 34, 103, 101, 116,
           95, 112, 114, 111, 100, 117, 99, 116, 105, 111, 110, 95, 106, 111, 98,
-          115, 34, 93, 125, 125
+          115, 34, 44, 34, 99, 111, 109, 112, 108, 101, 116, 101, 95, 112, 114,
+          111, 100, 117, 99, 116, 105, 111, 110, 34, 93, 125, 125
         ]
       }
     },
@@ -418,28 +419,28 @@
         "command": {
           "sequence": "2",
           "config_version": "1",
-          "valid_until_ns": "1793905656281654222"
+          "valid_until_ns": "1793907184432398984"
         }
       },
-      "transaction_hash": "HoFgdPXM3xJxsTXW5KCPnE4N3EYg4bkPSkXH2p2hQT9d",
-      "reference_block_height": 17,
-      "gas_burnt": "5526385048990",
+      "transaction_hash": "29J79mpyo4HGsne1LtYTH4mW6zY7J9yU4oBbJHAGV3Fs",
+      "reference_block_height": 15,
+      "gas_burnt": "5565825157722",
       "receipt": {
         "final_execution_status": "FINAL",
         "receipts_outcome": [
           {
-            "block_hash": "HrvES35mZYKqxUx9sBG7bonEdQEgF7kEDWGy3yoraLSv",
-            "id": "G8CcfGQoX19X1wPA69MvuhmZVtbgz9CPRX3bvvik73ss",
+            "block_hash": "37UTdFYikiaamVDahdqqakaQaUtpDDsLRicmzLmpQMZs",
+            "id": "FuVpywU1ZhEnHetPtjWx9JqXBboJf3JUxiLLpJ9PiMSh",
             "outcome": {
-              "executor_id": "dev-20261105185914-31020427396687.test.near",
-              "gas_burnt": 5212555819475,
+              "executor_id": "dev-20261105192442-98096917287809.test.near",
+              "gas_burnt": 5251995928207,
               "logs": [
-                "EVENT_JSON:{\"standard\":\"bot_bazaar_living_town\",\"version\":\"2.0.0\",\"event\":\"create_shop\",\"data\":[{\"contract_id\":\"dev-20261105185914-31020427396687.test.near\",\"config_version\":\"1\",\"event_sequence\":\"3\",\"market_revision\":\"3\",\"block_height\":\"22\",\"block_timestamp_ns\":\"1793905156662442254\",\"predecessor_account_id\":\"dev-20261105185915-91010644860492.test.near\",\"principal\":\"account:dev-20261105185915-91010644860492.test.near\",\"command_sequence\":\"2\",\"payload_sha256\":\"bc872252de0167c1b211f6353a04fd7e18e980aed05e1040518f796ba1bbf20a\",\"outcome\":{\"kind\":\"shop_created\",\"shop\":{\"shop_id\":\"4\",\"owner\":{\"kind\":\"player\",\"account_id\":\"dev-20261105185915-91010644860492.test.near\"},\"name\":\"Adapter Shop\",\"revision\":\"1\",\"production_slots\":\"1\",\"policy_revision\":\"1\",\"created_at_ns\":\"1793905156662442254\",\"ownership_command_sequence\":\"2\"}}}]}"
+                "EVENT_JSON:{\"standard\":\"bot_bazaar_living_town\",\"version\":\"2.0.0\",\"event\":\"create_shop\",\"data\":[{\"contract_id\":\"dev-20261105192442-98096917287809.test.near\",\"config_version\":\"1\",\"event_sequence\":\"3\",\"market_revision\":\"3\",\"block_height\":\"21\",\"block_timestamp_ns\":\"1793906684946717871\",\"predecessor_account_id\":\"dev-20261105192443-73047256399939.test.near\",\"principal\":\"account:dev-20261105192443-73047256399939.test.near\",\"command_sequence\":\"2\",\"payload_sha256\":\"72e30d55e4db64280c83be593f903b550eae5cc6a0b0818aef5c1239f47332c9\",\"outcome\":{\"kind\":\"shop_created\",\"shop\":{\"shop_id\":\"4\",\"owner\":{\"kind\":\"player\",\"account_id\":\"dev-20261105192443-73047256399939.test.near\"},\"name\":\"Adapter Shop\",\"revision\":\"1\",\"production_slots\":\"1\",\"policy_revision\":\"1\",\"created_at_ns\":\"1793906684946717871\",\"ownership_command_sequence\":\"2\"}}}]}"
               ],
               "metadata": {
                 "contracts": [
                   {
-                    "local": "7cpdwYxv9DHP9N4RkriZqjHy9GuDxwLjTPReyQmFuDBT"
+                    "local": "F8puNhtHcSf5mFEKcoPSmAoR2bXrBQthBjzuHgMjK84y"
                   }
                 ],
                 "gas_profile": [
@@ -456,7 +457,7 @@
                   {
                     "cost": "CONTRACT_LOADING_BYTES",
                     "cost_category": "WASM_HOST_COST",
-                    "gas_used": "357159133895"
+                    "gas_used": "376252296655"
                   },
                   {
                     "cost": "LOG_BASE",
@@ -481,7 +482,7 @@
                   {
                     "cost": "READ_MEMORY_BYTE",
                     "cost_category": "WASM_HOST_COST",
-                    "gas_used": "30140769357"
+                    "gas_used": "30961857285"
                   },
                   {
                     "cost": "READ_REGISTER_BASE",
@@ -491,7 +492,7 @@
                   {
                     "cost": "READ_REGISTER_BYTE",
                     "cost_category": "WASM_HOST_COST",
-                    "gas_used": "262963416"
+                    "gas_used": "273608112"
                   },
                   {
                     "cost": "SHA256_BASE",
@@ -526,7 +527,7 @@
                   {
                     "cost": "STORAGE_READ_VALUE_BYTE",
                     "cost_category": "WASM_HOST_COST",
-                    "gas_used": "12276876752"
+                    "gas_used": "12882865184"
                   },
                   {
                     "cost": "STORAGE_WRITE_BASE",
@@ -536,7 +537,7 @@
                   {
                     "cost": "STORAGE_WRITE_EVICTED_BYTE",
                     "cost_category": "WASM_HOST_COST",
-                    "gas_used": "117902633997"
+                    "gas_used": "124839972309"
                   },
                   {
                     "cost": "STORAGE_WRITE_KEY_BYTE",
@@ -546,7 +547,7 @@
                   {
                     "cost": "STORAGE_WRITE_VALUE_BYTE",
                     "cost_category": "WASM_HOST_COST",
-                    "gas_used": "109836646599"
+                    "gas_used": "116536651023"
                   },
                   {
                     "cost": "TOUCHING_TRIE_NODE",
@@ -566,7 +567,7 @@
                   {
                     "cost": "WASM_INSTRUCTION",
                     "cost_category": "WASM_HOST_COST",
-                    "gas_used": "2506408499892"
+                    "gas_used": "2510154507960"
                   },
                   {
                     "cost": "WRITE_MEMORY_BASE",
@@ -576,7 +577,7 @@
                   {
                     "cost": "WRITE_MEMORY_BYTE",
                     "cost_category": "WASM_HOST_COST",
-                    "gas_used": "7354184400"
+                    "gas_used": "7648351776"
                   },
                   {
                     "cost": "WRITE_REGISTER_BASE",
@@ -586,24 +587,24 @@
                   {
                     "cost": "WRITE_REGISTER_BYTE",
                     "cost_category": "WASM_HOST_COST",
-                    "gas_used": "22843598076"
+                    "gas_used": "24075304812"
                   }
                 ],
                 "version": 4
               },
-              "receipt_ids": ["DqM53fuH2Ao74oBePm3R1EW24NcM5PqoCuU5F5PVPsQM"],
+              "receipt_ids": ["GjK5RViZZ4pAtzMhAUdNQLYP3RUe8hjf4tf5DfbCM5ks"],
               "status": {
-                "SuccessValue": "eyJkZXBsb3ltZW50Ijp7Im5ldHdvcmtfaWQiOiJ0ZXN0bmV0IiwiZ2VuZXNpc19oYXNoIjoiMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTEiLCJjb250cmFjdF9pZCI6ImRldi0yMDI2MTEwNTE4NTkxNC0zMTAyMDQyNzM5NjY4Ny50ZXN0Lm5lYXIiLCJhcGlfdmVyc2lvbiI6IjIuMC4wIiwic3RhdGVfc2NoZW1hIjoiMSIsImNvbW1hbmRfc2NoZW1hIjoiMSIsImNvbmZpZ192ZXJzaW9uIjoiMSIsImNvbmZpZ19zaGEyNTYiOiJhOTMyZWZiNDhjNzBhNzNjZTQ2NDcyY2Q3NTQyODg2NDk1NDFiMzQ2MDRlMmVhNDlhNDA5Mzk2MWU3MWEyZDEwIn0sIm1hcmtldF9yZXZpc2lvbiI6IjMiLCJldmVudF9zZXF1ZW5jZSI6IjMiLCJibG9ja19oZWlnaHQiOiIyMiIsImJsb2NrX3RpbWVzdGFtcF9ucyI6IjE3OTM5MDUxNTY2NjI0NDIyNTQiLCJkYXRhIjp7InByaW5jaXBhbCI6ImFjY291bnQ6ZGV2LTIwMjYxMTA1MTg1OTE1LTkxMDEwNjQ0ODYwNDkyLnRlc3QubmVhciIsImNvbW1hbmRfc2VxdWVuY2UiOiIyIiwicGF5bG9hZF9zaGEyNTYiOiJiYzg3MjI1MmRlMDE2N2MxYjIxMWY2MzUzYTA0ZmQ3ZTE4ZTk4MGFlZDA1ZTEwNDA1MThmNzk2YmExYmJmMjBhIiwicmVwbGF5ZWQiOmZhbHNlLCJlZmZlY3RfcmV2aXNpb24iOiIzIiwiZWZmZWN0X2V2ZW50X3NlcXVlbmNlIjoiMyIsIm91dGNvbWUiOnsia2luZCI6InNob3BfY3JlYXRlZCIsInNob3AiOnsic2hvcF9pZCI6IjQiLCJvd25lciI6eyJraW5kIjoicGxheWVyIiwiYWNjb3VudF9pZCI6ImRldi0yMDI2MTEwNTE4NTkxNS05MTAxMDY0NDg2MDQ5Mi50ZXN0Lm5lYXIifSwibmFtZSI6IkFkYXB0ZXIgU2hvcCIsInJldmlzaW9uIjoiMSIsInByb2R1Y3Rpb25fc2xvdHMiOiIxIiwicG9saWN5X3JldmlzaW9uIjoiMSIsImNyZWF0ZWRfYXRfbnMiOiIxNzkzOTA1MTU2NjYyNDQyMjU0Iiwib3duZXJzaGlwX2NvbW1hbmRfc2VxdWVuY2UiOiIyIn19fX0="
+                "SuccessValue": "eyJkZXBsb3ltZW50Ijp7Im5ldHdvcmtfaWQiOiJ0ZXN0bmV0IiwiZ2VuZXNpc19oYXNoIjoiMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTEiLCJjb250cmFjdF9pZCI6ImRldi0yMDI2MTEwNTE5MjQ0Mi05ODA5NjkxNzI4NzgwOS50ZXN0Lm5lYXIiLCJhcGlfdmVyc2lvbiI6IjIuMC4wIiwic3RhdGVfc2NoZW1hIjoiMSIsImNvbW1hbmRfc2NoZW1hIjoiMSIsImNvbmZpZ192ZXJzaW9uIjoiMSIsImNvbmZpZ19zaGEyNTYiOiJhOTMyZWZiNDhjNzBhNzNjZTQ2NDcyY2Q3NTQyODg2NDk1NDFiMzQ2MDRlMmVhNDlhNDA5Mzk2MWU3MWEyZDEwIn0sIm1hcmtldF9yZXZpc2lvbiI6IjMiLCJldmVudF9zZXF1ZW5jZSI6IjMiLCJibG9ja19oZWlnaHQiOiIyMSIsImJsb2NrX3RpbWVzdGFtcF9ucyI6IjE3OTM5MDY2ODQ5NDY3MTc4NzEiLCJkYXRhIjp7InByaW5jaXBhbCI6ImFjY291bnQ6ZGV2LTIwMjYxMTA1MTkyNDQzLTczMDQ3MjU2Mzk5OTM5LnRlc3QubmVhciIsImNvbW1hbmRfc2VxdWVuY2UiOiIyIiwicGF5bG9hZF9zaGEyNTYiOiI3MmUzMGQ1NWU0ZGI2NDI4MGM4M2JlNTkzZjkwM2I1NTBlYWU1Y2M2YTBiMDgxOGFlZjVjMTIzOWY0NzMzMmM5IiwicmVwbGF5ZWQiOmZhbHNlLCJlZmZlY3RfcmV2aXNpb24iOiIzIiwiZWZmZWN0X2V2ZW50X3NlcXVlbmNlIjoiMyIsIm91dGNvbWUiOnsia2luZCI6InNob3BfY3JlYXRlZCIsInNob3AiOnsic2hvcF9pZCI6IjQiLCJvd25lciI6eyJraW5kIjoicGxheWVyIiwiYWNjb3VudF9pZCI6ImRldi0yMDI2MTEwNTE5MjQ0My03MzA0NzI1NjM5OTkzOS50ZXN0Lm5lYXIifSwibmFtZSI6IkFkYXB0ZXIgU2hvcCIsInJldmlzaW9uIjoiMSIsInByb2R1Y3Rpb25fc2xvdHMiOiIxIiwicG9saWN5X3JldmlzaW9uIjoiMSIsImNyZWF0ZWRfYXRfbnMiOiIxNzkzOTA2Njg0OTQ2NzE3ODcxIiwib3duZXJzaGlwX2NvbW1hbmRfc2VxdWVuY2UiOiIyIn19fX0="
               },
-              "tokens_burnt": "521255581947500000000"
+              "tokens_burnt": "525199592820700000000"
             },
             "proof": []
           },
           {
-            "block_hash": "Eo29sVQnLtWmxpfMo4cKPKhjNHwoy6RcLnSU1G2DVKyN",
-            "id": "DqM53fuH2Ao74oBePm3R1EW24NcM5PqoCuU5F5PVPsQM",
+            "block_hash": "D8hvF58vVVbocykCtbByq4PnvbmUaKk6rEN8Ymo3iWAh",
+            "id": "GjK5RViZZ4pAtzMhAUdNQLYP3RUe8hjf4tf5DfbCM5ks",
             "outcome": {
-              "executor_id": "dev-20261105185915-91010644860492.test.near",
+              "executor_id": "dev-20261105192443-73047256399939.test.near",
               "gas_burnt": 223182562500,
               "logs": [],
               "metadata": {
@@ -621,41 +622,41 @@
           }
         ],
         "status": {
-          "SuccessValue": "eyJkZXBsb3ltZW50Ijp7Im5ldHdvcmtfaWQiOiJ0ZXN0bmV0IiwiZ2VuZXNpc19oYXNoIjoiMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTEiLCJjb250cmFjdF9pZCI6ImRldi0yMDI2MTEwNTE4NTkxNC0zMTAyMDQyNzM5NjY4Ny50ZXN0Lm5lYXIiLCJhcGlfdmVyc2lvbiI6IjIuMC4wIiwic3RhdGVfc2NoZW1hIjoiMSIsImNvbW1hbmRfc2NoZW1hIjoiMSIsImNvbmZpZ192ZXJzaW9uIjoiMSIsImNvbmZpZ19zaGEyNTYiOiJhOTMyZWZiNDhjNzBhNzNjZTQ2NDcyY2Q3NTQyODg2NDk1NDFiMzQ2MDRlMmVhNDlhNDA5Mzk2MWU3MWEyZDEwIn0sIm1hcmtldF9yZXZpc2lvbiI6IjMiLCJldmVudF9zZXF1ZW5jZSI6IjMiLCJibG9ja19oZWlnaHQiOiIyMiIsImJsb2NrX3RpbWVzdGFtcF9ucyI6IjE3OTM5MDUxNTY2NjI0NDIyNTQiLCJkYXRhIjp7InByaW5jaXBhbCI6ImFjY291bnQ6ZGV2LTIwMjYxMTA1MTg1OTE1LTkxMDEwNjQ0ODYwNDkyLnRlc3QubmVhciIsImNvbW1hbmRfc2VxdWVuY2UiOiIyIiwicGF5bG9hZF9zaGEyNTYiOiJiYzg3MjI1MmRlMDE2N2MxYjIxMWY2MzUzYTA0ZmQ3ZTE4ZTk4MGFlZDA1ZTEwNDA1MThmNzk2YmExYmJmMjBhIiwicmVwbGF5ZWQiOmZhbHNlLCJlZmZlY3RfcmV2aXNpb24iOiIzIiwiZWZmZWN0X2V2ZW50X3NlcXVlbmNlIjoiMyIsIm91dGNvbWUiOnsia2luZCI6InNob3BfY3JlYXRlZCIsInNob3AiOnsic2hvcF9pZCI6IjQiLCJvd25lciI6eyJraW5kIjoicGxheWVyIiwiYWNjb3VudF9pZCI6ImRldi0yMDI2MTEwNTE4NTkxNS05MTAxMDY0NDg2MDQ5Mi50ZXN0Lm5lYXIifSwibmFtZSI6IkFkYXB0ZXIgU2hvcCIsInJldmlzaW9uIjoiMSIsInByb2R1Y3Rpb25fc2xvdHMiOiIxIiwicG9saWN5X3JldmlzaW9uIjoiMSIsImNyZWF0ZWRfYXRfbnMiOiIxNzkzOTA1MTU2NjYyNDQyMjU0Iiwib3duZXJzaGlwX2NvbW1hbmRfc2VxdWVuY2UiOiIyIn19fX0="
+          "SuccessValue": "eyJkZXBsb3ltZW50Ijp7Im5ldHdvcmtfaWQiOiJ0ZXN0bmV0IiwiZ2VuZXNpc19oYXNoIjoiMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTEiLCJjb250cmFjdF9pZCI6ImRldi0yMDI2MTEwNTE5MjQ0Mi05ODA5NjkxNzI4NzgwOS50ZXN0Lm5lYXIiLCJhcGlfdmVyc2lvbiI6IjIuMC4wIiwic3RhdGVfc2NoZW1hIjoiMSIsImNvbW1hbmRfc2NoZW1hIjoiMSIsImNvbmZpZ192ZXJzaW9uIjoiMSIsImNvbmZpZ19zaGEyNTYiOiJhOTMyZWZiNDhjNzBhNzNjZTQ2NDcyY2Q3NTQyODg2NDk1NDFiMzQ2MDRlMmVhNDlhNDA5Mzk2MWU3MWEyZDEwIn0sIm1hcmtldF9yZXZpc2lvbiI6IjMiLCJldmVudF9zZXF1ZW5jZSI6IjMiLCJibG9ja19oZWlnaHQiOiIyMSIsImJsb2NrX3RpbWVzdGFtcF9ucyI6IjE3OTM5MDY2ODQ5NDY3MTc4NzEiLCJkYXRhIjp7InByaW5jaXBhbCI6ImFjY291bnQ6ZGV2LTIwMjYxMTA1MTkyNDQzLTczMDQ3MjU2Mzk5OTM5LnRlc3QubmVhciIsImNvbW1hbmRfc2VxdWVuY2UiOiIyIiwicGF5bG9hZF9zaGEyNTYiOiI3MmUzMGQ1NWU0ZGI2NDI4MGM4M2JlNTkzZjkwM2I1NTBlYWU1Y2M2YTBiMDgxOGFlZjVjMTIzOWY0NzMzMmM5IiwicmVwbGF5ZWQiOmZhbHNlLCJlZmZlY3RfcmV2aXNpb24iOiIzIiwiZWZmZWN0X2V2ZW50X3NlcXVlbmNlIjoiMyIsIm91dGNvbWUiOnsia2luZCI6InNob3BfY3JlYXRlZCIsInNob3AiOnsic2hvcF9pZCI6IjQiLCJvd25lciI6eyJraW5kIjoicGxheWVyIiwiYWNjb3VudF9pZCI6ImRldi0yMDI2MTEwNTE5MjQ0My03MzA0NzI1NjM5OTkzOS50ZXN0Lm5lYXIifSwibmFtZSI6IkFkYXB0ZXIgU2hvcCIsInJldmlzaW9uIjoiMSIsInByb2R1Y3Rpb25fc2xvdHMiOiIxIiwicG9saWN5X3JldmlzaW9uIjoiMSIsImNyZWF0ZWRfYXRfbnMiOiIxNzkzOTA2Njg0OTQ2NzE3ODcxIiwib3duZXJzaGlwX2NvbW1hbmRfc2VxdWVuY2UiOiIyIn19fX0="
         },
         "transaction": {
           "actions": [
             {
               "FunctionCall": {
-                "args": "eyJuYW1lIjoiQWRhcHRlciBTaG9wIiwiY29tbWFuZCI6eyJzZXF1ZW5jZSI6IjIiLCJjb25maWdfdmVyc2lvbiI6IjEiLCJ2YWxpZF91bnRpbF9ucyI6IjE3OTM5MDU2NTYyODE2NTQyMjIifX0=",
+                "args": "eyJuYW1lIjoiQWRhcHRlciBTaG9wIiwiY29tbWFuZCI6eyJzZXF1ZW5jZSI6IjIiLCJjb25maWdfdmVyc2lvbiI6IjEiLCJ2YWxpZF91bnRpbF9ucyI6IjE3OTM5MDcxODQ0MzIzOTg5ODQifX0=",
                 "deposit": "0",
                 "gas": 100000000000000,
                 "method_name": "create_shop"
               }
             }
           ],
-          "hash": "HoFgdPXM3xJxsTXW5KCPnE4N3EYg4bkPSkXH2p2hQT9d",
-          "nonce": 12000002,
+          "hash": "29J79mpyo4HGsne1LtYTH4mW6zY7J9yU4oBbJHAGV3Fs",
+          "nonce": 10000002,
           "priority_fee": 0,
-          "public_key": "ed25519:Fr79b6NQxMdHJYgzURHt57g7jLRAwj93kMV4YrvHk6ah",
-          "receiver_id": "dev-20261105185914-31020427396687.test.near",
-          "signature": "ed25519:2oEAZqTARxUuT8euwbAtDpsEUAxa4fFPjaQfEJqGJZG6kNKfCmJqqDihf92y1hGxwqMS1TbRkihkjzKhM3P5aGZ7",
-          "signer_id": "dev-20261105185915-91010644860492.test.near"
+          "public_key": "ed25519:DngkCRnU3fcC2PadS7PCXfNSxH1SeTyMTKz3gdEefK9g",
+          "receiver_id": "dev-20261105192442-98096917287809.test.near",
+          "signature": "ed25519:3MqY6gKRmbEWfEzKYqcwNx6ZCJTeF1cWg1ejgJhEK8yQUmX6reL79kaUjDEtyKhrDZfLW5Ker7yqDXWr4Dq2PtuH",
+          "signer_id": "dev-20261105192443-73047256399939.test.near"
         },
         "transaction_outcome": {
-          "block_hash": "6Xgrt4TTt6ty46dWsVKc8kRs3ZWHmWfhSovfUZtmT4t5",
-          "id": "HoFgdPXM3xJxsTXW5KCPnE4N3EYg4bkPSkXH2p2hQT9d",
+          "block_hash": "794MzVg3VsoUmnv6tJVqZiSteRH6vo3KbG43xjPF21i1",
+          "id": "29J79mpyo4HGsne1LtYTH4mW6zY7J9yU4oBbJHAGV3Fs",
           "outcome": {
-            "executor_id": "dev-20261105185915-91010644860492.test.near",
+            "executor_id": "dev-20261105192443-73047256399939.test.near",
             "gas_burnt": 313829229515,
             "logs": [],
             "metadata": {
               "gas_profile": null,
               "version": 1
             },
-            "receipt_ids": ["G8CcfGQoX19X1wPA69MvuhmZVtbgz9CPRX3bvvik73ss"],
+            "receipt_ids": ["FuVpywU1ZhEnHetPtjWx9JqXBboJf3JUxiLLpJ9PiMSh"],
             "status": {
-              "SuccessReceiptId": "G8CcfGQoX19X1wPA69MvuhmZVtbgz9CPRX3bvvik73ss"
+              "SuccessReceiptId": "FuVpywU1ZhEnHetPtjWx9JqXBboJf3JUxiLLpJ9PiMSh"
             },
             "tokens_burnt": "31382922951500000000"
           },
@@ -672,7 +673,7 @@
                 "requests": []
               }
             },
-            "chunk_hash": "CpZDosTkqwjFRAcqWoWnft7vwXvGMdtaNLZcQY2fce1e",
+            "chunk_hash": "GsAeJDHqyiMhNtsRiMNJ6JHQCipk65Ve9Dme6kRHU4o2",
             "congestion_info": {
               "allowed_shard": 0,
               "buffered_receipts_gas": "0",
@@ -680,19 +681,19 @@
               "receipt_bytes": 0
             },
             "encoded_length": 397,
-            "encoded_merkle_root": "ppnunRyhqhLQuGBQygVuGEjWmFBraeHHe1PGLiDNdwq",
+            "encoded_merkle_root": "A9p2322ouyczgCJ4WcuYVFoddQE6f8kG5D84JB7CyZbf",
             "gas_limit": 1000000000000000,
             "gas_used": 313829229515,
-            "height_created": 22,
-            "height_included": 22,
-            "outcome_root": "3A8S9aBEVAnYeuckwVcuZL8NoC7VQM9aNtAZWNFuvHUT",
-            "outgoing_receipts_root": "9LmQjS2uy8C6YJ5bbh68gem9PvjLFefzbeHLMfobz9ti",
-            "prev_block_hash": "6Xgrt4TTt6ty46dWsVKc8kRs3ZWHmWfhSovfUZtmT4t5",
-            "prev_state_root": "7cRZQxo1fsZenw8Su7PMTJEDuyZVoFaJ3hhdLAVTdcP8",
+            "height_created": 21,
+            "height_included": 21,
+            "outcome_root": "ENLgKmZTLoVJrctB3WBHdboXpTm9a5QJWukQrbTYbH9K",
+            "outgoing_receipts_root": "E1dFH7Q2ztKFG1JAJxduWMTB3wz5VH2144p5MxDvMTMk",
+            "prev_block_hash": "794MzVg3VsoUmnv6tJVqZiSteRH6vo3KbG43xjPF21i1",
+            "prev_state_root": "DsiHDoGppYkQ5PLgXb7VeWrohubVWjZvD25XWetNzPDa",
             "proposed_split": null,
             "rent_paid": "0",
             "shard_id": 0,
-            "signature": "ed25519:545dMu5cg6PSPqKcP88ZZn8wrxnpMWAedSVEUYuBY2LM1XacXw8PJGbbe13Bw9br1nG2gFrZeFAR8Hc8YZHw3xr3",
+            "signature": "ed25519:DG8BVnSLy3wJxKivEg8SazVrEhYspMftyZe1SKQkLEnJ9quhyZHqcd7TJMzgWEc6KHy6RJPLeUxSHkXGF6EdyjP",
             "tx_root": "11111111111111111111111111111111",
             "validator_proposals": [],
             "validator_reward": "0"
@@ -700,56 +701,56 @@
         ],
         "header": {
           "approvals": [
-            "ed25519:4NGd28W3movtsKcKKe2iQShyvScDGemBdLSfVSRYvyY4dvwp6wfqvUeRoy6yc6QVivoP5HhAS9VvSjazKrfFVtCV"
+            "ed25519:3nyarek8wUxPZLVMiBxSwaXmKwT8eRdTaXBD7VwzjPxZWmYW2bpMFPe5wfBqP5wV9YTSdeju9q5AhiynhakGsUFm"
           ],
-          "block_body_hash": "8tm4wEATvwp1UzpXSU67GtvMSq8c4j2dx8QULSa7ZwfR",
-          "block_merkle_root": "vWcYRbCL9jTojiYEzbM5nD8ey2DRymarzwf6mqNDuVG",
-          "block_ordinal": 23,
+          "block_body_hash": "DoRFsuAxJ1LDWtBqNttbWbXkc8jaV5WkYxxCWRdB3nem",
+          "block_merkle_root": "8ehpd3nJPJYGXuDwtcu5fYiLPaA9994297xcCaPRAybx",
+          "block_ordinal": 22,
           "challenges_result": [],
           "challenges_root": "11111111111111111111111111111111",
           "chunk_endorsements": [[1]],
-          "chunk_headers_root": "GQDLR1hkG4rXNU9JUj99Ntm3ARCnSGh25rP2bMbHHuns",
+          "chunk_headers_root": "2DrgkH55sjo9EfjpMdr8wrdFmYjQKEGt2YxhLvEQ239j",
           "chunk_mask": [true],
-          "chunk_receipts_root": "5NMU5WM6PnkBwvYHycHGCEqNg99iKwVRgHMhA6QSrcnH",
+          "chunk_receipts_root": "FcDs9RJhurBXF7ykes81niXiQJb2FnZWKVC1MBoBi6FH",
           "chunk_tx_root": "7tkzFg8RHBmMw1ncRJZCCZAizgq4rwCftTKYLce8RU8t",
           "chunks_included": 1,
           "epoch_id": "11111111111111111111111111111111",
           "epoch_sync_data_hash": null,
           "gas_price": "100000000",
-          "hash": "HrvES35mZYKqxUx9sBG7bonEdQEgF7kEDWGy3yoraLSv",
-          "height": 22,
-          "last_ds_final_block": "6Xgrt4TTt6ty46dWsVKc8kRs3ZWHmWfhSovfUZtmT4t5",
-          "last_final_block": "5N2CQVLoQSrXmcHjJwfHLCBGLh1bYLDZYhauGDPXbca4",
+          "hash": "37UTdFYikiaamVDahdqqakaQaUtpDDsLRicmzLmpQMZs",
+          "height": 21,
+          "last_ds_final_block": "794MzVg3VsoUmnv6tJVqZiSteRH6vo3KbG43xjPF21i1",
+          "last_final_block": "ApexYe7mj9YEaE55uQ5eoxaF57w7UnD7wFCofB5DYrwK",
           "latest_protocol_version": 86,
-          "next_bp_hash": "98FGcFVb9svfashbU92Y1whc9J5z5ZksQVN7PCj2CNGQ",
-          "next_epoch_id": "CgPLGzrPA2SAaVMdo9FmJrwu2VM9HPNMdxZ7HryxTNks",
-          "outcome_root": "AUgHVG2ioL6YNs6mrAWejxRQhEMTAsYssSFrQMtDH5Ee",
-          "prev_hash": "6Xgrt4TTt6ty46dWsVKc8kRs3ZWHmWfhSovfUZtmT4t5",
-          "prev_height": 21,
-          "prev_state_root": "7Eupw2bEHWtAKzquy3riz8zGVChYwZFWh4oSyLQsGZQ1",
-          "random_value": "3sspefoF55gzXEr5bvXU5gHN7uTT6H1NnRLVEQguy8ve",
+          "next_bp_hash": "2ZQDMLAPQ1gtVCqkXmS7h44EJy65zYVr9GroA85vpMHt",
+          "next_epoch_id": "Eck5bzSwsHgG6qD7HBzXtweXQ7okmSMtx6inGMsTEC5j",
+          "outcome_root": "A6jVczqeMhRZyajtQLKTFCbtzkFSUZoUskEpkqdKmf6s",
+          "prev_hash": "794MzVg3VsoUmnv6tJVqZiSteRH6vo3KbG43xjPF21i1",
+          "prev_height": 20,
+          "prev_state_root": "Fp6m7y2UMkPH9S8AVk2UySonLCwuhfgVSKRyNCpkzSyw",
+          "random_value": "CA4uN18TegEUm97Bhrje7BurjWZAXsJqyPhFPCBFnogd",
           "rent_paid": "0",
           "shard_split": null,
-          "signature": "ed25519:vGvCmxqZJ7i4VnF7tYE4u14C8DHT5jNNuVhokBb2SVCXQEuxSJ2mpwK32RxSPo1uw2bWbERmk1h8LNgp7UoFNrD",
-          "timestamp": 1793905156662442200,
-          "timestamp_nanosec": "1793905156662442254",
-          "total_supply": "2050029999980762592314279800000000",
+          "signature": "ed25519:2GGPmDungNXi8kFbj9xVimkSG1akBr3Cx3kJvTgbYWHctRdNu7oZVZXuRhKMpNy6ik5y8HDrXH1sdL2L9ey22iDT",
+          "timestamp": 1793906684946718000,
+          "timestamp_nanosec": "1793906684946717871",
+          "total_supply": "2050029999980561536410869400000000",
           "validator_proposals": [],
           "validator_reward": "0"
         }
       },
       "account": {
-        "amount": "99999600038364087800000000",
-        "block_hash": "HrvES35mZYKqxUx9sBG7bonEdQEgF7kEDWGy3yoraLSv",
-        "block_height": 22,
-        "code_hash": "7cpdwYxv9DHP9N4RkriZqjHy9GuDxwLjTPReyQmFuDBT",
+        "amount": "99999599761850178500000000",
+        "block_hash": "37UTdFYikiaamVDahdqqakaQaUtpDDsLRicmzLmpQMZs",
+        "block_height": 21,
+        "code_hash": "F8puNhtHcSf5mFEKcoPSmAoR2bXrBQthBjzuHgMjK84y",
         "locked": "0",
         "storage_paid_at": 0,
-        "storage_usage": 330439
+        "storage_usage": 348075
       },
       "foundation": {
-        "block_hash": "HrvES35mZYKqxUx9sBG7bonEdQEgF7kEDWGy3yoraLSv",
-        "block_height": 22,
+        "block_hash": "37UTdFYikiaamVDahdqqakaQaUtpDDsLRicmzLmpQMZs",
+        "block_height": 21,
         "logs": [],
         "result": [
           123, 34, 100, 101, 112, 108, 111, 121, 109, 101, 110, 116, 34, 58,
@@ -759,8 +760,8 @@
           49, 49, 49, 49, 49, 49, 49, 49, 49, 49, 49, 49, 49, 49, 49, 49, 49,
           49, 49, 49, 49, 49, 49, 49, 49, 49, 49, 34, 44, 34, 99, 111, 110, 116,
           114, 97, 99, 116, 95, 105, 100, 34, 58, 34, 100, 101, 118, 45, 50, 48,
-          50, 54, 49, 49, 48, 53, 49, 56, 53, 57, 49, 52, 45, 51, 49, 48, 50,
-          48, 52, 50, 55, 51, 57, 54, 54, 56, 55, 46, 116, 101, 115, 116, 46,
+          50, 54, 49, 49, 48, 53, 49, 57, 50, 52, 52, 50, 45, 57, 56, 48, 57,
+          54, 57, 49, 55, 50, 56, 55, 56, 48, 57, 46, 116, 101, 115, 116, 46,
           110, 101, 97, 114, 34, 44, 34, 97, 112, 105, 95, 118, 101, 114, 115,
           105, 111, 110, 34, 58, 34, 50, 46, 48, 46, 48, 34, 44, 34, 115, 116,
           97, 116, 101, 95, 115, 99, 104, 101, 109, 97, 34, 58, 34, 49, 34, 44,
@@ -775,14 +776,14 @@
           114, 107, 101, 116, 95, 114, 101, 118, 105, 115, 105, 111, 110, 34,
           58, 34, 51, 34, 44, 34, 101, 118, 101, 110, 116, 95, 115, 101, 113,
           117, 101, 110, 99, 101, 34, 58, 34, 51, 34, 44, 34, 98, 108, 111, 99,
-          107, 95, 104, 101, 105, 103, 104, 116, 34, 58, 34, 50, 50, 34, 44, 34,
+          107, 95, 104, 101, 105, 103, 104, 116, 34, 58, 34, 50, 49, 34, 44, 34,
           98, 108, 111, 99, 107, 95, 116, 105, 109, 101, 115, 116, 97, 109, 112,
-          95, 110, 115, 34, 58, 34, 49, 55, 57, 51, 57, 48, 53, 49, 53, 54, 54,
-          54, 50, 52, 52, 50, 50, 53, 52, 34, 44, 34, 100, 97, 116, 97, 34, 58,
+          95, 110, 115, 34, 58, 34, 49, 55, 57, 51, 57, 48, 54, 54, 56, 52, 57,
+          52, 54, 55, 49, 55, 56, 55, 49, 34, 44, 34, 100, 97, 116, 97, 34, 58,
           123, 34, 111, 119, 110, 101, 114, 95, 97, 99, 99, 111, 117, 110, 116,
           95, 105, 100, 34, 58, 34, 100, 101, 118, 45, 50, 48, 50, 54, 49, 49,
-          48, 53, 49, 56, 53, 57, 49, 52, 45, 51, 49, 48, 50, 48, 52, 50, 55,
-          51, 57, 54, 54, 56, 55, 46, 116, 101, 115, 116, 46, 110, 101, 97, 114,
+          48, 53, 49, 57, 50, 52, 52, 50, 45, 57, 56, 48, 57, 54, 57, 49, 55,
+          50, 56, 55, 56, 48, 57, 46, 116, 101, 115, 116, 46, 110, 101, 97, 114,
           34, 44, 34, 111, 112, 101, 114, 97, 116, 111, 114, 95, 97, 99, 99,
           111, 117, 110, 116, 95, 105, 100, 34, 58, 34, 111, 112, 101, 114, 97,
           116, 111, 114, 46, 116, 101, 115, 116, 110, 101, 116, 34, 44, 34, 109,
@@ -816,7 +817,8 @@
           99, 105, 112, 101, 115, 34, 44, 34, 115, 116, 97, 114, 116, 95, 112,
           114, 111, 100, 117, 99, 116, 105, 111, 110, 34, 44, 34, 103, 101, 116,
           95, 112, 114, 111, 100, 117, 99, 116, 105, 111, 110, 95, 106, 111, 98,
-          115, 34, 93, 125, 125
+          115, 34, 44, 34, 99, 111, 109, 112, 108, 101, 116, 101, 95, 112, 114,
+          111, 100, 117, 99, 116, 105, 111, 110, 34, 93, 125, 125
         ]
       }
     },
@@ -829,28 +831,28 @@
         "command": {
           "sequence": "3",
           "config_version": "1",
-          "valid_until_ns": "1793905657043991458"
+          "valid_until_ns": "1793907185328812684"
         }
       },
-      "transaction_hash": "9w4U96EQqmsvHv1dMiSwR7oR3haWcZ1J9YdtCxeDE8zx",
-      "reference_block_height": 23,
-      "gas_burnt": "5323527256497",
+      "transaction_hash": "Hgvj2vENWiBtAMxPeDQ8vAXukX4DyXqufrEw4uzEd5qr",
+      "reference_block_height": 22,
+      "gas_burnt": "5361162238565",
       "receipt": {
         "final_execution_status": "FINAL",
         "receipts_outcome": [
           {
-            "block_hash": "5k6AErsy7sKAC42D2ecFJtRphNqRoxkVGB8jAGb3rdeq",
-            "id": "D5rTLUBKGD9QiTMgdsYLtYqwbNJKfjNacFQ2sgyKusEe",
+            "block_hash": "9dUx9wCmg44kq1y6Kudx2nXqiTyTGDTKwC9iDPguwqdf",
+            "id": "21u3hURLZQWdKcfHqrkuKhHb6xLCTSgrCQRE9wvPc53r",
             "outcome": {
-              "executor_id": "dev-20261105185914-31020427396687.test.near",
-              "gas_burnt": 5007599943522,
+              "executor_id": "dev-20261105192442-98096917287809.test.near",
+              "gas_burnt": 5045234925590,
               "logs": [
-                "EVENT_JSON:{\"standard\":\"bot_bazaar_living_town\",\"version\":\"2.0.0\",\"event\":\"rename_shop\",\"data\":[{\"contract_id\":\"dev-20261105185914-31020427396687.test.near\",\"config_version\":\"1\",\"event_sequence\":\"4\",\"market_revision\":\"4\",\"block_height\":\"28\",\"block_timestamp_ns\":\"1793905157425006912\",\"predecessor_account_id\":\"dev-20261105185915-91010644860492.test.near\",\"principal\":\"account:dev-20261105185915-91010644860492.test.near\",\"command_sequence\":\"3\",\"payload_sha256\":\"fa5c7cab46f74fb25a4c94de5389f9397532997424d69bc9b86321d08f34b500\",\"outcome\":{\"kind\":\"shop_renamed\",\"shop\":{\"shop_id\":\"4\",\"owner\":{\"kind\":\"player\",\"account_id\":\"dev-20261105185915-91010644860492.test.near\"},\"name\":\"Verified Shop\",\"revision\":\"2\",\"production_slots\":\"1\",\"policy_revision\":\"1\",\"created_at_ns\":\"1793905156662442254\",\"ownership_command_sequence\":\"2\"}}}]}"
+                "EVENT_JSON:{\"standard\":\"bot_bazaar_living_town\",\"version\":\"2.0.0\",\"event\":\"rename_shop\",\"data\":[{\"contract_id\":\"dev-20261105192442-98096917287809.test.near\",\"config_version\":\"1\",\"event_sequence\":\"4\",\"market_revision\":\"4\",\"block_height\":\"27\",\"block_timestamp_ns\":\"1793906685711407457\",\"predecessor_account_id\":\"dev-20261105192443-73047256399939.test.near\",\"principal\":\"account:dev-20261105192443-73047256399939.test.near\",\"command_sequence\":\"3\",\"payload_sha256\":\"9cb9ab250d95814f31947cdbea6cc6fd244e4d87574ff3315ad67a2db6221cb7\",\"outcome\":{\"kind\":\"shop_renamed\",\"shop\":{\"shop_id\":\"4\",\"owner\":{\"kind\":\"player\",\"account_id\":\"dev-20261105192443-73047256399939.test.near\"},\"name\":\"Verified Shop\",\"revision\":\"2\",\"production_slots\":\"1\",\"policy_revision\":\"1\",\"created_at_ns\":\"1793906684946717871\",\"ownership_command_sequence\":\"2\"}}}]}"
               ],
               "metadata": {
                 "contracts": [
                   {
-                    "local": "7cpdwYxv9DHP9N4RkriZqjHy9GuDxwLjTPReyQmFuDBT"
+                    "local": "F8puNhtHcSf5mFEKcoPSmAoR2bXrBQthBjzuHgMjK84y"
                   }
                 ],
                 "gas_profile": [
@@ -867,7 +869,7 @@
                   {
                     "cost": "CONTRACT_LOADING_BYTES",
                     "cost_category": "WASM_HOST_COST",
-                    "gas_used": "357159133895"
+                    "gas_used": "376252296655"
                   },
                   {
                     "cost": "LOG_BASE",
@@ -892,7 +894,7 @@
                   {
                     "cost": "READ_MEMORY_BYTE",
                     "cost_category": "WASM_HOST_COST",
-                    "gas_used": "28350341514"
+                    "gas_used": "29171429442"
                   },
                   {
                     "cost": "READ_REGISTER_BASE",
@@ -902,7 +904,7 @@
                   {
                     "cost": "READ_REGISTER_BYTE",
                     "cost_category": "WASM_HOST_COST",
-                    "gas_used": "230043708"
+                    "gas_used": "240688404"
                   },
                   {
                     "cost": "SHA256_BASE",
@@ -927,7 +929,7 @@
                   {
                     "cost": "STORAGE_READ_VALUE_BYTE",
                     "cost_category": "WASM_HOST_COST",
-                    "gas_used": "9662148888"
+                    "gas_used": "10268137320"
                   },
                   {
                     "cost": "STORAGE_WRITE_BASE",
@@ -937,7 +939,7 @@
                   {
                     "cost": "STORAGE_WRITE_EVICTED_BYTE",
                     "cost_category": "WASM_HOST_COST",
-                    "gas_used": "102935968935"
+                    "gas_used": "109873307247"
                   },
                   {
                     "cost": "STORAGE_WRITE_KEY_BYTE",
@@ -947,7 +949,7 @@
                   {
                     "cost": "STORAGE_WRITE_VALUE_BYTE",
                     "cost_category": "WASM_HOST_COST",
-                    "gas_used": "99476454573"
+                    "gas_used": "106176458997"
                   },
                   {
                     "cost": "TOUCHING_TRIE_NODE",
@@ -967,7 +969,7 @@
                   {
                     "cost": "WASM_INSTRUCTION",
                     "cost_category": "WASM_HOST_COST",
-                    "gas_used": "2537219066580"
+                    "gas_used": "2539159947984"
                   },
                   {
                     "cost": "WRITE_MEMORY_BASE",
@@ -977,7 +979,7 @@
                   {
                     "cost": "WRITE_MEMORY_BYTE",
                     "cost_category": "WASM_HOST_COST",
-                    "gas_used": "6444444552"
+                    "gas_used": "6738611928"
                   },
                   {
                     "cost": "WRITE_REGISTER_BASE",
@@ -987,24 +989,24 @@
                   {
                     "cost": "WRITE_REGISTER_BYTE",
                     "cost_category": "WASM_HOST_COST",
-                    "gas_used": "19300540428"
+                    "gas_used": "20532247164"
                   }
                 ],
                 "version": 4
               },
-              "receipt_ids": ["7sV8sjQKuALUopRcHrf3e9DjXwte8CHzV8YAxhjjk5SM"],
+              "receipt_ids": ["CVFYYTybfV3FHkEnji5WFfWJ6MjSUh8eD5dySJzC9r2R"],
               "status": {
-                "SuccessValue": "eyJkZXBsb3ltZW50Ijp7Im5ldHdvcmtfaWQiOiJ0ZXN0bmV0IiwiZ2VuZXNpc19oYXNoIjoiMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTEiLCJjb250cmFjdF9pZCI6ImRldi0yMDI2MTEwNTE4NTkxNC0zMTAyMDQyNzM5NjY4Ny50ZXN0Lm5lYXIiLCJhcGlfdmVyc2lvbiI6IjIuMC4wIiwic3RhdGVfc2NoZW1hIjoiMSIsImNvbW1hbmRfc2NoZW1hIjoiMSIsImNvbmZpZ192ZXJzaW9uIjoiMSIsImNvbmZpZ19zaGEyNTYiOiJhOTMyZWZiNDhjNzBhNzNjZTQ2NDcyY2Q3NTQyODg2NDk1NDFiMzQ2MDRlMmVhNDlhNDA5Mzk2MWU3MWEyZDEwIn0sIm1hcmtldF9yZXZpc2lvbiI6IjQiLCJldmVudF9zZXF1ZW5jZSI6IjQiLCJibG9ja19oZWlnaHQiOiIyOCIsImJsb2NrX3RpbWVzdGFtcF9ucyI6IjE3OTM5MDUxNTc0MjUwMDY5MTIiLCJkYXRhIjp7InByaW5jaXBhbCI6ImFjY291bnQ6ZGV2LTIwMjYxMTA1MTg1OTE1LTkxMDEwNjQ0ODYwNDkyLnRlc3QubmVhciIsImNvbW1hbmRfc2VxdWVuY2UiOiIzIiwicGF5bG9hZF9zaGEyNTYiOiJmYTVjN2NhYjQ2Zjc0ZmIyNWE0Yzk0ZGU1Mzg5ZjkzOTc1MzI5OTc0MjRkNjliYzliODYzMjFkMDhmMzRiNTAwIiwicmVwbGF5ZWQiOmZhbHNlLCJlZmZlY3RfcmV2aXNpb24iOiI0IiwiZWZmZWN0X2V2ZW50X3NlcXVlbmNlIjoiNCIsIm91dGNvbWUiOnsia2luZCI6InNob3BfcmVuYW1lZCIsInNob3AiOnsic2hvcF9pZCI6IjQiLCJvd25lciI6eyJraW5kIjoicGxheWVyIiwiYWNjb3VudF9pZCI6ImRldi0yMDI2MTEwNTE4NTkxNS05MTAxMDY0NDg2MDQ5Mi50ZXN0Lm5lYXIifSwibmFtZSI6IlZlcmlmaWVkIFNob3AiLCJyZXZpc2lvbiI6IjIiLCJwcm9kdWN0aW9uX3Nsb3RzIjoiMSIsInBvbGljeV9yZXZpc2lvbiI6IjEiLCJjcmVhdGVkX2F0X25zIjoiMTc5MzkwNTE1NjY2MjQ0MjI1NCIsIm93bmVyc2hpcF9jb21tYW5kX3NlcXVlbmNlIjoiMiJ9fX19"
+                "SuccessValue": "eyJkZXBsb3ltZW50Ijp7Im5ldHdvcmtfaWQiOiJ0ZXN0bmV0IiwiZ2VuZXNpc19oYXNoIjoiMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTEiLCJjb250cmFjdF9pZCI6ImRldi0yMDI2MTEwNTE5MjQ0Mi05ODA5NjkxNzI4NzgwOS50ZXN0Lm5lYXIiLCJhcGlfdmVyc2lvbiI6IjIuMC4wIiwic3RhdGVfc2NoZW1hIjoiMSIsImNvbW1hbmRfc2NoZW1hIjoiMSIsImNvbmZpZ192ZXJzaW9uIjoiMSIsImNvbmZpZ19zaGEyNTYiOiJhOTMyZWZiNDhjNzBhNzNjZTQ2NDcyY2Q3NTQyODg2NDk1NDFiMzQ2MDRlMmVhNDlhNDA5Mzk2MWU3MWEyZDEwIn0sIm1hcmtldF9yZXZpc2lvbiI6IjQiLCJldmVudF9zZXF1ZW5jZSI6IjQiLCJibG9ja19oZWlnaHQiOiIyNyIsImJsb2NrX3RpbWVzdGFtcF9ucyI6IjE3OTM5MDY2ODU3MTE0MDc0NTciLCJkYXRhIjp7InByaW5jaXBhbCI6ImFjY291bnQ6ZGV2LTIwMjYxMTA1MTkyNDQzLTczMDQ3MjU2Mzk5OTM5LnRlc3QubmVhciIsImNvbW1hbmRfc2VxdWVuY2UiOiIzIiwicGF5bG9hZF9zaGEyNTYiOiI5Y2I5YWIyNTBkOTU4MTRmMzE5NDdjZGJlYTZjYzZmZDI0NGU0ZDg3NTc0ZmYzMzE1YWQ2N2EyZGI2MjIxY2I3IiwicmVwbGF5ZWQiOmZhbHNlLCJlZmZlY3RfcmV2aXNpb24iOiI0IiwiZWZmZWN0X2V2ZW50X3NlcXVlbmNlIjoiNCIsIm91dGNvbWUiOnsia2luZCI6InNob3BfcmVuYW1lZCIsInNob3AiOnsic2hvcF9pZCI6IjQiLCJvd25lciI6eyJraW5kIjoicGxheWVyIiwiYWNjb3VudF9pZCI6ImRldi0yMDI2MTEwNTE5MjQ0My03MzA0NzI1NjM5OTkzOS50ZXN0Lm5lYXIifSwibmFtZSI6IlZlcmlmaWVkIFNob3AiLCJyZXZpc2lvbiI6IjIiLCJwcm9kdWN0aW9uX3Nsb3RzIjoiMSIsInBvbGljeV9yZXZpc2lvbiI6IjEiLCJjcmVhdGVkX2F0X25zIjoiMTc5MzkwNjY4NDk0NjcxNzg3MSIsIm93bmVyc2hpcF9jb21tYW5kX3NlcXVlbmNlIjoiMiJ9fX19"
               },
-              "tokens_burnt": "500759994352200000000"
+              "tokens_burnt": "504523492559000000000"
             },
             "proof": []
           },
           {
-            "block_hash": "9RZA3FPHqydNNk6WvzdBNrB1zx223qkTAocjV5tvqxbd",
-            "id": "7sV8sjQKuALUopRcHrf3e9DjXwte8CHzV8YAxhjjk5SM",
+            "block_hash": "FZZWkYoBZBdssx9NeHJcNc5Lc53355Q16CgKbFLXqXA",
+            "id": "CVFYYTybfV3FHkEnji5WFfWJ6MjSUh8eD5dySJzC9r2R",
             "outcome": {
-              "executor_id": "dev-20261105185915-91010644860492.test.near",
+              "executor_id": "dev-20261105192443-73047256399939.test.near",
               "gas_burnt": 223182562500,
               "logs": [],
               "metadata": {
@@ -1022,41 +1024,41 @@
           }
         ],
         "status": {
-          "SuccessValue": "eyJkZXBsb3ltZW50Ijp7Im5ldHdvcmtfaWQiOiJ0ZXN0bmV0IiwiZ2VuZXNpc19oYXNoIjoiMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTEiLCJjb250cmFjdF9pZCI6ImRldi0yMDI2MTEwNTE4NTkxNC0zMTAyMDQyNzM5NjY4Ny50ZXN0Lm5lYXIiLCJhcGlfdmVyc2lvbiI6IjIuMC4wIiwic3RhdGVfc2NoZW1hIjoiMSIsImNvbW1hbmRfc2NoZW1hIjoiMSIsImNvbmZpZ192ZXJzaW9uIjoiMSIsImNvbmZpZ19zaGEyNTYiOiJhOTMyZWZiNDhjNzBhNzNjZTQ2NDcyY2Q3NTQyODg2NDk1NDFiMzQ2MDRlMmVhNDlhNDA5Mzk2MWU3MWEyZDEwIn0sIm1hcmtldF9yZXZpc2lvbiI6IjQiLCJldmVudF9zZXF1ZW5jZSI6IjQiLCJibG9ja19oZWlnaHQiOiIyOCIsImJsb2NrX3RpbWVzdGFtcF9ucyI6IjE3OTM5MDUxNTc0MjUwMDY5MTIiLCJkYXRhIjp7InByaW5jaXBhbCI6ImFjY291bnQ6ZGV2LTIwMjYxMTA1MTg1OTE1LTkxMDEwNjQ0ODYwNDkyLnRlc3QubmVhciIsImNvbW1hbmRfc2VxdWVuY2UiOiIzIiwicGF5bG9hZF9zaGEyNTYiOiJmYTVjN2NhYjQ2Zjc0ZmIyNWE0Yzk0ZGU1Mzg5ZjkzOTc1MzI5OTc0MjRkNjliYzliODYzMjFkMDhmMzRiNTAwIiwicmVwbGF5ZWQiOmZhbHNlLCJlZmZlY3RfcmV2aXNpb24iOiI0IiwiZWZmZWN0X2V2ZW50X3NlcXVlbmNlIjoiNCIsIm91dGNvbWUiOnsia2luZCI6InNob3BfcmVuYW1lZCIsInNob3AiOnsic2hvcF9pZCI6IjQiLCJvd25lciI6eyJraW5kIjoicGxheWVyIiwiYWNjb3VudF9pZCI6ImRldi0yMDI2MTEwNTE4NTkxNS05MTAxMDY0NDg2MDQ5Mi50ZXN0Lm5lYXIifSwibmFtZSI6IlZlcmlmaWVkIFNob3AiLCJyZXZpc2lvbiI6IjIiLCJwcm9kdWN0aW9uX3Nsb3RzIjoiMSIsInBvbGljeV9yZXZpc2lvbiI6IjEiLCJjcmVhdGVkX2F0X25zIjoiMTc5MzkwNTE1NjY2MjQ0MjI1NCIsIm93bmVyc2hpcF9jb21tYW5kX3NlcXVlbmNlIjoiMiJ9fX19"
+          "SuccessValue": "eyJkZXBsb3ltZW50Ijp7Im5ldHdvcmtfaWQiOiJ0ZXN0bmV0IiwiZ2VuZXNpc19oYXNoIjoiMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTEiLCJjb250cmFjdF9pZCI6ImRldi0yMDI2MTEwNTE5MjQ0Mi05ODA5NjkxNzI4NzgwOS50ZXN0Lm5lYXIiLCJhcGlfdmVyc2lvbiI6IjIuMC4wIiwic3RhdGVfc2NoZW1hIjoiMSIsImNvbW1hbmRfc2NoZW1hIjoiMSIsImNvbmZpZ192ZXJzaW9uIjoiMSIsImNvbmZpZ19zaGEyNTYiOiJhOTMyZWZiNDhjNzBhNzNjZTQ2NDcyY2Q3NTQyODg2NDk1NDFiMzQ2MDRlMmVhNDlhNDA5Mzk2MWU3MWEyZDEwIn0sIm1hcmtldF9yZXZpc2lvbiI6IjQiLCJldmVudF9zZXF1ZW5jZSI6IjQiLCJibG9ja19oZWlnaHQiOiIyNyIsImJsb2NrX3RpbWVzdGFtcF9ucyI6IjE3OTM5MDY2ODU3MTE0MDc0NTciLCJkYXRhIjp7InByaW5jaXBhbCI6ImFjY291bnQ6ZGV2LTIwMjYxMTA1MTkyNDQzLTczMDQ3MjU2Mzk5OTM5LnRlc3QubmVhciIsImNvbW1hbmRfc2VxdWVuY2UiOiIzIiwicGF5bG9hZF9zaGEyNTYiOiI5Y2I5YWIyNTBkOTU4MTRmMzE5NDdjZGJlYTZjYzZmZDI0NGU0ZDg3NTc0ZmYzMzE1YWQ2N2EyZGI2MjIxY2I3IiwicmVwbGF5ZWQiOmZhbHNlLCJlZmZlY3RfcmV2aXNpb24iOiI0IiwiZWZmZWN0X2V2ZW50X3NlcXVlbmNlIjoiNCIsIm91dGNvbWUiOnsia2luZCI6InNob3BfcmVuYW1lZCIsInNob3AiOnsic2hvcF9pZCI6IjQiLCJvd25lciI6eyJraW5kIjoicGxheWVyIiwiYWNjb3VudF9pZCI6ImRldi0yMDI2MTEwNTE5MjQ0My03MzA0NzI1NjM5OTkzOS50ZXN0Lm5lYXIifSwibmFtZSI6IlZlcmlmaWVkIFNob3AiLCJyZXZpc2lvbiI6IjIiLCJwcm9kdWN0aW9uX3Nsb3RzIjoiMSIsInBvbGljeV9yZXZpc2lvbiI6IjEiLCJjcmVhdGVkX2F0X25zIjoiMTc5MzkwNjY4NDk0NjcxNzg3MSIsIm93bmVyc2hpcF9jb21tYW5kX3NlcXVlbmNlIjoiMiJ9fX19"
         },
         "transaction": {
           "actions": [
             {
               "FunctionCall": {
-                "args": "eyJzaG9wX2lkIjoiNCIsImV4cGVjdGVkX3Nob3BfcmV2aXNpb24iOiIxIiwibmFtZSI6IlZlcmlmaWVkIFNob3AiLCJjb21tYW5kIjp7InNlcXVlbmNlIjoiMyIsImNvbmZpZ192ZXJzaW9uIjoiMSIsInZhbGlkX3VudGlsX25zIjoiMTc5MzkwNTY1NzA0Mzk5MTQ1OCJ9fQ==",
+                "args": "eyJzaG9wX2lkIjoiNCIsImV4cGVjdGVkX3Nob3BfcmV2aXNpb24iOiIxIiwibmFtZSI6IlZlcmlmaWVkIFNob3AiLCJjb21tYW5kIjp7InNlcXVlbmNlIjoiMyIsImNvbmZpZ192ZXJzaW9uIjoiMSIsInZhbGlkX3VudGlsX25zIjoiMTc5MzkwNzE4NTMyODgxMjY4NCJ9fQ==",
                 "deposit": "0",
                 "gas": 100000000000000,
                 "method_name": "rename_shop"
               }
             }
           ],
-          "hash": "9w4U96EQqmsvHv1dMiSwR7oR3haWcZ1J9YdtCxeDE8zx",
-          "nonce": 12000003,
+          "hash": "Hgvj2vENWiBtAMxPeDQ8vAXukX4DyXqufrEw4uzEd5qr",
+          "nonce": 10000003,
           "priority_fee": 0,
-          "public_key": "ed25519:Fr79b6NQxMdHJYgzURHt57g7jLRAwj93kMV4YrvHk6ah",
-          "receiver_id": "dev-20261105185914-31020427396687.test.near",
-          "signature": "ed25519:5hyDwEZprvpUVhaTFzTbk1dgvBpNmPMkE8Du8NcazLLoLCiuhcg4DEWQWnQfQW2axSRPD4PuGkNXLwrfJpCjfPUV",
-          "signer_id": "dev-20261105185915-91010644860492.test.near"
+          "public_key": "ed25519:DngkCRnU3fcC2PadS7PCXfNSxH1SeTyMTKz3gdEefK9g",
+          "receiver_id": "dev-20261105192442-98096917287809.test.near",
+          "signature": "ed25519:3pjgEJLVqMiYX9WsV4irPSsSgzirHCG6doMJB4zzhN79dPWtV6zDdbQMYoEfgd2uvSqMUR5Fy12CZi55iroHMNZv",
+          "signer_id": "dev-20261105192443-73047256399939.test.near"
         },
         "transaction_outcome": {
-          "block_hash": "2iMT4jNBJcyUhth47KMVdAYqCFKmqTy2Vp36HtcPA9kd",
-          "id": "9w4U96EQqmsvHv1dMiSwR7oR3haWcZ1J9YdtCxeDE8zx",
+          "block_hash": "7YWPhEdiNBTPpDjgzWLuiq7kF9F83Qh8eTQTSby4y9Mg",
+          "id": "Hgvj2vENWiBtAMxPeDQ8vAXukX4DyXqufrEw4uzEd5qr",
           "outcome": {
-            "executor_id": "dev-20261105185915-91010644860492.test.near",
+            "executor_id": "dev-20261105192443-73047256399939.test.near",
             "gas_burnt": 315927312975,
             "logs": [],
             "metadata": {
               "gas_profile": null,
               "version": 1
             },
-            "receipt_ids": ["D5rTLUBKGD9QiTMgdsYLtYqwbNJKfjNacFQ2sgyKusEe"],
+            "receipt_ids": ["21u3hURLZQWdKcfHqrkuKhHb6xLCTSgrCQRE9wvPc53r"],
             "status": {
-              "SuccessReceiptId": "D5rTLUBKGD9QiTMgdsYLtYqwbNJKfjNacFQ2sgyKusEe"
+              "SuccessReceiptId": "21u3hURLZQWdKcfHqrkuKhHb6xLCTSgrCQRE9wvPc53r"
             },
             "tokens_burnt": "31592731297500000000"
           },
@@ -1073,7 +1075,7 @@
                 "requests": []
               }
             },
-            "chunk_hash": "BJxVSNdTzA5pd7jShsU9gg39Qs998zA8EEtVcpx2Ek4g",
+            "chunk_hash": "8UddcEL9YiXf37s5QjryaDZraFh22HVQbpK642aYnLK4",
             "congestion_info": {
               "allowed_shard": 0,
               "buffered_receipts_gas": "0",
@@ -1081,19 +1083,19 @@
               "receipt_bytes": 0
             },
             "encoded_length": 441,
-            "encoded_merkle_root": "CC8Td2bGZBbEjtJZ5MwkUfxzKCHKmG1sFixnRyKbQKUQ",
+            "encoded_merkle_root": "HYd774VdCw9oH5Ze3RRMduexKXR9Szw58PfE9BAmpYTN",
             "gas_limit": 1000000000000000,
             "gas_used": 315927312975,
-            "height_created": 28,
-            "height_included": 28,
-            "outcome_root": "HvhenaHs9Sz53QwrbH9MWmT3LUwMsNZjyhdYWZUfpreX",
-            "outgoing_receipts_root": "8ppz16C7NJKEq4UevxTzhVF4rpxyRrqeYazjhz8tWeZ",
-            "prev_block_hash": "2iMT4jNBJcyUhth47KMVdAYqCFKmqTy2Vp36HtcPA9kd",
-            "prev_state_root": "HP5jQm8o2r2E6TcqaxJe1XjbXDJAkXa7LuRjm3LS1dFP",
+            "height_created": 27,
+            "height_included": 27,
+            "outcome_root": "8CSQxNMEY4hMap8tPZUvotyzBv5ZYxtDQEW7eQ3knkfe",
+            "outgoing_receipts_root": "JCyLwZsGvHZ6y9tRxBZUWchpEDY1kC9LMdPFg5FCYFtH",
+            "prev_block_hash": "7YWPhEdiNBTPpDjgzWLuiq7kF9F83Qh8eTQTSby4y9Mg",
+            "prev_state_root": "2vco8HpJv3QD6F6PvXwUxffs59eqh91ERZtKPPzGgAK2",
             "proposed_split": null,
             "rent_paid": "0",
             "shard_id": 0,
-            "signature": "ed25519:3wobHtYSvuxnSzJ6QvjMvniiQynivteQSD9RqoPhT4FS8iHKFg4qwWxfh88NdgSRuauEY5AMdFUySjDyus979Q8F",
+            "signature": "ed25519:Hn4PDJaWPDfjvH6QF14kZfZzhL68VoegXHVxY7VBKMnjyZeyEcaKyJ2Wpnta8uMei3Dd6vWBQuV7YDTpEBWzRgK",
             "tx_root": "11111111111111111111111111111111",
             "validator_proposals": [],
             "validator_reward": "0"
@@ -1101,56 +1103,56 @@
         ],
         "header": {
           "approvals": [
-            "ed25519:zLdbUWskhZYpC24KdozsmMMbmRtS2vQj7rvGpHm32TivxfqcUZMV3jJPp9L2wiZM2owHguDjAeRaF1Dq89uXtF3"
+            "ed25519:fxpHcSBVFweaTNvJYyQWzDf2YS6KFq6q7WZLfqdCnkazoDUxpxDdK8xhxPLo2jfVWhzRMVFDg8Dbi3WmpNHpxmM"
           ],
-          "block_body_hash": "FAJbm8bC9XJUbUgBE7ZT6yYocMjiRJVAbvD1y7c5TvNG",
-          "block_merkle_root": "Dvs5AdWbXg6MGEtLjGgVtCmXc9Upw9phyVWfn8HHm5AR",
-          "block_ordinal": 29,
+          "block_body_hash": "4TUFuEZ2hViz2MrAnYKKMAguyTFRQ68RPr42eWYBpKyM",
+          "block_merkle_root": "6txejXYaj1Gyuaic9aGfxuHMMQ3ApyeWALXS7a2GPPTk",
+          "block_ordinal": 28,
           "challenges_result": [],
           "challenges_root": "11111111111111111111111111111111",
           "chunk_endorsements": [[1]],
-          "chunk_headers_root": "ES8S19XJCGFkwfM3hZUyRAEfN46sFcJ8NdBK3Y1U46GP",
+          "chunk_headers_root": "8sKgcvfyaPqrh1Jjaj5PvthPQM2ib4tBCHgFTi29R4Gx",
           "chunk_mask": [true],
-          "chunk_receipts_root": "7EfUxmxGBYP1NX39DrcbooGsjY628qpPDU5mJCZUFQTP",
+          "chunk_receipts_root": "BaRMe2eu6m5GpfUBWehjX4QAXezYr7RfEF8eLKY5fBY8",
           "chunk_tx_root": "7tkzFg8RHBmMw1ncRJZCCZAizgq4rwCftTKYLce8RU8t",
           "chunks_included": 1,
           "epoch_id": "11111111111111111111111111111111",
           "epoch_sync_data_hash": null,
           "gas_price": "100000000",
-          "hash": "5k6AErsy7sKAC42D2ecFJtRphNqRoxkVGB8jAGb3rdeq",
-          "height": 28,
-          "last_ds_final_block": "2iMT4jNBJcyUhth47KMVdAYqCFKmqTy2Vp36HtcPA9kd",
-          "last_final_block": "GGrnhYpn9B82nk4WGfxWfUs5KRimmzG3QgMPBKwrm7p7",
+          "hash": "9dUx9wCmg44kq1y6Kudx2nXqiTyTGDTKwC9iDPguwqdf",
+          "height": 27,
+          "last_ds_final_block": "7YWPhEdiNBTPpDjgzWLuiq7kF9F83Qh8eTQTSby4y9Mg",
+          "last_final_block": "3yc98Ft3VBHk1ngyakod8nA9hBA6vU9NLs1jnDZxn4Zu",
           "latest_protocol_version": 86,
-          "next_bp_hash": "98FGcFVb9svfashbU92Y1whc9J5z5ZksQVN7PCj2CNGQ",
-          "next_epoch_id": "CgPLGzrPA2SAaVMdo9FmJrwu2VM9HPNMdxZ7HryxTNks",
-          "outcome_root": "6TwjGyUgfzJvocBtsF2o7R3PDVjBQSmYnbvoPPhAhBdC",
-          "prev_hash": "2iMT4jNBJcyUhth47KMVdAYqCFKmqTy2Vp36HtcPA9kd",
-          "prev_height": 27,
-          "prev_state_root": "3Wp4VscUNyHBevyoLDjxS2sEqLVREPcgGParxyHzd5vg",
-          "random_value": "EjwBYhUkz8eAHuuBWPMVjvjnAZQ91HazhsTV4qm525xG",
+          "next_bp_hash": "2ZQDMLAPQ1gtVCqkXmS7h44EJy65zYVr9GroA85vpMHt",
+          "next_epoch_id": "Eck5bzSwsHgG6qD7HBzXtweXQ7okmSMtx6inGMsTEC5j",
+          "outcome_root": "2B9ZHhyKfQJxggkWFva1zBxHxKaC5NVA6vs8GQf4SEtM",
+          "prev_hash": "7YWPhEdiNBTPpDjgzWLuiq7kF9F83Qh8eTQTSby4y9Mg",
+          "prev_height": 26,
+          "prev_state_root": "5s6WHe48sBDi9rM8nqVqRR4pvP3svSX4eQxJ4Cho3bgk",
+          "random_value": "BTxUrksuwaoZBvjQqpFVLxRMwAhixERwZFgaFnTkm5G3",
           "rent_paid": "0",
           "shard_split": null,
-          "signature": "ed25519:2zkXk8fQStfTq9aCE5kQG3uCwSTwoSwvcP5PCyhRcL7DWdzxeRos3Y5R26KMtttiKUSRUHA6axB1XEQV2k1xPDrd",
-          "timestamp": 1793905157425006800,
-          "timestamp_nanosec": "1793905157425006912",
-          "total_supply": "2050029999980339470774178600000000",
+          "signature": "ed25519:2JkyvmPbDuD2EDnFbFPmyitVGf4VuHTKtCDs1LsZ4J79Eeh4hreTuyFj3Fhh4vQCBwPgjVaRa6XfLwLRaxPxcmJR",
+          "timestamp": 1793906685711407400,
+          "timestamp_nanosec": "1793906685711407457",
+          "total_supply": "2050029999980135654063156900000000",
           "validator_proposals": [],
           "validator_reward": "0"
         }
       },
       "account": {
-        "amount": "99999723613509520100000000",
-        "block_hash": "5k6AErsy7sKAC42D2ecFJtRphNqRoxkVGB8jAGb3rdeq",
-        "block_height": 28,
-        "code_hash": "7cpdwYxv9DHP9N4RkriZqjHy9GuDxwLjTPReyQmFuDBT",
+        "amount": "99999724466045072900000000",
+        "block_hash": "9dUx9wCmg44kq1y6Kudx2nXqiTyTGDTKwC9iDPguwqdf",
+        "block_height": 27,
+        "code_hash": "F8puNhtHcSf5mFEKcoPSmAoR2bXrBQthBjzuHgMjK84y",
         "locked": "0",
         "storage_paid_at": 0,
-        "storage_usage": 330441
+        "storage_usage": 348077
       },
       "foundation": {
-        "block_hash": "5k6AErsy7sKAC42D2ecFJtRphNqRoxkVGB8jAGb3rdeq",
-        "block_height": 28,
+        "block_hash": "9dUx9wCmg44kq1y6Kudx2nXqiTyTGDTKwC9iDPguwqdf",
+        "block_height": 27,
         "logs": [],
         "result": [
           123, 34, 100, 101, 112, 108, 111, 121, 109, 101, 110, 116, 34, 58,
@@ -1160,8 +1162,8 @@
           49, 49, 49, 49, 49, 49, 49, 49, 49, 49, 49, 49, 49, 49, 49, 49, 49,
           49, 49, 49, 49, 49, 49, 49, 49, 49, 49, 34, 44, 34, 99, 111, 110, 116,
           114, 97, 99, 116, 95, 105, 100, 34, 58, 34, 100, 101, 118, 45, 50, 48,
-          50, 54, 49, 49, 48, 53, 49, 56, 53, 57, 49, 52, 45, 51, 49, 48, 50,
-          48, 52, 50, 55, 51, 57, 54, 54, 56, 55, 46, 116, 101, 115, 116, 46,
+          50, 54, 49, 49, 48, 53, 49, 57, 50, 52, 52, 50, 45, 57, 56, 48, 57,
+          54, 57, 49, 55, 50, 56, 55, 56, 48, 57, 46, 116, 101, 115, 116, 46,
           110, 101, 97, 114, 34, 44, 34, 97, 112, 105, 95, 118, 101, 114, 115,
           105, 111, 110, 34, 58, 34, 50, 46, 48, 46, 48, 34, 44, 34, 115, 116,
           97, 116, 101, 95, 115, 99, 104, 101, 109, 97, 34, 58, 34, 49, 34, 44,
@@ -1176,14 +1178,14 @@
           114, 107, 101, 116, 95, 114, 101, 118, 105, 115, 105, 111, 110, 34,
           58, 34, 52, 34, 44, 34, 101, 118, 101, 110, 116, 95, 115, 101, 113,
           117, 101, 110, 99, 101, 34, 58, 34, 52, 34, 44, 34, 98, 108, 111, 99,
-          107, 95, 104, 101, 105, 103, 104, 116, 34, 58, 34, 50, 56, 34, 44, 34,
+          107, 95, 104, 101, 105, 103, 104, 116, 34, 58, 34, 50, 55, 34, 44, 34,
           98, 108, 111, 99, 107, 95, 116, 105, 109, 101, 115, 116, 97, 109, 112,
-          95, 110, 115, 34, 58, 34, 49, 55, 57, 51, 57, 48, 53, 49, 53, 55, 52,
-          50, 53, 48, 48, 54, 57, 49, 50, 34, 44, 34, 100, 97, 116, 97, 34, 58,
+          95, 110, 115, 34, 58, 34, 49, 55, 57, 51, 57, 48, 54, 54, 56, 53, 55,
+          49, 49, 52, 48, 55, 52, 53, 55, 34, 44, 34, 100, 97, 116, 97, 34, 58,
           123, 34, 111, 119, 110, 101, 114, 95, 97, 99, 99, 111, 117, 110, 116,
           95, 105, 100, 34, 58, 34, 100, 101, 118, 45, 50, 48, 50, 54, 49, 49,
-          48, 53, 49, 56, 53, 57, 49, 52, 45, 51, 49, 48, 50, 48, 52, 50, 55,
-          51, 57, 54, 54, 56, 55, 46, 116, 101, 115, 116, 46, 110, 101, 97, 114,
+          48, 53, 49, 57, 50, 52, 52, 50, 45, 57, 56, 48, 57, 54, 57, 49, 55,
+          50, 56, 55, 56, 48, 57, 46, 116, 101, 115, 116, 46, 110, 101, 97, 114,
           34, 44, 34, 111, 112, 101, 114, 97, 116, 111, 114, 95, 97, 99, 99,
           111, 117, 110, 116, 95, 105, 100, 34, 58, 34, 111, 112, 101, 114, 97,
           116, 111, 114, 46, 116, 101, 115, 116, 110, 101, 116, 34, 44, 34, 109,
@@ -1217,7 +1219,8 @@
           99, 105, 112, 101, 115, 34, 44, 34, 115, 116, 97, 114, 116, 95, 112,
           114, 111, 100, 117, 99, 116, 105, 111, 110, 34, 44, 34, 103, 101, 116,
           95, 112, 114, 111, 100, 117, 99, 116, 105, 111, 110, 95, 106, 111, 98,
-          115, 34, 93, 125, 125
+          115, 34, 44, 34, 99, 111, 109, 112, 108, 101, 116, 101, 95, 112, 114,
+          111, 100, 117, 99, 116, 105, 111, 110, 34, 93, 125, 125
         ]
       }
     },
@@ -1232,28 +1235,28 @@
         "command": {
           "sequence": "4",
           "config_version": "1",
-          "valid_until_ns": "1793905657808000950"
+          "valid_until_ns": "1793907186089678123"
         }
       },
-      "transaction_hash": "3MBqwyAuTTJBxxXRCMG9ufeGg8g9B6BkD2T8kPvJCy2N",
-      "reference_block_height": 29,
-      "gas_burnt": "10901888950557",
+      "transaction_hash": "BFeeGNwyxYkpErnRqKfyysyPk2TX13FkC9S8kRrfMfv3",
+      "reference_block_height": 28,
+      "gas_burnt": "10922608892021",
       "receipt": {
         "final_execution_status": "FINAL",
         "receipts_outcome": [
           {
-            "block_hash": "7xDNy2TeLFzYHuPWuPCFssgXK8UKty3ckvHUkhJs1zkj",
-            "id": "Fq1KcX849KYMVNt3NVrCroNVapLCVLPqwLmt7FxmwpEu",
+            "block_hash": "7mDNUyjYhbdwPTVjwRDtKgt6mt9Rd1nRDGCycEo9M561",
+            "id": "kZLTactRhD51qXAR644A3Z88dWbRZth1mAbXnnCkN2y",
             "outcome": {
-              "executor_id": "dev-20261105185914-31020427396687.test.near",
-              "gas_burnt": 10583625135547,
+              "executor_id": "dev-20261105192442-98096917287809.test.near",
+              "gas_burnt": 10604345077011,
               "logs": [
-                "EVENT_JSON:{\"standard\":\"bot_bazaar_living_town\",\"version\":\"2.0.0\",\"event\":\"buy_from_merchant\",\"data\":[{\"contract_id\":\"dev-20261105185914-31020427396687.test.near\",\"config_version\":\"1\",\"event_sequence\":\"5\",\"market_revision\":\"5\",\"block_height\":\"35\",\"block_timestamp_ns\":\"1793905158314406105\",\"predecessor_account_id\":\"dev-20261105185915-91010644860492.test.near\",\"principal\":\"account:dev-20261105185915-91010644860492.test.near\",\"command_sequence\":\"4\",\"payload_sha256\":\"8c8ef402374718f6be782e2fb2d0996c10ad6babaf835553f47037af7df0243b\",\"outcome\":{\"kind\":\"raw_purchased\",\"trade\":{\"trade_id\":\"1\",\"kind\":\"raw_purchase\",\"buyer\":{\"kind\":\"player\",\"account_id\":\"dev-20261105185915-91010644860492.test.near\"},\"customer_pool_id\":null,\"seller\":{\"kind\":\"merchant\",\"merchant_id\":\"rex\"},\"item_id\":\"crystal\",\"quantity\":\"1\",\"unit_price\":\"4\",\"total_price\":\"4\",\"listing_id\":\"1\",\"offer_id\":null,\"consumed_quantity\":\"0\",\"settled_at_ns\":\"1793905158314406105\",\"command_principal\":\"account:dev-20261105185915-91010644860492.test.near\",\"command_sequence\":\"4\",\"event_sequence\":\"5\"},\"listing\":{\"listing_id\":\"1\",\"shop_id\":\"1\",\"owner\":{\"kind\":\"merchant\",\"merchant_id\":\"rex\"},\"item_id\":\"crystal\",\"remaining_quantity\":\"7\",\"unit_price\":\"4\",\"revision\":\"2\",\"active\":true},\"buyer\":{\"actor\":{\"kind\":\"player\",\"account_id\":\"dev-20261105185915-91010644860492.test.near\"},\"revision\":\"2\",\"gold\":{\"held\":\"96\",\"available\":\"96\",\"trade_reserved\":\"0\",\"trade_inbound_reserved\":\"0\"},\"inventory\":{\"held\":{\"crystal\":\"1\",\"wood\":\"0\",\"herb\":\"0\",\"iron\":\"0\",\"health_potion\":\"0\",\"iron_tool\":\"0\"},\"available\":{\"crystal\":\"1\",\"wood\":\"0\",\"herb\":\"0\",\"iron\":\"0\",\"health_potion\":\"0\",\"iron_tool\":\"0\"},\"listing_reserved\":{\"crystal\":\"0\",\"wood\":\"0\",\"herb\":\"0\",\"iron\":\"0\",\"health_potion\":\"0\",\"iron_tool\":\"0\"},\"trade_reserved\":{\"crystal\":\"0\",\"wood\":\"0\",\"herb\":\"0\",\"iron\":\"0\",\"health_potion\":\"0\",\"iron_tool\":\"0\"},\"production_output_reserved\":{\"crystal\":\"0\",\"wood\":\"0\",\"herb\":\"0\",\"iron\":\"0\",\"health_potion\":\"0\",\"iron_tool\":\"0\"},\"trade_inbound_reserved\":{\"crystal\":\"0\",\"wood\":\"0\",\"herb\":\"0\",\"iron\":\"0\",\"health_potion\":\"0\",\"iron_tool\":\"0\"}}},\"seller\":{\"actor\":{\"kind\":\"merchant\",\"merchant_id\":\"rex\"},\"revision\":\"2\",\"gold\":{\"held\":\"204\",\"available\":\"204\",\"trade_reserved\":\"0\",\"trade_inbound_reserved\":\"0\"},\"inventory\":{\"held\":{\"crystal\":\"9\",\"wood\":\"0\",\"herb\":\"0\",\"iron\":\"0\",\"health_potion\":\"0\",\"iron_tool\":\"0\"},\"available\":{\"crystal\":\"2\",\"wood\":\"0\",\"herb\":\"0\",\"iron\":\"0\",\"health_potion\":\"0\",\"iron_tool\":\"0\"},\"listing_reserved\":{\"crystal\":\"7\",\"wood\":\"0\",\"herb\":\"0\",\"iron\":\"0\",\"health_potion\":\"0\",\"iron_tool\":\"0\"},\"trade_reserved\":{\"crystal\":\"0\",\"wood\":\"0\",\"herb\":\"0\",\"iron\":\"0\",\"health_potion\":\"0\",\"iron_tool\":\"0\"},\"production_output_reserved\":{\"crystal\":\"0\",\"wood\":\"0\",\"herb\":\"0\",\"iron\":\"0\",\"health_potion\":\"0\",\"iron_tool\":\"0\"},\"trade_inbound_reserved\":{\"crystal\":\"0\",\"wood\":\"0\",\"herb\":\"0\",\"iron\":\"0\",\"health_potion\":\"0\",\"iron_tool\":\"0\"}}}}}]}"
+                "EVENT_JSON:{\"standard\":\"bot_bazaar_living_town\",\"version\":\"2.0.0\",\"event\":\"buy_from_merchant\",\"data\":[{\"contract_id\":\"dev-20261105192442-98096917287809.test.near\",\"config_version\":\"1\",\"event_sequence\":\"5\",\"market_revision\":\"5\",\"block_height\":\"33\",\"block_timestamp_ns\":\"1793906686470010130\",\"predecessor_account_id\":\"dev-20261105192443-73047256399939.test.near\",\"principal\":\"account:dev-20261105192443-73047256399939.test.near\",\"command_sequence\":\"4\",\"payload_sha256\":\"c4340085bdbd82ce1b7e2bb12d8696ab992e6529dace7852bd9109a3599a7f8c\",\"outcome\":{\"kind\":\"raw_purchased\",\"trade\":{\"trade_id\":\"1\",\"kind\":\"raw_purchase\",\"buyer\":{\"kind\":\"player\",\"account_id\":\"dev-20261105192443-73047256399939.test.near\"},\"customer_pool_id\":null,\"seller\":{\"kind\":\"merchant\",\"merchant_id\":\"rex\"},\"item_id\":\"crystal\",\"quantity\":\"1\",\"unit_price\":\"4\",\"total_price\":\"4\",\"listing_id\":\"1\",\"offer_id\":null,\"consumed_quantity\":\"0\",\"settled_at_ns\":\"1793906686470010130\",\"command_principal\":\"account:dev-20261105192443-73047256399939.test.near\",\"command_sequence\":\"4\",\"event_sequence\":\"5\"},\"listing\":{\"listing_id\":\"1\",\"shop_id\":\"1\",\"owner\":{\"kind\":\"merchant\",\"merchant_id\":\"rex\"},\"item_id\":\"crystal\",\"remaining_quantity\":\"7\",\"unit_price\":\"4\",\"revision\":\"2\",\"active\":true},\"buyer\":{\"actor\":{\"kind\":\"player\",\"account_id\":\"dev-20261105192443-73047256399939.test.near\"},\"revision\":\"2\",\"gold\":{\"held\":\"96\",\"available\":\"96\",\"trade_reserved\":\"0\",\"trade_inbound_reserved\":\"0\"},\"inventory\":{\"held\":{\"crystal\":\"1\",\"wood\":\"0\",\"herb\":\"0\",\"iron\":\"0\",\"health_potion\":\"0\",\"iron_tool\":\"0\"},\"available\":{\"crystal\":\"1\",\"wood\":\"0\",\"herb\":\"0\",\"iron\":\"0\",\"health_potion\":\"0\",\"iron_tool\":\"0\"},\"listing_reserved\":{\"crystal\":\"0\",\"wood\":\"0\",\"herb\":\"0\",\"iron\":\"0\",\"health_potion\":\"0\",\"iron_tool\":\"0\"},\"trade_reserved\":{\"crystal\":\"0\",\"wood\":\"0\",\"herb\":\"0\",\"iron\":\"0\",\"health_potion\":\"0\",\"iron_tool\":\"0\"},\"production_output_reserved\":{\"crystal\":\"0\",\"wood\":\"0\",\"herb\":\"0\",\"iron\":\"0\",\"health_potion\":\"0\",\"iron_tool\":\"0\"},\"trade_inbound_reserved\":{\"crystal\":\"0\",\"wood\":\"0\",\"herb\":\"0\",\"iron\":\"0\",\"health_potion\":\"0\",\"iron_tool\":\"0\"}}},\"seller\":{\"actor\":{\"kind\":\"merchant\",\"merchant_id\":\"rex\"},\"revision\":\"2\",\"gold\":{\"held\":\"204\",\"available\":\"204\",\"trade_reserved\":\"0\",\"trade_inbound_reserved\":\"0\"},\"inventory\":{\"held\":{\"crystal\":\"9\",\"wood\":\"0\",\"herb\":\"0\",\"iron\":\"0\",\"health_potion\":\"0\",\"iron_tool\":\"0\"},\"available\":{\"crystal\":\"2\",\"wood\":\"0\",\"herb\":\"0\",\"iron\":\"0\",\"health_potion\":\"0\",\"iron_tool\":\"0\"},\"listing_reserved\":{\"crystal\":\"7\",\"wood\":\"0\",\"herb\":\"0\",\"iron\":\"0\",\"health_potion\":\"0\",\"iron_tool\":\"0\"},\"trade_reserved\":{\"crystal\":\"0\",\"wood\":\"0\",\"herb\":\"0\",\"iron\":\"0\",\"health_potion\":\"0\",\"iron_tool\":\"0\"},\"production_output_reserved\":{\"crystal\":\"0\",\"wood\":\"0\",\"herb\":\"0\",\"iron\":\"0\",\"health_potion\":\"0\",\"iron_tool\":\"0\"},\"trade_inbound_reserved\":{\"crystal\":\"0\",\"wood\":\"0\",\"herb\":\"0\",\"iron\":\"0\",\"health_potion\":\"0\",\"iron_tool\":\"0\"}}}}}]}"
               ],
               "metadata": {
                 "contracts": [
                   {
-                    "local": "7cpdwYxv9DHP9N4RkriZqjHy9GuDxwLjTPReyQmFuDBT"
+                    "local": "F8puNhtHcSf5mFEKcoPSmAoR2bXrBQthBjzuHgMjK84y"
                   }
                 ],
                 "gas_profile": [
@@ -1270,7 +1273,7 @@
                   {
                     "cost": "CONTRACT_LOADING_BYTES",
                     "cost_category": "WASM_HOST_COST",
-                    "gas_used": "357159133895"
+                    "gas_used": "376252296655"
                   },
                   {
                     "cost": "LOG_BASE",
@@ -1295,7 +1298,7 @@
                   {
                     "cost": "READ_MEMORY_BYTE",
                     "cost_category": "WASM_HOST_COST",
-                    "gas_used": "48763499724"
+                    "gas_used": "49584587652"
                   },
                   {
                     "cost": "READ_REGISTER_BASE",
@@ -1305,7 +1308,7 @@
                   {
                     "cost": "READ_REGISTER_BYTE",
                     "cost_category": "WASM_HOST_COST",
-                    "gas_used": "266610210"
+                    "gas_used": "277254906"
                   },
                   {
                     "cost": "SHA256_BASE",
@@ -1340,7 +1343,7 @@
                   {
                     "cost": "STORAGE_READ_VALUE_BYTE",
                     "cost_category": "WASM_HOST_COST",
-                    "gas_used": "11020011856"
+                    "gas_used": "11626000288"
                   },
                   {
                     "cost": "STORAGE_WRITE_BASE",
@@ -1350,7 +1353,7 @@
                   {
                     "cost": "STORAGE_WRITE_EVICTED_BYTE",
                     "cost_category": "WASM_HOST_COST",
-                    "gas_used": "110708357229"
+                    "gas_used": "117645695541"
                   },
                   {
                     "cost": "STORAGE_WRITE_KEY_BYTE",
@@ -1360,7 +1363,7 @@
                   {
                     "cost": "STORAGE_WRITE_VALUE_BYTE",
                     "cost_category": "WASM_HOST_COST",
-                    "gas_used": "132232031757"
+                    "gas_used": "138932036181"
                   },
                   {
                     "cost": "TOUCHING_TRIE_NODE",
@@ -1380,7 +1383,7 @@
                   {
                     "cost": "WASM_INSTRUCTION",
                     "cost_category": "WASM_HOST_COST",
-                    "gas_used": "7214148397632"
+                    "gas_used": "7199174238432"
                   },
                   {
                     "cost": "WRITE_MEMORY_BASE",
@@ -1390,7 +1393,7 @@
                   {
                     "cost": "WRITE_MEMORY_BYTE",
                     "cost_category": "WASM_HOST_COST",
-                    "gas_used": "7454963964"
+                    "gas_used": "7749131340"
                   },
                   {
                     "cost": "WRITE_REGISTER_BASE",
@@ -1400,24 +1403,24 @@
                   {
                     "cost": "WRITE_REGISTER_BYTE",
                     "cost_category": "WASM_HOST_COST",
-                    "gas_used": "21140497404"
+                    "gas_used": "22372204140"
                   }
                 ],
                 "version": 4
               },
-              "receipt_ids": ["GpUjCmgK6M9Hjkd7sXnHVJSrrDCMk11NM16SKV9D3mgU"],
+              "receipt_ids": ["Fc2o8z4Us4paNWubDSP9HDoMWE2wh975fM7g2asRiGAo"],
               "status": {
-                "SuccessValue": "eyJkZXBsb3ltZW50Ijp7Im5ldHdvcmtfaWQiOiJ0ZXN0bmV0IiwiZ2VuZXNpc19oYXNoIjoiMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTEiLCJjb250cmFjdF9pZCI6ImRldi0yMDI2MTEwNTE4NTkxNC0zMTAyMDQyNzM5NjY4Ny50ZXN0Lm5lYXIiLCJhcGlfdmVyc2lvbiI6IjIuMC4wIiwic3RhdGVfc2NoZW1hIjoiMSIsImNvbW1hbmRfc2NoZW1hIjoiMSIsImNvbmZpZ192ZXJzaW9uIjoiMSIsImNvbmZpZ19zaGEyNTYiOiJhOTMyZWZiNDhjNzBhNzNjZTQ2NDcyY2Q3NTQyODg2NDk1NDFiMzQ2MDRlMmVhNDlhNDA5Mzk2MWU3MWEyZDEwIn0sIm1hcmtldF9yZXZpc2lvbiI6IjUiLCJldmVudF9zZXF1ZW5jZSI6IjUiLCJibG9ja19oZWlnaHQiOiIzNSIsImJsb2NrX3RpbWVzdGFtcF9ucyI6IjE3OTM5MDUxNTgzMTQ0MDYxMDUiLCJkYXRhIjp7InByaW5jaXBhbCI6ImFjY291bnQ6ZGV2LTIwMjYxMTA1MTg1OTE1LTkxMDEwNjQ0ODYwNDkyLnRlc3QubmVhciIsImNvbW1hbmRfc2VxdWVuY2UiOiI0IiwicGF5bG9hZF9zaGEyNTYiOiI4YzhlZjQwMjM3NDcxOGY2YmU3ODJlMmZiMmQwOTk2YzEwYWQ2YmFiYWY4MzU1NTNmNDcwMzdhZjdkZjAyNDNiIiwicmVwbGF5ZWQiOmZhbHNlLCJlZmZlY3RfcmV2aXNpb24iOiI1IiwiZWZmZWN0X2V2ZW50X3NlcXVlbmNlIjoiNSIsIm91dGNvbWUiOnsia2luZCI6InJhd19wdXJjaGFzZWQiLCJ0cmFkZSI6eyJ0cmFkZV9pZCI6IjEiLCJraW5kIjoicmF3X3B1cmNoYXNlIiwiYnV5ZXIiOnsia2luZCI6InBsYXllciIsImFjY291bnRfaWQiOiJkZXYtMjAyNjExMDUxODU5MTUtOTEwMTA2NDQ4NjA0OTIudGVzdC5uZWFyIn0sImN1c3RvbWVyX3Bvb2xfaWQiOm51bGwsInNlbGxlciI6eyJraW5kIjoibWVyY2hhbnQiLCJtZXJjaGFudF9pZCI6InJleCJ9LCJpdGVtX2lkIjoiY3J5c3RhbCIsInF1YW50aXR5IjoiMSIsInVuaXRfcHJpY2UiOiI0IiwidG90YWxfcHJpY2UiOiI0IiwibGlzdGluZ19pZCI6IjEiLCJvZmZlcl9pZCI6bnVsbCwiY29uc3VtZWRfcXVhbnRpdHkiOiIwIiwic2V0dGxlZF9hdF9ucyI6IjE3OTM5MDUxNTgzMTQ0MDYxMDUiLCJjb21tYW5kX3ByaW5jaXBhbCI6ImFjY291bnQ6ZGV2LTIwMjYxMTA1MTg1OTE1LTkxMDEwNjQ0ODYwNDkyLnRlc3QubmVhciIsImNvbW1hbmRfc2VxdWVuY2UiOiI0IiwiZXZlbnRfc2VxdWVuY2UiOiI1In0sImxpc3RpbmciOnsibGlzdGluZ19pZCI6IjEiLCJzaG9wX2lkIjoiMSIsIm93bmVyIjp7ImtpbmQiOiJtZXJjaGFudCIsIm1lcmNoYW50X2lkIjoicmV4In0sIml0ZW1faWQiOiJjcnlzdGFsIiwicmVtYWluaW5nX3F1YW50aXR5IjoiNyIsInVuaXRfcHJpY2UiOiI0IiwicmV2aXNpb24iOiIyIiwiYWN0aXZlIjp0cnVlfSwiYnV5ZXIiOnsiYWN0b3IiOnsia2luZCI6InBsYXllciIsImFjY291bnRfaWQiOiJkZXYtMjAyNjExMDUxODU5MTUtOTEwMTA2NDQ4NjA0OTIudGVzdC5uZWFyIn0sInJldmlzaW9uIjoiMiIsImdvbGQiOnsiaGVsZCI6Ijk2IiwiYXZhaWxhYmxlIjoiOTYiLCJ0cmFkZV9yZXNlcnZlZCI6IjAiLCJ0cmFkZV9pbmJvdW5kX3Jlc2VydmVkIjoiMCJ9LCJpbnZlbnRvcnkiOnsiaGVsZCI6eyJjcnlzdGFsIjoiMSIsIndvb2QiOiIwIiwiaGVyYiI6IjAiLCJpcm9uIjoiMCIsImhlYWx0aF9wb3Rpb24iOiIwIiwiaXJvbl90b29sIjoiMCJ9LCJhdmFpbGFibGUiOnsiY3J5c3RhbCI6IjEiLCJ3b29kIjoiMCIsImhlcmIiOiIwIiwiaXJvbiI6IjAiLCJoZWFsdGhfcG90aW9uIjoiMCIsImlyb25fdG9vbCI6IjAifSwibGlzdGluZ19yZXNlcnZlZCI6eyJjcnlzdGFsIjoiMCIsIndvb2QiOiIwIiwiaGVyYiI6IjAiLCJpcm9uIjoiMCIsImhlYWx0aF9wb3Rpb24iOiIwIiwiaXJvbl90b29sIjoiMCJ9LCJ0cmFkZV9yZXNlcnZlZCI6eyJjcnlzdGFsIjoiMCIsIndvb2QiOiIwIiwiaGVyYiI6IjAiLCJpcm9uIjoiMCIsImhlYWx0aF9wb3Rpb24iOiIwIiwiaXJvbl90b29sIjoiMCJ9LCJwcm9kdWN0aW9uX291dHB1dF9yZXNlcnZlZCI6eyJjcnlzdGFsIjoiMCIsIndvb2QiOiIwIiwiaGVyYiI6IjAiLCJpcm9uIjoiMCIsImhlYWx0aF9wb3Rpb24iOiIwIiwiaXJvbl90b29sIjoiMCJ9LCJ0cmFkZV9pbmJvdW5kX3Jlc2VydmVkIjp7ImNyeXN0YWwiOiIwIiwid29vZCI6IjAiLCJoZXJiIjoiMCIsImlyb24iOiIwIiwiaGVhbHRoX3BvdGlvbiI6IjAiLCJpcm9uX3Rvb2wiOiIwIn19fSwic2VsbGVyIjp7ImFjdG9yIjp7ImtpbmQiOiJtZXJjaGFudCIsIm1lcmNoYW50X2lkIjoicmV4In0sInJldmlzaW9uIjoiMiIsImdvbGQiOnsiaGVsZCI6IjIwNCIsImF2YWlsYWJsZSI6IjIwNCIsInRyYWRlX3Jlc2VydmVkIjoiMCIsInRyYWRlX2luYm91bmRfcmVzZXJ2ZWQiOiIwIn0sImludmVudG9yeSI6eyJoZWxkIjp7ImNyeXN0YWwiOiI5Iiwid29vZCI6IjAiLCJoZXJiIjoiMCIsImlyb24iOiIwIiwiaGVhbHRoX3BvdGlvbiI6IjAiLCJpcm9uX3Rvb2wiOiIwIn0sImF2YWlsYWJsZSI6eyJjcnlzdGFsIjoiMiIsIndvb2QiOiIwIiwiaGVyYiI6IjAiLCJpcm9uIjoiMCIsImhlYWx0aF9wb3Rpb24iOiIwIiwiaXJvbl90b29sIjoiMCJ9LCJsaXN0aW5nX3Jlc2VydmVkIjp7ImNyeXN0YWwiOiI3Iiwid29vZCI6IjAiLCJoZXJiIjoiMCIsImlyb24iOiIwIiwiaGVhbHRoX3BvdGlvbiI6IjAiLCJpcm9uX3Rvb2wiOiIwIn0sInRyYWRlX3Jlc2VydmVkIjp7ImNyeXN0YWwiOiIwIiwid29vZCI6IjAiLCJoZXJiIjoiMCIsImlyb24iOiIwIiwiaGVhbHRoX3BvdGlvbiI6IjAiLCJpcm9uX3Rvb2wiOiIwIn0sInByb2R1Y3Rpb25fb3V0cHV0X3Jlc2VydmVkIjp7ImNyeXN0YWwiOiIwIiwid29vZCI6IjAiLCJoZXJiIjoiMCIsImlyb24iOiIwIiwiaGVhbHRoX3BvdGlvbiI6IjAiLCJpcm9uX3Rvb2wiOiIwIn0sInRyYWRlX2luYm91bmRfcmVzZXJ2ZWQiOnsiY3J5c3RhbCI6IjAiLCJ3b29kIjoiMCIsImhlcmIiOiIwIiwiaXJvbiI6IjAiLCJoZWFsdGhfcG90aW9uIjoiMCIsImlyb25fdG9vbCI6IjAifX19fX19"
+                "SuccessValue": "eyJkZXBsb3ltZW50Ijp7Im5ldHdvcmtfaWQiOiJ0ZXN0bmV0IiwiZ2VuZXNpc19oYXNoIjoiMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTEiLCJjb250cmFjdF9pZCI6ImRldi0yMDI2MTEwNTE5MjQ0Mi05ODA5NjkxNzI4NzgwOS50ZXN0Lm5lYXIiLCJhcGlfdmVyc2lvbiI6IjIuMC4wIiwic3RhdGVfc2NoZW1hIjoiMSIsImNvbW1hbmRfc2NoZW1hIjoiMSIsImNvbmZpZ192ZXJzaW9uIjoiMSIsImNvbmZpZ19zaGEyNTYiOiJhOTMyZWZiNDhjNzBhNzNjZTQ2NDcyY2Q3NTQyODg2NDk1NDFiMzQ2MDRlMmVhNDlhNDA5Mzk2MWU3MWEyZDEwIn0sIm1hcmtldF9yZXZpc2lvbiI6IjUiLCJldmVudF9zZXF1ZW5jZSI6IjUiLCJibG9ja19oZWlnaHQiOiIzMyIsImJsb2NrX3RpbWVzdGFtcF9ucyI6IjE3OTM5MDY2ODY0NzAwMTAxMzAiLCJkYXRhIjp7InByaW5jaXBhbCI6ImFjY291bnQ6ZGV2LTIwMjYxMTA1MTkyNDQzLTczMDQ3MjU2Mzk5OTM5LnRlc3QubmVhciIsImNvbW1hbmRfc2VxdWVuY2UiOiI0IiwicGF5bG9hZF9zaGEyNTYiOiJjNDM0MDA4NWJkYmQ4MmNlMWI3ZTJiYjEyZDg2OTZhYjk5MmU2NTI5ZGFjZTc4NTJiZDkxMDlhMzU5OWE3ZjhjIiwicmVwbGF5ZWQiOmZhbHNlLCJlZmZlY3RfcmV2aXNpb24iOiI1IiwiZWZmZWN0X2V2ZW50X3NlcXVlbmNlIjoiNSIsIm91dGNvbWUiOnsia2luZCI6InJhd19wdXJjaGFzZWQiLCJ0cmFkZSI6eyJ0cmFkZV9pZCI6IjEiLCJraW5kIjoicmF3X3B1cmNoYXNlIiwiYnV5ZXIiOnsia2luZCI6InBsYXllciIsImFjY291bnRfaWQiOiJkZXYtMjAyNjExMDUxOTI0NDMtNzMwNDcyNTYzOTk5MzkudGVzdC5uZWFyIn0sImN1c3RvbWVyX3Bvb2xfaWQiOm51bGwsInNlbGxlciI6eyJraW5kIjoibWVyY2hhbnQiLCJtZXJjaGFudF9pZCI6InJleCJ9LCJpdGVtX2lkIjoiY3J5c3RhbCIsInF1YW50aXR5IjoiMSIsInVuaXRfcHJpY2UiOiI0IiwidG90YWxfcHJpY2UiOiI0IiwibGlzdGluZ19pZCI6IjEiLCJvZmZlcl9pZCI6bnVsbCwiY29uc3VtZWRfcXVhbnRpdHkiOiIwIiwic2V0dGxlZF9hdF9ucyI6IjE3OTM5MDY2ODY0NzAwMTAxMzAiLCJjb21tYW5kX3ByaW5jaXBhbCI6ImFjY291bnQ6ZGV2LTIwMjYxMTA1MTkyNDQzLTczMDQ3MjU2Mzk5OTM5LnRlc3QubmVhciIsImNvbW1hbmRfc2VxdWVuY2UiOiI0IiwiZXZlbnRfc2VxdWVuY2UiOiI1In0sImxpc3RpbmciOnsibGlzdGluZ19pZCI6IjEiLCJzaG9wX2lkIjoiMSIsIm93bmVyIjp7ImtpbmQiOiJtZXJjaGFudCIsIm1lcmNoYW50X2lkIjoicmV4In0sIml0ZW1faWQiOiJjcnlzdGFsIiwicmVtYWluaW5nX3F1YW50aXR5IjoiNyIsInVuaXRfcHJpY2UiOiI0IiwicmV2aXNpb24iOiIyIiwiYWN0aXZlIjp0cnVlfSwiYnV5ZXIiOnsiYWN0b3IiOnsia2luZCI6InBsYXllciIsImFjY291bnRfaWQiOiJkZXYtMjAyNjExMDUxOTI0NDMtNzMwNDcyNTYzOTk5MzkudGVzdC5uZWFyIn0sInJldmlzaW9uIjoiMiIsImdvbGQiOnsiaGVsZCI6Ijk2IiwiYXZhaWxhYmxlIjoiOTYiLCJ0cmFkZV9yZXNlcnZlZCI6IjAiLCJ0cmFkZV9pbmJvdW5kX3Jlc2VydmVkIjoiMCJ9LCJpbnZlbnRvcnkiOnsiaGVsZCI6eyJjcnlzdGFsIjoiMSIsIndvb2QiOiIwIiwiaGVyYiI6IjAiLCJpcm9uIjoiMCIsImhlYWx0aF9wb3Rpb24iOiIwIiwiaXJvbl90b29sIjoiMCJ9LCJhdmFpbGFibGUiOnsiY3J5c3RhbCI6IjEiLCJ3b29kIjoiMCIsImhlcmIiOiIwIiwiaXJvbiI6IjAiLCJoZWFsdGhfcG90aW9uIjoiMCIsImlyb25fdG9vbCI6IjAifSwibGlzdGluZ19yZXNlcnZlZCI6eyJjcnlzdGFsIjoiMCIsIndvb2QiOiIwIiwiaGVyYiI6IjAiLCJpcm9uIjoiMCIsImhlYWx0aF9wb3Rpb24iOiIwIiwiaXJvbl90b29sIjoiMCJ9LCJ0cmFkZV9yZXNlcnZlZCI6eyJjcnlzdGFsIjoiMCIsIndvb2QiOiIwIiwiaGVyYiI6IjAiLCJpcm9uIjoiMCIsImhlYWx0aF9wb3Rpb24iOiIwIiwiaXJvbl90b29sIjoiMCJ9LCJwcm9kdWN0aW9uX291dHB1dF9yZXNlcnZlZCI6eyJjcnlzdGFsIjoiMCIsIndvb2QiOiIwIiwiaGVyYiI6IjAiLCJpcm9uIjoiMCIsImhlYWx0aF9wb3Rpb24iOiIwIiwiaXJvbl90b29sIjoiMCJ9LCJ0cmFkZV9pbmJvdW5kX3Jlc2VydmVkIjp7ImNyeXN0YWwiOiIwIiwid29vZCI6IjAiLCJoZXJiIjoiMCIsImlyb24iOiIwIiwiaGVhbHRoX3BvdGlvbiI6IjAiLCJpcm9uX3Rvb2wiOiIwIn19fSwic2VsbGVyIjp7ImFjdG9yIjp7ImtpbmQiOiJtZXJjaGFudCIsIm1lcmNoYW50X2lkIjoicmV4In0sInJldmlzaW9uIjoiMiIsImdvbGQiOnsiaGVsZCI6IjIwNCIsImF2YWlsYWJsZSI6IjIwNCIsInRyYWRlX3Jlc2VydmVkIjoiMCIsInRyYWRlX2luYm91bmRfcmVzZXJ2ZWQiOiIwIn0sImludmVudG9yeSI6eyJoZWxkIjp7ImNyeXN0YWwiOiI5Iiwid29vZCI6IjAiLCJoZXJiIjoiMCIsImlyb24iOiIwIiwiaGVhbHRoX3BvdGlvbiI6IjAiLCJpcm9uX3Rvb2wiOiIwIn0sImF2YWlsYWJsZSI6eyJjcnlzdGFsIjoiMiIsIndvb2QiOiIwIiwiaGVyYiI6IjAiLCJpcm9uIjoiMCIsImhlYWx0aF9wb3Rpb24iOiIwIiwiaXJvbl90b29sIjoiMCJ9LCJsaXN0aW5nX3Jlc2VydmVkIjp7ImNyeXN0YWwiOiI3Iiwid29vZCI6IjAiLCJoZXJiIjoiMCIsImlyb24iOiIwIiwiaGVhbHRoX3BvdGlvbiI6IjAiLCJpcm9uX3Rvb2wiOiIwIn0sInRyYWRlX3Jlc2VydmVkIjp7ImNyeXN0YWwiOiIwIiwid29vZCI6IjAiLCJoZXJiIjoiMCIsImlyb24iOiIwIiwiaGVhbHRoX3BvdGlvbiI6IjAiLCJpcm9uX3Rvb2wiOiIwIn0sInByb2R1Y3Rpb25fb3V0cHV0X3Jlc2VydmVkIjp7ImNyeXN0YWwiOiIwIiwid29vZCI6IjAiLCJoZXJiIjoiMCIsImlyb24iOiIwIiwiaGVhbHRoX3BvdGlvbiI6IjAiLCJpcm9uX3Rvb2wiOiIwIn0sInRyYWRlX2luYm91bmRfcmVzZXJ2ZWQiOnsiY3J5c3RhbCI6IjAiLCJ3b29kIjoiMCIsImhlcmIiOiIwIiwiaXJvbiI6IjAiLCJoZWFsdGhfcG90aW9uIjoiMCIsImlyb25fdG9vbCI6IjAifX19fX19"
               },
-              "tokens_burnt": "1058362513554700000000"
+              "tokens_burnt": "1060434507701100000000"
             },
             "proof": []
           },
           {
-            "block_hash": "HzobtELpudm8gTGzgKPtXpMUozzdquPZcTTvuQXZFTe9",
-            "id": "GpUjCmgK6M9Hjkd7sXnHVJSrrDCMk11NM16SKV9D3mgU",
+            "block_hash": "HoEfUXMv4tUCSbQBDZixzk4U2CZGs4cAtKxyp57npDj",
+            "id": "Fc2o8z4Us4paNWubDSP9HDoMWE2wh975fM7g2asRiGAo",
             "outcome": {
-              "executor_id": "dev-20261105185915-91010644860492.test.near",
+              "executor_id": "dev-20261105192443-73047256399939.test.near",
               "gas_burnt": 223182562500,
               "logs": [],
               "metadata": {
@@ -1435,41 +1438,41 @@
           }
         ],
         "status": {
-          "SuccessValue": "eyJkZXBsb3ltZW50Ijp7Im5ldHdvcmtfaWQiOiJ0ZXN0bmV0IiwiZ2VuZXNpc19oYXNoIjoiMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTEiLCJjb250cmFjdF9pZCI6ImRldi0yMDI2MTEwNTE4NTkxNC0zMTAyMDQyNzM5NjY4Ny50ZXN0Lm5lYXIiLCJhcGlfdmVyc2lvbiI6IjIuMC4wIiwic3RhdGVfc2NoZW1hIjoiMSIsImNvbW1hbmRfc2NoZW1hIjoiMSIsImNvbmZpZ192ZXJzaW9uIjoiMSIsImNvbmZpZ19zaGEyNTYiOiJhOTMyZWZiNDhjNzBhNzNjZTQ2NDcyY2Q3NTQyODg2NDk1NDFiMzQ2MDRlMmVhNDlhNDA5Mzk2MWU3MWEyZDEwIn0sIm1hcmtldF9yZXZpc2lvbiI6IjUiLCJldmVudF9zZXF1ZW5jZSI6IjUiLCJibG9ja19oZWlnaHQiOiIzNSIsImJsb2NrX3RpbWVzdGFtcF9ucyI6IjE3OTM5MDUxNTgzMTQ0MDYxMDUiLCJkYXRhIjp7InByaW5jaXBhbCI6ImFjY291bnQ6ZGV2LTIwMjYxMTA1MTg1OTE1LTkxMDEwNjQ0ODYwNDkyLnRlc3QubmVhciIsImNvbW1hbmRfc2VxdWVuY2UiOiI0IiwicGF5bG9hZF9zaGEyNTYiOiI4YzhlZjQwMjM3NDcxOGY2YmU3ODJlMmZiMmQwOTk2YzEwYWQ2YmFiYWY4MzU1NTNmNDcwMzdhZjdkZjAyNDNiIiwicmVwbGF5ZWQiOmZhbHNlLCJlZmZlY3RfcmV2aXNpb24iOiI1IiwiZWZmZWN0X2V2ZW50X3NlcXVlbmNlIjoiNSIsIm91dGNvbWUiOnsia2luZCI6InJhd19wdXJjaGFzZWQiLCJ0cmFkZSI6eyJ0cmFkZV9pZCI6IjEiLCJraW5kIjoicmF3X3B1cmNoYXNlIiwiYnV5ZXIiOnsia2luZCI6InBsYXllciIsImFjY291bnRfaWQiOiJkZXYtMjAyNjExMDUxODU5MTUtOTEwMTA2NDQ4NjA0OTIudGVzdC5uZWFyIn0sImN1c3RvbWVyX3Bvb2xfaWQiOm51bGwsInNlbGxlciI6eyJraW5kIjoibWVyY2hhbnQiLCJtZXJjaGFudF9pZCI6InJleCJ9LCJpdGVtX2lkIjoiY3J5c3RhbCIsInF1YW50aXR5IjoiMSIsInVuaXRfcHJpY2UiOiI0IiwidG90YWxfcHJpY2UiOiI0IiwibGlzdGluZ19pZCI6IjEiLCJvZmZlcl9pZCI6bnVsbCwiY29uc3VtZWRfcXVhbnRpdHkiOiIwIiwic2V0dGxlZF9hdF9ucyI6IjE3OTM5MDUxNTgzMTQ0MDYxMDUiLCJjb21tYW5kX3ByaW5jaXBhbCI6ImFjY291bnQ6ZGV2LTIwMjYxMTA1MTg1OTE1LTkxMDEwNjQ0ODYwNDkyLnRlc3QubmVhciIsImNvbW1hbmRfc2VxdWVuY2UiOiI0IiwiZXZlbnRfc2VxdWVuY2UiOiI1In0sImxpc3RpbmciOnsibGlzdGluZ19pZCI6IjEiLCJzaG9wX2lkIjoiMSIsIm93bmVyIjp7ImtpbmQiOiJtZXJjaGFudCIsIm1lcmNoYW50X2lkIjoicmV4In0sIml0ZW1faWQiOiJjcnlzdGFsIiwicmVtYWluaW5nX3F1YW50aXR5IjoiNyIsInVuaXRfcHJpY2UiOiI0IiwicmV2aXNpb24iOiIyIiwiYWN0aXZlIjp0cnVlfSwiYnV5ZXIiOnsiYWN0b3IiOnsia2luZCI6InBsYXllciIsImFjY291bnRfaWQiOiJkZXYtMjAyNjExMDUxODU5MTUtOTEwMTA2NDQ4NjA0OTIudGVzdC5uZWFyIn0sInJldmlzaW9uIjoiMiIsImdvbGQiOnsiaGVsZCI6Ijk2IiwiYXZhaWxhYmxlIjoiOTYiLCJ0cmFkZV9yZXNlcnZlZCI6IjAiLCJ0cmFkZV9pbmJvdW5kX3Jlc2VydmVkIjoiMCJ9LCJpbnZlbnRvcnkiOnsiaGVsZCI6eyJjcnlzdGFsIjoiMSIsIndvb2QiOiIwIiwiaGVyYiI6IjAiLCJpcm9uIjoiMCIsImhlYWx0aF9wb3Rpb24iOiIwIiwiaXJvbl90b29sIjoiMCJ9LCJhdmFpbGFibGUiOnsiY3J5c3RhbCI6IjEiLCJ3b29kIjoiMCIsImhlcmIiOiIwIiwiaXJvbiI6IjAiLCJoZWFsdGhfcG90aW9uIjoiMCIsImlyb25fdG9vbCI6IjAifSwibGlzdGluZ19yZXNlcnZlZCI6eyJjcnlzdGFsIjoiMCIsIndvb2QiOiIwIiwiaGVyYiI6IjAiLCJpcm9uIjoiMCIsImhlYWx0aF9wb3Rpb24iOiIwIiwiaXJvbl90b29sIjoiMCJ9LCJ0cmFkZV9yZXNlcnZlZCI6eyJjcnlzdGFsIjoiMCIsIndvb2QiOiIwIiwiaGVyYiI6IjAiLCJpcm9uIjoiMCIsImhlYWx0aF9wb3Rpb24iOiIwIiwiaXJvbl90b29sIjoiMCJ9LCJwcm9kdWN0aW9uX291dHB1dF9yZXNlcnZlZCI6eyJjcnlzdGFsIjoiMCIsIndvb2QiOiIwIiwiaGVyYiI6IjAiLCJpcm9uIjoiMCIsImhlYWx0aF9wb3Rpb24iOiIwIiwiaXJvbl90b29sIjoiMCJ9LCJ0cmFkZV9pbmJvdW5kX3Jlc2VydmVkIjp7ImNyeXN0YWwiOiIwIiwid29vZCI6IjAiLCJoZXJiIjoiMCIsImlyb24iOiIwIiwiaGVhbHRoX3BvdGlvbiI6IjAiLCJpcm9uX3Rvb2wiOiIwIn19fSwic2VsbGVyIjp7ImFjdG9yIjp7ImtpbmQiOiJtZXJjaGFudCIsIm1lcmNoYW50X2lkIjoicmV4In0sInJldmlzaW9uIjoiMiIsImdvbGQiOnsiaGVsZCI6IjIwNCIsImF2YWlsYWJsZSI6IjIwNCIsInRyYWRlX3Jlc2VydmVkIjoiMCIsInRyYWRlX2luYm91bmRfcmVzZXJ2ZWQiOiIwIn0sImludmVudG9yeSI6eyJoZWxkIjp7ImNyeXN0YWwiOiI5Iiwid29vZCI6IjAiLCJoZXJiIjoiMCIsImlyb24iOiIwIiwiaGVhbHRoX3BvdGlvbiI6IjAiLCJpcm9uX3Rvb2wiOiIwIn0sImF2YWlsYWJsZSI6eyJjcnlzdGFsIjoiMiIsIndvb2QiOiIwIiwiaGVyYiI6IjAiLCJpcm9uIjoiMCIsImhlYWx0aF9wb3Rpb24iOiIwIiwiaXJvbl90b29sIjoiMCJ9LCJsaXN0aW5nX3Jlc2VydmVkIjp7ImNyeXN0YWwiOiI3Iiwid29vZCI6IjAiLCJoZXJiIjoiMCIsImlyb24iOiIwIiwiaGVhbHRoX3BvdGlvbiI6IjAiLCJpcm9uX3Rvb2wiOiIwIn0sInRyYWRlX3Jlc2VydmVkIjp7ImNyeXN0YWwiOiIwIiwid29vZCI6IjAiLCJoZXJiIjoiMCIsImlyb24iOiIwIiwiaGVhbHRoX3BvdGlvbiI6IjAiLCJpcm9uX3Rvb2wiOiIwIn0sInByb2R1Y3Rpb25fb3V0cHV0X3Jlc2VydmVkIjp7ImNyeXN0YWwiOiIwIiwid29vZCI6IjAiLCJoZXJiIjoiMCIsImlyb24iOiIwIiwiaGVhbHRoX3BvdGlvbiI6IjAiLCJpcm9uX3Rvb2wiOiIwIn0sInRyYWRlX2luYm91bmRfcmVzZXJ2ZWQiOnsiY3J5c3RhbCI6IjAiLCJ3b29kIjoiMCIsImhlcmIiOiIwIiwiaXJvbiI6IjAiLCJoZWFsdGhfcG90aW9uIjoiMCIsImlyb25fdG9vbCI6IjAifX19fX19"
+          "SuccessValue": "eyJkZXBsb3ltZW50Ijp7Im5ldHdvcmtfaWQiOiJ0ZXN0bmV0IiwiZ2VuZXNpc19oYXNoIjoiMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTEiLCJjb250cmFjdF9pZCI6ImRldi0yMDI2MTEwNTE5MjQ0Mi05ODA5NjkxNzI4NzgwOS50ZXN0Lm5lYXIiLCJhcGlfdmVyc2lvbiI6IjIuMC4wIiwic3RhdGVfc2NoZW1hIjoiMSIsImNvbW1hbmRfc2NoZW1hIjoiMSIsImNvbmZpZ192ZXJzaW9uIjoiMSIsImNvbmZpZ19zaGEyNTYiOiJhOTMyZWZiNDhjNzBhNzNjZTQ2NDcyY2Q3NTQyODg2NDk1NDFiMzQ2MDRlMmVhNDlhNDA5Mzk2MWU3MWEyZDEwIn0sIm1hcmtldF9yZXZpc2lvbiI6IjUiLCJldmVudF9zZXF1ZW5jZSI6IjUiLCJibG9ja19oZWlnaHQiOiIzMyIsImJsb2NrX3RpbWVzdGFtcF9ucyI6IjE3OTM5MDY2ODY0NzAwMTAxMzAiLCJkYXRhIjp7InByaW5jaXBhbCI6ImFjY291bnQ6ZGV2LTIwMjYxMTA1MTkyNDQzLTczMDQ3MjU2Mzk5OTM5LnRlc3QubmVhciIsImNvbW1hbmRfc2VxdWVuY2UiOiI0IiwicGF5bG9hZF9zaGEyNTYiOiJjNDM0MDA4NWJkYmQ4MmNlMWI3ZTJiYjEyZDg2OTZhYjk5MmU2NTI5ZGFjZTc4NTJiZDkxMDlhMzU5OWE3ZjhjIiwicmVwbGF5ZWQiOmZhbHNlLCJlZmZlY3RfcmV2aXNpb24iOiI1IiwiZWZmZWN0X2V2ZW50X3NlcXVlbmNlIjoiNSIsIm91dGNvbWUiOnsia2luZCI6InJhd19wdXJjaGFzZWQiLCJ0cmFkZSI6eyJ0cmFkZV9pZCI6IjEiLCJraW5kIjoicmF3X3B1cmNoYXNlIiwiYnV5ZXIiOnsia2luZCI6InBsYXllciIsImFjY291bnRfaWQiOiJkZXYtMjAyNjExMDUxOTI0NDMtNzMwNDcyNTYzOTk5MzkudGVzdC5uZWFyIn0sImN1c3RvbWVyX3Bvb2xfaWQiOm51bGwsInNlbGxlciI6eyJraW5kIjoibWVyY2hhbnQiLCJtZXJjaGFudF9pZCI6InJleCJ9LCJpdGVtX2lkIjoiY3J5c3RhbCIsInF1YW50aXR5IjoiMSIsInVuaXRfcHJpY2UiOiI0IiwidG90YWxfcHJpY2UiOiI0IiwibGlzdGluZ19pZCI6IjEiLCJvZmZlcl9pZCI6bnVsbCwiY29uc3VtZWRfcXVhbnRpdHkiOiIwIiwic2V0dGxlZF9hdF9ucyI6IjE3OTM5MDY2ODY0NzAwMTAxMzAiLCJjb21tYW5kX3ByaW5jaXBhbCI6ImFjY291bnQ6ZGV2LTIwMjYxMTA1MTkyNDQzLTczMDQ3MjU2Mzk5OTM5LnRlc3QubmVhciIsImNvbW1hbmRfc2VxdWVuY2UiOiI0IiwiZXZlbnRfc2VxdWVuY2UiOiI1In0sImxpc3RpbmciOnsibGlzdGluZ19pZCI6IjEiLCJzaG9wX2lkIjoiMSIsIm93bmVyIjp7ImtpbmQiOiJtZXJjaGFudCIsIm1lcmNoYW50X2lkIjoicmV4In0sIml0ZW1faWQiOiJjcnlzdGFsIiwicmVtYWluaW5nX3F1YW50aXR5IjoiNyIsInVuaXRfcHJpY2UiOiI0IiwicmV2aXNpb24iOiIyIiwiYWN0aXZlIjp0cnVlfSwiYnV5ZXIiOnsiYWN0b3IiOnsia2luZCI6InBsYXllciIsImFjY291bnRfaWQiOiJkZXYtMjAyNjExMDUxOTI0NDMtNzMwNDcyNTYzOTk5MzkudGVzdC5uZWFyIn0sInJldmlzaW9uIjoiMiIsImdvbGQiOnsiaGVsZCI6Ijk2IiwiYXZhaWxhYmxlIjoiOTYiLCJ0cmFkZV9yZXNlcnZlZCI6IjAiLCJ0cmFkZV9pbmJvdW5kX3Jlc2VydmVkIjoiMCJ9LCJpbnZlbnRvcnkiOnsiaGVsZCI6eyJjcnlzdGFsIjoiMSIsIndvb2QiOiIwIiwiaGVyYiI6IjAiLCJpcm9uIjoiMCIsImhlYWx0aF9wb3Rpb24iOiIwIiwiaXJvbl90b29sIjoiMCJ9LCJhdmFpbGFibGUiOnsiY3J5c3RhbCI6IjEiLCJ3b29kIjoiMCIsImhlcmIiOiIwIiwiaXJvbiI6IjAiLCJoZWFsdGhfcG90aW9uIjoiMCIsImlyb25fdG9vbCI6IjAifSwibGlzdGluZ19yZXNlcnZlZCI6eyJjcnlzdGFsIjoiMCIsIndvb2QiOiIwIiwiaGVyYiI6IjAiLCJpcm9uIjoiMCIsImhlYWx0aF9wb3Rpb24iOiIwIiwiaXJvbl90b29sIjoiMCJ9LCJ0cmFkZV9yZXNlcnZlZCI6eyJjcnlzdGFsIjoiMCIsIndvb2QiOiIwIiwiaGVyYiI6IjAiLCJpcm9uIjoiMCIsImhlYWx0aF9wb3Rpb24iOiIwIiwiaXJvbl90b29sIjoiMCJ9LCJwcm9kdWN0aW9uX291dHB1dF9yZXNlcnZlZCI6eyJjcnlzdGFsIjoiMCIsIndvb2QiOiIwIiwiaGVyYiI6IjAiLCJpcm9uIjoiMCIsImhlYWx0aF9wb3Rpb24iOiIwIiwiaXJvbl90b29sIjoiMCJ9LCJ0cmFkZV9pbmJvdW5kX3Jlc2VydmVkIjp7ImNyeXN0YWwiOiIwIiwid29vZCI6IjAiLCJoZXJiIjoiMCIsImlyb24iOiIwIiwiaGVhbHRoX3BvdGlvbiI6IjAiLCJpcm9uX3Rvb2wiOiIwIn19fSwic2VsbGVyIjp7ImFjdG9yIjp7ImtpbmQiOiJtZXJjaGFudCIsIm1lcmNoYW50X2lkIjoicmV4In0sInJldmlzaW9uIjoiMiIsImdvbGQiOnsiaGVsZCI6IjIwNCIsImF2YWlsYWJsZSI6IjIwNCIsInRyYWRlX3Jlc2VydmVkIjoiMCIsInRyYWRlX2luYm91bmRfcmVzZXJ2ZWQiOiIwIn0sImludmVudG9yeSI6eyJoZWxkIjp7ImNyeXN0YWwiOiI5Iiwid29vZCI6IjAiLCJoZXJiIjoiMCIsImlyb24iOiIwIiwiaGVhbHRoX3BvdGlvbiI6IjAiLCJpcm9uX3Rvb2wiOiIwIn0sImF2YWlsYWJsZSI6eyJjcnlzdGFsIjoiMiIsIndvb2QiOiIwIiwiaGVyYiI6IjAiLCJpcm9uIjoiMCIsImhlYWx0aF9wb3Rpb24iOiIwIiwiaXJvbl90b29sIjoiMCJ9LCJsaXN0aW5nX3Jlc2VydmVkIjp7ImNyeXN0YWwiOiI3Iiwid29vZCI6IjAiLCJoZXJiIjoiMCIsImlyb24iOiIwIiwiaGVhbHRoX3BvdGlvbiI6IjAiLCJpcm9uX3Rvb2wiOiIwIn0sInRyYWRlX3Jlc2VydmVkIjp7ImNyeXN0YWwiOiIwIiwid29vZCI6IjAiLCJoZXJiIjoiMCIsImlyb24iOiIwIiwiaGVhbHRoX3BvdGlvbiI6IjAiLCJpcm9uX3Rvb2wiOiIwIn0sInByb2R1Y3Rpb25fb3V0cHV0X3Jlc2VydmVkIjp7ImNyeXN0YWwiOiIwIiwid29vZCI6IjAiLCJoZXJiIjoiMCIsImlyb24iOiIwIiwiaGVhbHRoX3BvdGlvbiI6IjAiLCJpcm9uX3Rvb2wiOiIwIn0sInRyYWRlX2luYm91bmRfcmVzZXJ2ZWQiOnsiY3J5c3RhbCI6IjAiLCJ3b29kIjoiMCIsImhlcmIiOiIwIiwiaXJvbiI6IjAiLCJoZWFsdGhfcG90aW9uIjoiMCIsImlyb25fdG9vbCI6IjAifX19fX19"
         },
         "transaction": {
           "actions": [
             {
               "FunctionCall": {
-                "args": "eyJtZXJjaGFudF9pZCI6InJleCIsIml0ZW1faWQiOiJjcnlzdGFsIiwicXVhbnRpdHkiOiIxIiwiZXhwZWN0ZWRfbGlzdGluZ19yZXZpc2lvbiI6IjEiLCJtYXhfdG90YWxfcHJpY2UiOiI0IiwiY29tbWFuZCI6eyJzZXF1ZW5jZSI6IjQiLCJjb25maWdfdmVyc2lvbiI6IjEiLCJ2YWxpZF91bnRpbF9ucyI6IjE3OTM5MDU2NTc4MDgwMDA5NTAifX0=",
+                "args": "eyJtZXJjaGFudF9pZCI6InJleCIsIml0ZW1faWQiOiJjcnlzdGFsIiwicXVhbnRpdHkiOiIxIiwiZXhwZWN0ZWRfbGlzdGluZ19yZXZpc2lvbiI6IjEiLCJtYXhfdG90YWxfcHJpY2UiOiI0IiwiY29tbWFuZCI6eyJzZXF1ZW5jZSI6IjQiLCJjb25maWdfdmVyc2lvbiI6IjEiLCJ2YWxpZF91bnRpbF9ucyI6IjE3OTM5MDcxODYwODk2NzgxMjMifX0=",
                 "deposit": "0",
                 "gas": 100000000000000,
                 "method_name": "buy_from_merchant"
               }
             }
           ],
-          "hash": "3MBqwyAuTTJBxxXRCMG9ufeGg8g9B6BkD2T8kPvJCy2N",
-          "nonce": 12000004,
+          "hash": "BFeeGNwyxYkpErnRqKfyysyPk2TX13FkC9S8kRrfMfv3",
+          "nonce": 10000004,
           "priority_fee": 0,
-          "public_key": "ed25519:Fr79b6NQxMdHJYgzURHt57g7jLRAwj93kMV4YrvHk6ah",
-          "receiver_id": "dev-20261105185914-31020427396687.test.near",
-          "signature": "ed25519:31MPrx15JaScnjmYQ3kXrtVNzAGN5YnDVubrqwF3WcBNXoL8j34Yuv1Hjn6bsHyNDSmRekhVwfZBGAb4zv1rYrRJ",
-          "signer_id": "dev-20261105185915-91010644860492.test.near"
+          "public_key": "ed25519:DngkCRnU3fcC2PadS7PCXfNSxH1SeTyMTKz3gdEefK9g",
+          "receiver_id": "dev-20261105192442-98096917287809.test.near",
+          "signature": "ed25519:4SrWB8euLeF6P3fftp8AR6oK3v5DFQ3RKXT5hu7LEZdopZo7KZtowWpZBrSJLG5VPtLPWLTqjM945EoR6hi4m9fZ",
+          "signer_id": "dev-20261105192443-73047256399939.test.near"
         },
         "transaction_outcome": {
-          "block_hash": "J9moUik9F4NqpxKoE8oBrzswhwDKRa2TeqUbyhETBHN2",
-          "id": "3MBqwyAuTTJBxxXRCMG9ufeGg8g9B6BkD2T8kPvJCy2N",
+          "block_hash": "8E72UiFtcw5izmnzjL2kLAecSifz6g3hzEPaXrU8cpzr",
+          "id": "BFeeGNwyxYkpErnRqKfyysyPk2TX13FkC9S8kRrfMfv3",
           "outcome": {
-            "executor_id": "dev-20261105185915-91010644860492.test.near",
+            "executor_id": "dev-20261105192443-73047256399939.test.near",
             "gas_burnt": 318263815010,
             "logs": [],
             "metadata": {
               "gas_profile": null,
               "version": 1
             },
-            "receipt_ids": ["Fq1KcX849KYMVNt3NVrCroNVapLCVLPqwLmt7FxmwpEu"],
+            "receipt_ids": ["kZLTactRhD51qXAR644A3Z88dWbRZth1mAbXnnCkN2y"],
             "status": {
-              "SuccessReceiptId": "Fq1KcX849KYMVNt3NVrCroNVapLCVLPqwLmt7FxmwpEu"
+              "SuccessReceiptId": "kZLTactRhD51qXAR644A3Z88dWbRZth1mAbXnnCkN2y"
             },
             "tokens_burnt": "31826381501000000000"
           },
@@ -1486,7 +1489,7 @@
                 "requests": []
               }
             },
-            "chunk_hash": "4tX2a8PtaQuXRmpyx3mEJDAwSDaCA7HcE54g3JLArAmN",
+            "chunk_hash": "6cobos5j65q7ja52zQHMnFrvn28d3VqeDjUW9QRfQwYq",
             "congestion_info": {
               "allowed_shard": 0,
               "buffered_receipts_gas": "0",
@@ -1494,19 +1497,19 @@
               "receipt_bytes": 0
             },
             "encoded_length": 490,
-            "encoded_merkle_root": "2cpBwhtx3U1h1jAUHALN3u2zi3pSzhi1FKQeiJLpW12o",
+            "encoded_merkle_root": "FKcpNE7hJ3S99BFHfrysdG3J4F1TL3DnPo8DBXv1jsx5",
             "gas_limit": 1000000000000000,
             "gas_used": 318263815010,
-            "height_created": 35,
-            "height_included": 35,
-            "outcome_root": "4qfFoReseV4o9gswGt557WwdS5Ua1CecA9Mc2ftvP1n1",
-            "outgoing_receipts_root": "BT2HdGT3C7DaVeSpGfAdJnpd7P1J8hjjCRaPXiAB9rxS",
-            "prev_block_hash": "J9moUik9F4NqpxKoE8oBrzswhwDKRa2TeqUbyhETBHN2",
-            "prev_state_root": "GemZWiFTEaMUdC5aGzwocod5CJX5o6MBoBgJQBrVnbbf",
+            "height_created": 33,
+            "height_included": 33,
+            "outcome_root": "4LtmoZFuXrQ3UXbQuwxXZRRK1HVwKP1QhahnvWoE4qxu",
+            "outgoing_receipts_root": "Cjyj8wuFJMVD5gnmNQn4xArZxnfnFiTaYa5Sh7Nmyp3P",
+            "prev_block_hash": "8E72UiFtcw5izmnzjL2kLAecSifz6g3hzEPaXrU8cpzr",
+            "prev_state_root": "7rBpNwkC2oSEoYyXgJxP8fveVJ4QsKi3ZoWEaLNPiJcf",
             "proposed_split": null,
             "rent_paid": "0",
             "shard_id": 0,
-            "signature": "ed25519:witzocbonKPCGyYESs6UjqZ8q6nBoGKrt7Z7aod25sVM86kbXM8i2ji2X1hp2479EvfJWrR9GEug17B87ko6Q6b",
+            "signature": "ed25519:2jBcFMbEX8NEvXfTaYcJoQ4PGqs4RP9bWHCtD9N9q6NdGwPBDP89r9xS7WrwFedFFJULdiq5TvNXXJNjNcEXuMDW",
             "tx_root": "11111111111111111111111111111111",
             "validator_proposals": [],
             "validator_reward": "0"
@@ -1514,56 +1517,56 @@
         ],
         "header": {
           "approvals": [
-            "ed25519:3gp2npkhFrrTYuKsVVG1sBhfgo4mayT37F2cZx3RaHcXh1p4oUpqs9B6MjZZATnS8AJPZkESJcAEkJy7bV65cubm"
+            "ed25519:gkAtKWAn2PrkrVYH7CjBp5AJumiEpn1n4SDoY9SupKVFxkKtZbvyqPNZsA9Mvz1CyqqPZ6hVTRqRJjUd3XJWXqL"
           ],
-          "block_body_hash": "5V5DMjmbEy4tqywKyYKsxbp6nbYF42fQPB3WASKX6srN",
-          "block_merkle_root": "FrjUeX282dbSrHthLHubYnjhW32BvbXUQPcZYXriVCu2",
-          "block_ordinal": 36,
+          "block_body_hash": "HVYYEVG2c9MS7BxWSZ8fhkJGik1tAFNnqJeD14cNbqeS",
+          "block_merkle_root": "8wbfGPmsikuK9zjyW5Ze6juutm3mJTFroapVWDcxCWbX",
+          "block_ordinal": 34,
           "challenges_result": [],
           "challenges_root": "11111111111111111111111111111111",
           "chunk_endorsements": [[1]],
-          "chunk_headers_root": "ApmssnEzfEAqRdQ2DGBry6USB8ujTZ8m6QiAuBsCFD8J",
+          "chunk_headers_root": "4CvJ8i6ijgg7pWfpoWhyQr3tWvW3Q82LvbenGHYpY3YE",
           "chunk_mask": [true],
-          "chunk_receipts_root": "HEHsB9kuXr3pVakS7vzHP6dWp6hLabviiEfLKGDHeX7b",
+          "chunk_receipts_root": "9gFwgoXuaECpk17ZM3aiJa1Eu39ngryCHPhArqpNju9L",
           "chunk_tx_root": "7tkzFg8RHBmMw1ncRJZCCZAizgq4rwCftTKYLce8RU8t",
           "chunks_included": 1,
           "epoch_id": "11111111111111111111111111111111",
           "epoch_sync_data_hash": null,
           "gas_price": "100000000",
-          "hash": "7xDNy2TeLFzYHuPWuPCFssgXK8UKty3ckvHUkhJs1zkj",
-          "height": 35,
-          "last_ds_final_block": "J9moUik9F4NqpxKoE8oBrzswhwDKRa2TeqUbyhETBHN2",
-          "last_final_block": "4NqR1SmfQkooreZVr1wfu6ZfYxFg8xXNTB3oDH8pPGKB",
+          "hash": "7mDNUyjYhbdwPTVjwRDtKgt6mt9Rd1nRDGCycEo9M561",
+          "height": 33,
+          "last_ds_final_block": "8E72UiFtcw5izmnzjL2kLAecSifz6g3hzEPaXrU8cpzr",
+          "last_final_block": "3P3EYonbPAzJMn9bRC9tPozEzHhj7VZcwm9kvongi5pr",
           "latest_protocol_version": 86,
-          "next_bp_hash": "98FGcFVb9svfashbU92Y1whc9J5z5ZksQVN7PCj2CNGQ",
-          "next_epoch_id": "CgPLGzrPA2SAaVMdo9FmJrwu2VM9HPNMdxZ7HryxTNks",
-          "outcome_root": "7yr34mgG4y3Gy4EFJPJYAVVyNaVCLcm9yvP3HEe1EoSP",
-          "prev_hash": "J9moUik9F4NqpxKoE8oBrzswhwDKRa2TeqUbyhETBHN2",
-          "prev_height": 34,
-          "prev_state_root": "4v8EHF79b9pLbNhYyDNTWKqEXTxaqMzYu5KWTqp6aKtW",
-          "random_value": "AuAagA5eDYtsQf8AM6YLgLv62E8BJ7Z2VeqndUeMr8Tn",
+          "next_bp_hash": "2ZQDMLAPQ1gtVCqkXmS7h44EJy65zYVr9GroA85vpMHt",
+          "next_epoch_id": "Eck5bzSwsHgG6qD7HBzXtweXQ7okmSMtx6inGMsTEC5j",
+          "outcome_root": "6VYexKzdffPCs1WzjXocKr97NqKKtcd4TJxp8T2JvqbB",
+          "prev_hash": "8E72UiFtcw5izmnzjL2kLAecSifz6g3hzEPaXrU8cpzr",
+          "prev_height": 32,
+          "prev_state_root": "BVz7iZPvapvBViWhYHZ26UJudc8DBGbj8QF1y9AzfGAR",
+          "random_value": "5frKTdQkbCbKFwh4TXjkNRMQ3uXM4BGCN4bRPN4ZVKNy",
           "rent_paid": "0",
           "shard_split": null,
-          "signature": "ed25519:3BiN9zCPtvW9N3vSZY4nZMciecxZpj7Ei2fzug4PBkDuwtq8kRgBWa2P3ZfMMUj3bxVn2hQo5crxGJ4U4pwsgnVj",
-          "timestamp": 1793905158314406100,
-          "timestamp_nanosec": "1793905158314406105",
-          "total_supply": "2050029999979930459543757700000000",
+          "signature": "ed25519:2f5TjMyD4SAF1GMKHP6o97LpvYZpRGqTF8D2XLaa4HPs5feMwcvbYXjw283RSMMUyu9EYGWUEhYM5yNetsS24uW3",
+          "timestamp": 1793906686470010000,
+          "timestamp_nanosec": "1793906686470010130",
+          "total_supply": "2050029999979724008383991300000000",
           "validator_proposals": [],
           "validator_reward": "0"
         }
       },
       "account": {
-        "amount": "100000014466123890200000000",
-        "block_hash": "7xDNy2TeLFzYHuPWuPCFssgXK8UKty3ckvHUkhJs1zkj",
-        "block_height": 35,
-        "code_hash": "7cpdwYxv9DHP9N4RkriZqjHy9GuDxwLjTPReyQmFuDBT",
+        "amount": "100000015940257686900000000",
+        "block_hash": "7mDNUyjYhbdwPTVjwRDtKgt6mt9Rd1nRDGCycEo9M561",
+        "block_height": 33,
+        "code_hash": "F8puNhtHcSf5mFEKcoPSmAoR2bXrBQthBjzuHgMjK84y",
         "locked": "0",
         "storage_paid_at": 0,
-        "storage_usage": 331318
+        "storage_usage": 348954
       },
       "foundation": {
-        "block_hash": "7xDNy2TeLFzYHuPWuPCFssgXK8UKty3ckvHUkhJs1zkj",
-        "block_height": 35,
+        "block_hash": "7mDNUyjYhbdwPTVjwRDtKgt6mt9Rd1nRDGCycEo9M561",
+        "block_height": 33,
         "logs": [],
         "result": [
           123, 34, 100, 101, 112, 108, 111, 121, 109, 101, 110, 116, 34, 58,
@@ -1573,8 +1576,8 @@
           49, 49, 49, 49, 49, 49, 49, 49, 49, 49, 49, 49, 49, 49, 49, 49, 49,
           49, 49, 49, 49, 49, 49, 49, 49, 49, 49, 34, 44, 34, 99, 111, 110, 116,
           114, 97, 99, 116, 95, 105, 100, 34, 58, 34, 100, 101, 118, 45, 50, 48,
-          50, 54, 49, 49, 48, 53, 49, 56, 53, 57, 49, 52, 45, 51, 49, 48, 50,
-          48, 52, 50, 55, 51, 57, 54, 54, 56, 55, 46, 116, 101, 115, 116, 46,
+          50, 54, 49, 49, 48, 53, 49, 57, 50, 52, 52, 50, 45, 57, 56, 48, 57,
+          54, 57, 49, 55, 50, 56, 55, 56, 48, 57, 46, 116, 101, 115, 116, 46,
           110, 101, 97, 114, 34, 44, 34, 97, 112, 105, 95, 118, 101, 114, 115,
           105, 111, 110, 34, 58, 34, 50, 46, 48, 46, 48, 34, 44, 34, 115, 116,
           97, 116, 101, 95, 115, 99, 104, 101, 109, 97, 34, 58, 34, 49, 34, 44,
@@ -1589,14 +1592,14 @@
           114, 107, 101, 116, 95, 114, 101, 118, 105, 115, 105, 111, 110, 34,
           58, 34, 53, 34, 44, 34, 101, 118, 101, 110, 116, 95, 115, 101, 113,
           117, 101, 110, 99, 101, 34, 58, 34, 53, 34, 44, 34, 98, 108, 111, 99,
-          107, 95, 104, 101, 105, 103, 104, 116, 34, 58, 34, 51, 53, 34, 44, 34,
+          107, 95, 104, 101, 105, 103, 104, 116, 34, 58, 34, 51, 51, 34, 44, 34,
           98, 108, 111, 99, 107, 95, 116, 105, 109, 101, 115, 116, 97, 109, 112,
-          95, 110, 115, 34, 58, 34, 49, 55, 57, 51, 57, 48, 53, 49, 53, 56, 51,
-          49, 52, 52, 48, 54, 49, 48, 53, 34, 44, 34, 100, 97, 116, 97, 34, 58,
+          95, 110, 115, 34, 58, 34, 49, 55, 57, 51, 57, 48, 54, 54, 56, 54, 52,
+          55, 48, 48, 49, 48, 49, 51, 48, 34, 44, 34, 100, 97, 116, 97, 34, 58,
           123, 34, 111, 119, 110, 101, 114, 95, 97, 99, 99, 111, 117, 110, 116,
           95, 105, 100, 34, 58, 34, 100, 101, 118, 45, 50, 48, 50, 54, 49, 49,
-          48, 53, 49, 56, 53, 57, 49, 52, 45, 51, 49, 48, 50, 48, 52, 50, 55,
-          51, 57, 54, 54, 56, 55, 46, 116, 101, 115, 116, 46, 110, 101, 97, 114,
+          48, 53, 49, 57, 50, 52, 52, 50, 45, 57, 56, 48, 57, 54, 57, 49, 55,
+          50, 56, 55, 56, 48, 57, 46, 116, 101, 115, 116, 46, 110, 101, 97, 114,
           34, 44, 34, 111, 112, 101, 114, 97, 116, 111, 114, 95, 97, 99, 99,
           111, 117, 110, 116, 95, 105, 100, 34, 58, 34, 111, 112, 101, 114, 97,
           116, 111, 114, 46, 116, 101, 115, 116, 110, 101, 116, 34, 44, 34, 109,
@@ -1630,7 +1633,8 @@
           99, 105, 112, 101, 115, 34, 44, 34, 115, 116, 97, 114, 116, 95, 112,
           114, 111, 100, 117, 99, 116, 105, 111, 110, 34, 44, 34, 103, 101, 116,
           95, 112, 114, 111, 100, 117, 99, 116, 105, 111, 110, 95, 106, 111, 98,
-          115, 34, 93, 125, 125
+          115, 34, 44, 34, 99, 111, 109, 112, 108, 101, 116, 101, 95, 112, 114,
+          111, 100, 117, 99, 116, 105, 111, 110, 34, 93, 125, 125
         ]
       }
     },
@@ -1645,26 +1649,26 @@
         "command": {
           "sequence": "4",
           "config_version": "1",
-          "valid_until_ns": "1793905657808000950"
+          "valid_until_ns": "1793907186089678123"
         }
       },
-      "transaction_hash": "AhyEpdAtX5NBhcPyaq4HM6B8o13qNmUL2BM2AQboFKGk",
-      "reference_block_height": 36,
-      "gas_burnt": "6618680913829",
+      "transaction_hash": "7EuuMZD3hJMdtS8uZkAmjGLHKuhSm82fiKtfPrFUSdK6",
+      "reference_block_height": 34,
+      "gas_burnt": "6638968413609",
       "receipt": {
         "final_execution_status": "FINAL",
         "receipts_outcome": [
           {
-            "block_hash": "Es45najUuV7hG7Ko8EAfueN6kWS94Vb8JWm4r2XTAnBu",
-            "id": "DW2bqCDXBGmkde6KnTKXK76Jri1UzKVsPp8W6Amy6EAm",
+            "block_hash": "MuJEnQFeb4PFhn3fgYUS6ZakB96QffciqruXHMwjNXD",
+            "id": "FijXo5nHA4BDBf8GnsarL6mNaQNpVT9L3NRoffBkL35S",
             "outcome": {
-              "executor_id": "dev-20261105185914-31020427396687.test.near",
-              "gas_burnt": 6300417098819,
+              "executor_id": "dev-20261105192442-98096917287809.test.near",
+              "gas_burnt": 6320704598599,
               "logs": [],
               "metadata": {
                 "contracts": [
                   {
-                    "local": "7cpdwYxv9DHP9N4RkriZqjHy9GuDxwLjTPReyQmFuDBT"
+                    "local": "F8puNhtHcSf5mFEKcoPSmAoR2bXrBQthBjzuHgMjK84y"
                   }
                 ],
                 "gas_profile": [
@@ -1681,7 +1685,7 @@
                   {
                     "cost": "CONTRACT_LOADING_BYTES",
                     "cost_category": "WASM_HOST_COST",
-                    "gas_used": "357159133895"
+                    "gas_used": "376252296655"
                   },
                   {
                     "cost": "READ_CACHED_TRIE_NODE",
@@ -1696,7 +1700,7 @@
                   {
                     "cost": "READ_MEMORY_BYTE",
                     "cost_category": "WASM_HOST_COST",
-                    "gas_used": "26369847021"
+                    "gas_used": "26780390985"
                   },
                   {
                     "cost": "READ_REGISTER_BASE",
@@ -1706,7 +1710,7 @@
                   {
                     "cost": "READ_REGISTER_BYTE",
                     "cost_category": "WASM_HOST_COST",
-                    "gas_used": "302782464"
+                    "gas_used": "313427160"
                   },
                   {
                     "cost": "SHA256_BASE",
@@ -1741,7 +1745,7 @@
                   {
                     "cost": "STORAGE_READ_VALUE_BYTE",
                     "cost_category": "WASM_HOST_COST",
-                    "gas_used": "13079250324"
+                    "gas_used": "13685238756"
                   },
                   {
                     "cost": "STORAGE_WRITE_BASE",
@@ -1751,7 +1755,7 @@
                   {
                     "cost": "STORAGE_WRITE_EVICTED_BYTE",
                     "cost_category": "WASM_HOST_COST",
-                    "gas_used": "47629966281"
+                    "gas_used": "51098635437"
                   },
                   {
                     "cost": "STORAGE_WRITE_KEY_BYTE",
@@ -1761,7 +1765,7 @@
                   {
                     "cost": "STORAGE_WRITE_VALUE_BYTE",
                     "cost_category": "WASM_HOST_COST",
-                    "gas_used": "46000493337"
+                    "gas_used": "49350495549"
                   },
                   {
                     "cost": "TOUCHING_TRIE_NODE",
@@ -1771,7 +1775,7 @@
                   {
                     "cost": "WASM_INSTRUCTION",
                     "cost_category": "WASM_HOST_COST",
-                    "gas_used": "4475903712060"
+                    "gas_used": "4468136895420"
                   },
                   {
                     "cost": "WRITE_MEMORY_BASE",
@@ -1781,7 +1785,7 @@
                   {
                     "cost": "WRITE_MEMORY_BYTE",
                     "cost_category": "WASM_HOST_COST",
-                    "gas_used": "8411007936"
+                    "gas_used": "8705175312"
                   },
                   {
                     "cost": "WRITE_REGISTER_BASE",
@@ -1791,24 +1795,24 @@
                   {
                     "cost": "WRITE_REGISTER_BYTE",
                     "cost_category": "WASM_HOST_COST",
-                    "gas_used": "15069399696"
+                    "gas_used": "15890537520"
                   }
                 ],
                 "version": 4
               },
-              "receipt_ids": ["5gnuWDWjuAD3SasSJjQFT28YQCAYRnQuvgqyqhSyHDKd"],
+              "receipt_ids": ["Eb4TM6xdAM6fLoVdhBAt2xU4wf6rrgjLALTYfNBnEQWw"],
               "status": {
-                "SuccessValue": "eyJkZXBsb3ltZW50Ijp7Im5ldHdvcmtfaWQiOiJ0ZXN0bmV0IiwiZ2VuZXNpc19oYXNoIjoiMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTEiLCJjb250cmFjdF9pZCI6ImRldi0yMDI2MTEwNTE4NTkxNC0zMTAyMDQyNzM5NjY4Ny50ZXN0Lm5lYXIiLCJhcGlfdmVyc2lvbiI6IjIuMC4wIiwic3RhdGVfc2NoZW1hIjoiMSIsImNvbW1hbmRfc2NoZW1hIjoiMSIsImNvbmZpZ192ZXJzaW9uIjoiMSIsImNvbmZpZ19zaGEyNTYiOiJhOTMyZWZiNDhjNzBhNzNjZTQ2NDcyY2Q3NTQyODg2NDk1NDFiMzQ2MDRlMmVhNDlhNDA5Mzk2MWU3MWEyZDEwIn0sIm1hcmtldF9yZXZpc2lvbiI6IjUiLCJldmVudF9zZXF1ZW5jZSI6IjUiLCJibG9ja19oZWlnaHQiOiI0MSIsImJsb2NrX3RpbWVzdGFtcF9ucyI6IjE3OTM5MDUxNTkwNzMwNTMzOTciLCJkYXRhIjp7InByaW5jaXBhbCI6ImFjY291bnQ6ZGV2LTIwMjYxMTA1MTg1OTE1LTkxMDEwNjQ0ODYwNDkyLnRlc3QubmVhciIsImNvbW1hbmRfc2VxdWVuY2UiOiI0IiwicGF5bG9hZF9zaGEyNTYiOiI4YzhlZjQwMjM3NDcxOGY2YmU3ODJlMmZiMmQwOTk2YzEwYWQ2YmFiYWY4MzU1NTNmNDcwMzdhZjdkZjAyNDNiIiwicmVwbGF5ZWQiOnRydWUsImVmZmVjdF9yZXZpc2lvbiI6IjUiLCJlZmZlY3RfZXZlbnRfc2VxdWVuY2UiOiI1Iiwib3V0Y29tZSI6eyJraW5kIjoicmF3X3B1cmNoYXNlZCIsInRyYWRlIjp7InRyYWRlX2lkIjoiMSIsImtpbmQiOiJyYXdfcHVyY2hhc2UiLCJidXllciI6eyJraW5kIjoicGxheWVyIiwiYWNjb3VudF9pZCI6ImRldi0yMDI2MTEwNTE4NTkxNS05MTAxMDY0NDg2MDQ5Mi50ZXN0Lm5lYXIifSwiY3VzdG9tZXJfcG9vbF9pZCI6bnVsbCwic2VsbGVyIjp7ImtpbmQiOiJtZXJjaGFudCIsIm1lcmNoYW50X2lkIjoicmV4In0sIml0ZW1faWQiOiJjcnlzdGFsIiwicXVhbnRpdHkiOiIxIiwidW5pdF9wcmljZSI6IjQiLCJ0b3RhbF9wcmljZSI6IjQiLCJsaXN0aW5nX2lkIjoiMSIsIm9mZmVyX2lkIjpudWxsLCJjb25zdW1lZF9xdWFudGl0eSI6IjAiLCJzZXR0bGVkX2F0X25zIjoiMTc5MzkwNTE1ODMxNDQwNjEwNSIsImNvbW1hbmRfcHJpbmNpcGFsIjoiYWNjb3VudDpkZXYtMjAyNjExMDUxODU5MTUtOTEwMTA2NDQ4NjA0OTIudGVzdC5uZWFyIiwiY29tbWFuZF9zZXF1ZW5jZSI6IjQiLCJldmVudF9zZXF1ZW5jZSI6IjUifSwibGlzdGluZyI6eyJsaXN0aW5nX2lkIjoiMSIsInNob3BfaWQiOiIxIiwib3duZXIiOnsia2luZCI6Im1lcmNoYW50IiwibWVyY2hhbnRfaWQiOiJyZXgifSwiaXRlbV9pZCI6ImNyeXN0YWwiLCJyZW1haW5pbmdfcXVhbnRpdHkiOiI3IiwidW5pdF9wcmljZSI6IjQiLCJyZXZpc2lvbiI6IjIiLCJhY3RpdmUiOnRydWV9LCJidXllciI6eyJhY3RvciI6eyJraW5kIjoicGxheWVyIiwiYWNjb3VudF9pZCI6ImRldi0yMDI2MTEwNTE4NTkxNS05MTAxMDY0NDg2MDQ5Mi50ZXN0Lm5lYXIifSwicmV2aXNpb24iOiIyIiwiZ29sZCI6eyJoZWxkIjoiOTYiLCJhdmFpbGFibGUiOiI5NiIsInRyYWRlX3Jlc2VydmVkIjoiMCIsInRyYWRlX2luYm91bmRfcmVzZXJ2ZWQiOiIwIn0sImludmVudG9yeSI6eyJoZWxkIjp7ImNyeXN0YWwiOiIxIiwid29vZCI6IjAiLCJoZXJiIjoiMCIsImlyb24iOiIwIiwiaGVhbHRoX3BvdGlvbiI6IjAiLCJpcm9uX3Rvb2wiOiIwIn0sImF2YWlsYWJsZSI6eyJjcnlzdGFsIjoiMSIsIndvb2QiOiIwIiwiaGVyYiI6IjAiLCJpcm9uIjoiMCIsImhlYWx0aF9wb3Rpb24iOiIwIiwiaXJvbl90b29sIjoiMCJ9LCJsaXN0aW5nX3Jlc2VydmVkIjp7ImNyeXN0YWwiOiIwIiwid29vZCI6IjAiLCJoZXJiIjoiMCIsImlyb24iOiIwIiwiaGVhbHRoX3BvdGlvbiI6IjAiLCJpcm9uX3Rvb2wiOiIwIn0sInRyYWRlX3Jlc2VydmVkIjp7ImNyeXN0YWwiOiIwIiwid29vZCI6IjAiLCJoZXJiIjoiMCIsImlyb24iOiIwIiwiaGVhbHRoX3BvdGlvbiI6IjAiLCJpcm9uX3Rvb2wiOiIwIn0sInByb2R1Y3Rpb25fb3V0cHV0X3Jlc2VydmVkIjp7ImNyeXN0YWwiOiIwIiwid29vZCI6IjAiLCJoZXJiIjoiMCIsImlyb24iOiIwIiwiaGVhbHRoX3BvdGlvbiI6IjAiLCJpcm9uX3Rvb2wiOiIwIn0sInRyYWRlX2luYm91bmRfcmVzZXJ2ZWQiOnsiY3J5c3RhbCI6IjAiLCJ3b29kIjoiMCIsImhlcmIiOiIwIiwiaXJvbiI6IjAiLCJoZWFsdGhfcG90aW9uIjoiMCIsImlyb25fdG9vbCI6IjAifX19LCJzZWxsZXIiOnsiYWN0b3IiOnsia2luZCI6Im1lcmNoYW50IiwibWVyY2hhbnRfaWQiOiJyZXgifSwicmV2aXNpb24iOiIyIiwiZ29sZCI6eyJoZWxkIjoiMjA0IiwiYXZhaWxhYmxlIjoiMjA0IiwidHJhZGVfcmVzZXJ2ZWQiOiIwIiwidHJhZGVfaW5ib3VuZF9yZXNlcnZlZCI6IjAifSwiaW52ZW50b3J5Ijp7ImhlbGQiOnsiY3J5c3RhbCI6IjkiLCJ3b29kIjoiMCIsImhlcmIiOiIwIiwiaXJvbiI6IjAiLCJoZWFsdGhfcG90aW9uIjoiMCIsImlyb25fdG9vbCI6IjAifSwiYXZhaWxhYmxlIjp7ImNyeXN0YWwiOiIyIiwid29vZCI6IjAiLCJoZXJiIjoiMCIsImlyb24iOiIwIiwiaGVhbHRoX3BvdGlvbiI6IjAiLCJpcm9uX3Rvb2wiOiIwIn0sImxpc3RpbmdfcmVzZXJ2ZWQiOnsiY3J5c3RhbCI6IjciLCJ3b29kIjoiMCIsImhlcmIiOiIwIiwiaXJvbiI6IjAiLCJoZWFsdGhfcG90aW9uIjoiMCIsImlyb25fdG9vbCI6IjAifSwidHJhZGVfcmVzZXJ2ZWQiOnsiY3J5c3RhbCI6IjAiLCJ3b29kIjoiMCIsImhlcmIiOiIwIiwiaXJvbiI6IjAiLCJoZWFsdGhfcG90aW9uIjoiMCIsImlyb25fdG9vbCI6IjAifSwicHJvZHVjdGlvbl9vdXRwdXRfcmVzZXJ2ZWQiOnsiY3J5c3RhbCI6IjAiLCJ3b29kIjoiMCIsImhlcmIiOiIwIiwiaXJvbiI6IjAiLCJoZWFsdGhfcG90aW9uIjoiMCIsImlyb25fdG9vbCI6IjAifSwidHJhZGVfaW5ib3VuZF9yZXNlcnZlZCI6eyJjcnlzdGFsIjoiMCIsIndvb2QiOiIwIiwiaGVyYiI6IjAiLCJpcm9uIjoiMCIsImhlYWx0aF9wb3Rpb24iOiIwIiwiaXJvbl90b29sIjoiMCJ9fX19fX0="
+                "SuccessValue": "eyJkZXBsb3ltZW50Ijp7Im5ldHdvcmtfaWQiOiJ0ZXN0bmV0IiwiZ2VuZXNpc19oYXNoIjoiMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTEiLCJjb250cmFjdF9pZCI6ImRldi0yMDI2MTEwNTE5MjQ0Mi05ODA5NjkxNzI4NzgwOS50ZXN0Lm5lYXIiLCJhcGlfdmVyc2lvbiI6IjIuMC4wIiwic3RhdGVfc2NoZW1hIjoiMSIsImNvbW1hbmRfc2NoZW1hIjoiMSIsImNvbmZpZ192ZXJzaW9uIjoiMSIsImNvbmZpZ19zaGEyNTYiOiJhOTMyZWZiNDhjNzBhNzNjZTQ2NDcyY2Q3NTQyODg2NDk1NDFiMzQ2MDRlMmVhNDlhNDA5Mzk2MWU3MWEyZDEwIn0sIm1hcmtldF9yZXZpc2lvbiI6IjUiLCJldmVudF9zZXF1ZW5jZSI6IjUiLCJibG9ja19oZWlnaHQiOiIzOSIsImJsb2NrX3RpbWVzdGFtcF9ucyI6IjE3OTM5MDY2ODcyMzU1NzgzODkiLCJkYXRhIjp7InByaW5jaXBhbCI6ImFjY291bnQ6ZGV2LTIwMjYxMTA1MTkyNDQzLTczMDQ3MjU2Mzk5OTM5LnRlc3QubmVhciIsImNvbW1hbmRfc2VxdWVuY2UiOiI0IiwicGF5bG9hZF9zaGEyNTYiOiJjNDM0MDA4NWJkYmQ4MmNlMWI3ZTJiYjEyZDg2OTZhYjk5MmU2NTI5ZGFjZTc4NTJiZDkxMDlhMzU5OWE3ZjhjIiwicmVwbGF5ZWQiOnRydWUsImVmZmVjdF9yZXZpc2lvbiI6IjUiLCJlZmZlY3RfZXZlbnRfc2VxdWVuY2UiOiI1Iiwib3V0Y29tZSI6eyJraW5kIjoicmF3X3B1cmNoYXNlZCIsInRyYWRlIjp7InRyYWRlX2lkIjoiMSIsImtpbmQiOiJyYXdfcHVyY2hhc2UiLCJidXllciI6eyJraW5kIjoicGxheWVyIiwiYWNjb3VudF9pZCI6ImRldi0yMDI2MTEwNTE5MjQ0My03MzA0NzI1NjM5OTkzOS50ZXN0Lm5lYXIifSwiY3VzdG9tZXJfcG9vbF9pZCI6bnVsbCwic2VsbGVyIjp7ImtpbmQiOiJtZXJjaGFudCIsIm1lcmNoYW50X2lkIjoicmV4In0sIml0ZW1faWQiOiJjcnlzdGFsIiwicXVhbnRpdHkiOiIxIiwidW5pdF9wcmljZSI6IjQiLCJ0b3RhbF9wcmljZSI6IjQiLCJsaXN0aW5nX2lkIjoiMSIsIm9mZmVyX2lkIjpudWxsLCJjb25zdW1lZF9xdWFudGl0eSI6IjAiLCJzZXR0bGVkX2F0X25zIjoiMTc5MzkwNjY4NjQ3MDAxMDEzMCIsImNvbW1hbmRfcHJpbmNpcGFsIjoiYWNjb3VudDpkZXYtMjAyNjExMDUxOTI0NDMtNzMwNDcyNTYzOTk5MzkudGVzdC5uZWFyIiwiY29tbWFuZF9zZXF1ZW5jZSI6IjQiLCJldmVudF9zZXF1ZW5jZSI6IjUifSwibGlzdGluZyI6eyJsaXN0aW5nX2lkIjoiMSIsInNob3BfaWQiOiIxIiwib3duZXIiOnsia2luZCI6Im1lcmNoYW50IiwibWVyY2hhbnRfaWQiOiJyZXgifSwiaXRlbV9pZCI6ImNyeXN0YWwiLCJyZW1haW5pbmdfcXVhbnRpdHkiOiI3IiwidW5pdF9wcmljZSI6IjQiLCJyZXZpc2lvbiI6IjIiLCJhY3RpdmUiOnRydWV9LCJidXllciI6eyJhY3RvciI6eyJraW5kIjoicGxheWVyIiwiYWNjb3VudF9pZCI6ImRldi0yMDI2MTEwNTE5MjQ0My03MzA0NzI1NjM5OTkzOS50ZXN0Lm5lYXIifSwicmV2aXNpb24iOiIyIiwiZ29sZCI6eyJoZWxkIjoiOTYiLCJhdmFpbGFibGUiOiI5NiIsInRyYWRlX3Jlc2VydmVkIjoiMCIsInRyYWRlX2luYm91bmRfcmVzZXJ2ZWQiOiIwIn0sImludmVudG9yeSI6eyJoZWxkIjp7ImNyeXN0YWwiOiIxIiwid29vZCI6IjAiLCJoZXJiIjoiMCIsImlyb24iOiIwIiwiaGVhbHRoX3BvdGlvbiI6IjAiLCJpcm9uX3Rvb2wiOiIwIn0sImF2YWlsYWJsZSI6eyJjcnlzdGFsIjoiMSIsIndvb2QiOiIwIiwiaGVyYiI6IjAiLCJpcm9uIjoiMCIsImhlYWx0aF9wb3Rpb24iOiIwIiwiaXJvbl90b29sIjoiMCJ9LCJsaXN0aW5nX3Jlc2VydmVkIjp7ImNyeXN0YWwiOiIwIiwid29vZCI6IjAiLCJoZXJiIjoiMCIsImlyb24iOiIwIiwiaGVhbHRoX3BvdGlvbiI6IjAiLCJpcm9uX3Rvb2wiOiIwIn0sInRyYWRlX3Jlc2VydmVkIjp7ImNyeXN0YWwiOiIwIiwid29vZCI6IjAiLCJoZXJiIjoiMCIsImlyb24iOiIwIiwiaGVhbHRoX3BvdGlvbiI6IjAiLCJpcm9uX3Rvb2wiOiIwIn0sInByb2R1Y3Rpb25fb3V0cHV0X3Jlc2VydmVkIjp7ImNyeXN0YWwiOiIwIiwid29vZCI6IjAiLCJoZXJiIjoiMCIsImlyb24iOiIwIiwiaGVhbHRoX3BvdGlvbiI6IjAiLCJpcm9uX3Rvb2wiOiIwIn0sInRyYWRlX2luYm91bmRfcmVzZXJ2ZWQiOnsiY3J5c3RhbCI6IjAiLCJ3b29kIjoiMCIsImhlcmIiOiIwIiwiaXJvbiI6IjAiLCJoZWFsdGhfcG90aW9uIjoiMCIsImlyb25fdG9vbCI6IjAifX19LCJzZWxsZXIiOnsiYWN0b3IiOnsia2luZCI6Im1lcmNoYW50IiwibWVyY2hhbnRfaWQiOiJyZXgifSwicmV2aXNpb24iOiIyIiwiZ29sZCI6eyJoZWxkIjoiMjA0IiwiYXZhaWxhYmxlIjoiMjA0IiwidHJhZGVfcmVzZXJ2ZWQiOiIwIiwidHJhZGVfaW5ib3VuZF9yZXNlcnZlZCI6IjAifSwiaW52ZW50b3J5Ijp7ImhlbGQiOnsiY3J5c3RhbCI6IjkiLCJ3b29kIjoiMCIsImhlcmIiOiIwIiwiaXJvbiI6IjAiLCJoZWFsdGhfcG90aW9uIjoiMCIsImlyb25fdG9vbCI6IjAifSwiYXZhaWxhYmxlIjp7ImNyeXN0YWwiOiIyIiwid29vZCI6IjAiLCJoZXJiIjoiMCIsImlyb24iOiIwIiwiaGVhbHRoX3BvdGlvbiI6IjAiLCJpcm9uX3Rvb2wiOiIwIn0sImxpc3RpbmdfcmVzZXJ2ZWQiOnsiY3J5c3RhbCI6IjciLCJ3b29kIjoiMCIsImhlcmIiOiIwIiwiaXJvbiI6IjAiLCJoZWFsdGhfcG90aW9uIjoiMCIsImlyb25fdG9vbCI6IjAifSwidHJhZGVfcmVzZXJ2ZWQiOnsiY3J5c3RhbCI6IjAiLCJ3b29kIjoiMCIsImhlcmIiOiIwIiwiaXJvbiI6IjAiLCJoZWFsdGhfcG90aW9uIjoiMCIsImlyb25fdG9vbCI6IjAifSwicHJvZHVjdGlvbl9vdXRwdXRfcmVzZXJ2ZWQiOnsiY3J5c3RhbCI6IjAiLCJ3b29kIjoiMCIsImhlcmIiOiIwIiwiaXJvbiI6IjAiLCJoZWFsdGhfcG90aW9uIjoiMCIsImlyb25fdG9vbCI6IjAifSwidHJhZGVfaW5ib3VuZF9yZXNlcnZlZCI6eyJjcnlzdGFsIjoiMCIsIndvb2QiOiIwIiwiaGVyYiI6IjAiLCJpcm9uIjoiMCIsImhlYWx0aF9wb3Rpb24iOiIwIiwiaXJvbl90b29sIjoiMCJ9fX19fX0="
               },
-              "tokens_burnt": "630041709881900000000"
+              "tokens_burnt": "632070459859900000000"
             },
             "proof": []
           },
           {
-            "block_hash": "8f413PkF4CvCFgEdW2dGGsAERZmpKsgpQ2fX3CGwyw9j",
-            "id": "5gnuWDWjuAD3SasSJjQFT28YQCAYRnQuvgqyqhSyHDKd",
+            "block_hash": "EB5YbNBWsR2zzisXpYEwiimUETgkijici83CtWZ2o67g",
+            "id": "Eb4TM6xdAM6fLoVdhBAt2xU4wf6rrgjLALTYfNBnEQWw",
             "outcome": {
-              "executor_id": "dev-20261105185915-91010644860492.test.near",
+              "executor_id": "dev-20261105192443-73047256399939.test.near",
               "gas_burnt": 223182562500,
               "logs": [],
               "metadata": {
@@ -1826,41 +1830,41 @@
           }
         ],
         "status": {
-          "SuccessValue": "eyJkZXBsb3ltZW50Ijp7Im5ldHdvcmtfaWQiOiJ0ZXN0bmV0IiwiZ2VuZXNpc19oYXNoIjoiMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTEiLCJjb250cmFjdF9pZCI6ImRldi0yMDI2MTEwNTE4NTkxNC0zMTAyMDQyNzM5NjY4Ny50ZXN0Lm5lYXIiLCJhcGlfdmVyc2lvbiI6IjIuMC4wIiwic3RhdGVfc2NoZW1hIjoiMSIsImNvbW1hbmRfc2NoZW1hIjoiMSIsImNvbmZpZ192ZXJzaW9uIjoiMSIsImNvbmZpZ19zaGEyNTYiOiJhOTMyZWZiNDhjNzBhNzNjZTQ2NDcyY2Q3NTQyODg2NDk1NDFiMzQ2MDRlMmVhNDlhNDA5Mzk2MWU3MWEyZDEwIn0sIm1hcmtldF9yZXZpc2lvbiI6IjUiLCJldmVudF9zZXF1ZW5jZSI6IjUiLCJibG9ja19oZWlnaHQiOiI0MSIsImJsb2NrX3RpbWVzdGFtcF9ucyI6IjE3OTM5MDUxNTkwNzMwNTMzOTciLCJkYXRhIjp7InByaW5jaXBhbCI6ImFjY291bnQ6ZGV2LTIwMjYxMTA1MTg1OTE1LTkxMDEwNjQ0ODYwNDkyLnRlc3QubmVhciIsImNvbW1hbmRfc2VxdWVuY2UiOiI0IiwicGF5bG9hZF9zaGEyNTYiOiI4YzhlZjQwMjM3NDcxOGY2YmU3ODJlMmZiMmQwOTk2YzEwYWQ2YmFiYWY4MzU1NTNmNDcwMzdhZjdkZjAyNDNiIiwicmVwbGF5ZWQiOnRydWUsImVmZmVjdF9yZXZpc2lvbiI6IjUiLCJlZmZlY3RfZXZlbnRfc2VxdWVuY2UiOiI1Iiwib3V0Y29tZSI6eyJraW5kIjoicmF3X3B1cmNoYXNlZCIsInRyYWRlIjp7InRyYWRlX2lkIjoiMSIsImtpbmQiOiJyYXdfcHVyY2hhc2UiLCJidXllciI6eyJraW5kIjoicGxheWVyIiwiYWNjb3VudF9pZCI6ImRldi0yMDI2MTEwNTE4NTkxNS05MTAxMDY0NDg2MDQ5Mi50ZXN0Lm5lYXIifSwiY3VzdG9tZXJfcG9vbF9pZCI6bnVsbCwic2VsbGVyIjp7ImtpbmQiOiJtZXJjaGFudCIsIm1lcmNoYW50X2lkIjoicmV4In0sIml0ZW1faWQiOiJjcnlzdGFsIiwicXVhbnRpdHkiOiIxIiwidW5pdF9wcmljZSI6IjQiLCJ0b3RhbF9wcmljZSI6IjQiLCJsaXN0aW5nX2lkIjoiMSIsIm9mZmVyX2lkIjpudWxsLCJjb25zdW1lZF9xdWFudGl0eSI6IjAiLCJzZXR0bGVkX2F0X25zIjoiMTc5MzkwNTE1ODMxNDQwNjEwNSIsImNvbW1hbmRfcHJpbmNpcGFsIjoiYWNjb3VudDpkZXYtMjAyNjExMDUxODU5MTUtOTEwMTA2NDQ4NjA0OTIudGVzdC5uZWFyIiwiY29tbWFuZF9zZXF1ZW5jZSI6IjQiLCJldmVudF9zZXF1ZW5jZSI6IjUifSwibGlzdGluZyI6eyJsaXN0aW5nX2lkIjoiMSIsInNob3BfaWQiOiIxIiwib3duZXIiOnsia2luZCI6Im1lcmNoYW50IiwibWVyY2hhbnRfaWQiOiJyZXgifSwiaXRlbV9pZCI6ImNyeXN0YWwiLCJyZW1haW5pbmdfcXVhbnRpdHkiOiI3IiwidW5pdF9wcmljZSI6IjQiLCJyZXZpc2lvbiI6IjIiLCJhY3RpdmUiOnRydWV9LCJidXllciI6eyJhY3RvciI6eyJraW5kIjoicGxheWVyIiwiYWNjb3VudF9pZCI6ImRldi0yMDI2MTEwNTE4NTkxNS05MTAxMDY0NDg2MDQ5Mi50ZXN0Lm5lYXIifSwicmV2aXNpb24iOiIyIiwiZ29sZCI6eyJoZWxkIjoiOTYiLCJhdmFpbGFibGUiOiI5NiIsInRyYWRlX3Jlc2VydmVkIjoiMCIsInRyYWRlX2luYm91bmRfcmVzZXJ2ZWQiOiIwIn0sImludmVudG9yeSI6eyJoZWxkIjp7ImNyeXN0YWwiOiIxIiwid29vZCI6IjAiLCJoZXJiIjoiMCIsImlyb24iOiIwIiwiaGVhbHRoX3BvdGlvbiI6IjAiLCJpcm9uX3Rvb2wiOiIwIn0sImF2YWlsYWJsZSI6eyJjcnlzdGFsIjoiMSIsIndvb2QiOiIwIiwiaGVyYiI6IjAiLCJpcm9uIjoiMCIsImhlYWx0aF9wb3Rpb24iOiIwIiwiaXJvbl90b29sIjoiMCJ9LCJsaXN0aW5nX3Jlc2VydmVkIjp7ImNyeXN0YWwiOiIwIiwid29vZCI6IjAiLCJoZXJiIjoiMCIsImlyb24iOiIwIiwiaGVhbHRoX3BvdGlvbiI6IjAiLCJpcm9uX3Rvb2wiOiIwIn0sInRyYWRlX3Jlc2VydmVkIjp7ImNyeXN0YWwiOiIwIiwid29vZCI6IjAiLCJoZXJiIjoiMCIsImlyb24iOiIwIiwiaGVhbHRoX3BvdGlvbiI6IjAiLCJpcm9uX3Rvb2wiOiIwIn0sInByb2R1Y3Rpb25fb3V0cHV0X3Jlc2VydmVkIjp7ImNyeXN0YWwiOiIwIiwid29vZCI6IjAiLCJoZXJiIjoiMCIsImlyb24iOiIwIiwiaGVhbHRoX3BvdGlvbiI6IjAiLCJpcm9uX3Rvb2wiOiIwIn0sInRyYWRlX2luYm91bmRfcmVzZXJ2ZWQiOnsiY3J5c3RhbCI6IjAiLCJ3b29kIjoiMCIsImhlcmIiOiIwIiwiaXJvbiI6IjAiLCJoZWFsdGhfcG90aW9uIjoiMCIsImlyb25fdG9vbCI6IjAifX19LCJzZWxsZXIiOnsiYWN0b3IiOnsia2luZCI6Im1lcmNoYW50IiwibWVyY2hhbnRfaWQiOiJyZXgifSwicmV2aXNpb24iOiIyIiwiZ29sZCI6eyJoZWxkIjoiMjA0IiwiYXZhaWxhYmxlIjoiMjA0IiwidHJhZGVfcmVzZXJ2ZWQiOiIwIiwidHJhZGVfaW5ib3VuZF9yZXNlcnZlZCI6IjAifSwiaW52ZW50b3J5Ijp7ImhlbGQiOnsiY3J5c3RhbCI6IjkiLCJ3b29kIjoiMCIsImhlcmIiOiIwIiwiaXJvbiI6IjAiLCJoZWFsdGhfcG90aW9uIjoiMCIsImlyb25fdG9vbCI6IjAifSwiYXZhaWxhYmxlIjp7ImNyeXN0YWwiOiIyIiwid29vZCI6IjAiLCJoZXJiIjoiMCIsImlyb24iOiIwIiwiaGVhbHRoX3BvdGlvbiI6IjAiLCJpcm9uX3Rvb2wiOiIwIn0sImxpc3RpbmdfcmVzZXJ2ZWQiOnsiY3J5c3RhbCI6IjciLCJ3b29kIjoiMCIsImhlcmIiOiIwIiwiaXJvbiI6IjAiLCJoZWFsdGhfcG90aW9uIjoiMCIsImlyb25fdG9vbCI6IjAifSwidHJhZGVfcmVzZXJ2ZWQiOnsiY3J5c3RhbCI6IjAiLCJ3b29kIjoiMCIsImhlcmIiOiIwIiwiaXJvbiI6IjAiLCJoZWFsdGhfcG90aW9uIjoiMCIsImlyb25fdG9vbCI6IjAifSwicHJvZHVjdGlvbl9vdXRwdXRfcmVzZXJ2ZWQiOnsiY3J5c3RhbCI6IjAiLCJ3b29kIjoiMCIsImhlcmIiOiIwIiwiaXJvbiI6IjAiLCJoZWFsdGhfcG90aW9uIjoiMCIsImlyb25fdG9vbCI6IjAifSwidHJhZGVfaW5ib3VuZF9yZXNlcnZlZCI6eyJjcnlzdGFsIjoiMCIsIndvb2QiOiIwIiwiaGVyYiI6IjAiLCJpcm9uIjoiMCIsImhlYWx0aF9wb3Rpb24iOiIwIiwiaXJvbl90b29sIjoiMCJ9fX19fX0="
+          "SuccessValue": "eyJkZXBsb3ltZW50Ijp7Im5ldHdvcmtfaWQiOiJ0ZXN0bmV0IiwiZ2VuZXNpc19oYXNoIjoiMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTEiLCJjb250cmFjdF9pZCI6ImRldi0yMDI2MTEwNTE5MjQ0Mi05ODA5NjkxNzI4NzgwOS50ZXN0Lm5lYXIiLCJhcGlfdmVyc2lvbiI6IjIuMC4wIiwic3RhdGVfc2NoZW1hIjoiMSIsImNvbW1hbmRfc2NoZW1hIjoiMSIsImNvbmZpZ192ZXJzaW9uIjoiMSIsImNvbmZpZ19zaGEyNTYiOiJhOTMyZWZiNDhjNzBhNzNjZTQ2NDcyY2Q3NTQyODg2NDk1NDFiMzQ2MDRlMmVhNDlhNDA5Mzk2MWU3MWEyZDEwIn0sIm1hcmtldF9yZXZpc2lvbiI6IjUiLCJldmVudF9zZXF1ZW5jZSI6IjUiLCJibG9ja19oZWlnaHQiOiIzOSIsImJsb2NrX3RpbWVzdGFtcF9ucyI6IjE3OTM5MDY2ODcyMzU1NzgzODkiLCJkYXRhIjp7InByaW5jaXBhbCI6ImFjY291bnQ6ZGV2LTIwMjYxMTA1MTkyNDQzLTczMDQ3MjU2Mzk5OTM5LnRlc3QubmVhciIsImNvbW1hbmRfc2VxdWVuY2UiOiI0IiwicGF5bG9hZF9zaGEyNTYiOiJjNDM0MDA4NWJkYmQ4MmNlMWI3ZTJiYjEyZDg2OTZhYjk5MmU2NTI5ZGFjZTc4NTJiZDkxMDlhMzU5OWE3ZjhjIiwicmVwbGF5ZWQiOnRydWUsImVmZmVjdF9yZXZpc2lvbiI6IjUiLCJlZmZlY3RfZXZlbnRfc2VxdWVuY2UiOiI1Iiwib3V0Y29tZSI6eyJraW5kIjoicmF3X3B1cmNoYXNlZCIsInRyYWRlIjp7InRyYWRlX2lkIjoiMSIsImtpbmQiOiJyYXdfcHVyY2hhc2UiLCJidXllciI6eyJraW5kIjoicGxheWVyIiwiYWNjb3VudF9pZCI6ImRldi0yMDI2MTEwNTE5MjQ0My03MzA0NzI1NjM5OTkzOS50ZXN0Lm5lYXIifSwiY3VzdG9tZXJfcG9vbF9pZCI6bnVsbCwic2VsbGVyIjp7ImtpbmQiOiJtZXJjaGFudCIsIm1lcmNoYW50X2lkIjoicmV4In0sIml0ZW1faWQiOiJjcnlzdGFsIiwicXVhbnRpdHkiOiIxIiwidW5pdF9wcmljZSI6IjQiLCJ0b3RhbF9wcmljZSI6IjQiLCJsaXN0aW5nX2lkIjoiMSIsIm9mZmVyX2lkIjpudWxsLCJjb25zdW1lZF9xdWFudGl0eSI6IjAiLCJzZXR0bGVkX2F0X25zIjoiMTc5MzkwNjY4NjQ3MDAxMDEzMCIsImNvbW1hbmRfcHJpbmNpcGFsIjoiYWNjb3VudDpkZXYtMjAyNjExMDUxOTI0NDMtNzMwNDcyNTYzOTk5MzkudGVzdC5uZWFyIiwiY29tbWFuZF9zZXF1ZW5jZSI6IjQiLCJldmVudF9zZXF1ZW5jZSI6IjUifSwibGlzdGluZyI6eyJsaXN0aW5nX2lkIjoiMSIsInNob3BfaWQiOiIxIiwib3duZXIiOnsia2luZCI6Im1lcmNoYW50IiwibWVyY2hhbnRfaWQiOiJyZXgifSwiaXRlbV9pZCI6ImNyeXN0YWwiLCJyZW1haW5pbmdfcXVhbnRpdHkiOiI3IiwidW5pdF9wcmljZSI6IjQiLCJyZXZpc2lvbiI6IjIiLCJhY3RpdmUiOnRydWV9LCJidXllciI6eyJhY3RvciI6eyJraW5kIjoicGxheWVyIiwiYWNjb3VudF9pZCI6ImRldi0yMDI2MTEwNTE5MjQ0My03MzA0NzI1NjM5OTkzOS50ZXN0Lm5lYXIifSwicmV2aXNpb24iOiIyIiwiZ29sZCI6eyJoZWxkIjoiOTYiLCJhdmFpbGFibGUiOiI5NiIsInRyYWRlX3Jlc2VydmVkIjoiMCIsInRyYWRlX2luYm91bmRfcmVzZXJ2ZWQiOiIwIn0sImludmVudG9yeSI6eyJoZWxkIjp7ImNyeXN0YWwiOiIxIiwid29vZCI6IjAiLCJoZXJiIjoiMCIsImlyb24iOiIwIiwiaGVhbHRoX3BvdGlvbiI6IjAiLCJpcm9uX3Rvb2wiOiIwIn0sImF2YWlsYWJsZSI6eyJjcnlzdGFsIjoiMSIsIndvb2QiOiIwIiwiaGVyYiI6IjAiLCJpcm9uIjoiMCIsImhlYWx0aF9wb3Rpb24iOiIwIiwiaXJvbl90b29sIjoiMCJ9LCJsaXN0aW5nX3Jlc2VydmVkIjp7ImNyeXN0YWwiOiIwIiwid29vZCI6IjAiLCJoZXJiIjoiMCIsImlyb24iOiIwIiwiaGVhbHRoX3BvdGlvbiI6IjAiLCJpcm9uX3Rvb2wiOiIwIn0sInRyYWRlX3Jlc2VydmVkIjp7ImNyeXN0YWwiOiIwIiwid29vZCI6IjAiLCJoZXJiIjoiMCIsImlyb24iOiIwIiwiaGVhbHRoX3BvdGlvbiI6IjAiLCJpcm9uX3Rvb2wiOiIwIn0sInByb2R1Y3Rpb25fb3V0cHV0X3Jlc2VydmVkIjp7ImNyeXN0YWwiOiIwIiwid29vZCI6IjAiLCJoZXJiIjoiMCIsImlyb24iOiIwIiwiaGVhbHRoX3BvdGlvbiI6IjAiLCJpcm9uX3Rvb2wiOiIwIn0sInRyYWRlX2luYm91bmRfcmVzZXJ2ZWQiOnsiY3J5c3RhbCI6IjAiLCJ3b29kIjoiMCIsImhlcmIiOiIwIiwiaXJvbiI6IjAiLCJoZWFsdGhfcG90aW9uIjoiMCIsImlyb25fdG9vbCI6IjAifX19LCJzZWxsZXIiOnsiYWN0b3IiOnsia2luZCI6Im1lcmNoYW50IiwibWVyY2hhbnRfaWQiOiJyZXgifSwicmV2aXNpb24iOiIyIiwiZ29sZCI6eyJoZWxkIjoiMjA0IiwiYXZhaWxhYmxlIjoiMjA0IiwidHJhZGVfcmVzZXJ2ZWQiOiIwIiwidHJhZGVfaW5ib3VuZF9yZXNlcnZlZCI6IjAifSwiaW52ZW50b3J5Ijp7ImhlbGQiOnsiY3J5c3RhbCI6IjkiLCJ3b29kIjoiMCIsImhlcmIiOiIwIiwiaXJvbiI6IjAiLCJoZWFsdGhfcG90aW9uIjoiMCIsImlyb25fdG9vbCI6IjAifSwiYXZhaWxhYmxlIjp7ImNyeXN0YWwiOiIyIiwid29vZCI6IjAiLCJoZXJiIjoiMCIsImlyb24iOiIwIiwiaGVhbHRoX3BvdGlvbiI6IjAiLCJpcm9uX3Rvb2wiOiIwIn0sImxpc3RpbmdfcmVzZXJ2ZWQiOnsiY3J5c3RhbCI6IjciLCJ3b29kIjoiMCIsImhlcmIiOiIwIiwiaXJvbiI6IjAiLCJoZWFsdGhfcG90aW9uIjoiMCIsImlyb25fdG9vbCI6IjAifSwidHJhZGVfcmVzZXJ2ZWQiOnsiY3J5c3RhbCI6IjAiLCJ3b29kIjoiMCIsImhlcmIiOiIwIiwiaXJvbiI6IjAiLCJoZWFsdGhfcG90aW9uIjoiMCIsImlyb25fdG9vbCI6IjAifSwicHJvZHVjdGlvbl9vdXRwdXRfcmVzZXJ2ZWQiOnsiY3J5c3RhbCI6IjAiLCJ3b29kIjoiMCIsImhlcmIiOiIwIiwiaXJvbiI6IjAiLCJoZWFsdGhfcG90aW9uIjoiMCIsImlyb25fdG9vbCI6IjAifSwidHJhZGVfaW5ib3VuZF9yZXNlcnZlZCI6eyJjcnlzdGFsIjoiMCIsIndvb2QiOiIwIiwiaGVyYiI6IjAiLCJpcm9uIjoiMCIsImhlYWx0aF9wb3Rpb24iOiIwIiwiaXJvbl90b29sIjoiMCJ9fX19fX0="
         },
         "transaction": {
           "actions": [
             {
               "FunctionCall": {
-                "args": "eyJtZXJjaGFudF9pZCI6InJleCIsIml0ZW1faWQiOiJjcnlzdGFsIiwicXVhbnRpdHkiOiIxIiwiZXhwZWN0ZWRfbGlzdGluZ19yZXZpc2lvbiI6IjEiLCJtYXhfdG90YWxfcHJpY2UiOiI0IiwiY29tbWFuZCI6eyJzZXF1ZW5jZSI6IjQiLCJjb25maWdfdmVyc2lvbiI6IjEiLCJ2YWxpZF91bnRpbF9ucyI6IjE3OTM5MDU2NTc4MDgwMDA5NTAifX0=",
+                "args": "eyJtZXJjaGFudF9pZCI6InJleCIsIml0ZW1faWQiOiJjcnlzdGFsIiwicXVhbnRpdHkiOiIxIiwiZXhwZWN0ZWRfbGlzdGluZ19yZXZpc2lvbiI6IjEiLCJtYXhfdG90YWxfcHJpY2UiOiI0IiwiY29tbWFuZCI6eyJzZXF1ZW5jZSI6IjQiLCJjb25maWdfdmVyc2lvbiI6IjEiLCJ2YWxpZF91bnRpbF9ucyI6IjE3OTM5MDcxODYwODk2NzgxMjMifX0=",
                 "deposit": "0",
                 "gas": 100000000000000,
                 "method_name": "buy_from_merchant"
               }
             }
           ],
-          "hash": "AhyEpdAtX5NBhcPyaq4HM6B8o13qNmUL2BM2AQboFKGk",
-          "nonce": 12000005,
+          "hash": "7EuuMZD3hJMdtS8uZkAmjGLHKuhSm82fiKtfPrFUSdK6",
+          "nonce": 10000005,
           "priority_fee": 0,
-          "public_key": "ed25519:Fr79b6NQxMdHJYgzURHt57g7jLRAwj93kMV4YrvHk6ah",
-          "receiver_id": "dev-20261105185914-31020427396687.test.near",
-          "signature": "ed25519:DG6GjXteF5PgsEmQjSRFSejqiTuqRYqv8SzAvZU9M47yWvoLq8rXGYiUQuTqm5QfXAC9idRot3fBbzgp6e4D1YK",
-          "signer_id": "dev-20261105185915-91010644860492.test.near"
+          "public_key": "ed25519:DngkCRnU3fcC2PadS7PCXfNSxH1SeTyMTKz3gdEefK9g",
+          "receiver_id": "dev-20261105192442-98096917287809.test.near",
+          "signature": "ed25519:55SB2MggkeK3MV6WEpDJz1pyyp5tDUEw7XsbPWSUDJmwKFEwRcT1s7ipmoEAghbTPVCkhCHX6JdvcycXKpStzKY2",
+          "signer_id": "dev-20261105192443-73047256399939.test.near"
         },
         "transaction_outcome": {
-          "block_hash": "G3zqkDo4E7NfMew8E16wM76KzUwGUFZ5UjRApE5DxEZ7",
-          "id": "AhyEpdAtX5NBhcPyaq4HM6B8o13qNmUL2BM2AQboFKGk",
+          "block_hash": "D3uDQ4nv2ZGUn5JaGHRCVntfD49SUvo7S8ZvX9fGK15k",
+          "id": "7EuuMZD3hJMdtS8uZkAmjGLHKuhSm82fiKtfPrFUSdK6",
           "outcome": {
-            "executor_id": "dev-20261105185915-91010644860492.test.near",
+            "executor_id": "dev-20261105192443-73047256399939.test.near",
             "gas_burnt": 318263815010,
             "logs": [],
             "metadata": {
               "gas_profile": null,
               "version": 1
             },
-            "receipt_ids": ["DW2bqCDXBGmkde6KnTKXK76Jri1UzKVsPp8W6Amy6EAm"],
+            "receipt_ids": ["FijXo5nHA4BDBf8GnsarL6mNaQNpVT9L3NRoffBkL35S"],
             "status": {
-              "SuccessReceiptId": "DW2bqCDXBGmkde6KnTKXK76Jri1UzKVsPp8W6Amy6EAm"
+              "SuccessReceiptId": "FijXo5nHA4BDBf8GnsarL6mNaQNpVT9L3NRoffBkL35S"
             },
             "tokens_burnt": "31826381501000000000"
           },
@@ -1877,7 +1881,7 @@
                 "requests": []
               }
             },
-            "chunk_hash": "7vze8Ke9pAjsjT23KYTtweM7youECFWGAwrZgBLuPKCa",
+            "chunk_hash": "4qBGtK6TaGCqcvQNENoUrk8Wgfu597nHmH5wAVpmbkXt",
             "congestion_info": {
               "allowed_shard": 0,
               "buffered_receipts_gas": "0",
@@ -1885,19 +1889,19 @@
               "receipt_bytes": 0
             },
             "encoded_length": 490,
-            "encoded_merkle_root": "7kAFybrDPtqDEBiX2yyAxGwtVv3A2nCcmMyRXgDLZa2b",
+            "encoded_merkle_root": "2EphsikUnbsKxibTyefFxC4NiSFhbik3pzX4ucbJzSvr",
             "gas_limit": 1000000000000000,
             "gas_used": 318263815010,
-            "height_created": 41,
-            "height_included": 41,
-            "outcome_root": "346C4c46uSy5kko7DEa1eoAB7oBKbU4x8yLp5E1Q6JJG",
-            "outgoing_receipts_root": "2eoS2vpPxy78ZbFvKRrFBBUxtf2m3B4wBjYPnLLQzqvz",
-            "prev_block_hash": "G3zqkDo4E7NfMew8E16wM76KzUwGUFZ5UjRApE5DxEZ7",
-            "prev_state_root": "A5Qh8M8ceBmhwArEPDWZbbJ3SJ2WTKitmJMxrRiScdQ2",
+            "height_created": 39,
+            "height_included": 39,
+            "outcome_root": "HZnQLPRCMmeRbZK4boEC5pvg4baLL6KGhWfEEHPJyvaT",
+            "outgoing_receipts_root": "4cZaDrjEubVVkir8rU9t42e1AgM2oXDc8n3cKnMvzuMK",
+            "prev_block_hash": "D3uDQ4nv2ZGUn5JaGHRCVntfD49SUvo7S8ZvX9fGK15k",
+            "prev_state_root": "7WZQCco3EHAz7J4rk3WnTzWd4JY46xtmJd9SFw3WrQnj",
             "proposed_split": null,
             "rent_paid": "0",
             "shard_id": 0,
-            "signature": "ed25519:3FWGfPTitP6J8vnAH8hA92fHZLqV7Apsa77xYicgt5fvJ1dURmbw4sLHeLWiK5oageS1MeQog7fXbHJtmLcvSHF",
+            "signature": "ed25519:5KEKf2an7B8beAtTwTzuyyRC7xCdjMNiMewwHgt5gVYiTfcw2u8XsNEt6uXdspwWkVQTVsyirtJYEGRUQTFCFn1E",
             "tx_root": "11111111111111111111111111111111",
             "validator_proposals": [],
             "validator_reward": "0"
@@ -1905,56 +1909,56 @@
         ],
         "header": {
           "approvals": [
-            "ed25519:3KmZSfLtbBAituLtDFzANT8ihwFTFtmVUdEhS92uKEZKZ1MZ1vCR9uFWkxv5eqLtjJ3FnibdfRWJ2UK2ESSVRmzG"
+            "ed25519:3VY76TPUbR9VFE6BtNwx7SwyG6eMYQyoeH1PEEaMeWSTsHrKx7es55FSLCG8UnarBHPGHrnaGnJj2p1kxkenED5u"
           ],
-          "block_body_hash": "BanzmGYVB7NKYa3fUtA3M7dgjgdiUwgPE4ZH9wcN2VFb",
-          "block_merkle_root": "12KUwpr9gdAUtpJu2LtB9xtEkcW2EeFr78imU7YzFiSh",
-          "block_ordinal": 42,
+          "block_body_hash": "EeLX39FYTxUtgNw9v6Nt6wCTifDZgZEcFmHk5dCTGLcK",
+          "block_merkle_root": "7pBuXLmMcJ5bSwVCAmjCgMRciK7r22tmnHswxbTbwK1p",
+          "block_ordinal": 40,
           "challenges_result": [],
           "challenges_root": "11111111111111111111111111111111",
           "chunk_endorsements": [[1]],
-          "chunk_headers_root": "EPX7oWbQGpjkN7B46mSL5z7v757ks63vgK6knGubrr6A",
+          "chunk_headers_root": "H7bSYHEYHprz914gzXvunCgxfxuW2hh3WHs4DUaZ8L13",
           "chunk_mask": [true],
-          "chunk_receipts_root": "ERRnwLemZmUGo5MagoELknoozUHQbtATW2D5bMN4guDv",
+          "chunk_receipts_root": "31ZjjqkhTF8PUrm2bm98LrX2rrVT5cugZM8Yb8Fi8y9V",
           "chunk_tx_root": "7tkzFg8RHBmMw1ncRJZCCZAizgq4rwCftTKYLce8RU8t",
           "chunks_included": 1,
           "epoch_id": "11111111111111111111111111111111",
           "epoch_sync_data_hash": null,
           "gas_price": "100000000",
-          "hash": "Es45najUuV7hG7Ko8EAfueN6kWS94Vb8JWm4r2XTAnBu",
-          "height": 41,
-          "last_ds_final_block": "G3zqkDo4E7NfMew8E16wM76KzUwGUFZ5UjRApE5DxEZ7",
-          "last_final_block": "HtpLCVihdSed8Nva4d2mpuP6NvDMEWFCsPqUwGKbWzuE",
+          "hash": "MuJEnQFeb4PFhn3fgYUS6ZakB96QffciqruXHMwjNXD",
+          "height": 39,
+          "last_ds_final_block": "D3uDQ4nv2ZGUn5JaGHRCVntfD49SUvo7S8ZvX9fGK15k",
+          "last_final_block": "4kYENCiBCGLUCHJjiYi5JvoYQrGzNQqoBXKeMg56x4op",
           "latest_protocol_version": 86,
-          "next_bp_hash": "98FGcFVb9svfashbU92Y1whc9J5z5ZksQVN7PCj2CNGQ",
-          "next_epoch_id": "CgPLGzrPA2SAaVMdo9FmJrwu2VM9HPNMdxZ7HryxTNks",
-          "outcome_root": "2NFVh1Ua7uTWtrMsatJqtDtEf3Z8vfegPMEWQ8w8ApcP",
-          "prev_hash": "G3zqkDo4E7NfMew8E16wM76KzUwGUFZ5UjRApE5DxEZ7",
-          "prev_height": 40,
-          "prev_state_root": "pWaeV121mop2APm6cZLX9XEhGXTFSRgzczgbEKAD1di",
-          "random_value": "E9avrLdjGjSdDmjGFp148gfD2C8npA8xeLkiggiDQuAh",
+          "next_bp_hash": "2ZQDMLAPQ1gtVCqkXmS7h44EJy65zYVr9GroA85vpMHt",
+          "next_epoch_id": "Eck5bzSwsHgG6qD7HBzXtweXQ7okmSMtx6inGMsTEC5j",
+          "outcome_root": "Fr9upxBQG9KDszwM75danwKF6Usbd2oxR3Fz4HtyjwKA",
+          "prev_hash": "D3uDQ4nv2ZGUn5JaGHRCVntfD49SUvo7S8ZvX9fGK15k",
+          "prev_height": 38,
+          "prev_state_root": "5bCRj146EVeF8vM5UKeBydwrtb6BdGEkfEa8QMHAaN5Q",
+          "random_value": "A7Nn3WFSpeVrqgx56ep2ZpA6vPaCfPTfi2Mv6CYkRMqG",
           "rent_paid": "0",
           "shard_split": null,
-          "signature": "ed25519:2B8Bezc6KhE43LhbaTUM1AASBgQz5mEMvK7opFfrwH6xtemj9KsytkmJAipv6LgVr6RuHBCfmcmZiirXhzSHpqvN",
-          "timestamp": 1793905159073053400,
-          "timestamp_nanosec": "1793905159073053397",
-          "total_supply": "2050029999979131123263072100000000",
+          "signature": "ed25519:3g3rcVayDK9GCfyRTUv9uKq2RkmW44HhW8nY9K646oogwGLrmschmkAjVSYf7FZHqJUEnDxgvgozufEwgn36g7yH",
+          "timestamp": 1793906687235578400,
+          "timestamp_nanosec": "1793906687235578389",
+          "total_supply": "2050029999978923221707403200000000",
           "validator_proposals": [],
           "validator_reward": "0"
         }
       },
       "account": {
-        "amount": "100000176822497158400000000",
-        "block_hash": "Es45najUuV7hG7Ko8EAfueN6kWS94Vb8JWm4r2XTAnBu",
-        "block_height": 41,
-        "code_hash": "7cpdwYxv9DHP9N4RkriZqjHy9GuDxwLjTPReyQmFuDBT",
+        "amount": "100000178905255948500000000",
+        "block_hash": "MuJEnQFeb4PFhn3fgYUS6ZakB96QffciqruXHMwjNXD",
+        "block_height": 39,
+        "code_hash": "F8puNhtHcSf5mFEKcoPSmAoR2bXrBQthBjzuHgMjK84y",
         "locked": "0",
         "storage_paid_at": 0,
-        "storage_usage": 331318
+        "storage_usage": 348954
       },
       "foundation": {
-        "block_hash": "Es45najUuV7hG7Ko8EAfueN6kWS94Vb8JWm4r2XTAnBu",
-        "block_height": 41,
+        "block_hash": "MuJEnQFeb4PFhn3fgYUS6ZakB96QffciqruXHMwjNXD",
+        "block_height": 39,
         "logs": [],
         "result": [
           123, 34, 100, 101, 112, 108, 111, 121, 109, 101, 110, 116, 34, 58,
@@ -1964,8 +1968,8 @@
           49, 49, 49, 49, 49, 49, 49, 49, 49, 49, 49, 49, 49, 49, 49, 49, 49,
           49, 49, 49, 49, 49, 49, 49, 49, 49, 49, 34, 44, 34, 99, 111, 110, 116,
           114, 97, 99, 116, 95, 105, 100, 34, 58, 34, 100, 101, 118, 45, 50, 48,
-          50, 54, 49, 49, 48, 53, 49, 56, 53, 57, 49, 52, 45, 51, 49, 48, 50,
-          48, 52, 50, 55, 51, 57, 54, 54, 56, 55, 46, 116, 101, 115, 116, 46,
+          50, 54, 49, 49, 48, 53, 49, 57, 50, 52, 52, 50, 45, 57, 56, 48, 57,
+          54, 57, 49, 55, 50, 56, 55, 56, 48, 57, 46, 116, 101, 115, 116, 46,
           110, 101, 97, 114, 34, 44, 34, 97, 112, 105, 95, 118, 101, 114, 115,
           105, 111, 110, 34, 58, 34, 50, 46, 48, 46, 48, 34, 44, 34, 115, 116,
           97, 116, 101, 95, 115, 99, 104, 101, 109, 97, 34, 58, 34, 49, 34, 44,
@@ -1980,14 +1984,14 @@
           114, 107, 101, 116, 95, 114, 101, 118, 105, 115, 105, 111, 110, 34,
           58, 34, 53, 34, 44, 34, 101, 118, 101, 110, 116, 95, 115, 101, 113,
           117, 101, 110, 99, 101, 34, 58, 34, 53, 34, 44, 34, 98, 108, 111, 99,
-          107, 95, 104, 101, 105, 103, 104, 116, 34, 58, 34, 52, 49, 34, 44, 34,
+          107, 95, 104, 101, 105, 103, 104, 116, 34, 58, 34, 51, 57, 34, 44, 34,
           98, 108, 111, 99, 107, 95, 116, 105, 109, 101, 115, 116, 97, 109, 112,
-          95, 110, 115, 34, 58, 34, 49, 55, 57, 51, 57, 48, 53, 49, 53, 57, 48,
-          55, 51, 48, 53, 51, 51, 57, 55, 34, 44, 34, 100, 97, 116, 97, 34, 58,
+          95, 110, 115, 34, 58, 34, 49, 55, 57, 51, 57, 48, 54, 54, 56, 55, 50,
+          51, 53, 53, 55, 56, 51, 56, 57, 34, 44, 34, 100, 97, 116, 97, 34, 58,
           123, 34, 111, 119, 110, 101, 114, 95, 97, 99, 99, 111, 117, 110, 116,
           95, 105, 100, 34, 58, 34, 100, 101, 118, 45, 50, 48, 50, 54, 49, 49,
-          48, 53, 49, 56, 53, 57, 49, 52, 45, 51, 49, 48, 50, 48, 52, 50, 55,
-          51, 57, 54, 54, 56, 55, 46, 116, 101, 115, 116, 46, 110, 101, 97, 114,
+          48, 53, 49, 57, 50, 52, 52, 50, 45, 57, 56, 48, 57, 54, 57, 49, 55,
+          50, 56, 55, 56, 48, 57, 46, 116, 101, 115, 116, 46, 110, 101, 97, 114,
           34, 44, 34, 111, 112, 101, 114, 97, 116, 111, 114, 95, 97, 99, 99,
           111, 117, 110, 116, 95, 105, 100, 34, 58, 34, 111, 112, 101, 114, 97,
           116, 111, 114, 46, 116, 101, 115, 116, 110, 101, 116, 34, 44, 34, 109,
@@ -2021,7 +2025,8 @@
           99, 105, 112, 101, 115, 34, 44, 34, 115, 116, 97, 114, 116, 95, 112,
           114, 111, 100, 117, 99, 116, 105, 111, 110, 34, 44, 34, 103, 101, 116,
           95, 112, 114, 111, 100, 117, 99, 116, 105, 111, 110, 95, 106, 111, 98,
-          115, 34, 93, 125, 125
+          115, 34, 44, 34, 99, 111, 109, 112, 108, 101, 116, 101, 95, 112, 114,
+          111, 100, 117, 99, 116, 105, 111, 110, 34, 93, 125, 125
         ]
       }
     },
@@ -2036,26 +2041,26 @@
         "command": {
           "sequence": "5",
           "config_version": "1",
-          "valid_until_ns": "1793905659447856171"
+          "valid_until_ns": "1793907187613594393"
         }
       },
-      "transaction_hash": "3a6PWCb1GMwBYtMwj2BaGsXutReTyNLVmPupKj9Ca3nz",
-      "reference_block_height": 42,
-      "gas_burnt": "3868468626516",
+      "transaction_hash": "5KtoWRyPHwHrCZbXgbLCzJ3xHzhZMHHoZUpeZSCGrtHS",
+      "reference_block_height": 40,
+      "gas_burnt": "3892147854500",
       "receipt": {
         "final_execution_status": "FINAL",
         "receipts_outcome": [
           {
-            "block_hash": "HQW78cjMc2rnmmp8Vn6Hy5UVrFz6h1Nhz1DMS9sV14Uf",
-            "id": "EhMKxAUbTo6VCK7tR8XR3Lst6vW4PJrSK1hJS6ptSymf",
+            "block_hash": "GdYg96MGtEyYFmxEPMCF7goEYrj9Ydooe2GWy6ANJUbD",
+            "id": "9SrCGLLDiLSvsMgJpVnuUCw3TXfJCxj8WGYZq3wYNwom",
             "outcome": {
-              "executor_id": "dev-20261105185914-31020427396687.test.near",
-              "gas_burnt": 3550204811506,
+              "executor_id": "dev-20261105192442-98096917287809.test.near",
+              "gas_burnt": 3573884039490,
               "logs": [],
               "metadata": {
                 "contracts": [
                   {
-                    "local": "7cpdwYxv9DHP9N4RkriZqjHy9GuDxwLjTPReyQmFuDBT"
+                    "local": "F8puNhtHcSf5mFEKcoPSmAoR2bXrBQthBjzuHgMjK84y"
                   }
                 ],
                 "gas_profile": [
@@ -2072,7 +2077,7 @@
                   {
                     "cost": "CONTRACT_LOADING_BYTES",
                     "cost_category": "WASM_HOST_COST",
-                    "gas_used": "357159133895"
+                    "gas_used": "376252296655"
                   },
                   {
                     "cost": "READ_MEMORY_BASE",
@@ -2092,7 +2097,7 @@
                   {
                     "cost": "READ_REGISTER_BYTE",
                     "cost_category": "WASM_HOST_COST",
-                    "gas_used": "335899296"
+                    "gas_used": "346543992"
                   },
                   {
                     "cost": "SHA256_BASE",
@@ -2127,7 +2132,7 @@
                   {
                     "cost": "STORAGE_READ_VALUE_BYTE",
                     "cost_category": "WASM_HOST_COST",
-                    "gas_used": "14964547668"
+                    "gas_used": "15570536100"
                   },
                   {
                     "cost": "UTF8_DECODING_BASE",
@@ -2142,7 +2147,7 @@
                   {
                     "cost": "WASM_INSTRUCTION",
                     "cost_category": "WASM_HOST_COST",
-                    "gas_used": "1846264464000"
+                    "gas_used": "1849529159808"
                   },
                   {
                     "cost": "WRITE_MEMORY_BASE",
@@ -2152,7 +2157,7 @@
                   {
                     "cost": "WRITE_MEMORY_BYTE",
                     "cost_category": "WASM_HOST_COST",
-                    "gas_used": "9326195328"
+                    "gas_used": "9620362704"
                   },
                   {
                     "cost": "WRITE_REGISTER_BASE",
@@ -2162,12 +2167,12 @@
                   {
                     "cost": "WRITE_REGISTER_BYTE",
                     "cost_category": "WASM_HOST_COST",
-                    "gas_used": "10709005788"
+                    "gas_used": "11119574700"
                   }
                 ],
                 "version": 4
               },
-              "receipt_ids": ["8Thh3om5U9fuKRWPwuggeVd2kPJWYAxi8iJzgh61LsiC"],
+              "receipt_ids": ["37XpEAKgxn1ruMYtEkHH3mm4mohrUQcQ3KceS2mKMt4x"],
               "status": {
                 "Failure": {
                   "ActionError": {
@@ -2180,15 +2185,15 @@
                   }
                 }
               },
-              "tokens_burnt": "355020481150600000000"
+              "tokens_burnt": "357388403949000000000"
             },
             "proof": []
           },
           {
-            "block_hash": "4b65phdcoi6GDi8v957WGhFWiEZPJjzbDEt4ExZKvJhL",
-            "id": "8Thh3om5U9fuKRWPwuggeVd2kPJWYAxi8iJzgh61LsiC",
+            "block_hash": "9T1YDW9RPPtVLCvXKEdHeicbQ6vVQ8gHVVb5yuE4snaK",
+            "id": "37XpEAKgxn1ruMYtEkHH3mm4mohrUQcQ3KceS2mKMt4x",
             "outcome": {
-              "executor_id": "dev-20261105185915-91010644860492.test.near",
+              "executor_id": "dev-20261105192443-73047256399939.test.near",
               "gas_burnt": 223182562500,
               "logs": [],
               "metadata": {
@@ -2221,35 +2226,35 @@
           "actions": [
             {
               "FunctionCall": {
-                "args": "eyJtZXJjaGFudF9pZCI6InJleCIsIml0ZW1faWQiOiJjcnlzdGFsIiwicXVhbnRpdHkiOiIxIiwiZXhwZWN0ZWRfbGlzdGluZ19yZXZpc2lvbiI6IjEiLCJtYXhfdG90YWxfcHJpY2UiOiI0IiwiY29tbWFuZCI6eyJzZXF1ZW5jZSI6IjUiLCJjb25maWdfdmVyc2lvbiI6IjEiLCJ2YWxpZF91bnRpbF9ucyI6IjE3OTM5MDU2NTk0NDc4NTYxNzEifX0=",
+                "args": "eyJtZXJjaGFudF9pZCI6InJleCIsIml0ZW1faWQiOiJjcnlzdGFsIiwicXVhbnRpdHkiOiIxIiwiZXhwZWN0ZWRfbGlzdGluZ19yZXZpc2lvbiI6IjEiLCJtYXhfdG90YWxfcHJpY2UiOiI0IiwiY29tbWFuZCI6eyJzZXF1ZW5jZSI6IjUiLCJjb25maWdfdmVyc2lvbiI6IjEiLCJ2YWxpZF91bnRpbF9ucyI6IjE3OTM5MDcxODc2MTM1OTQzOTMifX0=",
                 "deposit": "0",
                 "gas": 100000000000000,
                 "method_name": "buy_from_merchant"
               }
             }
           ],
-          "hash": "3a6PWCb1GMwBYtMwj2BaGsXutReTyNLVmPupKj9Ca3nz",
-          "nonce": 12000006,
+          "hash": "5KtoWRyPHwHrCZbXgbLCzJ3xHzhZMHHoZUpeZSCGrtHS",
+          "nonce": 10000006,
           "priority_fee": 0,
-          "public_key": "ed25519:Fr79b6NQxMdHJYgzURHt57g7jLRAwj93kMV4YrvHk6ah",
-          "receiver_id": "dev-20261105185914-31020427396687.test.near",
-          "signature": "ed25519:HS9FwF1d2oYeDocqLyv6SdBHfyatn9RWwFHbdwgH1doYzqEo6gz5eozPA8TYEYym5zDSopFnFfEULLgUR7nrKyX",
-          "signer_id": "dev-20261105185915-91010644860492.test.near"
+          "public_key": "ed25519:DngkCRnU3fcC2PadS7PCXfNSxH1SeTyMTKz3gdEefK9g",
+          "receiver_id": "dev-20261105192442-98096917287809.test.near",
+          "signature": "ed25519:8f5yYMSfb38TYfufqExL2acWCgLy3fZ9pjNsAcTZAbngVXDAeSqNEzZ7UAdZ9XcsBxfCwoBFmF3C612TMpXmQ8G",
+          "signer_id": "dev-20261105192443-73047256399939.test.near"
         },
         "transaction_outcome": {
-          "block_hash": "ED1GcAYQnm6dFXbKYuvAdGEBydBvSLeyLhD59YMMjz6E",
-          "id": "3a6PWCb1GMwBYtMwj2BaGsXutReTyNLVmPupKj9Ca3nz",
+          "block_hash": "59KFpkNWBFmdL5jFYAKNuNYGDzphJXfvKbUGumRD1UVY",
+          "id": "5KtoWRyPHwHrCZbXgbLCzJ3xHzhZMHHoZUpeZSCGrtHS",
           "outcome": {
-            "executor_id": "dev-20261105185915-91010644860492.test.near",
+            "executor_id": "dev-20261105192443-73047256399939.test.near",
             "gas_burnt": 318263815010,
             "logs": [],
             "metadata": {
               "gas_profile": null,
               "version": 1
             },
-            "receipt_ids": ["EhMKxAUbTo6VCK7tR8XR3Lst6vW4PJrSK1hJS6ptSymf"],
+            "receipt_ids": ["9SrCGLLDiLSvsMgJpVnuUCw3TXfJCxj8WGYZq3wYNwom"],
             "status": {
-              "SuccessReceiptId": "EhMKxAUbTo6VCK7tR8XR3Lst6vW4PJrSK1hJS6ptSymf"
+              "SuccessReceiptId": "9SrCGLLDiLSvsMgJpVnuUCw3TXfJCxj8WGYZq3wYNwom"
             },
             "tokens_burnt": "31826381501000000000"
           },
@@ -2266,7 +2271,7 @@
                 "requests": []
               }
             },
-            "chunk_hash": "8yCjmXteEjNG7SMRXTKvY76dAyz8K78cnUuBzFPXSLsL",
+            "chunk_hash": "8ZkNG3bxydE4oieHWfqAQfsMqBH6XaCv1oQyCGuM2kbS",
             "congestion_info": {
               "allowed_shard": 0,
               "buffered_receipts_gas": "0",
@@ -2274,19 +2279,19 @@
               "receipt_bytes": 0
             },
             "encoded_length": 490,
-            "encoded_merkle_root": "2CwRWBo3HCjRkonPoZx4nHGJ78zaDtYJuySshcCzv5TF",
+            "encoded_merkle_root": "AQ7eMeg8iyRAdadLSvZpHAppproDpe7W7KHtmHsh7fGE",
             "gas_limit": 1000000000000000,
             "gas_used": 318263815010,
-            "height_created": 47,
-            "height_included": 47,
-            "outcome_root": "7iYWzCpi99G1syvAGraYHVfDmUArqW9MKedjXvUkgbek",
-            "outgoing_receipts_root": "2HC5yUgdBNBJHCPnxKiKASeedAViN1nvQe5ydb7Ae3AL",
-            "prev_block_hash": "ED1GcAYQnm6dFXbKYuvAdGEBydBvSLeyLhD59YMMjz6E",
-            "prev_state_root": "6u8G4gm7vPByh4c28dwChAmDNGGpoE2uSeQx14tF2Z7n",
+            "height_created": 45,
+            "height_included": 45,
+            "outcome_root": "2n93we15BSwKRHPRUPkM4EX6nXYewUzefE2UMjw7kH3q",
+            "outgoing_receipts_root": "GSL2VpQtAHhpbN9cgZ151Bm4wQoDi6quZX4ZpP8vMCCJ",
+            "prev_block_hash": "59KFpkNWBFmdL5jFYAKNuNYGDzphJXfvKbUGumRD1UVY",
+            "prev_state_root": "E3E7aE7ZDconMzWXFDNsXAphWFyyJmsjbVES3wqgfGje",
             "proposed_split": null,
             "rent_paid": "0",
             "shard_id": 0,
-            "signature": "ed25519:3SQXt1CmehZVBvEvqvAkUAR4AQZbDZ4aW6SXYyDbZE7XAnVh5zsGYSVsFU2tQnDQusteqKRLwTuqVZ6dgG79ipGZ",
+            "signature": "ed25519:45vc1oDSW7ui7ihxA7rvbpeQJVCpvuEB4N27Xbkz8Y8D1RrdgsxzXmoMYXPXbDNuMzbej8BA5cSrP2fFTXtefQYY",
             "tx_root": "11111111111111111111111111111111",
             "validator_proposals": [],
             "validator_reward": "0"
@@ -2294,56 +2299,56 @@
         ],
         "header": {
           "approvals": [
-            "ed25519:54qDJUUh1LLL1U6H6LuG4gekE3VXRbyRLuVuiijR8XcPYMifsGaiFBbRZGMHk8i5btEjmjAuV3eeXKC6DsiWu6nH"
+            "ed25519:3KFT4u2Q7YXtdkQnXHuPqQ2r412HH3WxfRSB9ybqJDvtwff4Kf1iRJAD7PcddDJmRnhDjRk9oTmXZydsszA1JYPd"
           ],
-          "block_body_hash": "BuxX7RfauNTR8k1pFzSpfkLUdeAKJ1XCifFPKZhxWaUF",
-          "block_merkle_root": "D7suJ1Dud9fFKL2Q9XjUq3Pzm9p3FbeJB92sRz68V55Q",
-          "block_ordinal": 48,
+          "block_body_hash": "C9abN8dRdDBCwdYpDjA5QjtonHcxdEzKGtYbEqYjbRP9",
+          "block_merkle_root": "7a8e6UaeYkkaVLx6q8sPpZAeYJW8oBgFBahUsMX4UiaY",
+          "block_ordinal": 46,
           "challenges_result": [],
           "challenges_root": "11111111111111111111111111111111",
           "chunk_endorsements": [[1]],
-          "chunk_headers_root": "CMB5Hg5AiVRhgFbsLJF6tYgDg82Ab9nsgyTuN8u6SnZ4",
+          "chunk_headers_root": "AFpzatjNybwFzeuCAWp1gmAB2Eeo7CrJC1jkzg9CYhRy",
           "chunk_mask": [true],
-          "chunk_receipts_root": "89eWNacNAfMT3X6HCTL5X7gFyD4ASJWkGpJqNUPYkn6a",
+          "chunk_receipts_root": "BCVuhJEzKGgTxeGcCVK2TGhkFqxMgaeQPVYU9Hzp8zzY",
           "chunk_tx_root": "7tkzFg8RHBmMw1ncRJZCCZAizgq4rwCftTKYLce8RU8t",
           "chunks_included": 1,
           "epoch_id": "11111111111111111111111111111111",
           "epoch_sync_data_hash": null,
           "gas_price": "100000000",
-          "hash": "HQW78cjMc2rnmmp8Vn6Hy5UVrFz6h1Nhz1DMS9sV14Uf",
-          "height": 47,
-          "last_ds_final_block": "ED1GcAYQnm6dFXbKYuvAdGEBydBvSLeyLhD59YMMjz6E",
-          "last_final_block": "3SKZ1Q9sL5XHsNo6BF8BDRBv1XxSjf6CBxEdezBaB11G",
+          "hash": "GdYg96MGtEyYFmxEPMCF7goEYrj9Ydooe2GWy6ANJUbD",
+          "height": 45,
+          "last_ds_final_block": "59KFpkNWBFmdL5jFYAKNuNYGDzphJXfvKbUGumRD1UVY",
+          "last_final_block": "CBn5gAcsLSYxvgaco7dgFkoFbKz9YZSczUsyduTsVzn8",
           "latest_protocol_version": 86,
-          "next_bp_hash": "98FGcFVb9svfashbU92Y1whc9J5z5ZksQVN7PCj2CNGQ",
-          "next_epoch_id": "CgPLGzrPA2SAaVMdo9FmJrwu2VM9HPNMdxZ7HryxTNks",
-          "outcome_root": "E825ZaJQ5KSXzeWk2Jyw1ZX2gW86HmjQsFaxyLZgqST4",
-          "prev_hash": "ED1GcAYQnm6dFXbKYuvAdGEBydBvSLeyLhD59YMMjz6E",
-          "prev_height": 46,
-          "prev_state_root": "qfBJ8kk5BzCNrGAcSQHXquhHYotSsSHanW9WbH61aHQ",
-          "random_value": "FfA8bNPuP5HK7N2LP6fuEAXgFH5CQne6iktbKxPakpya",
+          "next_bp_hash": "2ZQDMLAPQ1gtVCqkXmS7h44EJy65zYVr9GroA85vpMHt",
+          "next_epoch_id": "Eck5bzSwsHgG6qD7HBzXtweXQ7okmSMtx6inGMsTEC5j",
+          "outcome_root": "HZMMBiRKYivwivEQZiDGWDeeBpDfhiw19ubGPwZzqmJH",
+          "prev_hash": "59KFpkNWBFmdL5jFYAKNuNYGDzphJXfvKbUGumRD1UVY",
+          "prev_height": 44,
+          "prev_state_root": "4bRVFnboUHnGwQmPpL97AkYALFv7vjbHC7FZd5XHXjRY",
+          "random_value": "12K1jdH2nZvRj3EC14cZxb2EHNyuRXrUt3eQU4oraCtj",
           "rent_paid": "0",
           "shard_split": null,
-          "signature": "ed25519:CV9io5q9BXwANJubVgJX5tzeaCL7AjYV1YfHME9qgeg78sKTiTTdawqjyGvLYMRXHnp4wXxmzPFG7YgGQACGVKT",
-          "timestamp": 1793905159831712500,
-          "timestamp_nanosec": "1793905159831712490",
-          "total_supply": "2050029999978631611544957400000000",
+          "signature": "ed25519:48nntaBn2w3HbFG5q6inbKkMyev22NePZJC7FUSmPmcXd8bPDdEC4DDmxiyZgBEWugTFP3Yc8wcyRmMwoY7tJN4L",
+          "timestamp": 1793906687978701600,
+          "timestamp_nanosec": "1793906687978701605",
+          "total_supply": "2050029999978422289864303900000000",
           "validator_proposals": [],
           "validator_reward": "0"
         }
       },
       "account": {
-        "amount": "100000256672501807300000000",
-        "block_hash": "HQW78cjMc2rnmmp8Vn6Hy5UVrFz6h1Nhz1DMS9sV14Uf",
-        "block_height": 47,
-        "code_hash": "7cpdwYxv9DHP9N4RkriZqjHy9GuDxwLjTPReyQmFuDBT",
+        "amount": "100000259465637436900000000",
+        "block_hash": "GdYg96MGtEyYFmxEPMCF7goEYrj9Ydooe2GWy6ANJUbD",
+        "block_height": 45,
+        "code_hash": "F8puNhtHcSf5mFEKcoPSmAoR2bXrBQthBjzuHgMjK84y",
         "locked": "0",
         "storage_paid_at": 0,
-        "storage_usage": 331318
+        "storage_usage": 348954
       },
       "foundation": {
-        "block_hash": "HQW78cjMc2rnmmp8Vn6Hy5UVrFz6h1Nhz1DMS9sV14Uf",
-        "block_height": 47,
+        "block_hash": "GdYg96MGtEyYFmxEPMCF7goEYrj9Ydooe2GWy6ANJUbD",
+        "block_height": 45,
         "logs": [],
         "result": [
           123, 34, 100, 101, 112, 108, 111, 121, 109, 101, 110, 116, 34, 58,
@@ -2353,8 +2358,8 @@
           49, 49, 49, 49, 49, 49, 49, 49, 49, 49, 49, 49, 49, 49, 49, 49, 49,
           49, 49, 49, 49, 49, 49, 49, 49, 49, 49, 34, 44, 34, 99, 111, 110, 116,
           114, 97, 99, 116, 95, 105, 100, 34, 58, 34, 100, 101, 118, 45, 50, 48,
-          50, 54, 49, 49, 48, 53, 49, 56, 53, 57, 49, 52, 45, 51, 49, 48, 50,
-          48, 52, 50, 55, 51, 57, 54, 54, 56, 55, 46, 116, 101, 115, 116, 46,
+          50, 54, 49, 49, 48, 53, 49, 57, 50, 52, 52, 50, 45, 57, 56, 48, 57,
+          54, 57, 49, 55, 50, 56, 55, 56, 48, 57, 46, 116, 101, 115, 116, 46,
           110, 101, 97, 114, 34, 44, 34, 97, 112, 105, 95, 118, 101, 114, 115,
           105, 111, 110, 34, 58, 34, 50, 46, 48, 46, 48, 34, 44, 34, 115, 116,
           97, 116, 101, 95, 115, 99, 104, 101, 109, 97, 34, 58, 34, 49, 34, 44,
@@ -2369,14 +2374,14 @@
           114, 107, 101, 116, 95, 114, 101, 118, 105, 115, 105, 111, 110, 34,
           58, 34, 53, 34, 44, 34, 101, 118, 101, 110, 116, 95, 115, 101, 113,
           117, 101, 110, 99, 101, 34, 58, 34, 53, 34, 44, 34, 98, 108, 111, 99,
-          107, 95, 104, 101, 105, 103, 104, 116, 34, 58, 34, 52, 55, 34, 44, 34,
+          107, 95, 104, 101, 105, 103, 104, 116, 34, 58, 34, 52, 53, 34, 44, 34,
           98, 108, 111, 99, 107, 95, 116, 105, 109, 101, 115, 116, 97, 109, 112,
-          95, 110, 115, 34, 58, 34, 49, 55, 57, 51, 57, 48, 53, 49, 53, 57, 56,
-          51, 49, 55, 49, 50, 52, 57, 48, 34, 44, 34, 100, 97, 116, 97, 34, 58,
+          95, 110, 115, 34, 58, 34, 49, 55, 57, 51, 57, 48, 54, 54, 56, 55, 57,
+          55, 56, 55, 48, 49, 54, 48, 53, 34, 44, 34, 100, 97, 116, 97, 34, 58,
           123, 34, 111, 119, 110, 101, 114, 95, 97, 99, 99, 111, 117, 110, 116,
           95, 105, 100, 34, 58, 34, 100, 101, 118, 45, 50, 48, 50, 54, 49, 49,
-          48, 53, 49, 56, 53, 57, 49, 52, 45, 51, 49, 48, 50, 48, 52, 50, 55,
-          51, 57, 54, 54, 56, 55, 46, 116, 101, 115, 116, 46, 110, 101, 97, 114,
+          48, 53, 49, 57, 50, 52, 52, 50, 45, 57, 56, 48, 57, 54, 57, 49, 55,
+          50, 56, 55, 56, 48, 57, 46, 116, 101, 115, 116, 46, 110, 101, 97, 114,
           34, 44, 34, 111, 112, 101, 114, 97, 116, 111, 114, 95, 97, 99, 99,
           111, 117, 110, 116, 95, 105, 100, 34, 58, 34, 111, 112, 101, 114, 97,
           116, 111, 114, 46, 116, 101, 115, 116, 110, 101, 116, 34, 44, 34, 109,
@@ -2410,7 +2415,8 @@
           99, 105, 112, 101, 115, 34, 44, 34, 115, 116, 97, 114, 116, 95, 112,
           114, 111, 100, 117, 99, 116, 105, 111, 110, 34, 44, 34, 103, 101, 116,
           95, 112, 114, 111, 100, 117, 99, 116, 105, 111, 110, 95, 106, 111, 98,
-          115, 34, 93, 125, 125
+          115, 34, 44, 34, 99, 111, 109, 112, 108, 101, 116, 101, 95, 112, 114,
+          111, 100, 117, 99, 116, 105, 111, 110, 34, 93, 125, 125
         ]
       }
     }
@@ -2419,7 +2425,7 @@
     "deployment": {
       "network_id": "testnet",
       "genesis_hash": "11111111111111111111111111111111",
-      "contract_id": "dev-20261105185914-31020427396687.test.near",
+      "contract_id": "dev-20261105192442-98096917287809.test.near",
       "api_version": "2.0.0",
       "state_schema": "1",
       "command_schema": "1",
@@ -2428,13 +2434,13 @@
     },
     "market_revision": "1",
     "event_sequence": "1",
-    "block_height": "10",
-    "block_timestamp_ns": "1793905155127569059",
+    "block_height": "8",
+    "block_timestamp_ns": "1793906683277904983",
     "data": {
       "paused": false,
       "registered_player_count": "0",
       "epoch": "0",
-      "genesis_time_ns": "1793905155127569059",
+      "genesis_time_ns": "1793906683277904983",
       "npc_shops": [
         {
           "shop_id": "1",
@@ -2446,7 +2452,7 @@
           "revision": "1",
           "production_slots": "1",
           "policy_revision": "1",
-          "created_at_ns": "1793905155127569059",
+          "created_at_ns": "1793906683277904983",
           "ownership_command_sequence": null
         },
         {
@@ -2459,7 +2465,7 @@
           "revision": "1",
           "production_slots": "1",
           "policy_revision": "1",
-          "created_at_ns": "1793905155127569059",
+          "created_at_ns": "1793906683277904983",
           "ownership_command_sequence": null
         },
         {
@@ -2472,7 +2478,7 @@
           "revision": "1",
           "production_slots": "1",
           "policy_revision": "1",
-          "created_at_ns": "1793905155127569059",
+          "created_at_ns": "1793906683277904983",
           "ownership_command_sequence": null
         }
       ],
@@ -2764,7 +2770,7 @@
             "requests": []
           }
         },
-        "chunk_hash": "GNPDdaQMVcExihrhspW1yeHhuMvQNbvdfDjE79ZAAXKv",
+        "chunk_hash": "56gZg9N5s2xqFm36kRMt4558THzU2fTk6YLvprWGdSyB",
         "congestion_info": {
           "allowed_shard": 0,
           "buffered_receipts_gas": "0",
@@ -2772,60 +2778,60 @@
           "receipt_bytes": 0
         },
         "encoded_length": 629,
-        "encoded_merkle_root": "GeDpLhWMxJ6gvQhFP7uSeUSXzqVRikexAzHSULkKoCVp",
+        "encoded_merkle_root": "Bkokt5fdZhCjvNfvD2q6Cadd3MQCZKd2EYdJvR2z6YLb",
         "gas_limit": 1000000000000000,
         "gas_used": 0,
-        "height_created": 10,
-        "height_included": 10,
+        "height_created": 8,
+        "height_included": 8,
         "outcome_root": "11111111111111111111111111111111",
         "outgoing_receipts_root": "H4Rd6SGeEBTbxkitsCdzfu9xL9HtZ2eHoPCQXUeZ6bW4",
-        "prev_block_hash": "7ZaXP1vtcSCAaFsXuBRvhNRgvRWhMFXmQWjKV1pHef3u",
-        "prev_state_root": "EytHsdhpoy5Y47mbXZjZXs8uV1PavyGEYMsZWwKJExkx",
+        "prev_block_hash": "mWtH4sJL83NFxagcZEk4MtbX64jf6Ds78EqeVNmihDT",
+        "prev_state_root": "GTsUcTRmXxGz1tguNgHmup5s5kBKAbiPyPBJm2V4ZSzj",
         "proposed_split": null,
         "rent_paid": "0",
         "shard_id": 0,
-        "signature": "ed25519:3gjKdCGV3j4tQmNrexThPkWUqT5s9wVtrjjNvKs6Sh6YFDX8nKCRHqtxUpVJb3YTQzuj28jD8AEqo5c1b13hRSXy",
-        "tx_root": "M8wePzmjLyAg1eMsj1L63tb34jc2BsKP51SPtBzRWge",
+        "signature": "ed25519:3Bb9UPs65yWgXUUfdtcU11w3G8SAwT7iA2ppjJmTmjvEdapc4LCWUsRD5C8PLtznzsbSEShEUx6WHyoDVj5SfYKX",
+        "tx_root": "3u46G3XzcAULqKvYrjZFisy9GuqFVnPgxRMSJFBHD4FQ",
         "validator_proposals": [],
         "validator_reward": "0"
       }
     ],
     "header": {
       "approvals": [
-        "ed25519:5CqSNz5KgV9SbTaSHfAGVKYNk7Zx3NqxFpM4jfVtNDi1zrk6cz8nKHs9EQNTdNNJS8wNotH9mxubSfaoSJnR6jz7"
+        "ed25519:TYZjoJSzkxZiSE2PwZGSsixBxyCCtBbuNaGe8PQgpfszZMkvSkR7jaHsf8y6tRn3Acoc6gpWDX4uk7A595DYSBe"
       ],
-      "block_body_hash": "5x2FeDABHAqq4fU8yW8u889yvuST17WM9GRZJR7bW5Ei",
-      "block_merkle_root": "EbrJid7JnCHiHJUNYunbRox9Br99favQRe7YGcuaeJiu",
-      "block_ordinal": 11,
+      "block_body_hash": "Etjjnc42XYULYnxEBZKcHtu2UtMzgahNCMXChj4hY36E",
+      "block_merkle_root": "9cmL52v5j9DTS3H5m1Xhde6duCbvqXkLZrommYPsBULu",
+      "block_ordinal": 9,
       "challenges_result": [],
       "challenges_root": "11111111111111111111111111111111",
       "chunk_endorsements": [[1]],
-      "chunk_headers_root": "3TWsBYgo9mKfpYaA2UC2T37gs1WtWALfLKgniAwAN469",
+      "chunk_headers_root": "2YfC5WHdi4J1FxjdGpkqmZQAhWWEYvzn1tMiV9suVQkE",
       "chunk_mask": [true],
       "chunk_receipts_root": "9ETNjrt6MkwTgSVMMbpukfxRshSD1avBUUa4R4NuqwHv",
-      "chunk_tx_root": "ETpqJPG3T7MNZ8rkhXCHZeCb9Fn2DaG33ozJc1T2JFFD",
+      "chunk_tx_root": "8ds8J56VDE7kQ1j5FUXnAVQAAE7Gbid8VTmMQJh2K4E4",
       "chunks_included": 1,
       "epoch_id": "11111111111111111111111111111111",
       "epoch_sync_data_hash": null,
       "gas_price": "100000000",
-      "hash": "9HirusjBEAEcvmEcqViQ77DH1yoi72Jkjxj9yZR44Vvq",
-      "height": 10,
-      "last_ds_final_block": "7ZaXP1vtcSCAaFsXuBRvhNRgvRWhMFXmQWjKV1pHef3u",
-      "last_final_block": "CUYjQJjMm1EwdJvD1iG5rD8ZkzHXzpvK1g3pY6PPebdK",
+      "hash": "9ou8fHPVAi5zKDd7gYzcCXcTBfLDiFvcEv3f6fWaSK7n",
+      "height": 8,
+      "last_ds_final_block": "mWtH4sJL83NFxagcZEk4MtbX64jf6Ds78EqeVNmihDT",
+      "last_final_block": "9xTi1wRjnBFvebW6gdaTZzGn8gWPh45jVsMvnmtZQSMQ",
       "latest_protocol_version": 86,
-      "next_bp_hash": "98FGcFVb9svfashbU92Y1whc9J5z5ZksQVN7PCj2CNGQ",
-      "next_epoch_id": "CgPLGzrPA2SAaVMdo9FmJrwu2VM9HPNMdxZ7HryxTNks",
+      "next_bp_hash": "2ZQDMLAPQ1gtVCqkXmS7h44EJy65zYVr9GroA85vpMHt",
+      "next_epoch_id": "Eck5bzSwsHgG6qD7HBzXtweXQ7okmSMtx6inGMsTEC5j",
       "outcome_root": "7tkzFg8RHBmMw1ncRJZCCZAizgq4rwCftTKYLce8RU8t",
-      "prev_hash": "7ZaXP1vtcSCAaFsXuBRvhNRgvRWhMFXmQWjKV1pHef3u",
-      "prev_height": 9,
-      "prev_state_root": "DfxDjEY7y2g4jj2mhsd8tX2CmNX9nmuKSgGef2JWoLUf",
-      "random_value": "5s9fz4kdUsxUKPPKWnfyk8pAatvCbdiXsNCjAwyNj8GV",
+      "prev_hash": "mWtH4sJL83NFxagcZEk4MtbX64jf6Ds78EqeVNmihDT",
+      "prev_height": 7,
+      "prev_state_root": "2EwzaEcq3owBw1cyGD7vbS1CZoeQ6G4t5c174EvV22sP",
+      "random_value": "2K17SNCrXjrQrNiJdrbwmcTYFjGzkXjoYjqT6LLTECwk",
       "rent_paid": "0",
       "shard_split": null,
-      "signature": "ed25519:eyr9oirpQJaYxqxAkSAbt6X7ZJzrZicoYYMfeYgDnbC5dqHCewbKZwUKxcuNVHnPoQNvvTwqPvEC2rq9kVAXHhr",
-      "timestamp": 1793905155127569200,
-      "timestamp_nanosec": "1793905155127569059",
-      "total_supply": "2050029999989167374751542100000000",
+      "signature": "ed25519:2uqMrS35yLah53W2BQNP9k8QjUeyc2EBP1G7kMpUqWuYn2oEMyQyWucgXUeVsdbQpd5ECCVoW8LPNEgL4tMc5BJx",
+      "timestamp": 1793906683277905000,
+      "timestamp_nanosec": "1793906683277904983",
+      "total_supply": "2050029999988970611279646900000000",
       "validator_proposals": [],
       "validator_reward": "0"
     }
@@ -2835,7 +2841,7 @@
       "deployment": {
         "network_id": "testnet",
         "genesis_hash": "11111111111111111111111111111111",
-        "contract_id": "dev-20261105185914-31020427396687.test.near",
+        "contract_id": "dev-20261105192442-98096917287809.test.near",
         "api_version": "2.0.0",
         "state_schema": "1",
         "command_schema": "1",
@@ -2844,13 +2850,13 @@
       },
       "market_revision": "5",
       "event_sequence": "5",
-      "block_height": "48",
-      "block_timestamp_ns": "1793905159960493607",
+      "block_height": "46",
+      "block_timestamp_ns": "1793906688106794015",
       "data": {
         "paused": false,
         "registered_player_count": "1",
         "epoch": "0",
-        "genesis_time_ns": "1793905155127569059",
+        "genesis_time_ns": "1793906683277904983",
         "npc_shops": [
           {
             "shop_id": "1",
@@ -2862,7 +2868,7 @@
             "revision": "1",
             "production_slots": "1",
             "policy_revision": "1",
-            "created_at_ns": "1793905155127569059",
+            "created_at_ns": "1793906683277904983",
             "ownership_command_sequence": null
           },
           {
@@ -2875,7 +2881,7 @@
             "revision": "1",
             "production_slots": "1",
             "policy_revision": "1",
-            "created_at_ns": "1793905155127569059",
+            "created_at_ns": "1793906683277904983",
             "ownership_command_sequence": null
           },
           {
@@ -2888,7 +2894,7 @@
             "revision": "1",
             "production_slots": "1",
             "policy_revision": "1",
-            "created_at_ns": "1793905155127569059",
+            "created_at_ns": "1793906683277904983",
             "ownership_command_sequence": null
           }
         ],
@@ -3174,7 +3180,7 @@
       "deployment": {
         "network_id": "testnet",
         "genesis_hash": "11111111111111111111111111111111",
-        "contract_id": "dev-20261105185914-31020427396687.test.near",
+        "contract_id": "dev-20261105192442-98096917287809.test.near",
         "api_version": "2.0.0",
         "state_schema": "1",
         "command_schema": "1",
@@ -3183,19 +3189,19 @@
       },
       "market_revision": "5",
       "event_sequence": "5",
-      "block_height": "48",
-      "block_timestamp_ns": "1793905159960493607",
+      "block_height": "46",
+      "block_timestamp_ns": "1793906688106794015",
       "data": {
         "shop_id": "4",
         "owner": {
           "kind": "player",
-          "account_id": "dev-20261105185915-91010644860492.test.near"
+          "account_id": "dev-20261105192443-73047256399939.test.near"
         },
         "name": "Verified Shop",
         "revision": "2",
         "production_slots": "1",
         "policy_revision": "1",
-        "created_at_ns": "1793905156662442254",
+        "created_at_ns": "1793906684946717871",
         "ownership_command_sequence": "2"
       }
     },
@@ -3203,7 +3209,7 @@
       "deployment": {
         "network_id": "testnet",
         "genesis_hash": "11111111111111111111111111111111",
-        "contract_id": "dev-20261105185914-31020427396687.test.near",
+        "contract_id": "dev-20261105192442-98096917287809.test.near",
         "api_version": "2.0.0",
         "state_schema": "1",
         "command_schema": "1",
@@ -3212,12 +3218,12 @@
       },
       "market_revision": "5",
       "event_sequence": "5",
-      "block_height": "48",
-      "block_timestamp_ns": "1793905159960493607",
+      "block_height": "46",
+      "block_timestamp_ns": "1793906688106794015",
       "data": {
         "actor": {
           "kind": "player",
-          "account_id": "dev-20261105185915-91010644860492.test.near"
+          "account_id": "dev-20261105192443-73047256399939.test.near"
         },
         "revision": "2",
         "gold": {
@@ -3283,13 +3289,13 @@
     "author": "test.near",
     "chunks": [
       {
-        "balance_burnt": "275170476501700000000",
+        "balance_burnt": "276828022460600000000",
         "bandwidth_requests": {
           "V1": {
             "requests": []
           }
         },
-        "chunk_hash": "3oB5ozuA6vzWbsD7MdRDHSjGQuTuWfjUDEWXb6bAFgDD",
+        "chunk_hash": "5CAT18Sd3HkDd3mSCquJf8ewyLqf24RNZ1MYmTtqiwoJ",
         "congestion_info": {
           "allowed_shard": 0,
           "buffered_receipts_gas": "0",
@@ -3297,19 +3303,19 @@
           "receipt_bytes": 0
         },
         "encoded_length": 223,
-        "encoded_merkle_root": "8kczvRSaWMtNBQBsL6yvdanGQxhyemTh8E5bo8YUp87x",
+        "encoded_merkle_root": "5ZkMuuQhZqxfAENrMdNxpcVTgmfWBu2jAVWMyxyD7Tx5",
         "gas_limit": 1000000000000000,
-        "gas_used": 3550204811506,
-        "height_created": 48,
-        "height_included": 48,
-        "outcome_root": "CocU95J2deitJ1amTyPVH6tFR6ZerCtN5VSPrYkrRq1J",
-        "outgoing_receipts_root": "7LDqs2edw2Za4L3hKoATEfwHgXVgzA7DYSmL69T66S1f",
-        "prev_block_hash": "HQW78cjMc2rnmmp8Vn6Hy5UVrFz6h1Nhz1DMS9sV14Uf",
-        "prev_state_root": "7hWWwLgFFbJy35v9ac3nyXzYJ5hUSwHe4Z9WctCTRRz4",
+        "gas_used": 3573884039490,
+        "height_created": 46,
+        "height_included": 46,
+        "outcome_root": "HakAE1KtZQUjzUfZU6aPrBhXJwUsMpLdzQMHFLHgbff9",
+        "outgoing_receipts_root": "CRMnhfo6t9qv9HjDfDVZpKTPptw8Znh5wQEXGwa5gVze",
+        "prev_block_hash": "GdYg96MGtEyYFmxEPMCF7goEYrj9Ydooe2GWy6ANJUbD",
+        "prev_state_root": "ChPPEfcQ9W7fZRm5avxkXG6uGE5aP6oaLkeQDTWLZVPc",
         "proposed_split": null,
         "rent_paid": "0",
         "shard_id": 0,
-        "signature": "ed25519:4hMjk2jho7uXVbGq7Yq1HeHCzEnTi97McnNWABhchLJdsXDPJ4EKCBnrSjZEeBoJexiUMWmKpe8impsKsm27V3sJ",
+        "signature": "ed25519:4CHdowCstBtyCcw7AxMqZE7hZAYcuD8A8cjhKYaTpJydwonbvVNkmkTBqMxcd61f7r2yh8y7FKCoKfeAfgZdAHBT",
         "tx_root": "11111111111111111111111111111111",
         "validator_proposals": [],
         "validator_reward": "0"
@@ -3317,40 +3323,40 @@
     ],
     "header": {
       "approvals": [
-        "ed25519:5MevoWVtyEpnYt8pozzYWs1YSK3v7L4fXSvj8WtQjbbNM167skKL4JUDg5WtijfgYEXp8iHvjGfSzQYyTkW2HLDz"
+        "ed25519:3vAvW4pSqiNrFuFZhCCjh4Fzk8JPnbz2oD6GYwfbGSYybKsfv9b3d5yNZwgfHJ3RxLjAKVQTq5gaVZnexz7wiAGN"
       ],
-      "block_body_hash": "8ceHfCLNZ14ht5XadS47HcDJzyAF3WPTvmkA7XgYRD3h",
-      "block_merkle_root": "3DsD7xAFQrebjLur7R5WsJafeXdiy6fRtoVg5jry9Vdi",
-      "block_ordinal": 49,
+      "block_body_hash": "DrWoYr1QMvaod2Rw6B2sAKnZzybPyvZnfbHvtW9rQxGG",
+      "block_merkle_root": "6UpishZHLDsi3ewNgNoksjypqDsLzBHtpk8nv3Vomkyi",
+      "block_ordinal": 47,
       "challenges_result": [],
       "challenges_root": "11111111111111111111111111111111",
       "chunk_endorsements": [[1]],
-      "chunk_headers_root": "CKJWGLSdDZthdCoUJFvDpzWXXJpUv9zaU9EyPpiFwxXc",
+      "chunk_headers_root": "9vzpq6p5nKwwNpQk2Ho5Y7tHrjLJAXqrcexpWLqjs2Bt",
       "chunk_mask": [true],
-      "chunk_receipts_root": "5AmxhZnR5GmLynHMqyLWkH8MANDB7Ynsx8CAxaNikzNP",
+      "chunk_receipts_root": "8We2qRqUcmNCJq1pBuE8M1mC9nsBPxqsL56rgdJz7hAH",
       "chunk_tx_root": "7tkzFg8RHBmMw1ncRJZCCZAizgq4rwCftTKYLce8RU8t",
       "chunks_included": 1,
       "epoch_id": "11111111111111111111111111111111",
       "epoch_sync_data_hash": null,
       "gas_price": "100000000",
-      "hash": "4b65phdcoi6GDi8v957WGhFWiEZPJjzbDEt4ExZKvJhL",
-      "height": 48,
-      "last_ds_final_block": "HQW78cjMc2rnmmp8Vn6Hy5UVrFz6h1Nhz1DMS9sV14Uf",
-      "last_final_block": "ED1GcAYQnm6dFXbKYuvAdGEBydBvSLeyLhD59YMMjz6E",
+      "hash": "9T1YDW9RPPtVLCvXKEdHeicbQ6vVQ8gHVVb5yuE4snaK",
+      "height": 46,
+      "last_ds_final_block": "GdYg96MGtEyYFmxEPMCF7goEYrj9Ydooe2GWy6ANJUbD",
+      "last_final_block": "59KFpkNWBFmdL5jFYAKNuNYGDzphJXfvKbUGumRD1UVY",
       "latest_protocol_version": 86,
-      "next_bp_hash": "98FGcFVb9svfashbU92Y1whc9J5z5ZksQVN7PCj2CNGQ",
-      "next_epoch_id": "CgPLGzrPA2SAaVMdo9FmJrwu2VM9HPNMdxZ7HryxTNks",
-      "outcome_root": "7yYLuy4hEoKCSW3NGTaHDCkNKKmyC16zccmxfzZYoCB5",
-      "prev_hash": "HQW78cjMc2rnmmp8Vn6Hy5UVrFz6h1Nhz1DMS9sV14Uf",
-      "prev_height": 47,
-      "prev_state_root": "BaLjeSbCvDNUYxRgUT3sJ1JhXyzoAwNbVDhAej6zJdjy",
-      "random_value": "J4ayWsqKH7ovJRTSWW1bvYAWry11un8ZEGtAhg1yZMZy",
+      "next_bp_hash": "2ZQDMLAPQ1gtVCqkXmS7h44EJy65zYVr9GroA85vpMHt",
+      "next_epoch_id": "Eck5bzSwsHgG6qD7HBzXtweXQ7okmSMtx6inGMsTEC5j",
+      "outcome_root": "E216B2emJt6CiNgHeteFHvadsyi1k1WfpryzzhCKcKYx",
+      "prev_hash": "GdYg96MGtEyYFmxEPMCF7goEYrj9Ydooe2GWy6ANJUbD",
+      "prev_height": 45,
+      "prev_state_root": "5eEcbZDGoBb1yv4MR2juRkRZJPUpix1ExDbTaQGB5nzC",
+      "random_value": "6S6otyLWmvfsABTzj9U6CzAN4SRUDc1Nb9YjBir6xyjP",
       "rent_paid": "0",
       "shard_split": null,
-      "signature": "ed25519:4CFrfz9wMrowect4oTECy1yoRX8v8ZmEZ71Cn6t11QyiDuoNiGip86Xy9wLppBKVEcgrQkYDjCWfr6hGZBurKvfN",
-      "timestamp": 1793905159960493600,
-      "timestamp_nanosec": "1793905159960493607",
-      "total_supply": "2050029999978356441068455700000000",
+      "signature": "ed25519:5fREoDdorUBdzNGFVeUU4gvzWQPLaMuyukmiGoNmaLYP41P7fGChPuGasdKYhjnV6B4YrkPW7cuZHFyfKY4ra9Th",
+      "timestamp": 1793906688106794000,
+      "timestamp_nanosec": "1793906688106794015",
+      "total_supply": "2050029999978145461841843300000000",
       "validator_proposals": [],
       "validator_reward": "0"
     }

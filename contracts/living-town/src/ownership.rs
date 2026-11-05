@@ -367,6 +367,27 @@ impl LivingTown {
         require!(!self.paused, "LT:E_MARKET_PAUSED");
         (digest, None)
     }
+    pub(super) fn persist_economic_state(&mut self, admission: bool) {
+        self.players.flush();
+        self.shops.flush();
+        self.commands.flush();
+        self.trades.flush();
+        self.jobs.flush();
+        self.active_jobs.flush();
+        env::state_write(self);
+        let used = env::storage_usage();
+        require!(used <= 16 * 1024 * 1024, "LT:E_STORAGE_CAPACITY");
+        let stake = u128::from(used)
+            .checked_mul(env::storage_byte_cost().as_yoctonear())
+            .unwrap_or_else(|| env::panic_str("LT:E_ARITHMETIC_OVERFLOW"));
+        let required = stake
+            .checked_add(if admission { stake.div_ceil(4) } else { 0 })
+            .unwrap_or_else(|| env::panic_str("LT:E_ARITHMETIC_OVERFLOW"));
+        require!(
+            env::account_balance().as_yoctonear() >= required,
+            "LT:E_STORAGE_CAPACITY"
+        );
+    }
     pub(super) fn commit(
         &mut self,
         actor: AccountId,
@@ -392,25 +413,7 @@ impl LivingTown {
         self.commands.insert(principal.clone(), record.clone());
         // Force all buffered collection writes and the root into this receipt before
         // checking measured storage/funding. A failed requirement reverts the receipt.
-        self.players.flush();
-        self.shops.flush();
-        self.commands.flush();
-        self.trades.flush();
-        self.jobs.flush();
-        self.active_jobs.flush();
-        env::state_write(self);
-        let used = env::storage_usage();
-        require!(used <= 16 * 1024 * 1024, "LT:E_STORAGE_CAPACITY");
-        let stake = u128::from(used)
-            .checked_mul(env::storage_byte_cost().as_yoctonear())
-            .unwrap_or_else(|| env::panic_str("LT:E_ARITHMETIC_OVERFLOW"));
-        let required = stake
-            .checked_add(stake.div_ceil(4))
-            .unwrap_or_else(|| env::panic_str("LT:E_ARITHMETIC_OVERFLOW"));
-        require!(
-            env::account_balance().as_yoctonear() >= required,
-            "LT:E_STORAGE_CAPACITY"
-        );
+        self.persist_economic_state(true);
         let event = json!({"standard":"bot_bazaar_living_town","version":"2.0.0","event":record.outcome.method(),"data":[{"contract_id":env::current_account_id(),"config_version":self.config_version.to_string(),"event_sequence":self.market_revision.to_string(),"market_revision":self.market_revision.to_string(),"block_height":env::block_height().to_string(),"block_timestamp_ns":env::block_timestamp().to_string(),"predecessor_account_id":actor,"principal":principal,"command_sequence":record.sequence.to_string(),"payload_sha256":hex(&digest),"outcome":record.outcome.view()}]});
         let encoded = serde_json::to_string(&event).expect("event");
         require!(encoded.len() <= 32768, "LT:E_STORAGE_CAPACITY");

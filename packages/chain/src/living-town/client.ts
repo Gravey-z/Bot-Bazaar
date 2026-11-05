@@ -38,6 +38,11 @@ import {
 import { decodeLivingTownBytes } from "./calls.js";
 import { canonicalLivingTownJson } from "./json.js";
 import { livingTownRecipeEntry } from "./recipes.js";
+import { verifyLivingTownCompletionReceipt } from "./completion.js";
+import type {
+  LivingTownCompletionProof,
+  LivingTownCompletionStatus,
+} from "./completion.js";
 import { verifyLivingTownReceipt } from "./receipts.js";
 import type { LivingTownReceiptStatus, LivingTownProof } from "./receipts.js";
 
@@ -306,10 +311,16 @@ export class FinalizedLivingTownReader {
       args,
       page(livingTownProductionJob),
     );
-    this.checkPage(r, args, (j) => j.job_id);
+    this.checkPage(r, args, (j) => j.job_id, true);
+    check(
+      r.data.history_gap === BigInt(r.data.pruned_through) > 0n,
+      "Production history gap mismatch",
+    );
     check(
       r.data.items.every(
-        (j) => j.shop_id === args.shop_id && args.status !== "completed",
+        (j) =>
+          j.shop_id === args.shop_id &&
+          (args.status === "all" || j.status === args.status),
       ),
       "Production filter mismatch",
     );
@@ -387,12 +398,13 @@ export class FinalizedLivingTownReader {
     },
     args: LivingTownPageArgs,
     id: (v: T) => string,
+    allowHistoryGap = false,
   ) {
     check(
       r.market_revision === args.expected_market_revision &&
         r.data.items.length <= Number(args.limit) &&
-        !r.data.history_gap &&
-        r.data.pruned_through === "0",
+        (allowHistoryGap ||
+          (!r.data.history_gap && r.data.pruned_through === "0")),
       "V2 page revision/bound mismatch",
     );
     let last: string | null = args.after_id;
@@ -486,6 +498,41 @@ export class LivingTownClient {
   }
   async receipt(proof: LivingTownProof): Promise<LivingTownReceiptStatus> {
     return (await this.receiptEvidence(proof)).status;
+  }
+  async completionReceipt(
+    proof: LivingTownCompletionProof,
+  ): Promise<LivingTownCompletionStatus> {
+    await this.network();
+    check(
+      canonicalLivingTownJson(proof.deployment) ===
+        canonicalLivingTownJson(this.identity.deployment),
+      "Completion deployment mismatch",
+    );
+    let response;
+    try {
+      response = await this.rpc("tx", {
+        tx_hash: hash32(proof.transactionHash),
+        sender_account_id: accountId(proof.signerId),
+        wait_until: "FINAL",
+      });
+    } catch (error) {
+      if (
+        error instanceof ChainRpcError &&
+        error.code === "UNKNOWN_TRANSACTION"
+      )
+        return { kind: "unknown", transactionHash: proof.transactionHash };
+      throw error;
+    }
+    const head = await this.block();
+    return verifyLivingTownCompletionReceipt(response, proof, async (hash) => {
+      const b = await this.block(hash);
+      check(
+        BigInt(b.height) <= BigInt(head.height),
+        "Completion beyond finalized head",
+      );
+      await this.at(b);
+      return b;
+    });
   }
   async receiptEvidence(
     proof: LivingTownProof,
