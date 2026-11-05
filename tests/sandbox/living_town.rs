@@ -1,6 +1,7 @@
 use anyhow::{Context, Result};
 use near_sdk::serde_json::{self, Value, json};
 use std::path::Path;
+mod living_town_adapter;
 mod living_town_ownership;
 mod living_town_purchases;
 

@@ -1,0 +1,2394 @@
+{
+  "source": "actual disposable local sandbox; synthetic declared V2 genesis; not Testnet",
+  "contract_id": "dev-20261105130622-80195914797254.test.near",
+  "player_id": "dev-20261105130623-49577908124350.test.near",
+  "steps": [
+    {
+      "method": "register_player",
+      "args": {
+        "command": {
+          "sequence": "1",
+          "config_version": "1",
+          "valid_until_ns": "1793884483685299817"
+        }
+      },
+      "transaction_hash": "BXDQQRJWTaSjG4oZJSG4yLX4J9BzaeZDeJcjuXxREkmx",
+      "reference_block_height": 11,
+      "gas_burnt": "7201839671707",
+      "receipt": {
+        "final_execution_status": "FINAL",
+        "receipts_outcome": [
+          {
+            "block_hash": "7ENCGeGC28FzZPLRzLuTm1kpvKnGi11no9dLeprK8MVz",
+            "id": "6UoT1P1inoj2oBc5UV5g55dEqBCNELiPjqZu8mms82fG",
+            "outcome": {
+              "executor_id": "dev-20261105130622-80195914797254.test.near",
+              "gas_burnt": 6888868749062,
+              "logs": [
+                "EVENT_JSON:{\"standard\":\"bot_bazaar_living_town\",\"version\":\"2.0.0\",\"event\":\"register_player\",\"data\":[{\"contract_id\":\"dev-20261105130622-80195914797254.test.near\",\"config_version\":\"1\",\"event_sequence\":\"2\",\"market_revision\":\"2\",\"block_height\":\"16\",\"block_timestamp_ns\":\"1793883984327241319\",\"predecessor_account_id\":\"dev-20261105130623-49577908124350.test.near\",\"principal\":\"account:dev-20261105130623-49577908124350.test.near\",\"command_sequence\":\"1\",\"payload_sha256\":\"30acb1f83a8bce96d8ad0bdd16afdeba0d9291baebb5f7e182381c400bd5d2cd\",\"outcome\":{\"kind\":\"player_registered\",\"player\":{\"account_id\":\"dev-20261105130623-49577908124350.test.near\",\"ledger\":{\"actor\":{\"kind\":\"player\",\"account_id\":\"dev-20261105130623-49577908124350.test.near\"},\"revision\":\"1\",\"gold\":{\"held\":\"100\",\"available\":\"100\",\"trade_reserved\":\"0\",\"trade_inbound_reserved\":\"0\"},\"inventory\":{\"held\":{\"crystal\":\"0\",\"wood\":\"0\",\"herb\":\"0\",\"iron\":\"0\",\"health_potion\":\"0\",\"iron_tool\":\"0\"},\"available\":{\"crystal\":\"0\",\"wood\":\"0\",\"herb\":\"0\",\"iron\":\"0\",\"health_potion\":\"0\",\"iron_tool\":\"0\"},\"listing_reserved\":{\"crystal\":\"0\",\"wood\":\"0\",\"herb\":\"0\",\"iron\":\"0\",\"health_potion\":\"0\",\"iron_tool\":\"0\"},\"trade_reserved\":{\"crystal\":\"0\",\"wood\":\"0\",\"herb\":\"0\",\"iron\":\"0\",\"health_potion\":\"0\",\"iron_tool\":\"0\"},\"production_output_reserved\":{\"crystal\":\"0\",\"wood\":\"0\",\"herb\":\"0\",\"iron\":\"0\",\"health_potion\":\"0\",\"iron_tool\":\"0\"},\"trade_inbound_reserved\":{\"crystal\":\"0\",\"wood\":\"0\",\"herb\":\"0\",\"iron\":\"0\",\"health_potion\":\"0\",\"iron_tool\":\"0\"}}},\"shop_id\":null,\"grant_issued\":true,\"grant_command_sequence\":\"1\"}}}]}"
+              ],
+              "metadata": {
+                "contracts": [
+                  {
+                    "local": "H7Bxy3vnQsLKbxnJLAFuZwsLmdvXUTAvsXCcXCdE7T4n"
+                  }
+                ],
+                "gas_profile": [
+                  {
+                    "cost": "BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "8737347663"
+                  },
+                  {
+                    "cost": "CONTRACT_LOADING_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "35445963"
+                  },
+                  {
+                    "cost": "CONTRACT_LOADING_BYTES",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "307671372750"
+                  },
+                  {
+                    "cost": "LOG_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "3543313050"
+                  },
+                  {
+                    "cost": "LOG_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "20339336931"
+                  },
+                  {
+                    "cost": "READ_CACHED_TRIE_NODE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "15960000000"
+                  },
+                  {
+                    "cost": "READ_MEMORY_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "39147948000"
+                  },
+                  {
+                    "cost": "READ_MEMORY_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "34295626326"
+                  },
+                  {
+                    "cost": "READ_REGISTER_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "20137321488"
+                  },
+                  {
+                    "cost": "READ_REGISTER_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "170709384"
+                  },
+                  {
+                    "cost": "SHA256_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "9081940500"
+                  },
+                  {
+                    "cost": "SHA256_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "53009937498"
+                  },
+                  {
+                    "cost": "STORAGE_HAS_KEY_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "54039896625"
+                  },
+                  {
+                    "cost": "STORAGE_HAS_KEY_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "1878241545"
+                  },
+                  {
+                    "cost": "STORAGE_READ_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "112713691498"
+                  },
+                  {
+                    "cost": "STORAGE_READ_KEY_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "2135724777"
+                  },
+                  {
+                    "cost": "STORAGE_READ_VALUE_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "7395303272"
+                  },
+                  {
+                    "cost": "STORAGE_WRITE_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "256786944000"
+                  },
+                  {
+                    "cost": "STORAGE_WRITE_EVICTED_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "84661221252"
+                  },
+                  {
+                    "cost": "STORAGE_WRITE_KEY_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "9515187045"
+                  },
+                  {
+                    "cost": "STORAGE_WRITE_VALUE_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "103632938799"
+                  },
+                  {
+                    "cost": "TOUCHING_TRIE_NODE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "6840000000"
+                  },
+                  {
+                    "cost": "UTF8_DECODING_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "3111779061"
+                  },
+                  {
+                    "cost": "UTF8_DECODING_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "449325518139"
+                  },
+                  {
+                    "cost": "WASM_INSTRUCTION",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "4319312676360"
+                  },
+                  {
+                    "cost": "WRITE_MEMORY_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "28037948610"
+                  },
+                  {
+                    "cost": "WRITE_MEMORY_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "4804733808"
+                  },
+                  {
+                    "cost": "WRITE_REGISTER_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "28655224860"
+                  },
+                  {
+                    "cost": "WRITE_REGISTER_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "15601618656"
+                  }
+                ],
+                "version": 4
+              },
+              "receipt_ids": ["AowYUkbBmgPsQAdReAKtG5fJd1UkT8gKmkvwZWUr9P6r"],
+              "status": {
+                "SuccessValue": "eyJkZXBsb3ltZW50Ijp7Im5ldHdvcmtfaWQiOiJ0ZXN0bmV0IiwiZ2VuZXNpc19oYXNoIjoiMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTEiLCJjb250cmFjdF9pZCI6ImRldi0yMDI2MTEwNTEzMDYyMi04MDE5NTkxNDc5NzI1NC50ZXN0Lm5lYXIiLCJhcGlfdmVyc2lvbiI6IjIuMC4wIiwic3RhdGVfc2NoZW1hIjoiMSIsImNvbW1hbmRfc2NoZW1hIjoiMSIsImNvbmZpZ192ZXJzaW9uIjoiMSIsImNvbmZpZ19zaGEyNTYiOiJhOTMyZWZiNDhjNzBhNzNjZTQ2NDcyY2Q3NTQyODg2NDk1NDFiMzQ2MDRlMmVhNDlhNDA5Mzk2MWU3MWEyZDEwIn0sIm1hcmtldF9yZXZpc2lvbiI6IjIiLCJldmVudF9zZXF1ZW5jZSI6IjIiLCJibG9ja19oZWlnaHQiOiIxNiIsImJsb2NrX3RpbWVzdGFtcF9ucyI6IjE3OTM4ODM5ODQzMjcyNDEzMTkiLCJkYXRhIjp7InByaW5jaXBhbCI6ImFjY291bnQ6ZGV2LTIwMjYxMTA1MTMwNjIzLTQ5NTc3OTA4MTI0MzUwLnRlc3QubmVhciIsImNvbW1hbmRfc2VxdWVuY2UiOiIxIiwicGF5bG9hZF9zaGEyNTYiOiIzMGFjYjFmODNhOGJjZTk2ZDhhZDBiZGQxNmFmZGViYTBkOTI5MWJhZWJiNWY3ZTE4MjM4MWM0MDBiZDVkMmNkIiwicmVwbGF5ZWQiOmZhbHNlLCJlZmZlY3RfcmV2aXNpb24iOiIyIiwiZWZmZWN0X2V2ZW50X3NlcXVlbmNlIjoiMiIsIm91dGNvbWUiOnsia2luZCI6InBsYXllcl9yZWdpc3RlcmVkIiwicGxheWVyIjp7ImFjY291bnRfaWQiOiJkZXYtMjAyNjExMDUxMzA2MjMtNDk1Nzc5MDgxMjQzNTAudGVzdC5uZWFyIiwibGVkZ2VyIjp7ImFjdG9yIjp7ImtpbmQiOiJwbGF5ZXIiLCJhY2NvdW50X2lkIjoiZGV2LTIwMjYxMTA1MTMwNjIzLTQ5NTc3OTA4MTI0MzUwLnRlc3QubmVhciJ9LCJyZXZpc2lvbiI6IjEiLCJnb2xkIjp7ImhlbGQiOiIxMDAiLCJhdmFpbGFibGUiOiIxMDAiLCJ0cmFkZV9yZXNlcnZlZCI6IjAiLCJ0cmFkZV9pbmJvdW5kX3Jlc2VydmVkIjoiMCJ9LCJpbnZlbnRvcnkiOnsiaGVsZCI6eyJjcnlzdGFsIjoiMCIsIndvb2QiOiIwIiwiaGVyYiI6IjAiLCJpcm9uIjoiMCIsImhlYWx0aF9wb3Rpb24iOiIwIiwiaXJvbl90b29sIjoiMCJ9LCJhdmFpbGFibGUiOnsiY3J5c3RhbCI6IjAiLCJ3b29kIjoiMCIsImhlcmIiOiIwIiwiaXJvbiI6IjAiLCJoZWFsdGhfcG90aW9uIjoiMCIsImlyb25fdG9vbCI6IjAifSwibGlzdGluZ19yZXNlcnZlZCI6eyJjcnlzdGFsIjoiMCIsIndvb2QiOiIwIiwiaGVyYiI6IjAiLCJpcm9uIjoiMCIsImhlYWx0aF9wb3Rpb24iOiIwIiwiaXJvbl90b29sIjoiMCJ9LCJ0cmFkZV9yZXNlcnZlZCI6eyJjcnlzdGFsIjoiMCIsIndvb2QiOiIwIiwiaGVyYiI6IjAiLCJpcm9uIjoiMCIsImhlYWx0aF9wb3Rpb24iOiIwIiwiaXJvbl90b29sIjoiMCJ9LCJwcm9kdWN0aW9uX291dHB1dF9yZXNlcnZlZCI6eyJjcnlzdGFsIjoiMCIsIndvb2QiOiIwIiwiaGVyYiI6IjAiLCJpcm9uIjoiMCIsImhlYWx0aF9wb3Rpb24iOiIwIiwiaXJvbl90b29sIjoiMCJ9LCJ0cmFkZV9pbmJvdW5kX3Jlc2VydmVkIjp7ImNyeXN0YWwiOiIwIiwid29vZCI6IjAiLCJoZXJiIjoiMCIsImlyb24iOiIwIiwiaGVhbHRoX3BvdGlvbiI6IjAiLCJpcm9uX3Rvb2wiOiIwIn19fSwic2hvcF9pZCI6bnVsbCwiZ3JhbnRfaXNzdWVkIjp0cnVlLCJncmFudF9jb21tYW5kX3NlcXVlbmNlIjoiMSJ9fX19"
+              },
+              "tokens_burnt": "688886874906200000000"
+            },
+            "proof": []
+          },
+          {
+            "block_hash": "55iqHBrQZ7rgBGbz8kTPx4yp9HEXHyFA8fXm7BWVnSEz",
+            "id": "AowYUkbBmgPsQAdReAKtG5fJd1UkT8gKmkvwZWUr9P6r",
+            "outcome": {
+              "executor_id": "dev-20261105130623-49577908124350.test.near",
+              "gas_burnt": 223182562500,
+              "logs": [],
+              "metadata": {
+                "contracts": [null],
+                "gas_profile": [],
+                "version": 4
+              },
+              "receipt_ids": [],
+              "status": {
+                "SuccessValue": ""
+              },
+              "tokens_burnt": "0"
+            },
+            "proof": []
+          }
+        ],
+        "status": {
+          "SuccessValue": "eyJkZXBsb3ltZW50Ijp7Im5ldHdvcmtfaWQiOiJ0ZXN0bmV0IiwiZ2VuZXNpc19oYXNoIjoiMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTEiLCJjb250cmFjdF9pZCI6ImRldi0yMDI2MTEwNTEzMDYyMi04MDE5NTkxNDc5NzI1NC50ZXN0Lm5lYXIiLCJhcGlfdmVyc2lvbiI6IjIuMC4wIiwic3RhdGVfc2NoZW1hIjoiMSIsImNvbW1hbmRfc2NoZW1hIjoiMSIsImNvbmZpZ192ZXJzaW9uIjoiMSIsImNvbmZpZ19zaGEyNTYiOiJhOTMyZWZiNDhjNzBhNzNjZTQ2NDcyY2Q3NTQyODg2NDk1NDFiMzQ2MDRlMmVhNDlhNDA5Mzk2MWU3MWEyZDEwIn0sIm1hcmtldF9yZXZpc2lvbiI6IjIiLCJldmVudF9zZXF1ZW5jZSI6IjIiLCJibG9ja19oZWlnaHQiOiIxNiIsImJsb2NrX3RpbWVzdGFtcF9ucyI6IjE3OTM4ODM5ODQzMjcyNDEzMTkiLCJkYXRhIjp7InByaW5jaXBhbCI6ImFjY291bnQ6ZGV2LTIwMjYxMTA1MTMwNjIzLTQ5NTc3OTA4MTI0MzUwLnRlc3QubmVhciIsImNvbW1hbmRfc2VxdWVuY2UiOiIxIiwicGF5bG9hZF9zaGEyNTYiOiIzMGFjYjFmODNhOGJjZTk2ZDhhZDBiZGQxNmFmZGViYTBkOTI5MWJhZWJiNWY3ZTE4MjM4MWM0MDBiZDVkMmNkIiwicmVwbGF5ZWQiOmZhbHNlLCJlZmZlY3RfcmV2aXNpb24iOiIyIiwiZWZmZWN0X2V2ZW50X3NlcXVlbmNlIjoiMiIsIm91dGNvbWUiOnsia2luZCI6InBsYXllcl9yZWdpc3RlcmVkIiwicGxheWVyIjp7ImFjY291bnRfaWQiOiJkZXYtMjAyNjExMDUxMzA2MjMtNDk1Nzc5MDgxMjQzNTAudGVzdC5uZWFyIiwibGVkZ2VyIjp7ImFjdG9yIjp7ImtpbmQiOiJwbGF5ZXIiLCJhY2NvdW50X2lkIjoiZGV2LTIwMjYxMTA1MTMwNjIzLTQ5NTc3OTA4MTI0MzUwLnRlc3QubmVhciJ9LCJyZXZpc2lvbiI6IjEiLCJnb2xkIjp7ImhlbGQiOiIxMDAiLCJhdmFpbGFibGUiOiIxMDAiLCJ0cmFkZV9yZXNlcnZlZCI6IjAiLCJ0cmFkZV9pbmJvdW5kX3Jlc2VydmVkIjoiMCJ9LCJpbnZlbnRvcnkiOnsiaGVsZCI6eyJjcnlzdGFsIjoiMCIsIndvb2QiOiIwIiwiaGVyYiI6IjAiLCJpcm9uIjoiMCIsImhlYWx0aF9wb3Rpb24iOiIwIiwiaXJvbl90b29sIjoiMCJ9LCJhdmFpbGFibGUiOnsiY3J5c3RhbCI6IjAiLCJ3b29kIjoiMCIsImhlcmIiOiIwIiwiaXJvbiI6IjAiLCJoZWFsdGhfcG90aW9uIjoiMCIsImlyb25fdG9vbCI6IjAifSwibGlzdGluZ19yZXNlcnZlZCI6eyJjcnlzdGFsIjoiMCIsIndvb2QiOiIwIiwiaGVyYiI6IjAiLCJpcm9uIjoiMCIsImhlYWx0aF9wb3Rpb24iOiIwIiwiaXJvbl90b29sIjoiMCJ9LCJ0cmFkZV9yZXNlcnZlZCI6eyJjcnlzdGFsIjoiMCIsIndvb2QiOiIwIiwiaGVyYiI6IjAiLCJpcm9uIjoiMCIsImhlYWx0aF9wb3Rpb24iOiIwIiwiaXJvbl90b29sIjoiMCJ9LCJwcm9kdWN0aW9uX291dHB1dF9yZXNlcnZlZCI6eyJjcnlzdGFsIjoiMCIsIndvb2QiOiIwIiwiaGVyYiI6IjAiLCJpcm9uIjoiMCIsImhlYWx0aF9wb3Rpb24iOiIwIiwiaXJvbl90b29sIjoiMCJ9LCJ0cmFkZV9pbmJvdW5kX3Jlc2VydmVkIjp7ImNyeXN0YWwiOiIwIiwid29vZCI6IjAiLCJoZXJiIjoiMCIsImlyb24iOiIwIiwiaGVhbHRoX3BvdGlvbiI6IjAiLCJpcm9uX3Rvb2wiOiIwIn19fSwic2hvcF9pZCI6bnVsbCwiZ3JhbnRfaXNzdWVkIjp0cnVlLCJncmFudF9jb21tYW5kX3NlcXVlbmNlIjoiMSJ9fX19"
+        },
+        "transaction": {
+          "actions": [
+            {
+              "FunctionCall": {
+                "args": "eyJjb21tYW5kIjp7InNlcXVlbmNlIjoiMSIsImNvbmZpZ192ZXJzaW9uIjoiMSIsInZhbGlkX3VudGlsX25zIjoiMTc5Mzg4NDQ4MzY4NTI5OTgxNyJ9fQ==",
+                "deposit": "0",
+                "gas": 100000000000000,
+                "method_name": "register_player"
+              }
+            }
+          ],
+          "hash": "BXDQQRJWTaSjG4oZJSG4yLX4J9BzaeZDeJcjuXxREkmx",
+          "nonce": 10000001,
+          "priority_fee": 0,
+          "public_key": "ed25519:CgTNBsiLAcdem8pSUm9XqNufeihz9uLJ17V1jtbbccCY",
+          "receiver_id": "dev-20261105130622-80195914797254.test.near",
+          "signature": "ed25519:3cMJZvKQpfSQGkpU9Ztr8MGy6rUZ8qs6SuUYQsbjm9Xgmbubj94AW8GidymmF3u1ZXTvSMMNEbVQYEEf9crckPxm",
+          "signer_id": "dev-20261105130623-49577908124350.test.near"
+        },
+        "transaction_outcome": {
+          "block_hash": "EEvBQsTV4CNCokA3dSFsjAmHK5aQMrjGhHLBKbncHRZi",
+          "id": "BXDQQRJWTaSjG4oZJSG4yLX4J9BzaeZDeJcjuXxREkmx",
+          "outcome": {
+            "executor_id": "dev-20261105130623-49577908124350.test.near",
+            "gas_burnt": 312970922645,
+            "logs": [],
+            "metadata": {
+              "gas_profile": null,
+              "version": 1
+            },
+            "receipt_ids": ["6UoT1P1inoj2oBc5UV5g55dEqBCNELiPjqZu8mms82fG"],
+            "status": {
+              "SuccessReceiptId": "6UoT1P1inoj2oBc5UV5g55dEqBCNELiPjqZu8mms82fG"
+            },
+            "tokens_burnt": "31297092264500000000"
+          },
+          "proof": []
+        }
+      },
+      "block": {
+        "author": "test.near",
+        "chunks": [
+          {
+            "balance_burnt": "31297092264500000000",
+            "bandwidth_requests": {
+              "V1": {
+                "requests": []
+              }
+            },
+            "chunk_hash": "3Gyy9mkFpBJyyHNhychLxrXJ4bASZxhUwURo7m6SaYxm",
+            "congestion_info": {
+              "allowed_shard": 0,
+              "buffered_receipts_gas": "0",
+              "delayed_receipts_gas": "0",
+              "receipt_bytes": 0
+            },
+            "encoded_length": 379,
+            "encoded_merkle_root": "Erx5T58EDHk1Ej1HpUzEK11N9Ftqy9ECPTYdpDc8dFGQ",
+            "gas_limit": 1000000000000000,
+            "gas_used": 312970922645,
+            "height_created": 16,
+            "height_included": 16,
+            "outcome_root": "BV2d5Ph9zkAWwXHgxFyseVPi7gZKDtW1dbN8CpJwd6HL",
+            "outgoing_receipts_root": "92xE3V2o7HRcCvv341UGDgKozb1CFkEJxKw5UCY3U946",
+            "prev_block_hash": "EEvBQsTV4CNCokA3dSFsjAmHK5aQMrjGhHLBKbncHRZi",
+            "prev_state_root": "E5maEXfgb9Cn41tWTxVqmEP7NKnG5LYoDAMcMf36sGDQ",
+            "proposed_split": null,
+            "rent_paid": "0",
+            "shard_id": 0,
+            "signature": "ed25519:3nXs42mXV1xb7rymDHsXzT81BD5fivbPULvYneam7SyMRyz2pfFFeAychbFE3qD2MNqvy9XZy4KjPuQQA6xoDdqs",
+            "tx_root": "11111111111111111111111111111111",
+            "validator_proposals": [],
+            "validator_reward": "0"
+          }
+        ],
+        "header": {
+          "approvals": [
+            "ed25519:5HsZKLrSPhJCYvMrPxVBqnf4QXMXNU1BbvcHveJftUGbBZTh83xE5pkoLEARqatcYpQkZgDaRHVVUiLvWm7UgUrV"
+          ],
+          "block_body_hash": "2ysSi7NUM6ske1FSsViTpAh8xTFP43fHJjFGzZy7W367",
+          "block_merkle_root": "2NRxeLHtiM1dnQCRxtzUyNtcpsJdJuPicdNniX4ukRN8",
+          "block_ordinal": 17,
+          "challenges_result": [],
+          "challenges_root": "11111111111111111111111111111111",
+          "chunk_endorsements": [[1]],
+          "chunk_headers_root": "2xJYtntaWyxa3StHjJmi68iyYaybJ9mCKPGF2n36YtFx",
+          "chunk_mask": [true],
+          "chunk_receipts_root": "7djYUrhKQtcEvN7sgPSPDDuE2XctkMt6xjGspzC2JhdQ",
+          "chunk_tx_root": "7tkzFg8RHBmMw1ncRJZCCZAizgq4rwCftTKYLce8RU8t",
+          "chunks_included": 1,
+          "epoch_id": "11111111111111111111111111111111",
+          "epoch_sync_data_hash": null,
+          "gas_price": "100000000",
+          "hash": "7ENCGeGC28FzZPLRzLuTm1kpvKnGi11no9dLeprK8MVz",
+          "height": 16,
+          "last_ds_final_block": "EEvBQsTV4CNCokA3dSFsjAmHK5aQMrjGhHLBKbncHRZi",
+          "last_final_block": "6zLAqJGZEa3ZK3JfFWFhyMGrTPChhCUFpSfUWL1fYoe6",
+          "latest_protocol_version": 86,
+          "next_bp_hash": "NDCgyePqxVwwKUGWM3iTVp1RHTqaE7RrQySS86mjZBB",
+          "next_epoch_id": "FeszHM4kVoCv3y4EzNyEvMCx8ymWvxHNxovD2qukjmTC",
+          "outcome_root": "8vTWyzqDoZWvWCwNFxxenayXCmxdi6ufGR1r7936anKe",
+          "prev_hash": "EEvBQsTV4CNCokA3dSFsjAmHK5aQMrjGhHLBKbncHRZi",
+          "prev_height": 15,
+          "prev_state_root": "3sioBk3yUTQWedsCXmGpkF4VmixXJ61jtA2YHoKZRx2K",
+          "random_value": "BQQPC3ktRJ85kv5FxBAxSGdpy5XxdHtAXrkFBs5dm9xW",
+          "rent_paid": "0",
+          "shard_split": null,
+          "signature": "ed25519:3nESpgXPzpFEkXUztPpVEp7wL73P76E5PddXKMUUXuVHgAmAy8PAAnUSEprSLPzDor3GJMme2PRBgPJBnW5FY1zZ",
+          "timestamp": 1793883984327241200,
+          "timestamp_nanosec": "1793883984327241319",
+          "total_supply": "2050029999981824994864016800000000",
+          "validator_proposals": [],
+          "validator_reward": "0"
+        }
+      },
+      "account": {
+        "amount": "99999473930883172100000000",
+        "block_hash": "7ENCGeGC28FzZPLRzLuTm1kpvKnGi11no9dLeprK8MVz",
+        "block_height": 16,
+        "code_hash": "H7Bxy3vnQsLKbxnJLAFuZwsLmdvXUTAvsXCcXCdE7T4n",
+        "locked": "0",
+        "storage_paid_at": 0,
+        "storage_usage": 284905
+      },
+      "foundation": {
+        "block_hash": "7ENCGeGC28FzZPLRzLuTm1kpvKnGi11no9dLeprK8MVz",
+        "block_height": 16,
+        "logs": [],
+        "result": [
+          123, 34, 100, 101, 112, 108, 111, 121, 109, 101, 110, 116, 34, 58,
+          123, 34, 110, 101, 116, 119, 111, 114, 107, 95, 105, 100, 34, 58, 34,
+          116, 101, 115, 116, 110, 101, 116, 34, 44, 34, 103, 101, 110, 101,
+          115, 105, 115, 95, 104, 97, 115, 104, 34, 58, 34, 49, 49, 49, 49, 49,
+          49, 49, 49, 49, 49, 49, 49, 49, 49, 49, 49, 49, 49, 49, 49, 49, 49,
+          49, 49, 49, 49, 49, 49, 49, 49, 49, 49, 34, 44, 34, 99, 111, 110, 116,
+          114, 97, 99, 116, 95, 105, 100, 34, 58, 34, 100, 101, 118, 45, 50, 48,
+          50, 54, 49, 49, 48, 53, 49, 51, 48, 54, 50, 50, 45, 56, 48, 49, 57,
+          53, 57, 49, 52, 55, 57, 55, 50, 53, 52, 46, 116, 101, 115, 116, 46,
+          110, 101, 97, 114, 34, 44, 34, 97, 112, 105, 95, 118, 101, 114, 115,
+          105, 111, 110, 34, 58, 34, 50, 46, 48, 46, 48, 34, 44, 34, 115, 116,
+          97, 116, 101, 95, 115, 99, 104, 101, 109, 97, 34, 58, 34, 49, 34, 44,
+          34, 99, 111, 109, 109, 97, 110, 100, 95, 115, 99, 104, 101, 109, 97,
+          34, 58, 34, 49, 34, 44, 34, 99, 111, 110, 102, 105, 103, 95, 118, 101,
+          114, 115, 105, 111, 110, 34, 58, 34, 49, 34, 44, 34, 99, 111, 110,
+          102, 105, 103, 95, 115, 104, 97, 50, 53, 54, 34, 58, 34, 97, 57, 51,
+          50, 101, 102, 98, 52, 56, 99, 55, 48, 97, 55, 51, 99, 101, 52, 54, 52,
+          55, 50, 99, 100, 55, 53, 52, 50, 56, 56, 54, 52, 57, 53, 52, 49, 98,
+          51, 52, 54, 48, 52, 101, 50, 101, 97, 52, 57, 97, 52, 48, 57, 51, 57,
+          54, 49, 101, 55, 49, 97, 50, 100, 49, 48, 34, 125, 44, 34, 109, 97,
+          114, 107, 101, 116, 95, 114, 101, 118, 105, 115, 105, 111, 110, 34,
+          58, 34, 50, 34, 44, 34, 101, 118, 101, 110, 116, 95, 115, 101, 113,
+          117, 101, 110, 99, 101, 34, 58, 34, 50, 34, 44, 34, 98, 108, 111, 99,
+          107, 95, 104, 101, 105, 103, 104, 116, 34, 58, 34, 49, 54, 34, 44, 34,
+          98, 108, 111, 99, 107, 95, 116, 105, 109, 101, 115, 116, 97, 109, 112,
+          95, 110, 115, 34, 58, 34, 49, 55, 57, 51, 56, 56, 51, 57, 56, 52, 51,
+          50, 55, 50, 52, 49, 51, 49, 57, 34, 44, 34, 100, 97, 116, 97, 34, 58,
+          123, 34, 111, 119, 110, 101, 114, 95, 97, 99, 99, 111, 117, 110, 116,
+          95, 105, 100, 34, 58, 34, 100, 101, 118, 45, 50, 48, 50, 54, 49, 49,
+          48, 53, 49, 51, 48, 54, 50, 50, 45, 56, 48, 49, 57, 53, 57, 49, 52,
+          55, 57, 55, 50, 53, 52, 46, 116, 101, 115, 116, 46, 110, 101, 97, 114,
+          34, 44, 34, 111, 112, 101, 114, 97, 116, 111, 114, 95, 97, 99, 99,
+          111, 117, 110, 116, 95, 105, 100, 34, 58, 34, 111, 112, 101, 114, 97,
+          116, 111, 114, 46, 116, 101, 115, 116, 110, 101, 116, 34, 44, 34, 109,
+          101, 114, 99, 104, 97, 110, 116, 95, 99, 111, 110, 116, 114, 111, 108,
+          108, 101, 114, 115, 34, 58, 123, 34, 114, 101, 120, 34, 58, 34, 114,
+          101, 120, 46, 116, 101, 115, 116, 110, 101, 116, 34, 44, 34, 108, 117,
+          110, 97, 34, 58, 34, 108, 117, 110, 97, 46, 116, 101, 115, 116, 110,
+          101, 116, 34, 44, 34, 98, 111, 108, 116, 34, 58, 34, 98, 111, 108,
+          116, 46, 116, 101, 115, 116, 110, 101, 116, 34, 125, 44, 34, 105, 116,
+          101, 109, 95, 105, 100, 115, 34, 58, 91, 34, 99, 114, 121, 115, 116,
+          97, 108, 34, 44, 34, 119, 111, 111, 100, 34, 44, 34, 104, 101, 114,
+          98, 34, 44, 34, 105, 114, 111, 110, 34, 44, 34, 104, 101, 97, 108,
+          116, 104, 95, 112, 111, 116, 105, 111, 110, 34, 44, 34, 105, 114, 111,
+          110, 95, 116, 111, 111, 108, 34, 93, 44, 34, 115, 117, 112, 112, 111,
+          114, 116, 101, 100, 95, 109, 101, 116, 104, 111, 100, 115, 34, 58, 91,
+          34, 105, 110, 105, 116, 105, 97, 108, 105, 122, 101, 95, 116, 111,
+          119, 110, 34, 44, 34, 103, 101, 116, 95, 102, 111, 117, 110, 100, 97,
+          116, 105, 111, 110, 34, 44, 34, 103, 101, 116, 95, 116, 111, 119, 110,
+          34, 44, 34, 114, 101, 103, 105, 115, 116, 101, 114, 95, 112, 108, 97,
+          121, 101, 114, 34, 44, 34, 99, 114, 101, 97, 116, 101, 95, 115, 104,
+          111, 112, 34, 44, 34, 114, 101, 110, 97, 109, 101, 95, 115, 104, 111,
+          112, 34, 44, 34, 103, 101, 116, 95, 112, 108, 97, 121, 101, 114, 34,
+          44, 34, 103, 101, 116, 95, 115, 104, 111, 112, 34, 44, 34, 103, 101,
+          116, 95, 112, 108, 97, 121, 101, 114, 95, 115, 104, 111, 112, 115, 34,
+          44, 34, 103, 101, 116, 95, 99, 111, 109, 109, 97, 110, 100, 34, 44,
+          34, 98, 117, 121, 95, 102, 114, 111, 109, 95, 109, 101, 114, 99, 104,
+          97, 110, 116, 34, 44, 34, 103, 101, 116, 95, 108, 105, 115, 116, 105,
+          110, 103, 115, 34, 44, 34, 103, 101, 116, 95, 116, 114, 97, 100, 101,
+          34, 44, 34, 103, 101, 116, 95, 115, 104, 111, 112, 95, 105, 110, 118,
+          101, 110, 116, 111, 114, 121, 34, 93, 125, 125
+        ]
+      }
+    },
+    {
+      "method": "create_shop",
+      "args": {
+        "name": "Adapter Shop",
+        "command": {
+          "sequence": "2",
+          "config_version": "1",
+          "valid_until_ns": "1793884484694505103"
+        }
+      },
+      "transaction_hash": "A3GDrKgoh8A4jh6Y7H5x4i1Rq3Y717W2FiPK4nRC6Vc3",
+      "reference_block_height": 18,
+      "gas_burnt": "5440247993849",
+      "receipt": {
+        "final_execution_status": "FINAL",
+        "receipts_outcome": [
+          {
+            "block_hash": "8PffCeDLo4srJ9Tf7uCNHGEFb3NSF2uRPqUw2jzkpfcd",
+            "id": "Fb3K51GEQMZrjQqJPfsJGAtHGRrvzFBPgBeqVVyed5cz",
+            "outcome": {
+              "executor_id": "dev-20261105130622-80195914797254.test.near",
+              "gas_burnt": 5126418764334,
+              "logs": [
+                "EVENT_JSON:{\"standard\":\"bot_bazaar_living_town\",\"version\":\"2.0.0\",\"event\":\"create_shop\",\"data\":[{\"contract_id\":\"dev-20261105130622-80195914797254.test.near\",\"config_version\":\"1\",\"event_sequence\":\"3\",\"market_revision\":\"3\",\"block_height\":\"23\",\"block_timestamp_ns\":\"1793883985202806684\",\"predecessor_account_id\":\"dev-20261105130623-49577908124350.test.near\",\"principal\":\"account:dev-20261105130623-49577908124350.test.near\",\"command_sequence\":\"2\",\"payload_sha256\":\"c342722233252b91e635e65e1f98790fe3c58af7373ea4ba46e610fdc8282e53\",\"outcome\":{\"kind\":\"shop_created\",\"shop\":{\"shop_id\":\"4\",\"owner\":{\"kind\":\"player\",\"account_id\":\"dev-20261105130623-49577908124350.test.near\"},\"name\":\"Adapter Shop\",\"revision\":\"1\",\"production_slots\":\"1\",\"policy_revision\":\"1\",\"created_at_ns\":\"1793883985202806684\",\"ownership_command_sequence\":\"2\"}}}]}"
+              ],
+              "metadata": {
+                "contracts": [
+                  {
+                    "local": "H7Bxy3vnQsLKbxnJLAFuZwsLmdvXUTAvsXCcXCdE7T4n"
+                  }
+                ],
+                "gas_profile": [
+                  {
+                    "cost": "BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "10590724440"
+                  },
+                  {
+                    "cost": "CONTRACT_LOADING_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "35445963"
+                  },
+                  {
+                    "cost": "CONTRACT_LOADING_BYTES",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "307671372750"
+                  },
+                  {
+                    "cost": "LOG_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "3543313050"
+                  },
+                  {
+                    "cost": "LOG_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "10889002575"
+                  },
+                  {
+                    "cost": "READ_CACHED_TRIE_NODE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "41040000000"
+                  },
+                  {
+                    "cost": "READ_MEMORY_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "49587400800"
+                  },
+                  {
+                    "cost": "READ_MEMORY_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "28825508139"
+                  },
+                  {
+                    "cost": "READ_REGISTER_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "25171651860"
+                  },
+                  {
+                    "cost": "READ_REGISTER_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "246700686"
+                  },
+                  {
+                    "cost": "SHA256_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "9081940500"
+                  },
+                  {
+                    "cost": "SHA256_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "53444049816"
+                  },
+                  {
+                    "cost": "STORAGE_HAS_KEY_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "54039896625"
+                  },
+                  {
+                    "cost": "STORAGE_HAS_KEY_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "1878241545"
+                  },
+                  {
+                    "cost": "STORAGE_READ_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "225427382996"
+                  },
+                  {
+                    "cost": "STORAGE_READ_KEY_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "4642879950"
+                  },
+                  {
+                    "cost": "STORAGE_READ_VALUE_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "11351061092"
+                  },
+                  {
+                    "cost": "STORAGE_WRITE_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "320983680000"
+                  },
+                  {
+                    "cost": "STORAGE_WRITE_EVICTED_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "107303922687"
+                  },
+                  {
+                    "cost": "STORAGE_WRITE_KEY_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "10924844385"
+                  },
+                  {
+                    "cost": "STORAGE_WRITE_VALUE_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "99600528729"
+                  },
+                  {
+                    "cost": "TOUCHING_TRIE_NODE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "20520000000"
+                  },
+                  {
+                    "cost": "UTF8_DECODING_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "3111779061"
+                  },
+                  {
+                    "cost": "UTF8_DECODING_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "240553895175"
+                  },
+                  {
+                    "cost": "WASM_INSTRUCTION",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "2495994054444"
+                  },
+                  {
+                    "cost": "WRITE_MEMORY_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "33645538332"
+                  },
+                  {
+                    "cost": "WRITE_MEMORY_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "6904762020"
+                  },
+                  {
+                    "cost": "WRITE_REGISTER_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "40117314804"
+                  },
+                  {
+                    "cost": "WRITE_REGISTER_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "20961823896"
+                  }
+                ],
+                "version": 4
+              },
+              "receipt_ids": ["9LyQ1kiqC4L5MWmuA1hniaKtZngcWYWeRh2w31WG5AHc"],
+              "status": {
+                "SuccessValue": "eyJkZXBsb3ltZW50Ijp7Im5ldHdvcmtfaWQiOiJ0ZXN0bmV0IiwiZ2VuZXNpc19oYXNoIjoiMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTEiLCJjb250cmFjdF9pZCI6ImRldi0yMDI2MTEwNTEzMDYyMi04MDE5NTkxNDc5NzI1NC50ZXN0Lm5lYXIiLCJhcGlfdmVyc2lvbiI6IjIuMC4wIiwic3RhdGVfc2NoZW1hIjoiMSIsImNvbW1hbmRfc2NoZW1hIjoiMSIsImNvbmZpZ192ZXJzaW9uIjoiMSIsImNvbmZpZ19zaGEyNTYiOiJhOTMyZWZiNDhjNzBhNzNjZTQ2NDcyY2Q3NTQyODg2NDk1NDFiMzQ2MDRlMmVhNDlhNDA5Mzk2MWU3MWEyZDEwIn0sIm1hcmtldF9yZXZpc2lvbiI6IjMiLCJldmVudF9zZXF1ZW5jZSI6IjMiLCJibG9ja19oZWlnaHQiOiIyMyIsImJsb2NrX3RpbWVzdGFtcF9ucyI6IjE3OTM4ODM5ODUyMDI4MDY2ODQiLCJkYXRhIjp7InByaW5jaXBhbCI6ImFjY291bnQ6ZGV2LTIwMjYxMTA1MTMwNjIzLTQ5NTc3OTA4MTI0MzUwLnRlc3QubmVhciIsImNvbW1hbmRfc2VxdWVuY2UiOiIyIiwicGF5bG9hZF9zaGEyNTYiOiJjMzQyNzIyMjMzMjUyYjkxZTYzNWU2NWUxZjk4NzkwZmUzYzU4YWY3MzczZWE0YmE0NmU2MTBmZGM4MjgyZTUzIiwicmVwbGF5ZWQiOmZhbHNlLCJlZmZlY3RfcmV2aXNpb24iOiIzIiwiZWZmZWN0X2V2ZW50X3NlcXVlbmNlIjoiMyIsIm91dGNvbWUiOnsia2luZCI6InNob3BfY3JlYXRlZCIsInNob3AiOnsic2hvcF9pZCI6IjQiLCJvd25lciI6eyJraW5kIjoicGxheWVyIiwiYWNjb3VudF9pZCI6ImRldi0yMDI2MTEwNTEzMDYyMy00OTU3NzkwODEyNDM1MC50ZXN0Lm5lYXIifSwibmFtZSI6IkFkYXB0ZXIgU2hvcCIsInJldmlzaW9uIjoiMSIsInByb2R1Y3Rpb25fc2xvdHMiOiIxIiwicG9saWN5X3JldmlzaW9uIjoiMSIsImNyZWF0ZWRfYXRfbnMiOiIxNzkzODgzOTg1MjAyODA2Njg0Iiwib3duZXJzaGlwX2NvbW1hbmRfc2VxdWVuY2UiOiIyIn19fX0="
+              },
+              "tokens_burnt": "512641876433400000000"
+            },
+            "proof": []
+          },
+          {
+            "block_hash": "8Zqzn6GD9tBBpqKCkye36ePHGPdEUzDzyYWUjJDbjGw1",
+            "id": "9LyQ1kiqC4L5MWmuA1hniaKtZngcWYWeRh2w31WG5AHc",
+            "outcome": {
+              "executor_id": "dev-20261105130623-49577908124350.test.near",
+              "gas_burnt": 223182562500,
+              "logs": [],
+              "metadata": {
+                "contracts": [null],
+                "gas_profile": [],
+                "version": 4
+              },
+              "receipt_ids": [],
+              "status": {
+                "SuccessValue": ""
+              },
+              "tokens_burnt": "0"
+            },
+            "proof": []
+          }
+        ],
+        "status": {
+          "SuccessValue": "eyJkZXBsb3ltZW50Ijp7Im5ldHdvcmtfaWQiOiJ0ZXN0bmV0IiwiZ2VuZXNpc19oYXNoIjoiMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTEiLCJjb250cmFjdF9pZCI6ImRldi0yMDI2MTEwNTEzMDYyMi04MDE5NTkxNDc5NzI1NC50ZXN0Lm5lYXIiLCJhcGlfdmVyc2lvbiI6IjIuMC4wIiwic3RhdGVfc2NoZW1hIjoiMSIsImNvbW1hbmRfc2NoZW1hIjoiMSIsImNvbmZpZ192ZXJzaW9uIjoiMSIsImNvbmZpZ19zaGEyNTYiOiJhOTMyZWZiNDhjNzBhNzNjZTQ2NDcyY2Q3NTQyODg2NDk1NDFiMzQ2MDRlMmVhNDlhNDA5Mzk2MWU3MWEyZDEwIn0sIm1hcmtldF9yZXZpc2lvbiI6IjMiLCJldmVudF9zZXF1ZW5jZSI6IjMiLCJibG9ja19oZWlnaHQiOiIyMyIsImJsb2NrX3RpbWVzdGFtcF9ucyI6IjE3OTM4ODM5ODUyMDI4MDY2ODQiLCJkYXRhIjp7InByaW5jaXBhbCI6ImFjY291bnQ6ZGV2LTIwMjYxMTA1MTMwNjIzLTQ5NTc3OTA4MTI0MzUwLnRlc3QubmVhciIsImNvbW1hbmRfc2VxdWVuY2UiOiIyIiwicGF5bG9hZF9zaGEyNTYiOiJjMzQyNzIyMjMzMjUyYjkxZTYzNWU2NWUxZjk4NzkwZmUzYzU4YWY3MzczZWE0YmE0NmU2MTBmZGM4MjgyZTUzIiwicmVwbGF5ZWQiOmZhbHNlLCJlZmZlY3RfcmV2aXNpb24iOiIzIiwiZWZmZWN0X2V2ZW50X3NlcXVlbmNlIjoiMyIsIm91dGNvbWUiOnsia2luZCI6InNob3BfY3JlYXRlZCIsInNob3AiOnsic2hvcF9pZCI6IjQiLCJvd25lciI6eyJraW5kIjoicGxheWVyIiwiYWNjb3VudF9pZCI6ImRldi0yMDI2MTEwNTEzMDYyMy00OTU3NzkwODEyNDM1MC50ZXN0Lm5lYXIifSwibmFtZSI6IkFkYXB0ZXIgU2hvcCIsInJldmlzaW9uIjoiMSIsInByb2R1Y3Rpb25fc2xvdHMiOiIxIiwicG9saWN5X3JldmlzaW9uIjoiMSIsImNyZWF0ZWRfYXRfbnMiOiIxNzkzODgzOTg1MjAyODA2Njg0Iiwib3duZXJzaGlwX2NvbW1hbmRfc2VxdWVuY2UiOiIyIn19fX0="
+        },
+        "transaction": {
+          "actions": [
+            {
+              "FunctionCall": {
+                "args": "eyJuYW1lIjoiQWRhcHRlciBTaG9wIiwiY29tbWFuZCI6eyJzZXF1ZW5jZSI6IjIiLCJjb25maWdfdmVyc2lvbiI6IjEiLCJ2YWxpZF91bnRpbF9ucyI6IjE3OTM4ODQ0ODQ2OTQ1MDUxMDMifX0=",
+                "deposit": "0",
+                "gas": 100000000000000,
+                "method_name": "create_shop"
+              }
+            }
+          ],
+          "hash": "A3GDrKgoh8A4jh6Y7H5x4i1Rq3Y717W2FiPK4nRC6Vc3",
+          "nonce": 10000002,
+          "priority_fee": 0,
+          "public_key": "ed25519:CgTNBsiLAcdem8pSUm9XqNufeihz9uLJ17V1jtbbccCY",
+          "receiver_id": "dev-20261105130622-80195914797254.test.near",
+          "signature": "ed25519:4vBWTKJJRUmdxweXydbgGUHMq2F6GDUT6ZTW4sZzDLtMr2VE46HTtRnp4ZJbadMgY4aVLeYMiubQhkGZDJzHDu9p",
+          "signer_id": "dev-20261105130623-49577908124350.test.near"
+        },
+        "transaction_outcome": {
+          "block_hash": "5pkM22LELvBuotEJ3KEVr2PJDkKf8GMvoj9QPrRTEuvx",
+          "id": "A3GDrKgoh8A4jh6Y7H5x4i1Rq3Y717W2FiPK4nRC6Vc3",
+          "outcome": {
+            "executor_id": "dev-20261105130623-49577908124350.test.near",
+            "gas_burnt": 313829229515,
+            "logs": [],
+            "metadata": {
+              "gas_profile": null,
+              "version": 1
+            },
+            "receipt_ids": ["Fb3K51GEQMZrjQqJPfsJGAtHGRrvzFBPgBeqVVyed5cz"],
+            "status": {
+              "SuccessReceiptId": "Fb3K51GEQMZrjQqJPfsJGAtHGRrvzFBPgBeqVVyed5cz"
+            },
+            "tokens_burnt": "31382922951500000000"
+          },
+          "proof": []
+        }
+      },
+      "block": {
+        "author": "test.near",
+        "chunks": [
+          {
+            "balance_burnt": "31382922951500000000",
+            "bandwidth_requests": {
+              "V1": {
+                "requests": []
+              }
+            },
+            "chunk_hash": "45qMVT3dHFgNKY8dMDckCz6GyuBsexJTXrLGuo8dXJ2a",
+            "congestion_info": {
+              "allowed_shard": 0,
+              "buffered_receipts_gas": "0",
+              "delayed_receipts_gas": "0",
+              "receipt_bytes": 0
+            },
+            "encoded_length": 397,
+            "encoded_merkle_root": "4kVYE36Dw9Dv6eYyWqtiU36de3htfPz5qRVF5heJDjex",
+            "gas_limit": 1000000000000000,
+            "gas_used": 313829229515,
+            "height_created": 23,
+            "height_included": 23,
+            "outcome_root": "AbfqBXvfh2z8WUzNpcxmgtbz12vLr7Hmd26q4bHoumcS",
+            "outgoing_receipts_root": "5pgtJh8CMawuWNSdS3Hi8PcFmeuUdfYTPfKHTS2wXwiK",
+            "prev_block_hash": "5pkM22LELvBuotEJ3KEVr2PJDkKf8GMvoj9QPrRTEuvx",
+            "prev_state_root": "83xQDnhA5G75onuWtfJSduuuHSD1EJoJJ3z7iNqxZhMV",
+            "proposed_split": null,
+            "rent_paid": "0",
+            "shard_id": 0,
+            "signature": "ed25519:jKLHjNAb7UbfmpWWhng6uzHQnUk6b4iyeHP6yj5A5cqteTYuUs2yzzjyxVjKWiKUpnTGSmmYcS8Sfeiu5hY1jUQ",
+            "tx_root": "11111111111111111111111111111111",
+            "validator_proposals": [],
+            "validator_reward": "0"
+          }
+        ],
+        "header": {
+          "approvals": [
+            "ed25519:3j5kCUCQBQNGVzsMeZNsdQDcFarbaAWBBZsu4whHwC5VJ6EXTGJ2nSYLzwfFm8p3xqynFEFMvJ6XekqjjCKj84q9"
+          ],
+          "block_body_hash": "n3aH2ocQBHq5QhzVziQKx3vzVSgx8ux4usrqkiCmiGb",
+          "block_merkle_root": "HXYmxUhwDpTueNN8yUZ5yZdDRkPhnP5dbEukT3Kmy8t3",
+          "block_ordinal": 24,
+          "challenges_result": [],
+          "challenges_root": "11111111111111111111111111111111",
+          "chunk_endorsements": [[1]],
+          "chunk_headers_root": "9T95wjinfJ9qavb5W5FhnhYWE36Zz1cSuhJFSeqQ6rWJ",
+          "chunk_mask": [true],
+          "chunk_receipts_root": "Fx5gMcgRkU6n6ghtSAyv96txy2JHamyQfZpmLpL6qpx5",
+          "chunk_tx_root": "7tkzFg8RHBmMw1ncRJZCCZAizgq4rwCftTKYLce8RU8t",
+          "chunks_included": 1,
+          "epoch_id": "11111111111111111111111111111111",
+          "epoch_sync_data_hash": null,
+          "gas_price": "100000000",
+          "hash": "8PffCeDLo4srJ9Tf7uCNHGEFb3NSF2uRPqUw2jzkpfcd",
+          "height": 23,
+          "last_ds_final_block": "5pkM22LELvBuotEJ3KEVr2PJDkKf8GMvoj9QPrRTEuvx",
+          "last_final_block": "F42gJHY3rXBK1oN64h2wdrWw4KZdinX76igfQr1hmVGX",
+          "latest_protocol_version": 86,
+          "next_bp_hash": "NDCgyePqxVwwKUGWM3iTVp1RHTqaE7RrQySS86mjZBB",
+          "next_epoch_id": "FeszHM4kVoCv3y4EzNyEvMCx8ymWvxHNxovD2qukjmTC",
+          "outcome_root": "7QcFh5ZpX4dU7B8vupfnEfMYpGxB3g81MwxfoV91wYe9",
+          "prev_hash": "5pkM22LELvBuotEJ3KEVr2PJDkKf8GMvoj9QPrRTEuvx",
+          "prev_height": 22,
+          "prev_state_root": "Fqf6PizYAZssZvNQwN5dynRbndBjPv1NMJyoywWv1Hnb",
+          "random_value": "6w9miHjpTQapWQfKDcybRbBGfLCt7ecZJn88UurPgwPH",
+          "rent_paid": "0",
+          "shard_split": null,
+          "signature": "ed25519:3ragmngxAH1cvSfJNmva6xnsRxpwJj5Up7TGfw4q62Zs84VX1avvT9XZhRhCvD2RzdVpHidVuLep7MAuWMYEAvx5",
+          "timestamp": 1793883985202806800,
+          "timestamp_nanosec": "1793883985202806684",
+          "total_supply": "2050029999981284742434594900000000",
+          "validator_proposals": [],
+          "validator_reward": "0"
+        }
+      },
+      "account": {
+        "amount": "99999601073544661700000000",
+        "block_hash": "8PffCeDLo4srJ9Tf7uCNHGEFb3NSF2uRPqUw2jzkpfcd",
+        "block_height": 23,
+        "code_hash": "H7Bxy3vnQsLKbxnJLAFuZwsLmdvXUTAvsXCcXCdE7T4n",
+        "locked": "0",
+        "storage_paid_at": 0,
+        "storage_usage": 284835
+      },
+      "foundation": {
+        "block_hash": "8PffCeDLo4srJ9Tf7uCNHGEFb3NSF2uRPqUw2jzkpfcd",
+        "block_height": 23,
+        "logs": [],
+        "result": [
+          123, 34, 100, 101, 112, 108, 111, 121, 109, 101, 110, 116, 34, 58,
+          123, 34, 110, 101, 116, 119, 111, 114, 107, 95, 105, 100, 34, 58, 34,
+          116, 101, 115, 116, 110, 101, 116, 34, 44, 34, 103, 101, 110, 101,
+          115, 105, 115, 95, 104, 97, 115, 104, 34, 58, 34, 49, 49, 49, 49, 49,
+          49, 49, 49, 49, 49, 49, 49, 49, 49, 49, 49, 49, 49, 49, 49, 49, 49,
+          49, 49, 49, 49, 49, 49, 49, 49, 49, 49, 34, 44, 34, 99, 111, 110, 116,
+          114, 97, 99, 116, 95, 105, 100, 34, 58, 34, 100, 101, 118, 45, 50, 48,
+          50, 54, 49, 49, 48, 53, 49, 51, 48, 54, 50, 50, 45, 56, 48, 49, 57,
+          53, 57, 49, 52, 55, 57, 55, 50, 53, 52, 46, 116, 101, 115, 116, 46,
+          110, 101, 97, 114, 34, 44, 34, 97, 112, 105, 95, 118, 101, 114, 115,
+          105, 111, 110, 34, 58, 34, 50, 46, 48, 46, 48, 34, 44, 34, 115, 116,
+          97, 116, 101, 95, 115, 99, 104, 101, 109, 97, 34, 58, 34, 49, 34, 44,
+          34, 99, 111, 109, 109, 97, 110, 100, 95, 115, 99, 104, 101, 109, 97,
+          34, 58, 34, 49, 34, 44, 34, 99, 111, 110, 102, 105, 103, 95, 118, 101,
+          114, 115, 105, 111, 110, 34, 58, 34, 49, 34, 44, 34, 99, 111, 110,
+          102, 105, 103, 95, 115, 104, 97, 50, 53, 54, 34, 58, 34, 97, 57, 51,
+          50, 101, 102, 98, 52, 56, 99, 55, 48, 97, 55, 51, 99, 101, 52, 54, 52,
+          55, 50, 99, 100, 55, 53, 52, 50, 56, 56, 54, 52, 57, 53, 52, 49, 98,
+          51, 52, 54, 48, 52, 101, 50, 101, 97, 52, 57, 97, 52, 48, 57, 51, 57,
+          54, 49, 101, 55, 49, 97, 50, 100, 49, 48, 34, 125, 44, 34, 109, 97,
+          114, 107, 101, 116, 95, 114, 101, 118, 105, 115, 105, 111, 110, 34,
+          58, 34, 51, 34, 44, 34, 101, 118, 101, 110, 116, 95, 115, 101, 113,
+          117, 101, 110, 99, 101, 34, 58, 34, 51, 34, 44, 34, 98, 108, 111, 99,
+          107, 95, 104, 101, 105, 103, 104, 116, 34, 58, 34, 50, 51, 34, 44, 34,
+          98, 108, 111, 99, 107, 95, 116, 105, 109, 101, 115, 116, 97, 109, 112,
+          95, 110, 115, 34, 58, 34, 49, 55, 57, 51, 56, 56, 51, 57, 56, 53, 50,
+          48, 50, 56, 48, 54, 54, 56, 52, 34, 44, 34, 100, 97, 116, 97, 34, 58,
+          123, 34, 111, 119, 110, 101, 114, 95, 97, 99, 99, 111, 117, 110, 116,
+          95, 105, 100, 34, 58, 34, 100, 101, 118, 45, 50, 48, 50, 54, 49, 49,
+          48, 53, 49, 51, 48, 54, 50, 50, 45, 56, 48, 49, 57, 53, 57, 49, 52,
+          55, 57, 55, 50, 53, 52, 46, 116, 101, 115, 116, 46, 110, 101, 97, 114,
+          34, 44, 34, 111, 112, 101, 114, 97, 116, 111, 114, 95, 97, 99, 99,
+          111, 117, 110, 116, 95, 105, 100, 34, 58, 34, 111, 112, 101, 114, 97,
+          116, 111, 114, 46, 116, 101, 115, 116, 110, 101, 116, 34, 44, 34, 109,
+          101, 114, 99, 104, 97, 110, 116, 95, 99, 111, 110, 116, 114, 111, 108,
+          108, 101, 114, 115, 34, 58, 123, 34, 114, 101, 120, 34, 58, 34, 114,
+          101, 120, 46, 116, 101, 115, 116, 110, 101, 116, 34, 44, 34, 108, 117,
+          110, 97, 34, 58, 34, 108, 117, 110, 97, 46, 116, 101, 115, 116, 110,
+          101, 116, 34, 44, 34, 98, 111, 108, 116, 34, 58, 34, 98, 111, 108,
+          116, 46, 116, 101, 115, 116, 110, 101, 116, 34, 125, 44, 34, 105, 116,
+          101, 109, 95, 105, 100, 115, 34, 58, 91, 34, 99, 114, 121, 115, 116,
+          97, 108, 34, 44, 34, 119, 111, 111, 100, 34, 44, 34, 104, 101, 114,
+          98, 34, 44, 34, 105, 114, 111, 110, 34, 44, 34, 104, 101, 97, 108,
+          116, 104, 95, 112, 111, 116, 105, 111, 110, 34, 44, 34, 105, 114, 111,
+          110, 95, 116, 111, 111, 108, 34, 93, 44, 34, 115, 117, 112, 112, 111,
+          114, 116, 101, 100, 95, 109, 101, 116, 104, 111, 100, 115, 34, 58, 91,
+          34, 105, 110, 105, 116, 105, 97, 108, 105, 122, 101, 95, 116, 111,
+          119, 110, 34, 44, 34, 103, 101, 116, 95, 102, 111, 117, 110, 100, 97,
+          116, 105, 111, 110, 34, 44, 34, 103, 101, 116, 95, 116, 111, 119, 110,
+          34, 44, 34, 114, 101, 103, 105, 115, 116, 101, 114, 95, 112, 108, 97,
+          121, 101, 114, 34, 44, 34, 99, 114, 101, 97, 116, 101, 95, 115, 104,
+          111, 112, 34, 44, 34, 114, 101, 110, 97, 109, 101, 95, 115, 104, 111,
+          112, 34, 44, 34, 103, 101, 116, 95, 112, 108, 97, 121, 101, 114, 34,
+          44, 34, 103, 101, 116, 95, 115, 104, 111, 112, 34, 44, 34, 103, 101,
+          116, 95, 112, 108, 97, 121, 101, 114, 95, 115, 104, 111, 112, 115, 34,
+          44, 34, 103, 101, 116, 95, 99, 111, 109, 109, 97, 110, 100, 34, 44,
+          34, 98, 117, 121, 95, 102, 114, 111, 109, 95, 109, 101, 114, 99, 104,
+          97, 110, 116, 34, 44, 34, 103, 101, 116, 95, 108, 105, 115, 116, 105,
+          110, 103, 115, 34, 44, 34, 103, 101, 116, 95, 116, 114, 97, 100, 101,
+          34, 44, 34, 103, 101, 116, 95, 115, 104, 111, 112, 95, 105, 110, 118,
+          101, 110, 116, 111, 114, 121, 34, 93, 125, 125
+        ]
+      }
+    },
+    {
+      "method": "rename_shop",
+      "args": {
+        "shop_id": "4",
+        "expected_shop_revision": "1",
+        "name": "Verified Shop",
+        "command": {
+          "sequence": "3",
+          "config_version": "1",
+          "valid_until_ns": "1793884485591550033"
+        }
+      },
+      "transaction_hash": "2cdHzK4dkPYTrq1evxfd1MyctnYCfCUVv7dJhPt22pq8",
+      "reference_block_height": 25,
+      "gas_burnt": "5236242456736",
+      "receipt": {
+        "final_execution_status": "FINAL",
+        "receipts_outcome": [
+          {
+            "block_hash": "D6XowoQ8EF8H4Hbt3nvV4eRAomr99hjov9wNeeVJvoVN",
+            "id": "8Y4w9yQifXaaUAtZqe7rguErrFCtfZKSbMtk8L6LR7Gc",
+            "outcome": {
+              "executor_id": "dev-20261105130622-80195914797254.test.near",
+              "gas_burnt": 4920315143761,
+              "logs": [
+                "EVENT_JSON:{\"standard\":\"bot_bazaar_living_town\",\"version\":\"2.0.0\",\"event\":\"rename_shop\",\"data\":[{\"contract_id\":\"dev-20261105130622-80195914797254.test.near\",\"config_version\":\"1\",\"event_sequence\":\"4\",\"market_revision\":\"4\",\"block_height\":\"30\",\"block_timestamp_ns\":\"1793883986105584238\",\"predecessor_account_id\":\"dev-20261105130623-49577908124350.test.near\",\"principal\":\"account:dev-20261105130623-49577908124350.test.near\",\"command_sequence\":\"3\",\"payload_sha256\":\"cf7a4db8ea44dff956f75a9a148e1e359d5d38bc085fdc1278e1cd9b09aa66b2\",\"outcome\":{\"kind\":\"shop_renamed\",\"shop\":{\"shop_id\":\"4\",\"owner\":{\"kind\":\"player\",\"account_id\":\"dev-20261105130623-49577908124350.test.near\"},\"name\":\"Verified Shop\",\"revision\":\"2\",\"production_slots\":\"1\",\"policy_revision\":\"1\",\"created_at_ns\":\"1793883985202806684\",\"ownership_command_sequence\":\"2\"}}}]}"
+              ],
+              "metadata": {
+                "contracts": [
+                  {
+                    "local": "H7Bxy3vnQsLKbxnJLAFuZwsLmdvXUTAvsXCcXCdE7T4n"
+                  }
+                ],
+                "gas_profile": [
+                  {
+                    "cost": "BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "9796420107"
+                  },
+                  {
+                    "cost": "CONTRACT_LOADING_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "35445963"
+                  },
+                  {
+                    "cost": "CONTRACT_LOADING_BYTES",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "307671372750"
+                  },
+                  {
+                    "cost": "LOG_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "3543313050"
+                  },
+                  {
+                    "cost": "LOG_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "10902201366"
+                  },
+                  {
+                    "cost": "READ_CACHED_TRIE_NODE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "29640000000"
+                  },
+                  {
+                    "cost": "READ_MEMORY_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "39147948000"
+                  },
+                  {
+                    "cost": "READ_MEMORY_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "27035080296"
+                  },
+                  {
+                    "cost": "READ_REGISTER_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "25171651860"
+                  },
+                  {
+                    "cost": "READ_REGISTER_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "213780978"
+                  },
+                  {
+                    "cost": "SHA256_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "9081940500"
+                  },
+                  {
+                    "cost": "SHA256_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "54505213260"
+                  },
+                  {
+                    "cost": "STORAGE_READ_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "169070537247"
+                  },
+                  {
+                    "cost": "STORAGE_READ_KEY_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "2754775437"
+                  },
+                  {
+                    "cost": "STORAGE_READ_VALUE_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "8736333228"
+                  },
+                  {
+                    "cost": "STORAGE_WRITE_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "256786944000"
+                  },
+                  {
+                    "cost": "STORAGE_WRITE_EVICTED_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "92337257625"
+                  },
+                  {
+                    "cost": "STORAGE_WRITE_KEY_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "6625389498"
+                  },
+                  {
+                    "cost": "STORAGE_WRITE_VALUE_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "89240336703"
+                  },
+                  {
+                    "cost": "TOUCHING_TRIE_NODE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "22800000000"
+                  },
+                  {
+                    "cost": "UTF8_DECODING_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "3111779061"
+                  },
+                  {
+                    "cost": "UTF8_DECODING_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "240845475654"
+                  },
+                  {
+                    "cost": "WASM_INSTRUCTION",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "2525656876512"
+                  },
+                  {
+                    "cost": "WRITE_MEMORY_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "33645538332"
+                  },
+                  {
+                    "cost": "WRITE_MEMORY_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "5995022172"
+                  },
+                  {
+                    "cost": "WRITE_REGISTER_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "40117314804"
+                  },
+                  {
+                    "cost": "WRITE_REGISTER_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "17418766248"
+                  }
+                ],
+                "version": 4
+              },
+              "receipt_ids": ["FL4UsdiL7GicDhpJ5STivL8Nhgatb4psmW3BsS2HZezd"],
+              "status": {
+                "SuccessValue": "eyJkZXBsb3ltZW50Ijp7Im5ldHdvcmtfaWQiOiJ0ZXN0bmV0IiwiZ2VuZXNpc19oYXNoIjoiMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTEiLCJjb250cmFjdF9pZCI6ImRldi0yMDI2MTEwNTEzMDYyMi04MDE5NTkxNDc5NzI1NC50ZXN0Lm5lYXIiLCJhcGlfdmVyc2lvbiI6IjIuMC4wIiwic3RhdGVfc2NoZW1hIjoiMSIsImNvbW1hbmRfc2NoZW1hIjoiMSIsImNvbmZpZ192ZXJzaW9uIjoiMSIsImNvbmZpZ19zaGEyNTYiOiJhOTMyZWZiNDhjNzBhNzNjZTQ2NDcyY2Q3NTQyODg2NDk1NDFiMzQ2MDRlMmVhNDlhNDA5Mzk2MWU3MWEyZDEwIn0sIm1hcmtldF9yZXZpc2lvbiI6IjQiLCJldmVudF9zZXF1ZW5jZSI6IjQiLCJibG9ja19oZWlnaHQiOiIzMCIsImJsb2NrX3RpbWVzdGFtcF9ucyI6IjE3OTM4ODM5ODYxMDU1ODQyMzgiLCJkYXRhIjp7InByaW5jaXBhbCI6ImFjY291bnQ6ZGV2LTIwMjYxMTA1MTMwNjIzLTQ5NTc3OTA4MTI0MzUwLnRlc3QubmVhciIsImNvbW1hbmRfc2VxdWVuY2UiOiIzIiwicGF5bG9hZF9zaGEyNTYiOiJjZjdhNGRiOGVhNDRkZmY5NTZmNzVhOWExNDhlMWUzNTlkNWQzOGJjMDg1ZmRjMTI3OGUxY2Q5YjA5YWE2NmIyIiwicmVwbGF5ZWQiOmZhbHNlLCJlZmZlY3RfcmV2aXNpb24iOiI0IiwiZWZmZWN0X2V2ZW50X3NlcXVlbmNlIjoiNCIsIm91dGNvbWUiOnsia2luZCI6InNob3BfcmVuYW1lZCIsInNob3AiOnsic2hvcF9pZCI6IjQiLCJvd25lciI6eyJraW5kIjoicGxheWVyIiwiYWNjb3VudF9pZCI6ImRldi0yMDI2MTEwNTEzMDYyMy00OTU3NzkwODEyNDM1MC50ZXN0Lm5lYXIifSwibmFtZSI6IlZlcmlmaWVkIFNob3AiLCJyZXZpc2lvbiI6IjIiLCJwcm9kdWN0aW9uX3Nsb3RzIjoiMSIsInBvbGljeV9yZXZpc2lvbiI6IjEiLCJjcmVhdGVkX2F0X25zIjoiMTc5Mzg4Mzk4NTIwMjgwNjY4NCIsIm93bmVyc2hpcF9jb21tYW5kX3NlcXVlbmNlIjoiMiJ9fX19"
+              },
+              "tokens_burnt": "492031514376100000000"
+            },
+            "proof": []
+          },
+          {
+            "block_hash": "HEUH3NKHWvFB5Z88Fkj4oPUSfdXnAVCrdu1MTJESzKon",
+            "id": "FL4UsdiL7GicDhpJ5STivL8Nhgatb4psmW3BsS2HZezd",
+            "outcome": {
+              "executor_id": "dev-20261105130623-49577908124350.test.near",
+              "gas_burnt": 223182562500,
+              "logs": [],
+              "metadata": {
+                "contracts": [null],
+                "gas_profile": [],
+                "version": 4
+              },
+              "receipt_ids": [],
+              "status": {
+                "SuccessValue": ""
+              },
+              "tokens_burnt": "0"
+            },
+            "proof": []
+          }
+        ],
+        "status": {
+          "SuccessValue": "eyJkZXBsb3ltZW50Ijp7Im5ldHdvcmtfaWQiOiJ0ZXN0bmV0IiwiZ2VuZXNpc19oYXNoIjoiMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTEiLCJjb250cmFjdF9pZCI6ImRldi0yMDI2MTEwNTEzMDYyMi04MDE5NTkxNDc5NzI1NC50ZXN0Lm5lYXIiLCJhcGlfdmVyc2lvbiI6IjIuMC4wIiwic3RhdGVfc2NoZW1hIjoiMSIsImNvbW1hbmRfc2NoZW1hIjoiMSIsImNvbmZpZ192ZXJzaW9uIjoiMSIsImNvbmZpZ19zaGEyNTYiOiJhOTMyZWZiNDhjNzBhNzNjZTQ2NDcyY2Q3NTQyODg2NDk1NDFiMzQ2MDRlMmVhNDlhNDA5Mzk2MWU3MWEyZDEwIn0sIm1hcmtldF9yZXZpc2lvbiI6IjQiLCJldmVudF9zZXF1ZW5jZSI6IjQiLCJibG9ja19oZWlnaHQiOiIzMCIsImJsb2NrX3RpbWVzdGFtcF9ucyI6IjE3OTM4ODM5ODYxMDU1ODQyMzgiLCJkYXRhIjp7InByaW5jaXBhbCI6ImFjY291bnQ6ZGV2LTIwMjYxMTA1MTMwNjIzLTQ5NTc3OTA4MTI0MzUwLnRlc3QubmVhciIsImNvbW1hbmRfc2VxdWVuY2UiOiIzIiwicGF5bG9hZF9zaGEyNTYiOiJjZjdhNGRiOGVhNDRkZmY5NTZmNzVhOWExNDhlMWUzNTlkNWQzOGJjMDg1ZmRjMTI3OGUxY2Q5YjA5YWE2NmIyIiwicmVwbGF5ZWQiOmZhbHNlLCJlZmZlY3RfcmV2aXNpb24iOiI0IiwiZWZmZWN0X2V2ZW50X3NlcXVlbmNlIjoiNCIsIm91dGNvbWUiOnsia2luZCI6InNob3BfcmVuYW1lZCIsInNob3AiOnsic2hvcF9pZCI6IjQiLCJvd25lciI6eyJraW5kIjoicGxheWVyIiwiYWNjb3VudF9pZCI6ImRldi0yMDI2MTEwNTEzMDYyMy00OTU3NzkwODEyNDM1MC50ZXN0Lm5lYXIifSwibmFtZSI6IlZlcmlmaWVkIFNob3AiLCJyZXZpc2lvbiI6IjIiLCJwcm9kdWN0aW9uX3Nsb3RzIjoiMSIsInBvbGljeV9yZXZpc2lvbiI6IjEiLCJjcmVhdGVkX2F0X25zIjoiMTc5Mzg4Mzk4NTIwMjgwNjY4NCIsIm93bmVyc2hpcF9jb21tYW5kX3NlcXVlbmNlIjoiMiJ9fX19"
+        },
+        "transaction": {
+          "actions": [
+            {
+              "FunctionCall": {
+                "args": "eyJzaG9wX2lkIjoiNCIsImV4cGVjdGVkX3Nob3BfcmV2aXNpb24iOiIxIiwibmFtZSI6IlZlcmlmaWVkIFNob3AiLCJjb21tYW5kIjp7InNlcXVlbmNlIjoiMyIsImNvbmZpZ192ZXJzaW9uIjoiMSIsInZhbGlkX3VudGlsX25zIjoiMTc5Mzg4NDQ4NTU5MTU1MDAzMyJ9fQ==",
+                "deposit": "0",
+                "gas": 100000000000000,
+                "method_name": "rename_shop"
+              }
+            }
+          ],
+          "hash": "2cdHzK4dkPYTrq1evxfd1MyctnYCfCUVv7dJhPt22pq8",
+          "nonce": 10000003,
+          "priority_fee": 0,
+          "public_key": "ed25519:CgTNBsiLAcdem8pSUm9XqNufeihz9uLJ17V1jtbbccCY",
+          "receiver_id": "dev-20261105130622-80195914797254.test.near",
+          "signature": "ed25519:49D8VDAeTDsYhnorapkLyucK9GV2cvvSD3pvkxjCyMDLETBTHfwhcFNxYFuQPAFbZiWd2b3EoN4QbndxZUCK4su1",
+          "signer_id": "dev-20261105130623-49577908124350.test.near"
+        },
+        "transaction_outcome": {
+          "block_hash": "8rQRfeUuEvYw6qXDc64eg7tuSVTkZMDhdUXMvgACkXJD",
+          "id": "2cdHzK4dkPYTrq1evxfd1MyctnYCfCUVv7dJhPt22pq8",
+          "outcome": {
+            "executor_id": "dev-20261105130623-49577908124350.test.near",
+            "gas_burnt": 315927312975,
+            "logs": [],
+            "metadata": {
+              "gas_profile": null,
+              "version": 1
+            },
+            "receipt_ids": ["8Y4w9yQifXaaUAtZqe7rguErrFCtfZKSbMtk8L6LR7Gc"],
+            "status": {
+              "SuccessReceiptId": "8Y4w9yQifXaaUAtZqe7rguErrFCtfZKSbMtk8L6LR7Gc"
+            },
+            "tokens_burnt": "31592731297500000000"
+          },
+          "proof": []
+        }
+      },
+      "block": {
+        "author": "test.near",
+        "chunks": [
+          {
+            "balance_burnt": "31592731297500000000",
+            "bandwidth_requests": {
+              "V1": {
+                "requests": []
+              }
+            },
+            "chunk_hash": "CCie9mVQhR76xUujqLqhbsaq15rCMj1JrjpeVdozXMu2",
+            "congestion_info": {
+              "allowed_shard": 0,
+              "buffered_receipts_gas": "0",
+              "delayed_receipts_gas": "0",
+              "receipt_bytes": 0
+            },
+            "encoded_length": 441,
+            "encoded_merkle_root": "52UxbUVDV7B1hBwrdP5KJ3cUiv1xgDFfvUVkCh9BDGwR",
+            "gas_limit": 1000000000000000,
+            "gas_used": 315927312975,
+            "height_created": 30,
+            "height_included": 30,
+            "outcome_root": "KJXkyXwWmtTADVhdHpAGsDX7o47vkHHxsBita8KqMFs",
+            "outgoing_receipts_root": "Co1Bj6M5bD1Wdsqb6p6J6btVCwgMx2VG8q6zucqYg8dh",
+            "prev_block_hash": "8rQRfeUuEvYw6qXDc64eg7tuSVTkZMDhdUXMvgACkXJD",
+            "prev_state_root": "GVK1J4HpCu4cfvRqC5sZ8SMAb4cU3BjuVGmjDk3Wq8Qy",
+            "proposed_split": null,
+            "rent_paid": "0",
+            "shard_id": 0,
+            "signature": "ed25519:UFYkY81bD4Y9dMTkEnmugqeyioTuRihZFVPF5wsL7YC9ACYr6gSDM2tGVgvexTHK7xiNacUeGUxDRAr3mVF7dWV",
+            "tx_root": "11111111111111111111111111111111",
+            "validator_proposals": [],
+            "validator_reward": "0"
+          }
+        ],
+        "header": {
+          "approvals": [
+            "ed25519:5PhzwJN39ccbLAmh9zpU4RrAj9e9YcVQVcLzbd6yceRmgZhHXzyNhhE4cHYJXDhoM14gMwJycGgz18D9b9R7f7q7"
+          ],
+          "block_body_hash": "a7rMZM4cD27noPVbEXGxLwh4Efv6385pRvzJheKk5Gw",
+          "block_merkle_root": "61zTb8AApMi7QLL3d7unP49ED4v4mb8mydpjQwpXYRec",
+          "block_ordinal": 31,
+          "challenges_result": [],
+          "challenges_root": "11111111111111111111111111111111",
+          "chunk_endorsements": [[1]],
+          "chunk_headers_root": "E7nc8zMpeMABJAeSg3NzjXSNrvGhN25v7gGfo7RbPTgK",
+          "chunk_mask": [true],
+          "chunk_receipts_root": "DrTh5SPmZZqe6SHY3WfYZtaNaYBzwneCJicgEbYcXEfY",
+          "chunk_tx_root": "7tkzFg8RHBmMw1ncRJZCCZAizgq4rwCftTKYLce8RU8t",
+          "chunks_included": 1,
+          "epoch_id": "11111111111111111111111111111111",
+          "epoch_sync_data_hash": null,
+          "gas_price": "100000000",
+          "hash": "D6XowoQ8EF8H4Hbt3nvV4eRAomr99hjov9wNeeVJvoVN",
+          "height": 30,
+          "last_ds_final_block": "8rQRfeUuEvYw6qXDc64eg7tuSVTkZMDhdUXMvgACkXJD",
+          "last_final_block": "3Dzs3445ZpmBoPfyQwMHUJfgt4kJDt81o4SKupHdPKWT",
+          "latest_protocol_version": 86,
+          "next_bp_hash": "NDCgyePqxVwwKUGWM3iTVp1RHTqaE7RrQySS86mjZBB",
+          "next_epoch_id": "FeszHM4kVoCv3y4EzNyEvMCx8ymWvxHNxovD2qukjmTC",
+          "outcome_root": "GoBoASPuYHydiv3o2GmECD894XCbx4KGk8CUKZyS5qNp",
+          "prev_hash": "8rQRfeUuEvYw6qXDc64eg7tuSVTkZMDhdUXMvgACkXJD",
+          "prev_height": 29,
+          "prev_state_root": "Gvd43agKaJoNAzuVYqEwXqMPUxJPkF7qNxtEe5TP7frf",
+          "random_value": "4ofe3uqzp3KHpes2iy1ZhWSoTcZBCLqTp8TPXBB8pDtG",
+          "rent_paid": "0",
+          "shard_split": null,
+          "signature": "ed25519:2YwshBiARvNLwzCAMewKoyHGAujWWhbXuUz1EvNP5MzRbUFDavLet377TqbKYPrTRuhzp63ZKDLaU7hm5PozRvEB",
+          "timestamp": 1793883986105584000,
+          "timestamp_nanosec": "1793883986105584238",
+          "total_supply": "2050029999980867650488353600000000",
+          "validator_proposals": [],
+          "validator_reward": "0"
+        }
+      },
+      "account": {
+        "amount": "99999722030146101200000000",
+        "block_hash": "D6XowoQ8EF8H4Hbt3nvV4eRAomr99hjov9wNeeVJvoVN",
+        "block_height": 30,
+        "code_hash": "H7Bxy3vnQsLKbxnJLAFuZwsLmdvXUTAvsXCcXCdE7T4n",
+        "locked": "0",
+        "storage_paid_at": 0,
+        "storage_usage": 284837
+      },
+      "foundation": {
+        "block_hash": "D6XowoQ8EF8H4Hbt3nvV4eRAomr99hjov9wNeeVJvoVN",
+        "block_height": 30,
+        "logs": [],
+        "result": [
+          123, 34, 100, 101, 112, 108, 111, 121, 109, 101, 110, 116, 34, 58,
+          123, 34, 110, 101, 116, 119, 111, 114, 107, 95, 105, 100, 34, 58, 34,
+          116, 101, 115, 116, 110, 101, 116, 34, 44, 34, 103, 101, 110, 101,
+          115, 105, 115, 95, 104, 97, 115, 104, 34, 58, 34, 49, 49, 49, 49, 49,
+          49, 49, 49, 49, 49, 49, 49, 49, 49, 49, 49, 49, 49, 49, 49, 49, 49,
+          49, 49, 49, 49, 49, 49, 49, 49, 49, 49, 34, 44, 34, 99, 111, 110, 116,
+          114, 97, 99, 116, 95, 105, 100, 34, 58, 34, 100, 101, 118, 45, 50, 48,
+          50, 54, 49, 49, 48, 53, 49, 51, 48, 54, 50, 50, 45, 56, 48, 49, 57,
+          53, 57, 49, 52, 55, 57, 55, 50, 53, 52, 46, 116, 101, 115, 116, 46,
+          110, 101, 97, 114, 34, 44, 34, 97, 112, 105, 95, 118, 101, 114, 115,
+          105, 111, 110, 34, 58, 34, 50, 46, 48, 46, 48, 34, 44, 34, 115, 116,
+          97, 116, 101, 95, 115, 99, 104, 101, 109, 97, 34, 58, 34, 49, 34, 44,
+          34, 99, 111, 109, 109, 97, 110, 100, 95, 115, 99, 104, 101, 109, 97,
+          34, 58, 34, 49, 34, 44, 34, 99, 111, 110, 102, 105, 103, 95, 118, 101,
+          114, 115, 105, 111, 110, 34, 58, 34, 49, 34, 44, 34, 99, 111, 110,
+          102, 105, 103, 95, 115, 104, 97, 50, 53, 54, 34, 58, 34, 97, 57, 51,
+          50, 101, 102, 98, 52, 56, 99, 55, 48, 97, 55, 51, 99, 101, 52, 54, 52,
+          55, 50, 99, 100, 55, 53, 52, 50, 56, 56, 54, 52, 57, 53, 52, 49, 98,
+          51, 52, 54, 48, 52, 101, 50, 101, 97, 52, 57, 97, 52, 48, 57, 51, 57,
+          54, 49, 101, 55, 49, 97, 50, 100, 49, 48, 34, 125, 44, 34, 109, 97,
+          114, 107, 101, 116, 95, 114, 101, 118, 105, 115, 105, 111, 110, 34,
+          58, 34, 52, 34, 44, 34, 101, 118, 101, 110, 116, 95, 115, 101, 113,
+          117, 101, 110, 99, 101, 34, 58, 34, 52, 34, 44, 34, 98, 108, 111, 99,
+          107, 95, 104, 101, 105, 103, 104, 116, 34, 58, 34, 51, 48, 34, 44, 34,
+          98, 108, 111, 99, 107, 95, 116, 105, 109, 101, 115, 116, 97, 109, 112,
+          95, 110, 115, 34, 58, 34, 49, 55, 57, 51, 56, 56, 51, 57, 56, 54, 49,
+          48, 53, 53, 56, 52, 50, 51, 56, 34, 44, 34, 100, 97, 116, 97, 34, 58,
+          123, 34, 111, 119, 110, 101, 114, 95, 97, 99, 99, 111, 117, 110, 116,
+          95, 105, 100, 34, 58, 34, 100, 101, 118, 45, 50, 48, 50, 54, 49, 49,
+          48, 53, 49, 51, 48, 54, 50, 50, 45, 56, 48, 49, 57, 53, 57, 49, 52,
+          55, 57, 55, 50, 53, 52, 46, 116, 101, 115, 116, 46, 110, 101, 97, 114,
+          34, 44, 34, 111, 112, 101, 114, 97, 116, 111, 114, 95, 97, 99, 99,
+          111, 117, 110, 116, 95, 105, 100, 34, 58, 34, 111, 112, 101, 114, 97,
+          116, 111, 114, 46, 116, 101, 115, 116, 110, 101, 116, 34, 44, 34, 109,
+          101, 114, 99, 104, 97, 110, 116, 95, 99, 111, 110, 116, 114, 111, 108,
+          108, 101, 114, 115, 34, 58, 123, 34, 114, 101, 120, 34, 58, 34, 114,
+          101, 120, 46, 116, 101, 115, 116, 110, 101, 116, 34, 44, 34, 108, 117,
+          110, 97, 34, 58, 34, 108, 117, 110, 97, 46, 116, 101, 115, 116, 110,
+          101, 116, 34, 44, 34, 98, 111, 108, 116, 34, 58, 34, 98, 111, 108,
+          116, 46, 116, 101, 115, 116, 110, 101, 116, 34, 125, 44, 34, 105, 116,
+          101, 109, 95, 105, 100, 115, 34, 58, 91, 34, 99, 114, 121, 115, 116,
+          97, 108, 34, 44, 34, 119, 111, 111, 100, 34, 44, 34, 104, 101, 114,
+          98, 34, 44, 34, 105, 114, 111, 110, 34, 44, 34, 104, 101, 97, 108,
+          116, 104, 95, 112, 111, 116, 105, 111, 110, 34, 44, 34, 105, 114, 111,
+          110, 95, 116, 111, 111, 108, 34, 93, 44, 34, 115, 117, 112, 112, 111,
+          114, 116, 101, 100, 95, 109, 101, 116, 104, 111, 100, 115, 34, 58, 91,
+          34, 105, 110, 105, 116, 105, 97, 108, 105, 122, 101, 95, 116, 111,
+          119, 110, 34, 44, 34, 103, 101, 116, 95, 102, 111, 117, 110, 100, 97,
+          116, 105, 111, 110, 34, 44, 34, 103, 101, 116, 95, 116, 111, 119, 110,
+          34, 44, 34, 114, 101, 103, 105, 115, 116, 101, 114, 95, 112, 108, 97,
+          121, 101, 114, 34, 44, 34, 99, 114, 101, 97, 116, 101, 95, 115, 104,
+          111, 112, 34, 44, 34, 114, 101, 110, 97, 109, 101, 95, 115, 104, 111,
+          112, 34, 44, 34, 103, 101, 116, 95, 112, 108, 97, 121, 101, 114, 34,
+          44, 34, 103, 101, 116, 95, 115, 104, 111, 112, 34, 44, 34, 103, 101,
+          116, 95, 112, 108, 97, 121, 101, 114, 95, 115, 104, 111, 112, 115, 34,
+          44, 34, 103, 101, 116, 95, 99, 111, 109, 109, 97, 110, 100, 34, 44,
+          34, 98, 117, 121, 95, 102, 114, 111, 109, 95, 109, 101, 114, 99, 104,
+          97, 110, 116, 34, 44, 34, 103, 101, 116, 95, 108, 105, 115, 116, 105,
+          110, 103, 115, 34, 44, 34, 103, 101, 116, 95, 116, 114, 97, 100, 101,
+          34, 44, 34, 103, 101, 116, 95, 115, 104, 111, 112, 95, 105, 110, 118,
+          101, 110, 116, 111, 114, 121, 34, 93, 125, 125
+        ]
+      }
+    },
+    {
+      "method": "buy_from_merchant",
+      "args": {
+        "merchant_id": "rex",
+        "item_id": "crystal",
+        "quantity": "1",
+        "expected_listing_revision": "1",
+        "max_total_price": "4",
+        "command": {
+          "sequence": "4",
+          "config_version": "1",
+          "valid_until_ns": "1793884486490042395"
+        }
+      },
+      "transaction_hash": "GDFEZLw7YkLKrVeQmYrCxtYvpE9khW6jAK7X5bMakkDx",
+      "reference_block_height": 32,
+      "gas_burnt": "10815681493708",
+      "receipt": {
+        "final_execution_status": "FINAL",
+        "receipts_outcome": [
+          {
+            "block_hash": "DnQovBtuj2uwqDsSJE1KiPuCF1HW66UDFqumz63ConW6",
+            "id": "4njRmCgDbhEqQZifiGvBA9EdVr4uzVqQaSRQzfNexoBA",
+            "outcome": {
+              "executor_id": "dev-20261105130622-80195914797254.test.near",
+              "gas_burnt": 10497417678698,
+              "logs": [
+                "EVENT_JSON:{\"standard\":\"bot_bazaar_living_town\",\"version\":\"2.0.0\",\"event\":\"buy_from_merchant\",\"data\":[{\"contract_id\":\"dev-20261105130622-80195914797254.test.near\",\"config_version\":\"1\",\"event_sequence\":\"5\",\"market_revision\":\"5\",\"block_height\":\"37\",\"block_timestamp_ns\":\"1793883987011976323\",\"predecessor_account_id\":\"dev-20261105130623-49577908124350.test.near\",\"principal\":\"account:dev-20261105130623-49577908124350.test.near\",\"command_sequence\":\"4\",\"payload_sha256\":\"021a8bc738373a103cc400c1aed3a95bbe0bdef8c21e44d882bb0bcbca0a5c95\",\"outcome\":{\"kind\":\"raw_purchased\",\"trade\":{\"trade_id\":\"1\",\"kind\":\"raw_purchase\",\"buyer\":{\"kind\":\"player\",\"account_id\":\"dev-20261105130623-49577908124350.test.near\"},\"customer_pool_id\":null,\"seller\":{\"kind\":\"merchant\",\"merchant_id\":\"rex\"},\"item_id\":\"crystal\",\"quantity\":\"1\",\"unit_price\":\"4\",\"total_price\":\"4\",\"listing_id\":\"1\",\"offer_id\":null,\"consumed_quantity\":\"0\",\"settled_at_ns\":\"1793883987011976323\",\"command_principal\":\"account:dev-20261105130623-49577908124350.test.near\",\"command_sequence\":\"4\",\"event_sequence\":\"5\"},\"listing\":{\"listing_id\":\"1\",\"shop_id\":\"1\",\"owner\":{\"kind\":\"merchant\",\"merchant_id\":\"rex\"},\"item_id\":\"crystal\",\"remaining_quantity\":\"7\",\"unit_price\":\"4\",\"revision\":\"2\",\"active\":true},\"buyer\":{\"actor\":{\"kind\":\"player\",\"account_id\":\"dev-20261105130623-49577908124350.test.near\"},\"revision\":\"2\",\"gold\":{\"held\":\"96\",\"available\":\"96\",\"trade_reserved\":\"0\",\"trade_inbound_reserved\":\"0\"},\"inventory\":{\"held\":{\"crystal\":\"1\",\"wood\":\"0\",\"herb\":\"0\",\"iron\":\"0\",\"health_potion\":\"0\",\"iron_tool\":\"0\"},\"available\":{\"crystal\":\"1\",\"wood\":\"0\",\"herb\":\"0\",\"iron\":\"0\",\"health_potion\":\"0\",\"iron_tool\":\"0\"},\"listing_reserved\":{\"crystal\":\"0\",\"wood\":\"0\",\"herb\":\"0\",\"iron\":\"0\",\"health_potion\":\"0\",\"iron_tool\":\"0\"},\"trade_reserved\":{\"crystal\":\"0\",\"wood\":\"0\",\"herb\":\"0\",\"iron\":\"0\",\"health_potion\":\"0\",\"iron_tool\":\"0\"},\"production_output_reserved\":{\"crystal\":\"0\",\"wood\":\"0\",\"herb\":\"0\",\"iron\":\"0\",\"health_potion\":\"0\",\"iron_tool\":\"0\"},\"trade_inbound_reserved\":{\"crystal\":\"0\",\"wood\":\"0\",\"herb\":\"0\",\"iron\":\"0\",\"health_potion\":\"0\",\"iron_tool\":\"0\"}}},\"seller\":{\"actor\":{\"kind\":\"merchant\",\"merchant_id\":\"rex\"},\"revision\":\"2\",\"gold\":{\"held\":\"204\",\"available\":\"204\",\"trade_reserved\":\"0\",\"trade_inbound_reserved\":\"0\"},\"inventory\":{\"held\":{\"crystal\":\"9\",\"wood\":\"0\",\"herb\":\"0\",\"iron\":\"0\",\"health_potion\":\"0\",\"iron_tool\":\"0\"},\"available\":{\"crystal\":\"2\",\"wood\":\"0\",\"herb\":\"0\",\"iron\":\"0\",\"health_potion\":\"0\",\"iron_tool\":\"0\"},\"listing_reserved\":{\"crystal\":\"7\",\"wood\":\"0\",\"herb\":\"0\",\"iron\":\"0\",\"health_potion\":\"0\",\"iron_tool\":\"0\"},\"trade_reserved\":{\"crystal\":\"0\",\"wood\":\"0\",\"herb\":\"0\",\"iron\":\"0\",\"health_potion\":\"0\",\"iron_tool\":\"0\"},\"production_output_reserved\":{\"crystal\":\"0\",\"wood\":\"0\",\"herb\":\"0\",\"iron\":\"0\",\"health_potion\":\"0\",\"iron_tool\":\"0\"},\"trade_inbound_reserved\":{\"crystal\":\"0\",\"wood\":\"0\",\"herb\":\"0\",\"iron\":\"0\",\"health_potion\":\"0\",\"iron_tool\":\"0\"}}}}}]}"
+              ],
+              "metadata": {
+                "contracts": [
+                  {
+                    "local": "H7Bxy3vnQsLKbxnJLAFuZwsLmdvXUTAvsXCcXCdE7T4n"
+                  }
+                ],
+                "gas_profile": [
+                  {
+                    "cost": "BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "10590724440"
+                  },
+                  {
+                    "cost": "CONTRACT_LOADING_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "35445963"
+                  },
+                  {
+                    "cost": "CONTRACT_LOADING_BYTES",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "307671372750"
+                  },
+                  {
+                    "cost": "LOG_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "3543313050"
+                  },
+                  {
+                    "cost": "LOG_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "37867331379"
+                  },
+                  {
+                    "cost": "READ_CACHED_TRIE_NODE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "45600000000"
+                  },
+                  {
+                    "cost": "READ_MEMORY_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "49587400800"
+                  },
+                  {
+                    "cost": "READ_MEMORY_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "47417827842"
+                  },
+                  {
+                    "cost": "READ_REGISTER_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "25171651860"
+                  },
+                  {
+                    "cost": "READ_REGISTER_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "250347480"
+                  },
+                  {
+                    "cost": "SHA256_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "9081940500"
+                  },
+                  {
+                    "cost": "SHA256_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "55686963459"
+                  },
+                  {
+                    "cost": "STORAGE_HAS_KEY_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "54039896625"
+                  },
+                  {
+                    "cost": "STORAGE_HAS_KEY_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "1878241545"
+                  },
+                  {
+                    "cost": "STORAGE_READ_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "225427382996"
+                  },
+                  {
+                    "cost": "STORAGE_READ_KEY_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "4673832483"
+                  },
+                  {
+                    "cost": "STORAGE_READ_VALUE_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "10094196196"
+                  },
+                  {
+                    "cost": "STORAGE_WRITE_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "320983680000"
+                  },
+                  {
+                    "cost": "STORAGE_WRITE_EVICTED_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "100109645919"
+                  },
+                  {
+                    "cost": "STORAGE_WRITE_KEY_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "10995327252"
+                  },
+                  {
+                    "cost": "STORAGE_WRITE_VALUE_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "121747765575"
+                  },
+                  {
+                    "cost": "TOUCHING_TRIE_NODE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "22800000000"
+                  },
+                  {
+                    "cost": "UTF8_DECODING_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "3111779061"
+                  },
+                  {
+                    "cost": "UTF8_DECODING_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "836544394251"
+                  },
+                  {
+                    "cost": "WASM_INSTRUCTION",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "7203942109452"
+                  },
+                  {
+                    "cost": "WRITE_MEMORY_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "33645538332"
+                  },
+                  {
+                    "cost": "WRITE_MEMORY_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "7005541584"
+                  },
+                  {
+                    "cost": "WRITE_REGISTER_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "40117314804"
+                  },
+                  {
+                    "cost": "WRITE_REGISTER_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "19258723224"
+                  }
+                ],
+                "version": 4
+              },
+              "receipt_ids": ["7zYN64YnZC6Mj2gdVST4T3yj5pCsybTqwcNPYB2rV44R"],
+              "status": {
+                "SuccessValue": "eyJkZXBsb3ltZW50Ijp7Im5ldHdvcmtfaWQiOiJ0ZXN0bmV0IiwiZ2VuZXNpc19oYXNoIjoiMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTEiLCJjb250cmFjdF9pZCI6ImRldi0yMDI2MTEwNTEzMDYyMi04MDE5NTkxNDc5NzI1NC50ZXN0Lm5lYXIiLCJhcGlfdmVyc2lvbiI6IjIuMC4wIiwic3RhdGVfc2NoZW1hIjoiMSIsImNvbW1hbmRfc2NoZW1hIjoiMSIsImNvbmZpZ192ZXJzaW9uIjoiMSIsImNvbmZpZ19zaGEyNTYiOiJhOTMyZWZiNDhjNzBhNzNjZTQ2NDcyY2Q3NTQyODg2NDk1NDFiMzQ2MDRlMmVhNDlhNDA5Mzk2MWU3MWEyZDEwIn0sIm1hcmtldF9yZXZpc2lvbiI6IjUiLCJldmVudF9zZXF1ZW5jZSI6IjUiLCJibG9ja19oZWlnaHQiOiIzNyIsImJsb2NrX3RpbWVzdGFtcF9ucyI6IjE3OTM4ODM5ODcwMTE5NzYzMjMiLCJkYXRhIjp7InByaW5jaXBhbCI6ImFjY291bnQ6ZGV2LTIwMjYxMTA1MTMwNjIzLTQ5NTc3OTA4MTI0MzUwLnRlc3QubmVhciIsImNvbW1hbmRfc2VxdWVuY2UiOiI0IiwicGF5bG9hZF9zaGEyNTYiOiIwMjFhOGJjNzM4MzczYTEwM2NjNDAwYzFhZWQzYTk1YmJlMGJkZWY4YzIxZTQ0ZDg4MmJiMGJjYmNhMGE1Yzk1IiwicmVwbGF5ZWQiOmZhbHNlLCJlZmZlY3RfcmV2aXNpb24iOiI1IiwiZWZmZWN0X2V2ZW50X3NlcXVlbmNlIjoiNSIsIm91dGNvbWUiOnsia2luZCI6InJhd19wdXJjaGFzZWQiLCJ0cmFkZSI6eyJ0cmFkZV9pZCI6IjEiLCJraW5kIjoicmF3X3B1cmNoYXNlIiwiYnV5ZXIiOnsia2luZCI6InBsYXllciIsImFjY291bnRfaWQiOiJkZXYtMjAyNjExMDUxMzA2MjMtNDk1Nzc5MDgxMjQzNTAudGVzdC5uZWFyIn0sImN1c3RvbWVyX3Bvb2xfaWQiOm51bGwsInNlbGxlciI6eyJraW5kIjoibWVyY2hhbnQiLCJtZXJjaGFudF9pZCI6InJleCJ9LCJpdGVtX2lkIjoiY3J5c3RhbCIsInF1YW50aXR5IjoiMSIsInVuaXRfcHJpY2UiOiI0IiwidG90YWxfcHJpY2UiOiI0IiwibGlzdGluZ19pZCI6IjEiLCJvZmZlcl9pZCI6bnVsbCwiY29uc3VtZWRfcXVhbnRpdHkiOiIwIiwic2V0dGxlZF9hdF9ucyI6IjE3OTM4ODM5ODcwMTE5NzYzMjMiLCJjb21tYW5kX3ByaW5jaXBhbCI6ImFjY291bnQ6ZGV2LTIwMjYxMTA1MTMwNjIzLTQ5NTc3OTA4MTI0MzUwLnRlc3QubmVhciIsImNvbW1hbmRfc2VxdWVuY2UiOiI0IiwiZXZlbnRfc2VxdWVuY2UiOiI1In0sImxpc3RpbmciOnsibGlzdGluZ19pZCI6IjEiLCJzaG9wX2lkIjoiMSIsIm93bmVyIjp7ImtpbmQiOiJtZXJjaGFudCIsIm1lcmNoYW50X2lkIjoicmV4In0sIml0ZW1faWQiOiJjcnlzdGFsIiwicmVtYWluaW5nX3F1YW50aXR5IjoiNyIsInVuaXRfcHJpY2UiOiI0IiwicmV2aXNpb24iOiIyIiwiYWN0aXZlIjp0cnVlfSwiYnV5ZXIiOnsiYWN0b3IiOnsia2luZCI6InBsYXllciIsImFjY291bnRfaWQiOiJkZXYtMjAyNjExMDUxMzA2MjMtNDk1Nzc5MDgxMjQzNTAudGVzdC5uZWFyIn0sInJldmlzaW9uIjoiMiIsImdvbGQiOnsiaGVsZCI6Ijk2IiwiYXZhaWxhYmxlIjoiOTYiLCJ0cmFkZV9yZXNlcnZlZCI6IjAiLCJ0cmFkZV9pbmJvdW5kX3Jlc2VydmVkIjoiMCJ9LCJpbnZlbnRvcnkiOnsiaGVsZCI6eyJjcnlzdGFsIjoiMSIsIndvb2QiOiIwIiwiaGVyYiI6IjAiLCJpcm9uIjoiMCIsImhlYWx0aF9wb3Rpb24iOiIwIiwiaXJvbl90b29sIjoiMCJ9LCJhdmFpbGFibGUiOnsiY3J5c3RhbCI6IjEiLCJ3b29kIjoiMCIsImhlcmIiOiIwIiwiaXJvbiI6IjAiLCJoZWFsdGhfcG90aW9uIjoiMCIsImlyb25fdG9vbCI6IjAifSwibGlzdGluZ19yZXNlcnZlZCI6eyJjcnlzdGFsIjoiMCIsIndvb2QiOiIwIiwiaGVyYiI6IjAiLCJpcm9uIjoiMCIsImhlYWx0aF9wb3Rpb24iOiIwIiwiaXJvbl90b29sIjoiMCJ9LCJ0cmFkZV9yZXNlcnZlZCI6eyJjcnlzdGFsIjoiMCIsIndvb2QiOiIwIiwiaGVyYiI6IjAiLCJpcm9uIjoiMCIsImhlYWx0aF9wb3Rpb24iOiIwIiwiaXJvbl90b29sIjoiMCJ9LCJwcm9kdWN0aW9uX291dHB1dF9yZXNlcnZlZCI6eyJjcnlzdGFsIjoiMCIsIndvb2QiOiIwIiwiaGVyYiI6IjAiLCJpcm9uIjoiMCIsImhlYWx0aF9wb3Rpb24iOiIwIiwiaXJvbl90b29sIjoiMCJ9LCJ0cmFkZV9pbmJvdW5kX3Jlc2VydmVkIjp7ImNyeXN0YWwiOiIwIiwid29vZCI6IjAiLCJoZXJiIjoiMCIsImlyb24iOiIwIiwiaGVhbHRoX3BvdGlvbiI6IjAiLCJpcm9uX3Rvb2wiOiIwIn19fSwic2VsbGVyIjp7ImFjdG9yIjp7ImtpbmQiOiJtZXJjaGFudCIsIm1lcmNoYW50X2lkIjoicmV4In0sInJldmlzaW9uIjoiMiIsImdvbGQiOnsiaGVsZCI6IjIwNCIsImF2YWlsYWJsZSI6IjIwNCIsInRyYWRlX3Jlc2VydmVkIjoiMCIsInRyYWRlX2luYm91bmRfcmVzZXJ2ZWQiOiIwIn0sImludmVudG9yeSI6eyJoZWxkIjp7ImNyeXN0YWwiOiI5Iiwid29vZCI6IjAiLCJoZXJiIjoiMCIsImlyb24iOiIwIiwiaGVhbHRoX3BvdGlvbiI6IjAiLCJpcm9uX3Rvb2wiOiIwIn0sImF2YWlsYWJsZSI6eyJjcnlzdGFsIjoiMiIsIndvb2QiOiIwIiwiaGVyYiI6IjAiLCJpcm9uIjoiMCIsImhlYWx0aF9wb3Rpb24iOiIwIiwiaXJvbl90b29sIjoiMCJ9LCJsaXN0aW5nX3Jlc2VydmVkIjp7ImNyeXN0YWwiOiI3Iiwid29vZCI6IjAiLCJoZXJiIjoiMCIsImlyb24iOiIwIiwiaGVhbHRoX3BvdGlvbiI6IjAiLCJpcm9uX3Rvb2wiOiIwIn0sInRyYWRlX3Jlc2VydmVkIjp7ImNyeXN0YWwiOiIwIiwid29vZCI6IjAiLCJoZXJiIjoiMCIsImlyb24iOiIwIiwiaGVhbHRoX3BvdGlvbiI6IjAiLCJpcm9uX3Rvb2wiOiIwIn0sInByb2R1Y3Rpb25fb3V0cHV0X3Jlc2VydmVkIjp7ImNyeXN0YWwiOiIwIiwid29vZCI6IjAiLCJoZXJiIjoiMCIsImlyb24iOiIwIiwiaGVhbHRoX3BvdGlvbiI6IjAiLCJpcm9uX3Rvb2wiOiIwIn0sInRyYWRlX2luYm91bmRfcmVzZXJ2ZWQiOnsiY3J5c3RhbCI6IjAiLCJ3b29kIjoiMCIsImhlcmIiOiIwIiwiaXJvbiI6IjAiLCJoZWFsdGhfcG90aW9uIjoiMCIsImlyb25fdG9vbCI6IjAifX19fX19"
+              },
+              "tokens_burnt": "1049741767869800000000"
+            },
+            "proof": []
+          },
+          {
+            "block_hash": "A3ZitYb4iqk6CL3zCDxnQSUwQi45djmKeFd8U1z3T3d6",
+            "id": "7zYN64YnZC6Mj2gdVST4T3yj5pCsybTqwcNPYB2rV44R",
+            "outcome": {
+              "executor_id": "dev-20261105130623-49577908124350.test.near",
+              "gas_burnt": 223182562500,
+              "logs": [],
+              "metadata": {
+                "contracts": [null],
+                "gas_profile": [],
+                "version": 4
+              },
+              "receipt_ids": [],
+              "status": {
+                "SuccessValue": ""
+              },
+              "tokens_burnt": "0"
+            },
+            "proof": []
+          }
+        ],
+        "status": {
+          "SuccessValue": "eyJkZXBsb3ltZW50Ijp7Im5ldHdvcmtfaWQiOiJ0ZXN0bmV0IiwiZ2VuZXNpc19oYXNoIjoiMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTEiLCJjb250cmFjdF9pZCI6ImRldi0yMDI2MTEwNTEzMDYyMi04MDE5NTkxNDc5NzI1NC50ZXN0Lm5lYXIiLCJhcGlfdmVyc2lvbiI6IjIuMC4wIiwic3RhdGVfc2NoZW1hIjoiMSIsImNvbW1hbmRfc2NoZW1hIjoiMSIsImNvbmZpZ192ZXJzaW9uIjoiMSIsImNvbmZpZ19zaGEyNTYiOiJhOTMyZWZiNDhjNzBhNzNjZTQ2NDcyY2Q3NTQyODg2NDk1NDFiMzQ2MDRlMmVhNDlhNDA5Mzk2MWU3MWEyZDEwIn0sIm1hcmtldF9yZXZpc2lvbiI6IjUiLCJldmVudF9zZXF1ZW5jZSI6IjUiLCJibG9ja19oZWlnaHQiOiIzNyIsImJsb2NrX3RpbWVzdGFtcF9ucyI6IjE3OTM4ODM5ODcwMTE5NzYzMjMiLCJkYXRhIjp7InByaW5jaXBhbCI6ImFjY291bnQ6ZGV2LTIwMjYxMTA1MTMwNjIzLTQ5NTc3OTA4MTI0MzUwLnRlc3QubmVhciIsImNvbW1hbmRfc2VxdWVuY2UiOiI0IiwicGF5bG9hZF9zaGEyNTYiOiIwMjFhOGJjNzM4MzczYTEwM2NjNDAwYzFhZWQzYTk1YmJlMGJkZWY4YzIxZTQ0ZDg4MmJiMGJjYmNhMGE1Yzk1IiwicmVwbGF5ZWQiOmZhbHNlLCJlZmZlY3RfcmV2aXNpb24iOiI1IiwiZWZmZWN0X2V2ZW50X3NlcXVlbmNlIjoiNSIsIm91dGNvbWUiOnsia2luZCI6InJhd19wdXJjaGFzZWQiLCJ0cmFkZSI6eyJ0cmFkZV9pZCI6IjEiLCJraW5kIjoicmF3X3B1cmNoYXNlIiwiYnV5ZXIiOnsia2luZCI6InBsYXllciIsImFjY291bnRfaWQiOiJkZXYtMjAyNjExMDUxMzA2MjMtNDk1Nzc5MDgxMjQzNTAudGVzdC5uZWFyIn0sImN1c3RvbWVyX3Bvb2xfaWQiOm51bGwsInNlbGxlciI6eyJraW5kIjoibWVyY2hhbnQiLCJtZXJjaGFudF9pZCI6InJleCJ9LCJpdGVtX2lkIjoiY3J5c3RhbCIsInF1YW50aXR5IjoiMSIsInVuaXRfcHJpY2UiOiI0IiwidG90YWxfcHJpY2UiOiI0IiwibGlzdGluZ19pZCI6IjEiLCJvZmZlcl9pZCI6bnVsbCwiY29uc3VtZWRfcXVhbnRpdHkiOiIwIiwic2V0dGxlZF9hdF9ucyI6IjE3OTM4ODM5ODcwMTE5NzYzMjMiLCJjb21tYW5kX3ByaW5jaXBhbCI6ImFjY291bnQ6ZGV2LTIwMjYxMTA1MTMwNjIzLTQ5NTc3OTA4MTI0MzUwLnRlc3QubmVhciIsImNvbW1hbmRfc2VxdWVuY2UiOiI0IiwiZXZlbnRfc2VxdWVuY2UiOiI1In0sImxpc3RpbmciOnsibGlzdGluZ19pZCI6IjEiLCJzaG9wX2lkIjoiMSIsIm93bmVyIjp7ImtpbmQiOiJtZXJjaGFudCIsIm1lcmNoYW50X2lkIjoicmV4In0sIml0ZW1faWQiOiJjcnlzdGFsIiwicmVtYWluaW5nX3F1YW50aXR5IjoiNyIsInVuaXRfcHJpY2UiOiI0IiwicmV2aXNpb24iOiIyIiwiYWN0aXZlIjp0cnVlfSwiYnV5ZXIiOnsiYWN0b3IiOnsia2luZCI6InBsYXllciIsImFjY291bnRfaWQiOiJkZXYtMjAyNjExMDUxMzA2MjMtNDk1Nzc5MDgxMjQzNTAudGVzdC5uZWFyIn0sInJldmlzaW9uIjoiMiIsImdvbGQiOnsiaGVsZCI6Ijk2IiwiYXZhaWxhYmxlIjoiOTYiLCJ0cmFkZV9yZXNlcnZlZCI6IjAiLCJ0cmFkZV9pbmJvdW5kX3Jlc2VydmVkIjoiMCJ9LCJpbnZlbnRvcnkiOnsiaGVsZCI6eyJjcnlzdGFsIjoiMSIsIndvb2QiOiIwIiwiaGVyYiI6IjAiLCJpcm9uIjoiMCIsImhlYWx0aF9wb3Rpb24iOiIwIiwiaXJvbl90b29sIjoiMCJ9LCJhdmFpbGFibGUiOnsiY3J5c3RhbCI6IjEiLCJ3b29kIjoiMCIsImhlcmIiOiIwIiwiaXJvbiI6IjAiLCJoZWFsdGhfcG90aW9uIjoiMCIsImlyb25fdG9vbCI6IjAifSwibGlzdGluZ19yZXNlcnZlZCI6eyJjcnlzdGFsIjoiMCIsIndvb2QiOiIwIiwiaGVyYiI6IjAiLCJpcm9uIjoiMCIsImhlYWx0aF9wb3Rpb24iOiIwIiwiaXJvbl90b29sIjoiMCJ9LCJ0cmFkZV9yZXNlcnZlZCI6eyJjcnlzdGFsIjoiMCIsIndvb2QiOiIwIiwiaGVyYiI6IjAiLCJpcm9uIjoiMCIsImhlYWx0aF9wb3Rpb24iOiIwIiwiaXJvbl90b29sIjoiMCJ9LCJwcm9kdWN0aW9uX291dHB1dF9yZXNlcnZlZCI6eyJjcnlzdGFsIjoiMCIsIndvb2QiOiIwIiwiaGVyYiI6IjAiLCJpcm9uIjoiMCIsImhlYWx0aF9wb3Rpb24iOiIwIiwiaXJvbl90b29sIjoiMCJ9LCJ0cmFkZV9pbmJvdW5kX3Jlc2VydmVkIjp7ImNyeXN0YWwiOiIwIiwid29vZCI6IjAiLCJoZXJiIjoiMCIsImlyb24iOiIwIiwiaGVhbHRoX3BvdGlvbiI6IjAiLCJpcm9uX3Rvb2wiOiIwIn19fSwic2VsbGVyIjp7ImFjdG9yIjp7ImtpbmQiOiJtZXJjaGFudCIsIm1lcmNoYW50X2lkIjoicmV4In0sInJldmlzaW9uIjoiMiIsImdvbGQiOnsiaGVsZCI6IjIwNCIsImF2YWlsYWJsZSI6IjIwNCIsInRyYWRlX3Jlc2VydmVkIjoiMCIsInRyYWRlX2luYm91bmRfcmVzZXJ2ZWQiOiIwIn0sImludmVudG9yeSI6eyJoZWxkIjp7ImNyeXN0YWwiOiI5Iiwid29vZCI6IjAiLCJoZXJiIjoiMCIsImlyb24iOiIwIiwiaGVhbHRoX3BvdGlvbiI6IjAiLCJpcm9uX3Rvb2wiOiIwIn0sImF2YWlsYWJsZSI6eyJjcnlzdGFsIjoiMiIsIndvb2QiOiIwIiwiaGVyYiI6IjAiLCJpcm9uIjoiMCIsImhlYWx0aF9wb3Rpb24iOiIwIiwiaXJvbl90b29sIjoiMCJ9LCJsaXN0aW5nX3Jlc2VydmVkIjp7ImNyeXN0YWwiOiI3Iiwid29vZCI6IjAiLCJoZXJiIjoiMCIsImlyb24iOiIwIiwiaGVhbHRoX3BvdGlvbiI6IjAiLCJpcm9uX3Rvb2wiOiIwIn0sInRyYWRlX3Jlc2VydmVkIjp7ImNyeXN0YWwiOiIwIiwid29vZCI6IjAiLCJoZXJiIjoiMCIsImlyb24iOiIwIiwiaGVhbHRoX3BvdGlvbiI6IjAiLCJpcm9uX3Rvb2wiOiIwIn0sInByb2R1Y3Rpb25fb3V0cHV0X3Jlc2VydmVkIjp7ImNyeXN0YWwiOiIwIiwid29vZCI6IjAiLCJoZXJiIjoiMCIsImlyb24iOiIwIiwiaGVhbHRoX3BvdGlvbiI6IjAiLCJpcm9uX3Rvb2wiOiIwIn0sInRyYWRlX2luYm91bmRfcmVzZXJ2ZWQiOnsiY3J5c3RhbCI6IjAiLCJ3b29kIjoiMCIsImhlcmIiOiIwIiwiaXJvbiI6IjAiLCJoZWFsdGhfcG90aW9uIjoiMCIsImlyb25fdG9vbCI6IjAifX19fX19"
+        },
+        "transaction": {
+          "actions": [
+            {
+              "FunctionCall": {
+                "args": "eyJtZXJjaGFudF9pZCI6InJleCIsIml0ZW1faWQiOiJjcnlzdGFsIiwicXVhbnRpdHkiOiIxIiwiZXhwZWN0ZWRfbGlzdGluZ19yZXZpc2lvbiI6IjEiLCJtYXhfdG90YWxfcHJpY2UiOiI0IiwiY29tbWFuZCI6eyJzZXF1ZW5jZSI6IjQiLCJjb25maWdfdmVyc2lvbiI6IjEiLCJ2YWxpZF91bnRpbF9ucyI6IjE3OTM4ODQ0ODY0OTAwNDIzOTUifX0=",
+                "deposit": "0",
+                "gas": 100000000000000,
+                "method_name": "buy_from_merchant"
+              }
+            }
+          ],
+          "hash": "GDFEZLw7YkLKrVeQmYrCxtYvpE9khW6jAK7X5bMakkDx",
+          "nonce": 10000004,
+          "priority_fee": 0,
+          "public_key": "ed25519:CgTNBsiLAcdem8pSUm9XqNufeihz9uLJ17V1jtbbccCY",
+          "receiver_id": "dev-20261105130622-80195914797254.test.near",
+          "signature": "ed25519:3CitGAC3pRFAJD71kr8gwwfwvLDHYd1TQwU8U3XciRCTp2F9gXwsQG9CWT2VAnAFUGpK7hkhVx91YExkEmtAPV8c",
+          "signer_id": "dev-20261105130623-49577908124350.test.near"
+        },
+        "transaction_outcome": {
+          "block_hash": "DPVRo3NpBiQ8tczNfacG7Q5XUFm3dgwumK65far9YaND",
+          "id": "GDFEZLw7YkLKrVeQmYrCxtYvpE9khW6jAK7X5bMakkDx",
+          "outcome": {
+            "executor_id": "dev-20261105130623-49577908124350.test.near",
+            "gas_burnt": 318263815010,
+            "logs": [],
+            "metadata": {
+              "gas_profile": null,
+              "version": 1
+            },
+            "receipt_ids": ["4njRmCgDbhEqQZifiGvBA9EdVr4uzVqQaSRQzfNexoBA"],
+            "status": {
+              "SuccessReceiptId": "4njRmCgDbhEqQZifiGvBA9EdVr4uzVqQaSRQzfNexoBA"
+            },
+            "tokens_burnt": "31826381501000000000"
+          },
+          "proof": []
+        }
+      },
+      "block": {
+        "author": "test.near",
+        "chunks": [
+          {
+            "balance_burnt": "31826381501000000000",
+            "bandwidth_requests": {
+              "V1": {
+                "requests": []
+              }
+            },
+            "chunk_hash": "2TrJa63tryA9Bja2gcQgp3cVGGCNUq2Z179Xf9yYxjxt",
+            "congestion_info": {
+              "allowed_shard": 0,
+              "buffered_receipts_gas": "0",
+              "delayed_receipts_gas": "0",
+              "receipt_bytes": 0
+            },
+            "encoded_length": 490,
+            "encoded_merkle_root": "FujyVGqJBbHd24cgTKmW4qDn9mHMm6zRwX7LmG4fbMBK",
+            "gas_limit": 1000000000000000,
+            "gas_used": 318263815010,
+            "height_created": 37,
+            "height_included": 37,
+            "outcome_root": "5fzzdsZdtLnyjkJ1P4DTm78SjuFYkSmybKaijqQ5NLNn",
+            "outgoing_receipts_root": "8CbZ19r1ggeDKN3koBPuLyAGizPXPNDSPXfn3c56ofXG",
+            "prev_block_hash": "DPVRo3NpBiQ8tczNfacG7Q5XUFm3dgwumK65far9YaND",
+            "prev_state_root": "ER3wPZ1xNZPStZ8fQq6a4ohKwa8UbxjbbezTtuY7KokE",
+            "proposed_split": null,
+            "rent_paid": "0",
+            "shard_id": 0,
+            "signature": "ed25519:3qnnC3yChXW6LHT3FMkbjYPn2UYnu4ssgQpbJhK9x75EP2PM3TgkvnpZ73irVoC4tATWoMZG9xiG8EnVmH3S6raK",
+            "tx_root": "11111111111111111111111111111111",
+            "validator_proposals": [],
+            "validator_reward": "0"
+          }
+        ],
+        "header": {
+          "approvals": [
+            "ed25519:dgCmPQBzGVE2qyhMyg9i4v5DmXYtDxn352DCMrpZbS49YihzsvraAdk59W8qf1NAbi89wnBHTNP9jRV1udQPBFF"
+          ],
+          "block_body_hash": "5jUUx94Tb7oi1V2iJgTrBe75BNRx3DMYEXq5SPWNQLnf",
+          "block_merkle_root": "6mZpvcajL6pQBmv3xphj1XpVgmTRUe5wY3F1ihfGs73K",
+          "block_ordinal": 38,
+          "challenges_result": [],
+          "challenges_root": "11111111111111111111111111111111",
+          "chunk_endorsements": [[1]],
+          "chunk_headers_root": "45TA2R1BkypmH6jLhS3nt7fUVy1tCbD961jmzm4Ltoou",
+          "chunk_mask": [true],
+          "chunk_receipts_root": "12JGvD9AvBHtKHgvAWaoyAxYmgbJmgkg9PAaA6em8Nuw",
+          "chunk_tx_root": "7tkzFg8RHBmMw1ncRJZCCZAizgq4rwCftTKYLce8RU8t",
+          "chunks_included": 1,
+          "epoch_id": "11111111111111111111111111111111",
+          "epoch_sync_data_hash": null,
+          "gas_price": "100000000",
+          "hash": "DnQovBtuj2uwqDsSJE1KiPuCF1HW66UDFqumz63ConW6",
+          "height": 37,
+          "last_ds_final_block": "DPVRo3NpBiQ8tczNfacG7Q5XUFm3dgwumK65far9YaND",
+          "last_final_block": "Gh5MAoveCh1k8GC3Ubw2e1K9UtyFNWbjFhS5fSQCvPzg",
+          "latest_protocol_version": 86,
+          "next_bp_hash": "NDCgyePqxVwwKUGWM3iTVp1RHTqaE7RrQySS86mjZBB",
+          "next_epoch_id": "FeszHM4kVoCv3y4EzNyEvMCx8ymWvxHNxovD2qukjmTC",
+          "outcome_root": "B9nKXXHo7SBkBNEFEButrJHc83bc4TG5VFxoJf2bqEH",
+          "prev_hash": "DPVRo3NpBiQ8tczNfacG7Q5XUFm3dgwumK65far9YaND",
+          "prev_height": 36,
+          "prev_state_root": "9aFwAsCPQgwBQv6TVDELZwNFMVTTQiQZPMZ5oBrHRtrA",
+          "random_value": "2vAzreoc3oCaJhpRh5UJ4KSXv7dPDH71rbF9t687hwaQ",
+          "rent_paid": "0",
+          "shard_split": null,
+          "signature": "ed25519:3jEwh96emmfxjeyH5Bwd9Bv1nCsdkWEzjJFjBV397vAvsWWoh37MBtM1cL1VYio8sByLjeua1po4hLzmzUqpeHSX",
+          "timestamp": 1793883987011976400,
+          "timestamp_nanosec": "1793883987011976323",
+          "total_supply": "2050029999980464749193916000000000",
+          "validator_proposals": [],
+          "validator_reward": "0"
+        }
+      },
+      "account": {
+        "amount": "100000010296536765800000000",
+        "block_hash": "DnQovBtuj2uwqDsSJE1KiPuCF1HW66UDFqumz63ConW6",
+        "block_height": 37,
+        "code_hash": "H7Bxy3vnQsLKbxnJLAFuZwsLmdvXUTAvsXCcXCdE7T4n",
+        "locked": "0",
+        "storage_paid_at": 0,
+        "storage_usage": 285706
+      },
+      "foundation": {
+        "block_hash": "DnQovBtuj2uwqDsSJE1KiPuCF1HW66UDFqumz63ConW6",
+        "block_height": 37,
+        "logs": [],
+        "result": [
+          123, 34, 100, 101, 112, 108, 111, 121, 109, 101, 110, 116, 34, 58,
+          123, 34, 110, 101, 116, 119, 111, 114, 107, 95, 105, 100, 34, 58, 34,
+          116, 101, 115, 116, 110, 101, 116, 34, 44, 34, 103, 101, 110, 101,
+          115, 105, 115, 95, 104, 97, 115, 104, 34, 58, 34, 49, 49, 49, 49, 49,
+          49, 49, 49, 49, 49, 49, 49, 49, 49, 49, 49, 49, 49, 49, 49, 49, 49,
+          49, 49, 49, 49, 49, 49, 49, 49, 49, 49, 34, 44, 34, 99, 111, 110, 116,
+          114, 97, 99, 116, 95, 105, 100, 34, 58, 34, 100, 101, 118, 45, 50, 48,
+          50, 54, 49, 49, 48, 53, 49, 51, 48, 54, 50, 50, 45, 56, 48, 49, 57,
+          53, 57, 49, 52, 55, 57, 55, 50, 53, 52, 46, 116, 101, 115, 116, 46,
+          110, 101, 97, 114, 34, 44, 34, 97, 112, 105, 95, 118, 101, 114, 115,
+          105, 111, 110, 34, 58, 34, 50, 46, 48, 46, 48, 34, 44, 34, 115, 116,
+          97, 116, 101, 95, 115, 99, 104, 101, 109, 97, 34, 58, 34, 49, 34, 44,
+          34, 99, 111, 109, 109, 97, 110, 100, 95, 115, 99, 104, 101, 109, 97,
+          34, 58, 34, 49, 34, 44, 34, 99, 111, 110, 102, 105, 103, 95, 118, 101,
+          114, 115, 105, 111, 110, 34, 58, 34, 49, 34, 44, 34, 99, 111, 110,
+          102, 105, 103, 95, 115, 104, 97, 50, 53, 54, 34, 58, 34, 97, 57, 51,
+          50, 101, 102, 98, 52, 56, 99, 55, 48, 97, 55, 51, 99, 101, 52, 54, 52,
+          55, 50, 99, 100, 55, 53, 52, 50, 56, 56, 54, 52, 57, 53, 52, 49, 98,
+          51, 52, 54, 48, 52, 101, 50, 101, 97, 52, 57, 97, 52, 48, 57, 51, 57,
+          54, 49, 101, 55, 49, 97, 50, 100, 49, 48, 34, 125, 44, 34, 109, 97,
+          114, 107, 101, 116, 95, 114, 101, 118, 105, 115, 105, 111, 110, 34,
+          58, 34, 53, 34, 44, 34, 101, 118, 101, 110, 116, 95, 115, 101, 113,
+          117, 101, 110, 99, 101, 34, 58, 34, 53, 34, 44, 34, 98, 108, 111, 99,
+          107, 95, 104, 101, 105, 103, 104, 116, 34, 58, 34, 51, 55, 34, 44, 34,
+          98, 108, 111, 99, 107, 95, 116, 105, 109, 101, 115, 116, 97, 109, 112,
+          95, 110, 115, 34, 58, 34, 49, 55, 57, 51, 56, 56, 51, 57, 56, 55, 48,
+          49, 49, 57, 55, 54, 51, 50, 51, 34, 44, 34, 100, 97, 116, 97, 34, 58,
+          123, 34, 111, 119, 110, 101, 114, 95, 97, 99, 99, 111, 117, 110, 116,
+          95, 105, 100, 34, 58, 34, 100, 101, 118, 45, 50, 48, 50, 54, 49, 49,
+          48, 53, 49, 51, 48, 54, 50, 50, 45, 56, 48, 49, 57, 53, 57, 49, 52,
+          55, 57, 55, 50, 53, 52, 46, 116, 101, 115, 116, 46, 110, 101, 97, 114,
+          34, 44, 34, 111, 112, 101, 114, 97, 116, 111, 114, 95, 97, 99, 99,
+          111, 117, 110, 116, 95, 105, 100, 34, 58, 34, 111, 112, 101, 114, 97,
+          116, 111, 114, 46, 116, 101, 115, 116, 110, 101, 116, 34, 44, 34, 109,
+          101, 114, 99, 104, 97, 110, 116, 95, 99, 111, 110, 116, 114, 111, 108,
+          108, 101, 114, 115, 34, 58, 123, 34, 114, 101, 120, 34, 58, 34, 114,
+          101, 120, 46, 116, 101, 115, 116, 110, 101, 116, 34, 44, 34, 108, 117,
+          110, 97, 34, 58, 34, 108, 117, 110, 97, 46, 116, 101, 115, 116, 110,
+          101, 116, 34, 44, 34, 98, 111, 108, 116, 34, 58, 34, 98, 111, 108,
+          116, 46, 116, 101, 115, 116, 110, 101, 116, 34, 125, 44, 34, 105, 116,
+          101, 109, 95, 105, 100, 115, 34, 58, 91, 34, 99, 114, 121, 115, 116,
+          97, 108, 34, 44, 34, 119, 111, 111, 100, 34, 44, 34, 104, 101, 114,
+          98, 34, 44, 34, 105, 114, 111, 110, 34, 44, 34, 104, 101, 97, 108,
+          116, 104, 95, 112, 111, 116, 105, 111, 110, 34, 44, 34, 105, 114, 111,
+          110, 95, 116, 111, 111, 108, 34, 93, 44, 34, 115, 117, 112, 112, 111,
+          114, 116, 101, 100, 95, 109, 101, 116, 104, 111, 100, 115, 34, 58, 91,
+          34, 105, 110, 105, 116, 105, 97, 108, 105, 122, 101, 95, 116, 111,
+          119, 110, 34, 44, 34, 103, 101, 116, 95, 102, 111, 117, 110, 100, 97,
+          116, 105, 111, 110, 34, 44, 34, 103, 101, 116, 95, 116, 111, 119, 110,
+          34, 44, 34, 114, 101, 103, 105, 115, 116, 101, 114, 95, 112, 108, 97,
+          121, 101, 114, 34, 44, 34, 99, 114, 101, 97, 116, 101, 95, 115, 104,
+          111, 112, 34, 44, 34, 114, 101, 110, 97, 109, 101, 95, 115, 104, 111,
+          112, 34, 44, 34, 103, 101, 116, 95, 112, 108, 97, 121, 101, 114, 34,
+          44, 34, 103, 101, 116, 95, 115, 104, 111, 112, 34, 44, 34, 103, 101,
+          116, 95, 112, 108, 97, 121, 101, 114, 95, 115, 104, 111, 112, 115, 34,
+          44, 34, 103, 101, 116, 95, 99, 111, 109, 109, 97, 110, 100, 34, 44,
+          34, 98, 117, 121, 95, 102, 114, 111, 109, 95, 109, 101, 114, 99, 104,
+          97, 110, 116, 34, 44, 34, 103, 101, 116, 95, 108, 105, 115, 116, 105,
+          110, 103, 115, 34, 44, 34, 103, 101, 116, 95, 116, 114, 97, 100, 101,
+          34, 44, 34, 103, 101, 116, 95, 115, 104, 111, 112, 95, 105, 110, 118,
+          101, 110, 116, 111, 114, 121, 34, 93, 125, 125
+        ]
+      }
+    },
+    {
+      "method": "buy_from_merchant",
+      "args": {
+        "merchant_id": "rex",
+        "item_id": "crystal",
+        "quantity": "1",
+        "expected_listing_revision": "1",
+        "max_total_price": "4",
+        "command": {
+          "sequence": "4",
+          "config_version": "1",
+          "valid_until_ns": "1793884486490042395"
+        }
+      },
+      "transaction_hash": "J8WT3JM7XK4rFuJPaxQPB3TCLbL6hFt6ByuyTD3K9PTF",
+      "reference_block_height": 38,
+      "gas_burnt": "6547290662971",
+      "receipt": {
+        "final_execution_status": "FINAL",
+        "receipts_outcome": [
+          {
+            "block_hash": "5agoPavJgTU4G3buXoVy6Vywz7hhsum3pvDP2tppMFcz",
+            "id": "J74y9Qu9gABXvDrTHQNgvjq2GMTqzB4rosHSUQMrofwg",
+            "outcome": {
+              "executor_id": "dev-20261105130622-80195914797254.test.near",
+              "gas_burnt": 6229026847961,
+              "logs": [],
+              "metadata": {
+                "contracts": [
+                  {
+                    "local": "H7Bxy3vnQsLKbxnJLAFuZwsLmdvXUTAvsXCcXCdE7T4n"
+                  }
+                ],
+                "gas_profile": [
+                  {
+                    "cost": "BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "7678275219"
+                  },
+                  {
+                    "cost": "CONTRACT_LOADING_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "35445963"
+                  },
+                  {
+                    "cost": "CONTRACT_LOADING_BYTES",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "307671372750"
+                  },
+                  {
+                    "cost": "READ_CACHED_TRIE_NODE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "2280000000"
+                  },
+                  {
+                    "cost": "READ_MEMORY_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "20878905600"
+                  },
+                  {
+                    "cost": "READ_MEMORY_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "25712216412"
+                  },
+                  {
+                    "cost": "READ_REGISTER_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "22654486674"
+                  },
+                  {
+                    "cost": "READ_REGISTER_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "285731238"
+                  },
+                  {
+                    "cost": "SHA256_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "9081940500"
+                  },
+                  {
+                    "cost": "SHA256_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "55686963459"
+                  },
+                  {
+                    "cost": "STORAGE_HAS_KEY_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "54039896625"
+                  },
+                  {
+                    "cost": "STORAGE_HAS_KEY_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "1878241545"
+                  },
+                  {
+                    "cost": "STORAGE_READ_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "112713691498"
+                  },
+                  {
+                    "cost": "STORAGE_READ_KEY_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "2135724777"
+                  },
+                  {
+                    "cost": "STORAGE_READ_VALUE_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "12108546632"
+                  },
+                  {
+                    "cost": "STORAGE_WRITE_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "64196736000"
+                  },
+                  {
+                    "cost": "STORAGE_WRITE_EVICTED_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "42330610626"
+                  },
+                  {
+                    "cost": "STORAGE_WRITE_KEY_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "352414335"
+                  },
+                  {
+                    "cost": "STORAGE_WRITE_VALUE_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "40882434402"
+                  },
+                  {
+                    "cost": "TOUCHING_TRIE_NODE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "11400000000"
+                  },
+                  {
+                    "cost": "WASM_INSTRUCTION",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "4468067783916"
+                  },
+                  {
+                    "cost": "WRITE_MEMORY_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "28037948610"
+                  },
+                  {
+                    "cost": "WRITE_MEMORY_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "7939795380"
+                  },
+                  {
+                    "cost": "WRITE_REGISTER_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "28655224860"
+                  },
+                  {
+                    "cost": "WRITE_REGISTER_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "13784471064"
+                  }
+                ],
+                "version": 4
+              },
+              "receipt_ids": ["DL2FvGiyLEqrVJALTPB419TfjZmewQc5eNsYPVxaw1z3"],
+              "status": {
+                "SuccessValue": "eyJkZXBsb3ltZW50Ijp7Im5ldHdvcmtfaWQiOiJ0ZXN0bmV0IiwiZ2VuZXNpc19oYXNoIjoiMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTEiLCJjb250cmFjdF9pZCI6ImRldi0yMDI2MTEwNTEzMDYyMi04MDE5NTkxNDc5NzI1NC50ZXN0Lm5lYXIiLCJhcGlfdmVyc2lvbiI6IjIuMC4wIiwic3RhdGVfc2NoZW1hIjoiMSIsImNvbW1hbmRfc2NoZW1hIjoiMSIsImNvbmZpZ192ZXJzaW9uIjoiMSIsImNvbmZpZ19zaGEyNTYiOiJhOTMyZWZiNDhjNzBhNzNjZTQ2NDcyY2Q3NTQyODg2NDk1NDFiMzQ2MDRlMmVhNDlhNDA5Mzk2MWU3MWEyZDEwIn0sIm1hcmtldF9yZXZpc2lvbiI6IjUiLCJldmVudF9zZXF1ZW5jZSI6IjUiLCJibG9ja19oZWlnaHQiOiI0MyIsImJsb2NrX3RpbWVzdGFtcF9ucyI6IjE3OTM4ODM5ODc3NjQ1MDYwMzgiLCJkYXRhIjp7InByaW5jaXBhbCI6ImFjY291bnQ6ZGV2LTIwMjYxMTA1MTMwNjIzLTQ5NTc3OTA4MTI0MzUwLnRlc3QubmVhciIsImNvbW1hbmRfc2VxdWVuY2UiOiI0IiwicGF5bG9hZF9zaGEyNTYiOiIwMjFhOGJjNzM4MzczYTEwM2NjNDAwYzFhZWQzYTk1YmJlMGJkZWY4YzIxZTQ0ZDg4MmJiMGJjYmNhMGE1Yzk1IiwicmVwbGF5ZWQiOnRydWUsImVmZmVjdF9yZXZpc2lvbiI6IjUiLCJlZmZlY3RfZXZlbnRfc2VxdWVuY2UiOiI1Iiwib3V0Y29tZSI6eyJraW5kIjoicmF3X3B1cmNoYXNlZCIsInRyYWRlIjp7InRyYWRlX2lkIjoiMSIsImtpbmQiOiJyYXdfcHVyY2hhc2UiLCJidXllciI6eyJraW5kIjoicGxheWVyIiwiYWNjb3VudF9pZCI6ImRldi0yMDI2MTEwNTEzMDYyMy00OTU3NzkwODEyNDM1MC50ZXN0Lm5lYXIifSwiY3VzdG9tZXJfcG9vbF9pZCI6bnVsbCwic2VsbGVyIjp7ImtpbmQiOiJtZXJjaGFudCIsIm1lcmNoYW50X2lkIjoicmV4In0sIml0ZW1faWQiOiJjcnlzdGFsIiwicXVhbnRpdHkiOiIxIiwidW5pdF9wcmljZSI6IjQiLCJ0b3RhbF9wcmljZSI6IjQiLCJsaXN0aW5nX2lkIjoiMSIsIm9mZmVyX2lkIjpudWxsLCJjb25zdW1lZF9xdWFudGl0eSI6IjAiLCJzZXR0bGVkX2F0X25zIjoiMTc5Mzg4Mzk4NzAxMTk3NjMyMyIsImNvbW1hbmRfcHJpbmNpcGFsIjoiYWNjb3VudDpkZXYtMjAyNjExMDUxMzA2MjMtNDk1Nzc5MDgxMjQzNTAudGVzdC5uZWFyIiwiY29tbWFuZF9zZXF1ZW5jZSI6IjQiLCJldmVudF9zZXF1ZW5jZSI6IjUifSwibGlzdGluZyI6eyJsaXN0aW5nX2lkIjoiMSIsInNob3BfaWQiOiIxIiwib3duZXIiOnsia2luZCI6Im1lcmNoYW50IiwibWVyY2hhbnRfaWQiOiJyZXgifSwiaXRlbV9pZCI6ImNyeXN0YWwiLCJyZW1haW5pbmdfcXVhbnRpdHkiOiI3IiwidW5pdF9wcmljZSI6IjQiLCJyZXZpc2lvbiI6IjIiLCJhY3RpdmUiOnRydWV9LCJidXllciI6eyJhY3RvciI6eyJraW5kIjoicGxheWVyIiwiYWNjb3VudF9pZCI6ImRldi0yMDI2MTEwNTEzMDYyMy00OTU3NzkwODEyNDM1MC50ZXN0Lm5lYXIifSwicmV2aXNpb24iOiIyIiwiZ29sZCI6eyJoZWxkIjoiOTYiLCJhdmFpbGFibGUiOiI5NiIsInRyYWRlX3Jlc2VydmVkIjoiMCIsInRyYWRlX2luYm91bmRfcmVzZXJ2ZWQiOiIwIn0sImludmVudG9yeSI6eyJoZWxkIjp7ImNyeXN0YWwiOiIxIiwid29vZCI6IjAiLCJoZXJiIjoiMCIsImlyb24iOiIwIiwiaGVhbHRoX3BvdGlvbiI6IjAiLCJpcm9uX3Rvb2wiOiIwIn0sImF2YWlsYWJsZSI6eyJjcnlzdGFsIjoiMSIsIndvb2QiOiIwIiwiaGVyYiI6IjAiLCJpcm9uIjoiMCIsImhlYWx0aF9wb3Rpb24iOiIwIiwiaXJvbl90b29sIjoiMCJ9LCJsaXN0aW5nX3Jlc2VydmVkIjp7ImNyeXN0YWwiOiIwIiwid29vZCI6IjAiLCJoZXJiIjoiMCIsImlyb24iOiIwIiwiaGVhbHRoX3BvdGlvbiI6IjAiLCJpcm9uX3Rvb2wiOiIwIn0sInRyYWRlX3Jlc2VydmVkIjp7ImNyeXN0YWwiOiIwIiwid29vZCI6IjAiLCJoZXJiIjoiMCIsImlyb24iOiIwIiwiaGVhbHRoX3BvdGlvbiI6IjAiLCJpcm9uX3Rvb2wiOiIwIn0sInByb2R1Y3Rpb25fb3V0cHV0X3Jlc2VydmVkIjp7ImNyeXN0YWwiOiIwIiwid29vZCI6IjAiLCJoZXJiIjoiMCIsImlyb24iOiIwIiwiaGVhbHRoX3BvdGlvbiI6IjAiLCJpcm9uX3Rvb2wiOiIwIn0sInRyYWRlX2luYm91bmRfcmVzZXJ2ZWQiOnsiY3J5c3RhbCI6IjAiLCJ3b29kIjoiMCIsImhlcmIiOiIwIiwiaXJvbiI6IjAiLCJoZWFsdGhfcG90aW9uIjoiMCIsImlyb25fdG9vbCI6IjAifX19LCJzZWxsZXIiOnsiYWN0b3IiOnsia2luZCI6Im1lcmNoYW50IiwibWVyY2hhbnRfaWQiOiJyZXgifSwicmV2aXNpb24iOiIyIiwiZ29sZCI6eyJoZWxkIjoiMjA0IiwiYXZhaWxhYmxlIjoiMjA0IiwidHJhZGVfcmVzZXJ2ZWQiOiIwIiwidHJhZGVfaW5ib3VuZF9yZXNlcnZlZCI6IjAifSwiaW52ZW50b3J5Ijp7ImhlbGQiOnsiY3J5c3RhbCI6IjkiLCJ3b29kIjoiMCIsImhlcmIiOiIwIiwiaXJvbiI6IjAiLCJoZWFsdGhfcG90aW9uIjoiMCIsImlyb25fdG9vbCI6IjAifSwiYXZhaWxhYmxlIjp7ImNyeXN0YWwiOiIyIiwid29vZCI6IjAiLCJoZXJiIjoiMCIsImlyb24iOiIwIiwiaGVhbHRoX3BvdGlvbiI6IjAiLCJpcm9uX3Rvb2wiOiIwIn0sImxpc3RpbmdfcmVzZXJ2ZWQiOnsiY3J5c3RhbCI6IjciLCJ3b29kIjoiMCIsImhlcmIiOiIwIiwiaXJvbiI6IjAiLCJoZWFsdGhfcG90aW9uIjoiMCIsImlyb25fdG9vbCI6IjAifSwidHJhZGVfcmVzZXJ2ZWQiOnsiY3J5c3RhbCI6IjAiLCJ3b29kIjoiMCIsImhlcmIiOiIwIiwiaXJvbiI6IjAiLCJoZWFsdGhfcG90aW9uIjoiMCIsImlyb25fdG9vbCI6IjAifSwicHJvZHVjdGlvbl9vdXRwdXRfcmVzZXJ2ZWQiOnsiY3J5c3RhbCI6IjAiLCJ3b29kIjoiMCIsImhlcmIiOiIwIiwiaXJvbiI6IjAiLCJoZWFsdGhfcG90aW9uIjoiMCIsImlyb25fdG9vbCI6IjAifSwidHJhZGVfaW5ib3VuZF9yZXNlcnZlZCI6eyJjcnlzdGFsIjoiMCIsIndvb2QiOiIwIiwiaGVyYiI6IjAiLCJpcm9uIjoiMCIsImhlYWx0aF9wb3Rpb24iOiIwIiwiaXJvbl90b29sIjoiMCJ9fX19fX0="
+              },
+              "tokens_burnt": "622902684796100000000"
+            },
+            "proof": []
+          },
+          {
+            "block_hash": "4jgrCtDTG2UZ78WboU7YyoJZisk1z5ZPvd7DnkEAQyRx",
+            "id": "DL2FvGiyLEqrVJALTPB419TfjZmewQc5eNsYPVxaw1z3",
+            "outcome": {
+              "executor_id": "dev-20261105130623-49577908124350.test.near",
+              "gas_burnt": 223182562500,
+              "logs": [],
+              "metadata": {
+                "contracts": [null],
+                "gas_profile": [],
+                "version": 4
+              },
+              "receipt_ids": [],
+              "status": {
+                "SuccessValue": ""
+              },
+              "tokens_burnt": "0"
+            },
+            "proof": []
+          }
+        ],
+        "status": {
+          "SuccessValue": "eyJkZXBsb3ltZW50Ijp7Im5ldHdvcmtfaWQiOiJ0ZXN0bmV0IiwiZ2VuZXNpc19oYXNoIjoiMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTEiLCJjb250cmFjdF9pZCI6ImRldi0yMDI2MTEwNTEzMDYyMi04MDE5NTkxNDc5NzI1NC50ZXN0Lm5lYXIiLCJhcGlfdmVyc2lvbiI6IjIuMC4wIiwic3RhdGVfc2NoZW1hIjoiMSIsImNvbW1hbmRfc2NoZW1hIjoiMSIsImNvbmZpZ192ZXJzaW9uIjoiMSIsImNvbmZpZ19zaGEyNTYiOiJhOTMyZWZiNDhjNzBhNzNjZTQ2NDcyY2Q3NTQyODg2NDk1NDFiMzQ2MDRlMmVhNDlhNDA5Mzk2MWU3MWEyZDEwIn0sIm1hcmtldF9yZXZpc2lvbiI6IjUiLCJldmVudF9zZXF1ZW5jZSI6IjUiLCJibG9ja19oZWlnaHQiOiI0MyIsImJsb2NrX3RpbWVzdGFtcF9ucyI6IjE3OTM4ODM5ODc3NjQ1MDYwMzgiLCJkYXRhIjp7InByaW5jaXBhbCI6ImFjY291bnQ6ZGV2LTIwMjYxMTA1MTMwNjIzLTQ5NTc3OTA4MTI0MzUwLnRlc3QubmVhciIsImNvbW1hbmRfc2VxdWVuY2UiOiI0IiwicGF5bG9hZF9zaGEyNTYiOiIwMjFhOGJjNzM4MzczYTEwM2NjNDAwYzFhZWQzYTk1YmJlMGJkZWY4YzIxZTQ0ZDg4MmJiMGJjYmNhMGE1Yzk1IiwicmVwbGF5ZWQiOnRydWUsImVmZmVjdF9yZXZpc2lvbiI6IjUiLCJlZmZlY3RfZXZlbnRfc2VxdWVuY2UiOiI1Iiwib3V0Y29tZSI6eyJraW5kIjoicmF3X3B1cmNoYXNlZCIsInRyYWRlIjp7InRyYWRlX2lkIjoiMSIsImtpbmQiOiJyYXdfcHVyY2hhc2UiLCJidXllciI6eyJraW5kIjoicGxheWVyIiwiYWNjb3VudF9pZCI6ImRldi0yMDI2MTEwNTEzMDYyMy00OTU3NzkwODEyNDM1MC50ZXN0Lm5lYXIifSwiY3VzdG9tZXJfcG9vbF9pZCI6bnVsbCwic2VsbGVyIjp7ImtpbmQiOiJtZXJjaGFudCIsIm1lcmNoYW50X2lkIjoicmV4In0sIml0ZW1faWQiOiJjcnlzdGFsIiwicXVhbnRpdHkiOiIxIiwidW5pdF9wcmljZSI6IjQiLCJ0b3RhbF9wcmljZSI6IjQiLCJsaXN0aW5nX2lkIjoiMSIsIm9mZmVyX2lkIjpudWxsLCJjb25zdW1lZF9xdWFudGl0eSI6IjAiLCJzZXR0bGVkX2F0X25zIjoiMTc5Mzg4Mzk4NzAxMTk3NjMyMyIsImNvbW1hbmRfcHJpbmNpcGFsIjoiYWNjb3VudDpkZXYtMjAyNjExMDUxMzA2MjMtNDk1Nzc5MDgxMjQzNTAudGVzdC5uZWFyIiwiY29tbWFuZF9zZXF1ZW5jZSI6IjQiLCJldmVudF9zZXF1ZW5jZSI6IjUifSwibGlzdGluZyI6eyJsaXN0aW5nX2lkIjoiMSIsInNob3BfaWQiOiIxIiwib3duZXIiOnsia2luZCI6Im1lcmNoYW50IiwibWVyY2hhbnRfaWQiOiJyZXgifSwiaXRlbV9pZCI6ImNyeXN0YWwiLCJyZW1haW5pbmdfcXVhbnRpdHkiOiI3IiwidW5pdF9wcmljZSI6IjQiLCJyZXZpc2lvbiI6IjIiLCJhY3RpdmUiOnRydWV9LCJidXllciI6eyJhY3RvciI6eyJraW5kIjoicGxheWVyIiwiYWNjb3VudF9pZCI6ImRldi0yMDI2MTEwNTEzMDYyMy00OTU3NzkwODEyNDM1MC50ZXN0Lm5lYXIifSwicmV2aXNpb24iOiIyIiwiZ29sZCI6eyJoZWxkIjoiOTYiLCJhdmFpbGFibGUiOiI5NiIsInRyYWRlX3Jlc2VydmVkIjoiMCIsInRyYWRlX2luYm91bmRfcmVzZXJ2ZWQiOiIwIn0sImludmVudG9yeSI6eyJoZWxkIjp7ImNyeXN0YWwiOiIxIiwid29vZCI6IjAiLCJoZXJiIjoiMCIsImlyb24iOiIwIiwiaGVhbHRoX3BvdGlvbiI6IjAiLCJpcm9uX3Rvb2wiOiIwIn0sImF2YWlsYWJsZSI6eyJjcnlzdGFsIjoiMSIsIndvb2QiOiIwIiwiaGVyYiI6IjAiLCJpcm9uIjoiMCIsImhlYWx0aF9wb3Rpb24iOiIwIiwiaXJvbl90b29sIjoiMCJ9LCJsaXN0aW5nX3Jlc2VydmVkIjp7ImNyeXN0YWwiOiIwIiwid29vZCI6IjAiLCJoZXJiIjoiMCIsImlyb24iOiIwIiwiaGVhbHRoX3BvdGlvbiI6IjAiLCJpcm9uX3Rvb2wiOiIwIn0sInRyYWRlX3Jlc2VydmVkIjp7ImNyeXN0YWwiOiIwIiwid29vZCI6IjAiLCJoZXJiIjoiMCIsImlyb24iOiIwIiwiaGVhbHRoX3BvdGlvbiI6IjAiLCJpcm9uX3Rvb2wiOiIwIn0sInByb2R1Y3Rpb25fb3V0cHV0X3Jlc2VydmVkIjp7ImNyeXN0YWwiOiIwIiwid29vZCI6IjAiLCJoZXJiIjoiMCIsImlyb24iOiIwIiwiaGVhbHRoX3BvdGlvbiI6IjAiLCJpcm9uX3Rvb2wiOiIwIn0sInRyYWRlX2luYm91bmRfcmVzZXJ2ZWQiOnsiY3J5c3RhbCI6IjAiLCJ3b29kIjoiMCIsImhlcmIiOiIwIiwiaXJvbiI6IjAiLCJoZWFsdGhfcG90aW9uIjoiMCIsImlyb25fdG9vbCI6IjAifX19LCJzZWxsZXIiOnsiYWN0b3IiOnsia2luZCI6Im1lcmNoYW50IiwibWVyY2hhbnRfaWQiOiJyZXgifSwicmV2aXNpb24iOiIyIiwiZ29sZCI6eyJoZWxkIjoiMjA0IiwiYXZhaWxhYmxlIjoiMjA0IiwidHJhZGVfcmVzZXJ2ZWQiOiIwIiwidHJhZGVfaW5ib3VuZF9yZXNlcnZlZCI6IjAifSwiaW52ZW50b3J5Ijp7ImhlbGQiOnsiY3J5c3RhbCI6IjkiLCJ3b29kIjoiMCIsImhlcmIiOiIwIiwiaXJvbiI6IjAiLCJoZWFsdGhfcG90aW9uIjoiMCIsImlyb25fdG9vbCI6IjAifSwiYXZhaWxhYmxlIjp7ImNyeXN0YWwiOiIyIiwid29vZCI6IjAiLCJoZXJiIjoiMCIsImlyb24iOiIwIiwiaGVhbHRoX3BvdGlvbiI6IjAiLCJpcm9uX3Rvb2wiOiIwIn0sImxpc3RpbmdfcmVzZXJ2ZWQiOnsiY3J5c3RhbCI6IjciLCJ3b29kIjoiMCIsImhlcmIiOiIwIiwiaXJvbiI6IjAiLCJoZWFsdGhfcG90aW9uIjoiMCIsImlyb25fdG9vbCI6IjAifSwidHJhZGVfcmVzZXJ2ZWQiOnsiY3J5c3RhbCI6IjAiLCJ3b29kIjoiMCIsImhlcmIiOiIwIiwiaXJvbiI6IjAiLCJoZWFsdGhfcG90aW9uIjoiMCIsImlyb25fdG9vbCI6IjAifSwicHJvZHVjdGlvbl9vdXRwdXRfcmVzZXJ2ZWQiOnsiY3J5c3RhbCI6IjAiLCJ3b29kIjoiMCIsImhlcmIiOiIwIiwiaXJvbiI6IjAiLCJoZWFsdGhfcG90aW9uIjoiMCIsImlyb25fdG9vbCI6IjAifSwidHJhZGVfaW5ib3VuZF9yZXNlcnZlZCI6eyJjcnlzdGFsIjoiMCIsIndvb2QiOiIwIiwiaGVyYiI6IjAiLCJpcm9uIjoiMCIsImhlYWx0aF9wb3Rpb24iOiIwIiwiaXJvbl90b29sIjoiMCJ9fX19fX0="
+        },
+        "transaction": {
+          "actions": [
+            {
+              "FunctionCall": {
+                "args": "eyJtZXJjaGFudF9pZCI6InJleCIsIml0ZW1faWQiOiJjcnlzdGFsIiwicXVhbnRpdHkiOiIxIiwiZXhwZWN0ZWRfbGlzdGluZ19yZXZpc2lvbiI6IjEiLCJtYXhfdG90YWxfcHJpY2UiOiI0IiwiY29tbWFuZCI6eyJzZXF1ZW5jZSI6IjQiLCJjb25maWdfdmVyc2lvbiI6IjEiLCJ2YWxpZF91bnRpbF9ucyI6IjE3OTM4ODQ0ODY0OTAwNDIzOTUifX0=",
+                "deposit": "0",
+                "gas": 100000000000000,
+                "method_name": "buy_from_merchant"
+              }
+            }
+          ],
+          "hash": "J8WT3JM7XK4rFuJPaxQPB3TCLbL6hFt6ByuyTD3K9PTF",
+          "nonce": 10000005,
+          "priority_fee": 0,
+          "public_key": "ed25519:CgTNBsiLAcdem8pSUm9XqNufeihz9uLJ17V1jtbbccCY",
+          "receiver_id": "dev-20261105130622-80195914797254.test.near",
+          "signature": "ed25519:2eXyFTLJTKz66FiRKK6tMysAoEBAjvUEWyrqGdNqTeEFcXegNpVZQqmG4HQBVcm11nzg9s377DkwbUSpvWaJ9wWp",
+          "signer_id": "dev-20261105130623-49577908124350.test.near"
+        },
+        "transaction_outcome": {
+          "block_hash": "HcuXSRxyo4XEUHvZM2mzbNUjGxMY6GH1dpQ25pPjitsa",
+          "id": "J8WT3JM7XK4rFuJPaxQPB3TCLbL6hFt6ByuyTD3K9PTF",
+          "outcome": {
+            "executor_id": "dev-20261105130623-49577908124350.test.near",
+            "gas_burnt": 318263815010,
+            "logs": [],
+            "metadata": {
+              "gas_profile": null,
+              "version": 1
+            },
+            "receipt_ids": ["J74y9Qu9gABXvDrTHQNgvjq2GMTqzB4rosHSUQMrofwg"],
+            "status": {
+              "SuccessReceiptId": "J74y9Qu9gABXvDrTHQNgvjq2GMTqzB4rosHSUQMrofwg"
+            },
+            "tokens_burnt": "31826381501000000000"
+          },
+          "proof": []
+        }
+      },
+      "block": {
+        "author": "test.near",
+        "chunks": [
+          {
+            "balance_burnt": "31826381501000000000",
+            "bandwidth_requests": {
+              "V1": {
+                "requests": []
+              }
+            },
+            "chunk_hash": "65rJRJuErSCv4d96dRAvyXbcaWTLgVENe6hbH4MSNQG1",
+            "congestion_info": {
+              "allowed_shard": 0,
+              "buffered_receipts_gas": "0",
+              "delayed_receipts_gas": "0",
+              "receipt_bytes": 0
+            },
+            "encoded_length": 490,
+            "encoded_merkle_root": "8YQST4tTavkviHNveqkxLwBfQAqiK2nnAdyLxNm9bnRT",
+            "gas_limit": 1000000000000000,
+            "gas_used": 318263815010,
+            "height_created": 43,
+            "height_included": 43,
+            "outcome_root": "6jB5xka1CFhFTPCaoPRG8WYJTJAizwrmDJC6xx3KCA1j",
+            "outgoing_receipts_root": "7HB4XbUQvPQxePRugpFfKNyQHsJE6EUeGd5vvrZtrsLD",
+            "prev_block_hash": "HcuXSRxyo4XEUHvZM2mzbNUjGxMY6GH1dpQ25pPjitsa",
+            "prev_state_root": "D4WPPiUY3E9VwrXrnpUJ9Popdj6P7G3MU4eka9WGtdKg",
+            "proposed_split": null,
+            "rent_paid": "0",
+            "shard_id": 0,
+            "signature": "ed25519:44wi98GchkaHnQC5F8xHmNCZtMRu1QLyYJtSSLvLrm1HH6DKg6SHBpRV9grKVNXZTWJLDWDRqD6cXdZ1PyvAJ9CQ",
+            "tx_root": "11111111111111111111111111111111",
+            "validator_proposals": [],
+            "validator_reward": "0"
+          }
+        ],
+        "header": {
+          "approvals": [
+            "ed25519:662yEj5rV7vNUccy6HP7ryp6Yik6uLdfJWK6x9wSo1Sy5f2EbkCBBmk8fHLRG5G2JYQkuEwpGJDLaEzmS4GUYGbB"
+          ],
+          "block_body_hash": "HH2b69orFza4sFQkHg6JE9FWBuVtS8KvdDp4Z5cQb2v1",
+          "block_merkle_root": "695L51S8YUB9PgcbPpXgD1uoTVWcpzCiDZjGE6e46ad6",
+          "block_ordinal": 44,
+          "challenges_result": [],
+          "challenges_root": "11111111111111111111111111111111",
+          "chunk_endorsements": [[1]],
+          "chunk_headers_root": "2S6vscBo2t2s7UwJJ3Be7uPT3YES2j4Dm95hPGcgJpoR",
+          "chunk_mask": [true],
+          "chunk_receipts_root": "7X8v7Awj3AK3kDCMNM2xQWRoJHLc9W392rnT29TJQCH8",
+          "chunk_tx_root": "7tkzFg8RHBmMw1ncRJZCCZAizgq4rwCftTKYLce8RU8t",
+          "chunks_included": 1,
+          "epoch_id": "11111111111111111111111111111111",
+          "epoch_sync_data_hash": null,
+          "gas_price": "100000000",
+          "hash": "5agoPavJgTU4G3buXoVy6Vywz7hhsum3pvDP2tppMFcz",
+          "height": 43,
+          "last_ds_final_block": "HcuXSRxyo4XEUHvZM2mzbNUjGxMY6GH1dpQ25pPjitsa",
+          "last_final_block": "BHGrpjvWp8Sv8wssX2E1aDjB95vmRFjtCeXoAQWFtxag",
+          "latest_protocol_version": 86,
+          "next_bp_hash": "NDCgyePqxVwwKUGWM3iTVp1RHTqaE7RrQySS86mjZBB",
+          "next_epoch_id": "FeszHM4kVoCv3y4EzNyEvMCx8ymWvxHNxovD2qukjmTC",
+          "outcome_root": "Djp8cuZ3YJxfxPwQkQ9t549UzsLxG7qS9nJJsui3ajY2",
+          "prev_hash": "HcuXSRxyo4XEUHvZM2mzbNUjGxMY6GH1dpQ25pPjitsa",
+          "prev_height": 42,
+          "prev_state_root": "8QnmBPt5EJcQqwUY75WRE82kTGRHNDhRvs1mwubNqR5L",
+          "random_value": "2Jkt8cWoZrp3qKnWPFqAfR52BuoFBkJwCVjmkCohG3Vk",
+          "rent_paid": "0",
+          "shard_split": null,
+          "signature": "ed25519:2z5JSJ7ifjADPMFw4SL3d9WArep4GyHTh5aWL8GBajEiAvooX3E95XZ7KaWP3qHgp1oi5kbKiNNCQqJqNok8GBNo",
+          "timestamp": 1793883987764506000,
+          "timestamp_nanosec": "1793883987764506038",
+          "total_supply": "2050029999979671447435209800000000",
+          "validator_proposals": [],
+          "validator_reward": "0"
+        }
+      },
+      "account": {
+        "amount": "100000170511202508300000000",
+        "block_hash": "5agoPavJgTU4G3buXoVy6Vywz7hhsum3pvDP2tppMFcz",
+        "block_height": 43,
+        "code_hash": "H7Bxy3vnQsLKbxnJLAFuZwsLmdvXUTAvsXCcXCdE7T4n",
+        "locked": "0",
+        "storage_paid_at": 0,
+        "storage_usage": 285706
+      },
+      "foundation": {
+        "block_hash": "5agoPavJgTU4G3buXoVy6Vywz7hhsum3pvDP2tppMFcz",
+        "block_height": 43,
+        "logs": [],
+        "result": [
+          123, 34, 100, 101, 112, 108, 111, 121, 109, 101, 110, 116, 34, 58,
+          123, 34, 110, 101, 116, 119, 111, 114, 107, 95, 105, 100, 34, 58, 34,
+          116, 101, 115, 116, 110, 101, 116, 34, 44, 34, 103, 101, 110, 101,
+          115, 105, 115, 95, 104, 97, 115, 104, 34, 58, 34, 49, 49, 49, 49, 49,
+          49, 49, 49, 49, 49, 49, 49, 49, 49, 49, 49, 49, 49, 49, 49, 49, 49,
+          49, 49, 49, 49, 49, 49, 49, 49, 49, 49, 34, 44, 34, 99, 111, 110, 116,
+          114, 97, 99, 116, 95, 105, 100, 34, 58, 34, 100, 101, 118, 45, 50, 48,
+          50, 54, 49, 49, 48, 53, 49, 51, 48, 54, 50, 50, 45, 56, 48, 49, 57,
+          53, 57, 49, 52, 55, 57, 55, 50, 53, 52, 46, 116, 101, 115, 116, 46,
+          110, 101, 97, 114, 34, 44, 34, 97, 112, 105, 95, 118, 101, 114, 115,
+          105, 111, 110, 34, 58, 34, 50, 46, 48, 46, 48, 34, 44, 34, 115, 116,
+          97, 116, 101, 95, 115, 99, 104, 101, 109, 97, 34, 58, 34, 49, 34, 44,
+          34, 99, 111, 109, 109, 97, 110, 100, 95, 115, 99, 104, 101, 109, 97,
+          34, 58, 34, 49, 34, 44, 34, 99, 111, 110, 102, 105, 103, 95, 118, 101,
+          114, 115, 105, 111, 110, 34, 58, 34, 49, 34, 44, 34, 99, 111, 110,
+          102, 105, 103, 95, 115, 104, 97, 50, 53, 54, 34, 58, 34, 97, 57, 51,
+          50, 101, 102, 98, 52, 56, 99, 55, 48, 97, 55, 51, 99, 101, 52, 54, 52,
+          55, 50, 99, 100, 55, 53, 52, 50, 56, 56, 54, 52, 57, 53, 52, 49, 98,
+          51, 52, 54, 48, 52, 101, 50, 101, 97, 52, 57, 97, 52, 48, 57, 51, 57,
+          54, 49, 101, 55, 49, 97, 50, 100, 49, 48, 34, 125, 44, 34, 109, 97,
+          114, 107, 101, 116, 95, 114, 101, 118, 105, 115, 105, 111, 110, 34,
+          58, 34, 53, 34, 44, 34, 101, 118, 101, 110, 116, 95, 115, 101, 113,
+          117, 101, 110, 99, 101, 34, 58, 34, 53, 34, 44, 34, 98, 108, 111, 99,
+          107, 95, 104, 101, 105, 103, 104, 116, 34, 58, 34, 52, 51, 34, 44, 34,
+          98, 108, 111, 99, 107, 95, 116, 105, 109, 101, 115, 116, 97, 109, 112,
+          95, 110, 115, 34, 58, 34, 49, 55, 57, 51, 56, 56, 51, 57, 56, 55, 55,
+          54, 52, 53, 48, 54, 48, 51, 56, 34, 44, 34, 100, 97, 116, 97, 34, 58,
+          123, 34, 111, 119, 110, 101, 114, 95, 97, 99, 99, 111, 117, 110, 116,
+          95, 105, 100, 34, 58, 34, 100, 101, 118, 45, 50, 48, 50, 54, 49, 49,
+          48, 53, 49, 51, 48, 54, 50, 50, 45, 56, 48, 49, 57, 53, 57, 49, 52,
+          55, 57, 55, 50, 53, 52, 46, 116, 101, 115, 116, 46, 110, 101, 97, 114,
+          34, 44, 34, 111, 112, 101, 114, 97, 116, 111, 114, 95, 97, 99, 99,
+          111, 117, 110, 116, 95, 105, 100, 34, 58, 34, 111, 112, 101, 114, 97,
+          116, 111, 114, 46, 116, 101, 115, 116, 110, 101, 116, 34, 44, 34, 109,
+          101, 114, 99, 104, 97, 110, 116, 95, 99, 111, 110, 116, 114, 111, 108,
+          108, 101, 114, 115, 34, 58, 123, 34, 114, 101, 120, 34, 58, 34, 114,
+          101, 120, 46, 116, 101, 115, 116, 110, 101, 116, 34, 44, 34, 108, 117,
+          110, 97, 34, 58, 34, 108, 117, 110, 97, 46, 116, 101, 115, 116, 110,
+          101, 116, 34, 44, 34, 98, 111, 108, 116, 34, 58, 34, 98, 111, 108,
+          116, 46, 116, 101, 115, 116, 110, 101, 116, 34, 125, 44, 34, 105, 116,
+          101, 109, 95, 105, 100, 115, 34, 58, 91, 34, 99, 114, 121, 115, 116,
+          97, 108, 34, 44, 34, 119, 111, 111, 100, 34, 44, 34, 104, 101, 114,
+          98, 34, 44, 34, 105, 114, 111, 110, 34, 44, 34, 104, 101, 97, 108,
+          116, 104, 95, 112, 111, 116, 105, 111, 110, 34, 44, 34, 105, 114, 111,
+          110, 95, 116, 111, 111, 108, 34, 93, 44, 34, 115, 117, 112, 112, 111,
+          114, 116, 101, 100, 95, 109, 101, 116, 104, 111, 100, 115, 34, 58, 91,
+          34, 105, 110, 105, 116, 105, 97, 108, 105, 122, 101, 95, 116, 111,
+          119, 110, 34, 44, 34, 103, 101, 116, 95, 102, 111, 117, 110, 100, 97,
+          116, 105, 111, 110, 34, 44, 34, 103, 101, 116, 95, 116, 111, 119, 110,
+          34, 44, 34, 114, 101, 103, 105, 115, 116, 101, 114, 95, 112, 108, 97,
+          121, 101, 114, 34, 44, 34, 99, 114, 101, 97, 116, 101, 95, 115, 104,
+          111, 112, 34, 44, 34, 114, 101, 110, 97, 109, 101, 95, 115, 104, 111,
+          112, 34, 44, 34, 103, 101, 116, 95, 112, 108, 97, 121, 101, 114, 34,
+          44, 34, 103, 101, 116, 95, 115, 104, 111, 112, 34, 44, 34, 103, 101,
+          116, 95, 112, 108, 97, 121, 101, 114, 95, 115, 104, 111, 112, 115, 34,
+          44, 34, 103, 101, 116, 95, 99, 111, 109, 109, 97, 110, 100, 34, 44,
+          34, 98, 117, 121, 95, 102, 114, 111, 109, 95, 109, 101, 114, 99, 104,
+          97, 110, 116, 34, 44, 34, 103, 101, 116, 95, 108, 105, 115, 116, 105,
+          110, 103, 115, 34, 44, 34, 103, 101, 116, 95, 116, 114, 97, 100, 101,
+          34, 44, 34, 103, 101, 116, 95, 115, 104, 111, 112, 95, 105, 110, 118,
+          101, 110, 116, 111, 114, 121, 34, 93, 125, 125
+        ]
+      }
+    },
+    {
+      "method": "buy_from_merchant",
+      "args": {
+        "merchant_id": "rex",
+        "item_id": "crystal",
+        "quantity": "1",
+        "expected_listing_revision": "1",
+        "max_total_price": "4",
+        "command": {
+          "sequence": "5",
+          "config_version": "1",
+          "valid_until_ns": "1793884488145010133"
+        }
+      },
+      "transaction_hash": "8yNankZqPH7fDbrZsCN8jbMZ73Z3UeUttLJys14YEuPK",
+      "reference_block_height": 44,
+      "gas_burnt": "3809911176969",
+      "receipt": {
+        "final_execution_status": "FINAL",
+        "receipts_outcome": [
+          {
+            "block_hash": "3UBj75tkMWEnK6k2nCqiuEVVwzVrB5Bjb3wmhRXM8Lqh",
+            "id": "6GojoUDrcP1XVeUKSd47gkfKjceABwaSk6h271RUYWUR",
+            "outcome": {
+              "executor_id": "dev-20261105130622-80195914797254.test.near",
+              "gas_burnt": 3491647361959,
+              "logs": [],
+              "metadata": {
+                "contracts": [
+                  {
+                    "local": "H7Bxy3vnQsLKbxnJLAFuZwsLmdvXUTAvsXCcXCdE7T4n"
+                  }
+                ],
+                "gas_profile": [
+                  {
+                    "cost": "BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "7943043330"
+                  },
+                  {
+                    "cost": "CONTRACT_LOADING_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "35445963"
+                  },
+                  {
+                    "cost": "CONTRACT_LOADING_BYTES",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "307671372750"
+                  },
+                  {
+                    "cost": "READ_MEMORY_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "18269042400"
+                  },
+                  {
+                    "cost": "READ_MEMORY_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "9571756494"
+                  },
+                  {
+                    "cost": "READ_REGISTER_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "25171651860"
+                  },
+                  {
+                    "cost": "READ_REGISTER_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "318848070"
+                  },
+                  {
+                    "cost": "SHA256_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "9081940500"
+                  },
+                  {
+                    "cost": "SHA256_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "55686963459"
+                  },
+                  {
+                    "cost": "STORAGE_HAS_KEY_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "54039896625"
+                  },
+                  {
+                    "cost": "STORAGE_HAS_KEY_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "1878241545"
+                  },
+                  {
+                    "cost": "STORAGE_READ_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "169070537247"
+                  },
+                  {
+                    "cost": "STORAGE_READ_KEY_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "4023829290"
+                  },
+                  {
+                    "cost": "STORAGE_READ_VALUE_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "13993843976"
+                  },
+                  {
+                    "cost": "UTF8_DECODING_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "3111779061"
+                  },
+                  {
+                    "cost": "UTF8_DECODING_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "5248448622"
+                  },
+                  {
+                    "cost": "WASM_INSTRUCTION",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "1839589444572"
+                  },
+                  {
+                    "cost": "WRITE_MEMORY_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "30841743471"
+                  },
+                  {
+                    "cost": "WRITE_MEMORY_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "8854982772"
+                  },
+                  {
+                    "cost": "WRITE_REGISTER_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "28655224860"
+                  },
+                  {
+                    "cost": "WRITE_REGISTER_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "10051335216"
+                  }
+                ],
+                "version": 4
+              },
+              "receipt_ids": ["6AdKzWWo9TPEM5HWqLEeCiFgfXkkusmBFGn7M48SLtxM"],
+              "status": {
+                "Failure": {
+                  "ActionError": {
+                    "index": 0,
+                    "kind": {
+                      "FunctionCallError": {
+                        "ExecutionError": "Smart contract panicked: LT:E_STALE_LISTING"
+                      }
+                    }
+                  }
+                }
+              },
+              "tokens_burnt": "349164736195900000000"
+            },
+            "proof": []
+          },
+          {
+            "block_hash": "BQuwQtAZYnVGAwEc2EfFViUVVjfQFoDraApo4jTZg48R",
+            "id": "6AdKzWWo9TPEM5HWqLEeCiFgfXkkusmBFGn7M48SLtxM",
+            "outcome": {
+              "executor_id": "dev-20261105130623-49577908124350.test.near",
+              "gas_burnt": 223182562500,
+              "logs": [],
+              "metadata": {
+                "contracts": [null],
+                "gas_profile": [],
+                "version": 4
+              },
+              "receipt_ids": [],
+              "status": {
+                "SuccessValue": ""
+              },
+              "tokens_burnt": "0"
+            },
+            "proof": []
+          }
+        ],
+        "status": {
+          "Failure": {
+            "ActionError": {
+              "index": 0,
+              "kind": {
+                "FunctionCallError": {
+                  "ExecutionError": "Smart contract panicked: LT:E_STALE_LISTING"
+                }
+              }
+            }
+          }
+        },
+        "transaction": {
+          "actions": [
+            {
+              "FunctionCall": {
+                "args": "eyJtZXJjaGFudF9pZCI6InJleCIsIml0ZW1faWQiOiJjcnlzdGFsIiwicXVhbnRpdHkiOiIxIiwiZXhwZWN0ZWRfbGlzdGluZ19yZXZpc2lvbiI6IjEiLCJtYXhfdG90YWxfcHJpY2UiOiI0IiwiY29tbWFuZCI6eyJzZXF1ZW5jZSI6IjUiLCJjb25maWdfdmVyc2lvbiI6IjEiLCJ2YWxpZF91bnRpbF9ucyI6IjE3OTM4ODQ0ODgxNDUwMTAxMzMifX0=",
+                "deposit": "0",
+                "gas": 100000000000000,
+                "method_name": "buy_from_merchant"
+              }
+            }
+          ],
+          "hash": "8yNankZqPH7fDbrZsCN8jbMZ73Z3UeUttLJys14YEuPK",
+          "nonce": 10000006,
+          "priority_fee": 0,
+          "public_key": "ed25519:CgTNBsiLAcdem8pSUm9XqNufeihz9uLJ17V1jtbbccCY",
+          "receiver_id": "dev-20261105130622-80195914797254.test.near",
+          "signature": "ed25519:67Fp6F2YVxvfAoRb8Rn4ufNqsk649um4xnmpHPXrjZnbVB4gLjh75s4a16PJGwUYucydmdP1EXfxorqCw67yMifG",
+          "signer_id": "dev-20261105130623-49577908124350.test.near"
+        },
+        "transaction_outcome": {
+          "block_hash": "2oXKLg17cTxKVLC5DNAZTv31n1f48K6FzyQ5b25ofTW2",
+          "id": "8yNankZqPH7fDbrZsCN8jbMZ73Z3UeUttLJys14YEuPK",
+          "outcome": {
+            "executor_id": "dev-20261105130623-49577908124350.test.near",
+            "gas_burnt": 318263815010,
+            "logs": [],
+            "metadata": {
+              "gas_profile": null,
+              "version": 1
+            },
+            "receipt_ids": ["6GojoUDrcP1XVeUKSd47gkfKjceABwaSk6h271RUYWUR"],
+            "status": {
+              "SuccessReceiptId": "6GojoUDrcP1XVeUKSd47gkfKjceABwaSk6h271RUYWUR"
+            },
+            "tokens_burnt": "31826381501000000000"
+          },
+          "proof": []
+        }
+      },
+      "block": {
+        "author": "test.near",
+        "chunks": [
+          {
+            "balance_burnt": "31826381501000000000",
+            "bandwidth_requests": {
+              "V1": {
+                "requests": []
+              }
+            },
+            "chunk_hash": "8FneeNC4c22Aaa6hU9TY9CGpevN6vcutiWpET12ySPH9",
+            "congestion_info": {
+              "allowed_shard": 0,
+              "buffered_receipts_gas": "0",
+              "delayed_receipts_gas": "0",
+              "receipt_bytes": 0
+            },
+            "encoded_length": 490,
+            "encoded_merkle_root": "9Ymz4eXJA7PeRGevKGnf14YuqTJjCVYyYfQLH7qhVBWP",
+            "gas_limit": 1000000000000000,
+            "gas_used": 318263815010,
+            "height_created": 49,
+            "height_included": 49,
+            "outcome_root": "22PifGxFuuTxVNsrJEXZbSZNzhiyYNnWFLmqsSfYCTtT",
+            "outgoing_receipts_root": "9bG258LAznQ7S8QTjbKrBDPVkYsFg9o194WQQBDp7tQ5",
+            "prev_block_hash": "2oXKLg17cTxKVLC5DNAZTv31n1f48K6FzyQ5b25ofTW2",
+            "prev_state_root": "AXrqJ2F6wKiY9Y22pvVnEYTAhqhbRsEtk8JCu99PTkFW",
+            "proposed_split": null,
+            "rent_paid": "0",
+            "shard_id": 0,
+            "signature": "ed25519:akmmTfKcwjQdFEme9vraKPdNEEEWAxEVNZKky9tBQCVrFKjaswQ9aZGMWs2DBT7FZTRMW9k7UPGe7V77yLyJekJ",
+            "tx_root": "11111111111111111111111111111111",
+            "validator_proposals": [],
+            "validator_reward": "0"
+          }
+        ],
+        "header": {
+          "approvals": [
+            "ed25519:4FoWfKcfs8NQ5orShHwZuF2nKfPPKy9LJi4shn1vFFEd7mgrSjXt7Rvj3ckdMU2vMFboUPbMJcFDAwy41JibMmb2"
+          ],
+          "block_body_hash": "JCF9g6hEcJDcNq8P1xke9T6SvyyCP4ya5DqZBzu69gmH",
+          "block_merkle_root": "5dmrBegJMKN8vcy8apk3paqFMjd3oSM45fjgoTLUbmB2",
+          "block_ordinal": 50,
+          "challenges_result": [],
+          "challenges_root": "11111111111111111111111111111111",
+          "chunk_endorsements": [[1]],
+          "chunk_headers_root": "27bgSJWoaXm5iqZ9MgSQFapQaXqr3rmyyF3kBsKGd3GY",
+          "chunk_mask": [true],
+          "chunk_receipts_root": "BKeLXzfyu5iYnhSko6AiFnjyL3sQNR93e1nEtzVxT5bB",
+          "chunk_tx_root": "7tkzFg8RHBmMw1ncRJZCCZAizgq4rwCftTKYLce8RU8t",
+          "chunks_included": 1,
+          "epoch_id": "11111111111111111111111111111111",
+          "epoch_sync_data_hash": null,
+          "gas_price": "100000000",
+          "hash": "3UBj75tkMWEnK6k2nCqiuEVVwzVrB5Bjb3wmhRXM8Lqh",
+          "height": 49,
+          "last_ds_final_block": "2oXKLg17cTxKVLC5DNAZTv31n1f48K6FzyQ5b25ofTW2",
+          "last_final_block": "6y8VbvP6YqTwLtf4EtG3CfJeVWMxuXw8xk97PUFueKX2",
+          "latest_protocol_version": 86,
+          "next_bp_hash": "NDCgyePqxVwwKUGWM3iTVp1RHTqaE7RrQySS86mjZBB",
+          "next_epoch_id": "FeszHM4kVoCv3y4EzNyEvMCx8ymWvxHNxovD2qukjmTC",
+          "outcome_root": "7GEvWfh7vsMPD2X1o6uB1T6j9qmgSQ1125TWyRkjKybk",
+          "prev_hash": "2oXKLg17cTxKVLC5DNAZTv31n1f48K6FzyQ5b25ofTW2",
+          "prev_height": 48,
+          "prev_state_root": "FdTQ3zZspVqsxMPKa3bjazxZoHzdRko2FU2Tmhq8ruHL",
+          "random_value": "CAyMjyAgfrhGr1W15NBaTgQSDvrG9aV7aj3omHfpWTSW",
+          "rent_paid": "0",
+          "shard_split": null,
+          "signature": "ed25519:573J9A6niCscytoWK9my5XzpoBMFaWp2jDGZZbgDab6e9SgwXD2pAvsWPYsiQH6KTX7EKxqrG81stKYGWpzswkLz",
+          "timestamp": 1793883988513664300,
+          "timestamp_nanosec": "1793883988513664381",
+          "total_supply": "2050029999979176933034655200000000",
+          "validator_proposals": [],
+          "validator_reward": "0"
+        }
+      },
+      "account": {
+        "amount": "100000248604483670700000000",
+        "block_hash": "3UBj75tkMWEnK6k2nCqiuEVVwzVrB5Bjb3wmhRXM8Lqh",
+        "block_height": 49,
+        "code_hash": "H7Bxy3vnQsLKbxnJLAFuZwsLmdvXUTAvsXCcXCdE7T4n",
+        "locked": "0",
+        "storage_paid_at": 0,
+        "storage_usage": 285706
+      },
+      "foundation": {
+        "block_hash": "3UBj75tkMWEnK6k2nCqiuEVVwzVrB5Bjb3wmhRXM8Lqh",
+        "block_height": 49,
+        "logs": [],
+        "result": [
+          123, 34, 100, 101, 112, 108, 111, 121, 109, 101, 110, 116, 34, 58,
+          123, 34, 110, 101, 116, 119, 111, 114, 107, 95, 105, 100, 34, 58, 34,
+          116, 101, 115, 116, 110, 101, 116, 34, 44, 34, 103, 101, 110, 101,
+          115, 105, 115, 95, 104, 97, 115, 104, 34, 58, 34, 49, 49, 49, 49, 49,
+          49, 49, 49, 49, 49, 49, 49, 49, 49, 49, 49, 49, 49, 49, 49, 49, 49,
+          49, 49, 49, 49, 49, 49, 49, 49, 49, 49, 34, 44, 34, 99, 111, 110, 116,
+          114, 97, 99, 116, 95, 105, 100, 34, 58, 34, 100, 101, 118, 45, 50, 48,
+          50, 54, 49, 49, 48, 53, 49, 51, 48, 54, 50, 50, 45, 56, 48, 49, 57,
+          53, 57, 49, 52, 55, 57, 55, 50, 53, 52, 46, 116, 101, 115, 116, 46,
+          110, 101, 97, 114, 34, 44, 34, 97, 112, 105, 95, 118, 101, 114, 115,
+          105, 111, 110, 34, 58, 34, 50, 46, 48, 46, 48, 34, 44, 34, 115, 116,
+          97, 116, 101, 95, 115, 99, 104, 101, 109, 97, 34, 58, 34, 49, 34, 44,
+          34, 99, 111, 109, 109, 97, 110, 100, 95, 115, 99, 104, 101, 109, 97,
+          34, 58, 34, 49, 34, 44, 34, 99, 111, 110, 102, 105, 103, 95, 118, 101,
+          114, 115, 105, 111, 110, 34, 58, 34, 49, 34, 44, 34, 99, 111, 110,
+          102, 105, 103, 95, 115, 104, 97, 50, 53, 54, 34, 58, 34, 97, 57, 51,
+          50, 101, 102, 98, 52, 56, 99, 55, 48, 97, 55, 51, 99, 101, 52, 54, 52,
+          55, 50, 99, 100, 55, 53, 52, 50, 56, 56, 54, 52, 57, 53, 52, 49, 98,
+          51, 52, 54, 48, 52, 101, 50, 101, 97, 52, 57, 97, 52, 48, 57, 51, 57,
+          54, 49, 101, 55, 49, 97, 50, 100, 49, 48, 34, 125, 44, 34, 109, 97,
+          114, 107, 101, 116, 95, 114, 101, 118, 105, 115, 105, 111, 110, 34,
+          58, 34, 53, 34, 44, 34, 101, 118, 101, 110, 116, 95, 115, 101, 113,
+          117, 101, 110, 99, 101, 34, 58, 34, 53, 34, 44, 34, 98, 108, 111, 99,
+          107, 95, 104, 101, 105, 103, 104, 116, 34, 58, 34, 52, 57, 34, 44, 34,
+          98, 108, 111, 99, 107, 95, 116, 105, 109, 101, 115, 116, 97, 109, 112,
+          95, 110, 115, 34, 58, 34, 49, 55, 57, 51, 56, 56, 51, 57, 56, 56, 53,
+          49, 51, 54, 54, 52, 51, 56, 49, 34, 44, 34, 100, 97, 116, 97, 34, 58,
+          123, 34, 111, 119, 110, 101, 114, 95, 97, 99, 99, 111, 117, 110, 116,
+          95, 105, 100, 34, 58, 34, 100, 101, 118, 45, 50, 48, 50, 54, 49, 49,
+          48, 53, 49, 51, 48, 54, 50, 50, 45, 56, 48, 49, 57, 53, 57, 49, 52,
+          55, 57, 55, 50, 53, 52, 46, 116, 101, 115, 116, 46, 110, 101, 97, 114,
+          34, 44, 34, 111, 112, 101, 114, 97, 116, 111, 114, 95, 97, 99, 99,
+          111, 117, 110, 116, 95, 105, 100, 34, 58, 34, 111, 112, 101, 114, 97,
+          116, 111, 114, 46, 116, 101, 115, 116, 110, 101, 116, 34, 44, 34, 109,
+          101, 114, 99, 104, 97, 110, 116, 95, 99, 111, 110, 116, 114, 111, 108,
+          108, 101, 114, 115, 34, 58, 123, 34, 114, 101, 120, 34, 58, 34, 114,
+          101, 120, 46, 116, 101, 115, 116, 110, 101, 116, 34, 44, 34, 108, 117,
+          110, 97, 34, 58, 34, 108, 117, 110, 97, 46, 116, 101, 115, 116, 110,
+          101, 116, 34, 44, 34, 98, 111, 108, 116, 34, 58, 34, 98, 111, 108,
+          116, 46, 116, 101, 115, 116, 110, 101, 116, 34, 125, 44, 34, 105, 116,
+          101, 109, 95, 105, 100, 115, 34, 58, 91, 34, 99, 114, 121, 115, 116,
+          97, 108, 34, 44, 34, 119, 111, 111, 100, 34, 44, 34, 104, 101, 114,
+          98, 34, 44, 34, 105, 114, 111, 110, 34, 44, 34, 104, 101, 97, 108,
+          116, 104, 95, 112, 111, 116, 105, 111, 110, 34, 44, 34, 105, 114, 111,
+          110, 95, 116, 111, 111, 108, 34, 93, 44, 34, 115, 117, 112, 112, 111,
+          114, 116, 101, 100, 95, 109, 101, 116, 104, 111, 100, 115, 34, 58, 91,
+          34, 105, 110, 105, 116, 105, 97, 108, 105, 122, 101, 95, 116, 111,
+          119, 110, 34, 44, 34, 103, 101, 116, 95, 102, 111, 117, 110, 100, 97,
+          116, 105, 111, 110, 34, 44, 34, 103, 101, 116, 95, 116, 111, 119, 110,
+          34, 44, 34, 114, 101, 103, 105, 115, 116, 101, 114, 95, 112, 108, 97,
+          121, 101, 114, 34, 44, 34, 99, 114, 101, 97, 116, 101, 95, 115, 104,
+          111, 112, 34, 44, 34, 114, 101, 110, 97, 109, 101, 95, 115, 104, 111,
+          112, 34, 44, 34, 103, 101, 116, 95, 112, 108, 97, 121, 101, 114, 34,
+          44, 34, 103, 101, 116, 95, 115, 104, 111, 112, 34, 44, 34, 103, 101,
+          116, 95, 112, 108, 97, 121, 101, 114, 95, 115, 104, 111, 112, 115, 34,
+          44, 34, 103, 101, 116, 95, 99, 111, 109, 109, 97, 110, 100, 34, 44,
+          34, 98, 117, 121, 95, 102, 114, 111, 109, 95, 109, 101, 114, 99, 104,
+          97, 110, 116, 34, 44, 34, 103, 101, 116, 95, 108, 105, 115, 116, 105,
+          110, 103, 115, 34, 44, 34, 103, 101, 116, 95, 116, 114, 97, 100, 101,
+          34, 44, 34, 103, 101, 116, 95, 115, 104, 111, 112, 95, 105, 110, 118,
+          101, 110, 116, 111, 114, 121, 34, 93, 125, 125
+        ]
+      }
+    }
+  ]
+}

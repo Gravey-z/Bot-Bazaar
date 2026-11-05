@@ -1,3 +1,10 @@
+import { LivingTownNotOpenedError } from "./living-town-transactions";
+import {
+  LivingTownClient,
+  createLivingTownCall,
+  livingTownWalletRequest,
+} from "@bot-bazaar/chain";
+import type { LivingTownIdentity, LivingTownCall } from "@bot-bazaar/chain";
 import { createRpcTransport } from "@bot-bazaar/chain";
 import type { PublicConfig } from "@bot-bazaar/shared";
 import type { WalletManifest } from "@hot-labs/near-connect";
@@ -50,7 +57,15 @@ export const meteorManifest: WalletManifest = {
 export async function createWalletPort(
   config: PublicConfig,
   storage: WalletStorage,
-): Promise<WalletPort> {
+): Promise<
+  WalletPort & {
+    livingTown(
+      accountId: string,
+      call: LivingTownCall,
+      identity: LivingTownIdentity,
+    ): Promise<unknown>;
+  }
+> {
   if (config.networkId !== "testnet") throw new Error("Testnet required");
   const { NearConnector, SandboxWallet } =
     await import("@hot-labs/near-connect");
@@ -175,6 +190,27 @@ export async function createWalletPort(
             },
           ],
         })
+        .catch(rejectWallet);
+    },
+    async livingTown(accountId, input, identity) {
+      let call;
+      try {
+        call = createLivingTownCall(input.method, input.args);
+        const client = new LivingTownClient(identity, rpc);
+        if (
+          client.identity.deployment.contract_id !== config.contractId ||
+          client.identity.deployment.network_id !== config.networkId
+        )
+          throw new Error("V2 wallet target mismatch");
+        await client.finalized();
+        await verifyActiveAccount(accountId);
+      } catch {
+        throw new LivingTownNotOpenedError();
+      }
+      return wallet
+        .signAndSendTransaction(
+          livingTownWalletRequest(config.contractId, accountId, call),
+        )
         .catch(rejectWallet);
     },
     subscribe(changed) {

@@ -143,7 +143,8 @@ export const livingTownShop = object({
   owner: livingTownActor,
   name: (v: unknown) => {
     check(
-      typeof v === "string" && /^[A-Za-z0-9][A-Za-z0-9 _-]{0,31}$/.test(v),
+      typeof v === "string" &&
+        /^[A-Za-z0-9][A-Za-z0-9 _-]{0,31}$/.exec(v)?.[0] === v,
       "invalid shop name",
     );
     return v;
