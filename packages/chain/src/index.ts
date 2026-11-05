@@ -142,10 +142,13 @@ export type { LivingTownWebProfile } from "./living-town/web-profile.js";
 
 export {
   livingTownProductionJob,
+  livingTownProductionPage,
+  livingTownProductionRead,
   livingTownProductionEffect,
 } from "./living-town/production.js";
 export {
   createLivingTownCompletionCall,
+  livingTownCompletionWalletRequest,
   verifyLivingTownCompletionEffect,
   verifyLivingTownCompletionReceipt,
 } from "./living-town/completion.js";

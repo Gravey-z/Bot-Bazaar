@@ -7,6 +7,8 @@ import {
   nullable,
   parseU64,
   check,
+  array,
+  boolean,
 } from "../wire.js";
 import {
   livingTownActor,
@@ -76,6 +78,44 @@ export function livingTownProductionJob(
   value: unknown,
 ): ReturnType<typeof decodeJob> {
   return decodeJob(value);
+}
+// Shared bounded queue shape for finalized reads and projection validation.
+export const livingTownProductionPage = object({
+  items: array(livingTownProductionJob, 50),
+  next_after_id: nullable(parseU64),
+  has_more: boolean,
+  history_gap: boolean,
+  pruned_through: parseU64,
+});
+
+function decodeProductionRead(value: unknown) {
+  const r = object({
+    page: livingTownProductionPage,
+    ready_job_ids: array(positiveU64, 50),
+    settlement: literal("wallet_claim"),
+    next_cursor: nullable((v: unknown): string => {
+      check(
+        typeof v === "string" && /^[A-Za-z0-9_-]{1,1024}$/.test(v),
+        "Invalid production cursor",
+      );
+      return v;
+    }),
+  })(value);
+  check(
+    r.page.history_gap === BigInt(r.page.pruned_through) > 0n &&
+      r.page.has_more === (r.next_cursor !== null) &&
+      new Set(r.ready_job_ids).size === r.ready_job_ids.length &&
+      r.ready_job_ids.every((id) =>
+        r.page.items.some((j) => j.job_id === id && j.status === "running"),
+      ),
+    "Production read hint/history mismatch",
+  );
+  return r;
+}
+export function livingTownProductionRead(
+  value: unknown,
+): ReturnType<typeof decodeProductionRead> {
+  return decodeProductionRead(value);
 }
 const outcome = object({
   kind: literal("production_started"),

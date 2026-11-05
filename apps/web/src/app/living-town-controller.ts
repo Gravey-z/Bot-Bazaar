@@ -1,8 +1,11 @@
 import type { LivingTownAttempt } from "./living-town-transactions";
+import type {
+  TownTransactionMethod,
+  TownTransactionStatus,
+} from "./living-town-transactions";
 import { LivingTownIdentityError } from "@bot-bazaar/chain";
 import type {
-  LivingTownReceiptStatus,
-  LivingTownMethod,
+  livingTownProductionJob,
   livingTownPlayer,
   livingTownShop,
   livingTownLedger,
@@ -29,6 +32,11 @@ export interface TownObservation {
   ownershipKnown: boolean;
   source: "chain" | "projection";
   ownershipUrl: string | null;
+  production?: {
+    items: ReturnType<typeof livingTownProductionJob>[];
+    historyGap: boolean;
+  };
+  chainTimestampNs?: string;
 }
 export interface TownPort {
   accounts(): Promise<readonly { accountId: string }[]>;
@@ -39,13 +47,13 @@ export interface TownPort {
   browse(cursor: string | null, signal?: AbortSignal): Promise<TownShopPage>;
   prepare(
     account: string,
-    method: LivingTownMethod,
+    method: TownTransactionMethod,
     args: Record<string, unknown>,
   ): Promise<LivingTownAttempt>;
   submit(id: string): Promise<void>;
   pending(): Promise<LivingTownAttempt | null>;
   restore(): Promise<LivingTownAttempt | null>;
-  reconcile(): Promise<LivingTownReceiptStatus | null>;
+  reconcile(): Promise<TownTransactionStatus | null>;
   recoverHash(id: string, hash: string): Promise<void>;
   discardPrepared(id: string): Promise<void>;
 }
@@ -79,6 +87,8 @@ export const initialTownState: TownState = {
 };
 export function describeTownAttempt(a: LivingTownAttempt): string {
   const args = a.call.args;
+  if (a.call.method === "complete_production" && "job_id" in args)
+    return `Claim the whole output of production batch #${args.job_id}. No game gold reward; wallet fees use NEAR.`;
   if (a.call.method === "start_production" && "recipe_id" in args)
     return `Start ${args.quantity} ${args.recipe_id.replaceAll("_", " ")} in shop #${args.shop_id}, recipe version ${args.recipe_version}.`;
   if (a.call.method === "register_player")
@@ -382,7 +392,10 @@ export class LivingTownController {
   get canTransact(): boolean {
     return this.canAct();
   }
-  private canAct(): boolean {
+  get canClaim(): boolean {
+    return this.canAct(true);
+  }
+  private canAct(claim = false): boolean {
     return (
       !this.stopped &&
       !!this.port &&
@@ -395,18 +408,32 @@ export class LivingTownController {
       !this.value.observation.stale &&
       this.now() >= this.value.observation.receivedAt &&
       this.now() - this.value.observation.receivedAt <= 30000 &&
-      !this.value.observation.town.paused
+      (claim || !this.value.observation.town.paused)
     );
   }
   async act(
-    method: LivingTownMethod,
+    method: TownTransactionMethod,
     args: Record<string, unknown>,
   ): Promise<void> {
-    if (!this.canAct()) return;
+    if (!this.canAct(method === "complete_production")) return;
     this.epoch++;
     const account = this.value.accountId!,
       epoch = this.epoch,
       observation = this.value.observation!;
+    if (method === "complete_production") {
+      const job = observation.production?.items.find(
+        (j) => j.job_id === args["job_id"],
+      );
+      if (
+        !job ||
+        job.status !== "running" ||
+        job.owner.kind !== "player" ||
+        job.owner.account_id !== account ||
+        !observation.chainTimestampNs ||
+        BigInt(job.ready_at_ns) > BigInt(observation.chainTimestampNs)
+      )
+        return;
+    }
     if (method === "register_player" && observation.player) return;
     if (method === "create_shop" && (!observation.player || observation.shop))
       return;
@@ -512,7 +539,8 @@ export class LivingTownController {
       !this.value.transactionAvailable ||
       this.value.phase !== "ready" ||
       this.value.observation?.stale ||
-      this.value.observation?.town.paused ||
+      (a.call.method !== "complete_production" &&
+        this.value.observation?.town.paused) ||
       !this.value.observation?.ownershipKnown ||
       this.now() < this.value.observation.receivedAt ||
       this.now() - this.value.observation.receivedAt > 30000

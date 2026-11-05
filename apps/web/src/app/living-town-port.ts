@@ -12,6 +12,7 @@ import type {
   LivingTownProof,
   LivingTownIdentity,
   LivingTownCall,
+  livingTownProductionJob,
 } from "@bot-bazaar/chain";
 import type { LivingTownProfile } from "./living-town-profile";
 import type {
@@ -269,6 +270,10 @@ export function createLivingTownPort(
       });
       let shop: TownShop | null = null,
         ledger = player?.data?.ledger ?? null;
+      const production: {
+        items: ReturnType<typeof livingTownProductionJob>[];
+        historyGap: boolean;
+      } = { items: [], historyGap: false };
       if (player?.data?.shop_id) {
         const s = await reader.getShop(player.data.shop_id);
         if (
@@ -283,6 +288,26 @@ export function createLivingTownPort(
         if (inv.market_revision !== town.market_revision)
           throw new Error("Shop inventory revision mismatch");
         ledger = inv.data;
+        let after: string | null = null;
+        for (let n = 0; n < 6; n++) {
+          const page = await reader.getProductionJobs({
+            shop_id: shop.shop_id,
+            status: "all",
+            after_id: after,
+            limit: "50",
+            expected_market_revision: town.market_revision,
+          });
+          production.items.push(...page.data.items);
+          production.historyGap ||= page.data.history_gap;
+          if (!page.data.has_more) break;
+          if (
+            n === 5 ||
+            page.data.next_after_id === null ||
+            BigInt(page.data.next_after_id) <= BigInt(after ?? "0")
+          )
+            throw new Error("Production page bound exceeded");
+          after = page.data.next_after_id;
+        }
       }
       if (player && player.market_revision !== town.market_revision)
         throw new Error("Player revision mismatch");
@@ -296,6 +321,8 @@ export function createLivingTownPort(
         receivedAt: Date.now(),
         stale: false,
         ownershipKnown: account !== null,
+        production,
+        chainTimestampNs: reader.block.timestampNs,
         source: "chain",
         ownershipUrl:
           account && shop ? await ownership(account, shop, readClient) : null,
@@ -371,6 +398,8 @@ export function createLivingTownPort(
       };
     },
     async prepare(account, method, args) {
+      if (method === "complete_production")
+        return journal.prepare(account, method, args);
       const reader = await client.finalized(),
         lookup = await reader.getCommand(account, "18446744073709551615");
       const high = lookup.data.high_water;
@@ -396,6 +425,7 @@ export function createLivingTownPort(
       const status = await journal.refresh();
       if (
         attempt &&
+        attempt.call.method !== "complete_production" &&
         status?.kind === "succeeded" &&
         status.result.data.outcome.kind === "shop_created"
       ) {

@@ -2,6 +2,7 @@ import { isAbsolute, resolve } from "node:path";
 import { lstatSync, readFileSync } from "node:fs";
 import {
   createLivingTownCall,
+  createLivingTownCompletionCall,
   parseLivingTownIdentity,
   parseLivingTownJson,
   parseU64,
@@ -10,6 +11,7 @@ import type {
   LivingTownIdentity,
   LivingTownMethod,
   LivingTownProof,
+  LivingTownCompletionProof,
 } from "@bot-bazaar/chain";
 import { parsePublicConfig } from "@bot-bazaar/shared";
 import type { PublicConfig } from "@bot-bazaar/shared";
@@ -98,7 +100,7 @@ export function parseLivingTownWorkerConfig(
 export function readReceiptInbox(
   path: string,
   identity: LivingTownIdentity,
-): LivingTownProof[] {
+): (LivingTownProof | LivingTownCompletionProof)[] {
   const value = exact(readBoundedFile(path, 262144), ["schema", "requests"]);
   if (
     value["schema"] !== "living-town-receipt-inbox-v1" ||
@@ -119,12 +121,20 @@ export function readReceiptInbox(
       typeof r["signer_id"] !== "string"
     )
       throw new Error("invalid receipt identity");
-    return {
+    const base = {
       transactionHash: r["transaction_hash"],
       signerId: r["signer_id"],
       deployment: identity.deployment,
-      call: createLivingTownCall(r["method"] as LivingTownMethod, r["args"]),
       referenceBlockHeight: parseU64(r["reference_block_height"]),
     };
+    return r["method"] === "complete_production"
+      ? { ...base, call: createLivingTownCompletionCall(r["args"]) }
+      : {
+          ...base,
+          call: createLivingTownCall(
+            r["method"] as LivingTownMethod,
+            r["args"],
+          ),
+        };
   });
 }

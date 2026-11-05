@@ -627,12 +627,55 @@
             @case ("production") {
               <div class="coming-later">
                 <span aria-hidden="true">✦</span>
-                <h3>Your workshop is next.</h3>
+                <h3>Your workshop</h3>
                 <p>
-                  Production controls and job history are coming later. Check
-                  Inventory for confirmed items and reserved output capacity.
+                  Starting new batches is coming next. Claim submits a wallet
+                  transaction for the whole batch and costs a NEAR network fee.
+                  Inventory changes only after finalized settlement.
                 </p>
                 <p>{{ productionPolicy }}</p>
+                @if (state().observation?.production; as production) {
+                  @for (job of production.items; track job.job_id) {
+                    <article>
+                      <h4>
+                        Batch #{{ job.job_id }} ·
+                        {{ itemName(job.output_item) }} ×
+                        {{ job.output_quantity }}
+                      </h4>
+                      <p>
+                        {{
+                          job.status === "completed"
+                            ? "Completed — finalized settlement"
+                            : isReady(job)
+                              ? "Ready — awaiting settlement"
+                              : "Running — refresh for network readiness"
+                        }}
+                      </p>
+                      @if (job.status === "running") {
+                        <button
+                          type="button"
+                          class="primary"
+                          [disabled]="!canClaim(job)"
+                          (click)="claim(job.job_id)"
+                        >
+                          Claim batch #{{ job.job_id }}
+                        </button>
+                      }
+                    </article>
+                  } @empty {
+                    <p>
+                      No retained production batches in this finalized snapshot.
+                    </p>
+                  }
+                  @if (production.historyGap) {
+                    <p>
+                      Older completed batches have been pruned. This is retained
+                      history, not a complete archive.
+                    </p>
+                  }
+                } @else {
+                  <p>Production jobs have not been loaded.</p>
+                }
               </div>
             }
             @case ("history") {

@@ -1,4 +1,4 @@
-import { object, positiveU64, boolean, check } from "../wire.js";
+import { object, positiveU64, boolean, check, accountId } from "../wire.js";
 import { livingTownProductionJob } from "./production.js";
 import {
   livingTownLedger,
@@ -50,6 +50,42 @@ const effect = object({
 export type LivingTownCompletionCall = ReturnType<
   typeof createLivingTownCompletionCall
 >;
+export function livingTownCompletionWalletRequest(
+  contractId: string,
+  signerId: string,
+  input: LivingTownCompletionCall,
+): {
+  network: "testnet";
+  signerId: string;
+  receiverId: string;
+  actions: {
+    type: "FunctionCall";
+    params: {
+      methodName: "complete_production";
+      args: LivingTownCompletionCall["args"];
+      gas: typeof livingTownGas;
+      deposit: "0";
+    };
+  }[];
+} {
+  const call = createLivingTownCompletionCall(input.args);
+  return {
+    network: "testnet" as const,
+    signerId: accountId(signerId),
+    receiverId: accountId(contractId),
+    actions: [
+      {
+        type: "FunctionCall" as const,
+        params: {
+          methodName: call.method,
+          args: call.args,
+          gas: call.gas,
+          deposit: call.deposit,
+        },
+      },
+    ],
+  };
+}
 export type LivingTownCompletionProof =
   LivingTownReceiptProof<LivingTownCompletionCall>;
 export type LivingTownCompletionResult = ReturnType<

@@ -7,6 +7,9 @@ import {
   createLivingTownCall,
   livingTownCommandDigest,
   verifyLivingTownReceipt,
+  verifyLivingTownCompletionReceipt,
+  createLivingTownCompletionCall,
+  livingTownCompletionWalletRequest,
   parseLivingTownWebProfile,
 } from "../../packages/chain/dist/index.js";
 
@@ -94,6 +97,226 @@ const {
   `data:text/javascript;base64,${Buffer.from(result.outputFiles[0].contents).toString("base64")}`
 );
 const copy = (v) => structuredClone(v);
+const completionCapture = JSON.parse(
+  readFileSync(
+    "tests/fixtures/chain/living-town-completion-sandbox.json",
+    "utf8",
+  ),
+);
+function claimHarness({
+  send = async () => ({
+    transaction: { hash: completionCapture.steps[1].transaction_hash },
+  }),
+  storage = memoryStorage(),
+  lock = async (_name, work) => work(),
+} = {}) {
+  const step = completionCapture.steps[1],
+    foundation = step.foundation;
+  const identity = {
+    deployment: foundation.deployment,
+    codeHash: step.account.code_hash,
+    ownerId: foundation.data.owner_account_id,
+    operatorId: foundation.data.operator_account_id,
+    controllers: foundation.data.merchant_controllers,
+  };
+  const job = copy(completionCapture.before.shops[0].jobs.data.items[0]);
+  let timestamp = step.block.header.timestamp_nanosec,
+    receiptAvailable = true;
+  const client = {
+    identity,
+    finalized: async () => ({
+      block: { height: step.reference_block_height, timestampNs: timestamp },
+      getPlayer: async () => ({
+        market_revision: completionCapture.before.town.market_revision,
+        data: { shop_id: "4" },
+      }),
+      getProductionJobs: async () => ({ data: { items: [job] } }),
+    }),
+    completionReceipt: async (proof) => {
+      if (!receiptAvailable) throw Error("receipt unavailable");
+      // Controlled receipt-client result for an owner journal. The captured
+      // permissionless settlement was signed by a keeper, verified separately
+      // using its original signer; this is not an actual owner wallet capture.
+      assert.equal(proof.signerId, job.owner.account_id);
+      return verifyLivingTownCompletionReceipt(
+        step.receipt,
+        { ...proof, signerId: step.signer_id },
+        async () => block(step),
+      );
+    },
+  };
+  return {
+    job,
+    client,
+    storage,
+    step,
+    account: job.owner.account_id,
+    setTime(v) {
+      timestamp = v;
+    },
+    offline() {
+      receiptAvailable = false;
+    },
+    online() {
+      receiptAvailable = true;
+    },
+    journal: () =>
+      new LivingTownTransactions(client, storage, send, lock, () => id),
+  };
+}
+
+test("wallet Claim preserves one durable non-command attempt across unknown handoff, reload and receipt outage", async () => {
+  let signatures = 0;
+  const h = claimHarness({
+    send: async (_account, call) => {
+      signatures++;
+      assert.equal(call.method, "complete_production");
+      assert.deepEqual(Object.keys(call.args), ["job_id"]);
+      throw Error("lost wallet result");
+    },
+  });
+  let journal = h.journal();
+  const attempt = await journal.prepare(h.account, "complete_production", {
+    job_id: "1",
+  });
+  assert.match(describeTownAttempt(attempt), /Claim.*#1/);
+  await journal.submit(attempt.id);
+  assert.equal((await journal.read()).phase, "unknown");
+  journal = h.journal();
+  assert.equal((await journal.restore()).digest, attempt.digest);
+  assert.equal(await journal.refresh(), null);
+  await assert.rejects(
+    journal.prepare(h.account, "complete_production", { job_id: "1" }),
+  );
+  await assert.rejects(journal.submit(attempt.id));
+  await journal.recoverHash(attempt.id, h.step.transaction_hash);
+  h.offline();
+  await assert.rejects(journal.refresh(), /unavailable/);
+  assert.equal((await journal.read()).transactionHash, h.step.transaction_hash);
+  h.online();
+  const status = await journal.refresh();
+  assert.equal(status.kind, "succeeded");
+  assert.equal(status.result.data.outcome.job.status, "completed");
+  assert.equal(await journal.read(), null);
+  assert.equal((await journal.last()).phase, "confirmed");
+  assert.equal(signatures, 1);
+});
+
+test("Claim admission rejects early, foreign and settled jobs; two tabs share the command journal lock", async () => {
+  let queue = Promise.resolve(),
+    signatures = 0;
+  const lock = (_name, work) => {
+    const next = queue.then(work);
+    queue = next.catch(() => {});
+    return next;
+  };
+  const h = claimHarness({
+    lock,
+    send: async () => {
+      signatures++;
+      return {
+        transaction: { hash: completionCapture.steps[1].transaction_hash },
+      };
+    },
+  });
+  const a = h.journal(),
+    b = h.journal();
+  h.setTime((BigInt(h.job.ready_at_ns) - 1n).toString());
+  await assert.rejects(
+    a.prepare(h.account, "complete_production", { job_id: "1" }),
+  );
+  assert.equal(await a.read(), null);
+  h.setTime(h.job.ready_at_ns);
+  await assert.rejects(
+    a.prepare("other.testnet", "complete_production", { job_id: "1" }),
+  );
+  await assert.rejects(
+    a.prepare(h.account, "complete_production", { job_id: "999" }),
+  );
+  const prepared = await a.prepare(h.account, "complete_production", {
+    job_id: "1",
+  });
+  await assert.rejects(b.prepare(h.account, "register_player", {}));
+  const results = await Promise.allSettled([
+    a.submit(prepared.id),
+    b.submit(prepared.id),
+  ]);
+  assert.equal(results.filter((r) => r.status === "fulfilled").length, 1);
+  assert.equal(signatures, 1);
+  await b.refresh();
+  assert.equal(await a.read(), null);
+  h.job.status = "completed";
+  // The real reader filters completed rows; simulate the running filter here.
+  h.client.finalized = async () => ({
+    block: { height: "100", timestampNs: h.job.ready_at_ns },
+    getPlayer: async () => ({ market_revision: "1", data: { shop_id: "4" } }),
+    getProductionJobs: async () => ({ data: { items: [] } }),
+  });
+  await assert.rejects(
+    a.prepare(h.account, "complete_production", { job_id: "1" }),
+  );
+  const request = livingTownCompletionWalletRequest(
+    h.client.identity.deployment.contract_id,
+    h.account,
+    createLivingTownCompletionCall({ job_id: "1" }),
+  );
+  assert.deepEqual(request.actions[0].params.args, { job_id: "1" });
+  assert.equal(request.actions[0].params.deposit, "0");
+  assert.equal(request.actions[0].params.methodName, "complete_production");
+});
+
+test("owner Claim is available during pause but needs fresh finalized readiness and never credits output optimistically", async () => {
+  const h = harness();
+  h.setStage(2);
+  h.setAccounts([f.player_id]);
+  const job = {
+    ...copy(completionCapture.before.shops[0].jobs.data.items[0]),
+    owner: { kind: "player", account_id: f.player_id },
+  };
+  const originalRead = h.port.read;
+  let timestamp = (BigInt(job.ready_at_ns) - 1n).toString(),
+    paused = true,
+    signatures = 0;
+  h.port.read = async (account) => {
+    const o = await originalRead(account);
+    return {
+      ...o,
+      town: { ...o.town, paused },
+      production: { items: [job], historyGap: false },
+      chainTimestampNs: timestamp,
+    };
+  };
+  h.port.prepare = async (account, method, args) => ({
+    id,
+    accountId: account,
+    call: createLivingTownCompletionCall(args),
+    digest: "a".repeat(64),
+    referenceBlockHeight: "1",
+    phase: "prepared",
+    transactionHash: null,
+    hashSource: null,
+  });
+  h.port.submit = async () => {
+    signatures++;
+  };
+  await h.c.start();
+  assert.equal(h.c.canTransact, false);
+  assert.equal(h.c.canClaim, true);
+  await h.c.act("complete_production", { job_id: "1" });
+  assert.equal(signatures, 0);
+  timestamp = job.ready_at_ns;
+  await h.c.refresh();
+  const gold = h.c.state.observation.ledger.gold.held;
+  await h.c.act("complete_production", { job_id: "1" });
+  assert.equal(signatures, 1);
+  assert.equal(h.c.state.observation.ledger.gold.held, gold);
+  assert.equal(h.c.state.observation.production.items[0].status, "running");
+  // A stale local clock disables signing and never declares completion.
+  paused = false;
+  h.advanceClock(30001);
+  assert.equal(h.c.canClaim, false);
+  h.c.stop();
+});
 const id = "00000000-0000-4000-8000-000000000001";
 function harness() {
   let stage = 0,
@@ -578,6 +801,17 @@ function receiptRpc(transform = ({ data }) => data) {
             );
         } else if (p.method_name === "get_shop_inventory")
           snapshot = copy(f.final_views.get_shop_inventory);
+        else if (p.method_name === "get_production_jobs")
+          snapshot = {
+            ...copy(f.final_views.get_town),
+            data: {
+              items: [],
+              next_after_id: null,
+              has_more: false,
+              history_gap: false,
+              pruned_through: "0",
+            },
+          };
         else if (p.method_name === "get_listings")
           snapshot = {
             ...copy(f.final_views.get_town),

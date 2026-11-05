@@ -14,6 +14,7 @@ export interface ReadCapabilities {
     town: () => unknown;
     shop: (id: string) => unknown;
     inventory: (id: string) => unknown;
+    production: (id: string, after: string | null, limit: number) => unknown;
   }>;
 }
 // Only read capabilities enter the HTTP handler. Provider, scheduler, credentials
@@ -82,10 +83,13 @@ export function createReadHandler(
       const url = new URL(raw, "http://worker.invalid");
       if (url.origin !== "http://worker.invalid" || url.hash !== "")
         throw new ReadApiError(400, "invalid_query");
-      const shopRoute = /^\/api\/shops\/([1-9][0-9]{0,19})(\/inventory)?$/.exec(
-        url.pathname,
-      );
+      const shopRoute =
+        /^\/api\/shops\/([1-9][0-9]{0,19})(\/(?:inventory|production))?$/.exec(
+          url.pathname,
+        );
       const townRoute = url.pathname === "/api/town";
+      const productionRoute =
+        !!read.livingTown && shopRoute?.[2] === "/production";
       const projectionRoute = !!read.livingTown && (townRoute || !!shopRoute);
       if (projectionRoute && raw.split("?")[0] !== url.pathname)
         throw new ReadApiError(400, "invalid_query");
@@ -121,7 +125,7 @@ export function createReadHandler(
       }
       // Validate the query even for preflight, before any read callback.
       if (
-        url.pathname === "/health" || projectionRoute
+        url.pathname === "/health" || (projectionRoute && !productionRoute)
           ? [...url.searchParams].length !== 0
           : [...url.searchParams.keys()].some(
               (key) => key !== "after" && key !== "limit",
@@ -132,6 +136,13 @@ export function createReadHandler(
         throw new ReadApiError(400, "invalid_query");
       const limitText = url.searchParams.get("limit") ?? "20";
       if (!/^[1-9][0-9]?$/.test(limitText) || Number(limitText) > 50)
+        throw new ReadApiError(400, "invalid_query");
+      const productionAfter = url.searchParams.get("after");
+      if (
+        productionRoute &&
+        productionAfter !== null &&
+        !/^[A-Za-z0-9_-]{1,1024}$/.test(productionAfter)
+      )
         throw new ReadApiError(400, "invalid_query");
       if (request.method === "OPTIONS") {
         const method = request.headers["access-control-request-method"],
@@ -164,9 +175,15 @@ export function createReadHandler(
       } else if (projectionRoute) {
         value = townRoute
           ? read.livingTown!.town()
-          : shopRoute![2]
-            ? read.livingTown!.inventory(shopRoute![1]!)
-            : read.livingTown!.shop(shopRoute![1]!);
+          : productionRoute
+            ? read.livingTown!.production(
+                shopRoute![1]!,
+                productionAfter,
+                Number(limitText),
+              )
+            : shopRoute![2]
+              ? read.livingTown!.inventory(shopRoute![1]!)
+              : read.livingTown!.shop(shopRoute![1]!);
         status = 200;
       } else {
         value = read.activity(

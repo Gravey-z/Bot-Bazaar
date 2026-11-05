@@ -55,14 +55,32 @@ const block = (v) => ({
   height: String(v.header.height),
   timestampNs: v.header.timestamp_nanosec,
 });
+const emptyProduction = (town) =>
+  Array.from({ length: Number(town.data.next_shop_id) - 1 }, (_, i) => ({
+    shopId: String(i + 1),
+    pages: [
+      {
+        ...town,
+        data: {
+          items: [],
+          next_after_id: null,
+          has_more: false,
+          history_gap: false,
+          pruned_through: "0",
+        },
+      },
+    ],
+  }));
 const initial = {
   town: captured.initial_town,
   block: block(captured.initial_block),
   shops: [],
+  production: emptyProduction(captured.initial_town),
 };
 const final = {
   town: captured.final_views.get_town,
   block: block(captured.final_block),
+  production: emptyProduction(captured.final_views.get_town),
   shops: [
     {
       shop: captured.final_views.get_shop,
@@ -116,7 +134,7 @@ function fixture(t, baseline = initial) {
   return f;
 }
 
-test("V2 migration initializes only its own schema and rejects mismatched or future state", (t) => {
+test("V2 disposable projection initializes only its own schema and rejects mismatched or future state", (t) => {
   const f = fixture(t, null);
   assert.throws(() => f.store.town(now), /read_unavailable/);
   assert.throws(() => f.store.shopView("4", now), /read_unavailable/);
@@ -135,14 +153,14 @@ test("V2 migration initializes only its own schema and rejects mismatched or fut
     /mismatch/,
   );
   const future = new DatabaseSync(f.store.path);
-  future.exec("PRAGMA user_version=2");
+  future.exec("PRAGMA user_version=99");
   future.close();
   assert.throws(
     () => new LivingTownProjectionStore(f.dir, identity),
     /unsupported projection schema/,
   );
   const reset = new DatabaseSync(f.store.path);
-  reset.exec("PRAGMA user_version=1");
+  reset.exec("PRAGMA user_version=2");
   reset.close();
   f.restart();
   assert.throws(
@@ -406,6 +424,10 @@ test("production starts retain a visible gap until coherent snapshot recovery wi
     town: s.town,
     block: block(s.block),
     shops: s.shops.map((r) => ({ shop: r.shop, ledger: r.ledger })),
+    production: [
+      ...emptyProduction(s.town).slice(0, 3),
+      ...s.shops.map((r) => ({ shopId: r.shop.data.shop_id, pages: [r.jobs] })),
+    ],
   });
   store.baseline(baseline(p.before), now);
   const step = p.steps[0],
@@ -467,6 +489,10 @@ test("completion snapshot recovery credits finalized output and preserves a newe
     town: s.town,
     block: block(s.block),
     shops: s.shops.map((r) => ({ shop: r.shop, ledger: r.ledger })),
+    production: [
+      ...emptyProduction(s.town).slice(0, 3),
+      ...s.shops.map((r) => ({ shopId: r.shop.data.shop_id, pages: [r.jobs] })),
+    ],
   });
   store.baseline(baseline(p.before), now);
   assert.equal(
@@ -509,6 +535,8 @@ test("projector verifies receipt evidence, deduplicates before RPC and bounds co
     getTown: async () => snapshot.town,
     getShop: async () => snapshot.shops[0].shop,
     getShopInventory: async () => snapshot.shops[0].ledger,
+    getProductionJobs: async (args) =>
+      snapshot.production.find((r) => r.shopId === args.shop_id).pages[0],
   });
   const client = {
     identity,
@@ -554,6 +582,8 @@ test("public HTTP town, shop and inventory reads expose freshness/version but no
         town: () => f.store.town(now),
         shop: (id) => f.store.shopView(id, now),
         inventory: (id) => f.store.inventory(id, now),
+        production: (id, after, limit) =>
+          f.store.production(id, after, limit, now),
       }),
       sign: () => {
         throw Error("must not sign");
@@ -718,6 +748,7 @@ globalThis.fetch=async(_url,options)=>{
    else if(p.method_name==='get_town')s=structuredClone(input.final.town);
    else if(p.method_name==='get_shop')s=structuredClone(input.final.shops[0].shop);
    else if(p.method_name==='get_shop_inventory')s=structuredClone(input.final.shops[0].ledger);
+   else if(p.method_name==='get_production_jobs')s=structuredClone(input.final.production[0].pages[0]);
    else throw Error('unexpected read');
    s.deployment=input.identity.deployment;s.block_height=input.final.block.height;s.block_timestamp_ns=input.final.block.timestampNs;s.market_revision=input.final.town.market_revision;s.event_sequence=input.final.town.event_sequence;
    result={block_hash:input.final.block.hash,block_height:input.final.block.height,result:Array.from(Buffer.from(JSON.stringify(s)))};

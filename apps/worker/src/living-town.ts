@@ -62,6 +62,8 @@ const server = createReadServer(
       town: () => store.town(),
       shop: (id: string) => store.shopView(id),
       inventory: (id: string) => store.inventory(id),
+      production: (id: string, after: string | null, limit: number) =>
+        store.production(id, after, limit),
     }),
   },
   config.boundary,

@@ -22,11 +22,15 @@ import {
   livingTownReadEnvelope,
   parseU64,
   decodeLivingTownSnapshot,
+  livingTownProductionJob,
+  livingTownProductionPage,
+  livingTownProductionRead,
 } from "@bot-bazaar/chain";
 import type {
   FinalizedBlock,
   LivingTownIdentity,
   LivingTownIndexedReceipt,
+  LivingTownIndexedCompletion,
   LivingTownCheckpoint,
 } from "@bot-bazaar/chain";
 import { ReadApiError } from "../activity/repository.js";
@@ -34,11 +38,18 @@ import { projectionSchema } from "./schema.js";
 type Town = ReturnType<typeof livingTownTown>;
 type Shop = ReturnType<typeof livingTownShop>;
 type Ledger = ReturnType<typeof livingTownLedger>;
+type Job = ReturnType<typeof livingTownProductionJob>;
+type Indexed = LivingTownIndexedReceipt | LivingTownIndexedCompletion;
+type Effect = Extract<Indexed["status"], { kind: "succeeded" }>["result"];
 type Snapshot<T> = ReturnType<ReturnType<typeof livingTownSnapshot<T>>>;
 export interface ProjectionBaseline {
   block: FinalizedBlock;
   town: Snapshot<Town>;
   shops: { shop: Snapshot<Shop>; ledger: Snapshot<Ledger> }[];
+  production: {
+    shopId: string;
+    pages: Snapshot<ReturnType<typeof livingTownProductionPage>>[];
+  }[];
 }
 interface State {
   town: Snapshot<Town>;
@@ -125,7 +136,11 @@ export class LivingTownProjectionStore {
             .prepare("INSERT INTO projection_identity VALUES(1,?)")
             .run(json(this.identity));
         });
-      } else requireValue(version === 1, "unsupported projection schema");
+      } else
+        requireValue(
+          version === 2,
+          "unsupported projection schema; initialize a fresh disposable read projection",
+        );
       requireValue(
         this.db.prepare("PRAGMA integrity_check").get()!["integrity_check"] ===
           "ok" &&
@@ -228,7 +243,11 @@ export class LivingTownProjectionStore {
       )
       .run(s.shop_id, owner(s), json(s));
   }
-  baseline(input: ProjectionBaseline, now = Date.now()): void {
+  baseline(
+    input: ProjectionBaseline,
+    now = Date.now(),
+    preserveGeneration = false,
+  ): void {
     const t = decodeLivingTownSnapshot(
         input.town,
         this.identity.deployment,
@@ -251,6 +270,11 @@ export class LivingTownProjectionStore {
           BigInt(prior.checkpoint.through_event_sequence) &&
           BigInt(t.event_sequence) >= BigInt(prior.latestSeen)),
       "projection cannot rewind",
+    );
+    requireValue(
+      !prior ||
+        BigInt(b.height) >= BigInt(prior.checkpoint.finalized_block_height),
+      "projection block cannot rewind",
     );
     const entries = input.shops.map((row, i) => {
       const shop = decodeLivingTownSnapshot(
@@ -277,10 +301,102 @@ export class LivingTownProjectionStore {
       );
       return { shop: shop.data, ledger: ledger.data };
     });
+    const all = [
+      ...t.data.npc_shops.map((shop, i) => ({
+        shop,
+        ledger: t.data.npc_ledgers[i]!,
+      })),
+      ...entries,
+    ];
+    const jobs: Job[] = [];
+    let pruned: string | undefined;
+    requireValue(
+      input.production.length === all.length,
+      "incomplete production baseline",
+    );
+    input.production.forEach((group, i) => {
+      const entry = all[i]!;
+      requireValue(
+        group.shopId === entry.shop.shop_id &&
+          group.pages.length >= 1 &&
+          group.pages.length <= 6,
+        "production shop/page mismatch",
+      );
+      let after = 0n;
+      const current: Job[] = [];
+      group.pages.forEach((raw, n) => {
+        const p = decodeLivingTownSnapshot(
+          raw,
+          this.identity.deployment,
+          livingTownProductionPage,
+        );
+        requireValue(
+          p.market_revision === t.market_revision &&
+            p.event_sequence === t.event_sequence &&
+            p.block_height === b.height &&
+            p.block_timestamp_ns === b.timestampNs,
+          "production baseline block/revision mismatch",
+        );
+        requireValue(
+          p.data.has_more === n < group.pages.length - 1 &&
+            p.data.history_gap === BigInt(p.data.pruned_through) > 0n,
+          "incomplete production pagination",
+        );
+        pruned ??= p.data.pruned_through;
+        requireValue(
+          pruned === p.data.pruned_through,
+          "production history mismatch",
+        );
+        for (const job of p.data.items) {
+          requireValue(
+            BigInt(job.job_id) > after &&
+              job.shop_id === group.shopId &&
+              json(job.owner) === json(entry.shop.owner) &&
+              BigInt(job.start_at_ns) <= BigInt(b.timestampNs) &&
+              (job.completed_at_ns === null ||
+                BigInt(job.completed_at_ns) <= BigInt(b.timestampNs)),
+            "production job identity/order/time mismatch",
+          );
+          after = BigInt(job.job_id);
+          current.push(job);
+        }
+        if (p.data.has_more)
+          requireValue(
+            p.data.next_after_id !== null &&
+              BigInt(p.data.next_after_id) >= after &&
+              BigInt(p.data.next_after_id) > 0n,
+            "production cursor mismatch",
+          );
+      });
+      const running = current.filter((j) => j.status === "running");
+      requireValue(
+        running.length <= Number(entry.shop.production_slots),
+        "production active slot mismatch",
+      );
+      for (const item of Object.keys(
+        entry.ledger.inventory.production_output_reserved,
+      ) as (keyof Ledger["inventory"]["production_output_reserved"])[]) {
+        const reserved = running
+          .filter((j) => j.output_item === item)
+          .reduce((sum, j) => sum + BigInt(j.output_quantity), 0n);
+        requireValue(
+          reserved ===
+            BigInt(entry.ledger.inventory.production_output_reserved[item]),
+          "production promise mismatch",
+        );
+      }
+      jobs.push(...current);
+    });
+    requireValue(
+      new Set(jobs.map((j) => j.job_id)).size === jobs.length &&
+        jobs.filter((j) => j.status === "running").length <= 1003 &&
+        jobs.filter((j) => j.status === "completed").length <= 256,
+      "production global bound/identity mismatch",
+    );
     this.capacity();
     this.transaction(() => {
       this.db.exec(
-        "DELETE FROM projection_shops; DELETE FROM projection_ledgers;",
+        "DELETE FROM production_jobs; DELETE FROM production_history; DELETE FROM projection_shops; DELETE FROM projection_ledgers;",
       );
       t.data.npc_ledgers.forEach((l) => this.ledger(l));
       t.data.npc_shops.forEach((s) => this.shop(s));
@@ -288,6 +404,10 @@ export class LivingTownProjectionStore {
         this.ledger(row.ledger);
         this.shop(row.shop);
       }
+      for (const job of jobs) this.job(job);
+      this.db
+        .prepare("INSERT INTO production_history VALUES(1,?)")
+        .run(pruned ?? "0");
       const d = this.identity.deployment;
       const checkpoint: LivingTownCheckpoint = {
         network_id: d.network_id,
@@ -305,7 +425,11 @@ export class LivingTownProjectionStore {
         last_log_index: null,
         history_complete: false,
         gap_from_sequence: prior?.checkpoint.gap_from_sequence ?? parseU64("1"),
-        feed_generation: randomUUID(),
+        feed_generation:
+          preserveGeneration &&
+          prior?.checkpoint.baseline_event_sequence === t.event_sequence
+            ? prior.checkpoint.feed_generation
+            : randomUUID(),
       };
       this.save({
         town: t,
@@ -327,10 +451,7 @@ export class LivingTownProjectionStore {
     );
     return true;
   }
-  commit(
-    receipt: LivingTownIndexedReceipt,
-    now = Date.now(),
-  ): "duplicate" | "indexed" {
+  commit(receipt: Indexed, now = Date.now()): "duplicate" | "indexed" {
     const s = this.state();
     requireValue(s, "projection baseline required");
     const { status, proof } = receipt;
@@ -397,12 +518,7 @@ export class LivingTownProjectionStore {
           .get(next);
         if (!row) break;
         const p = JSON.parse(String(row["payload"])) as {
-          result: Snapshot<
-            Extract<
-              LivingTownIndexedReceipt["status"],
-              { kind: "succeeded" }
-            >["result"]["data"]
-          >;
+          result: Effect;
           block: FinalizedBlock;
           receiptId: string;
           logIndex: string;
@@ -444,18 +560,19 @@ export class LivingTownProjectionStore {
       .get(key);
     return r ? livingTownLedger(parseLivingTownJson(String(r["body"]))) : null;
   }
-  private apply(
-    s: State,
-    result: Extract<
-      LivingTownIndexedReceipt["status"],
-      { kind: "succeeded" }
-    >["result"],
-  ): boolean {
+  private job(value: Job): void {
+    const j = livingTownProductionJob(value);
+    this.db
+      .prepare("INSERT INTO production_jobs VALUES(?,?,?,?)")
+      .run(j.job_id, j.shop_id, j.status, json(j));
+  }
+  private apply(s: State, result: Effect): boolean {
     const o = result.data.outcome,
       t = s.town.data;
-    // Until P2.5 indexes jobs, retain this verified event behind a gap and
-    // rebuild current ledgers from a coherent finalized snapshot.
-    if (o.kind === "production_started") return false;
+    // Settlement/retention reads are rebuilt at one finalized block. Preserve a
+    // visible gap until jobs, shop revisions and ledgers can advance together.
+    if (o.kind === "production_started" || o.kind === "production_completed")
+      return false;
     if (o.kind === "player_registered") {
       requireValue(
         !this.readLedger(`account:${o.player.account_id}`),
@@ -625,6 +742,105 @@ export class LivingTownProjectionStore {
     const l = this.readLedger(owner(shop.snapshot.data));
     requireValue(l, "missing referenced shop ledger");
     return this.envelope(l, livingTownLedger, now);
+  }
+  production(
+    id: string,
+    after: string | null = null,
+    limit = 20,
+    now = Date.now(),
+  ): ReturnType<
+    ReturnType<
+      typeof livingTownReadEnvelope<ReturnType<typeof livingTownProductionRead>>
+    >
+  > {
+    this.shopView(id, now);
+    const s = this.state()!;
+    let afterId = "0";
+    if (after !== null) {
+      try {
+        requireValue(/^[A-Za-z0-9_-]{1,1024}$/.test(after));
+        const c = parseLivingTownJson(
+          Buffer.from(after, "base64url").toString("utf8"),
+        ) as {
+          generation: string;
+          blockHash: string;
+          shopId: string;
+          afterId: string;
+        };
+        requireValue(
+          Object.keys(c).sort().join() ===
+            "afterId,blockHash,generation,shopId" &&
+            c.shopId === id &&
+            parseU64(c.afterId) === c.afterId &&
+            Buffer.from(json(c)).toString("base64url") === after,
+        );
+        if (
+          c.generation !== s.checkpoint.feed_generation ||
+          c.blockHash !== s.checkpoint.finalized_block_hash
+        )
+          throw new ReadApiError(409, "feed_generation_mismatch");
+        afterId = c.afterId;
+      } catch (error) {
+        if (error instanceof ReadApiError) throw error;
+        throw new ReadApiError(400, "invalid_query");
+      }
+    }
+    requireValue(
+      Number.isInteger(limit) && limit >= 1 && limit <= 50,
+      "invalid production limit",
+    );
+    const rows = this.db
+      .prepare(
+        "SELECT body FROM production_jobs WHERE shop_id=? ORDER BY length(job_id),job_id",
+      )
+      .all(id);
+    const remaining = rows
+      .map((r) =>
+        livingTownProductionJob(parseLivingTownJson(String(r["body"]))),
+      )
+      .filter((j) => BigInt(j.job_id) > BigInt(afterId));
+    const items = remaining.slice(0, limit);
+    const pruned = String(
+      this.db
+        .prepare(
+          "SELECT pruned_through FROM production_history WHERE singleton=1",
+        )
+        .get()!["pruned_through"],
+    );
+    return this.envelope(
+      {
+        page: {
+          items,
+          next_after_id:
+            items.at(-1)?.job_id ??
+            (afterId === "0" ? null : parseU64(afterId)),
+          has_more: remaining.length > items.length,
+          history_gap: BigInt(pruned) > 0n,
+          pruned_through: parseU64(pruned),
+        },
+        next_cursor:
+          remaining.length > items.length
+            ? Buffer.from(
+                json({
+                  generation: s.checkpoint.feed_generation,
+                  blockHash: s.checkpoint.finalized_block_hash,
+                  shopId: id,
+                  afterId: items.at(-1)!.job_id,
+                }),
+              ).toString("base64url")
+            : null,
+        ready_job_ids: items
+          .filter(
+            (j) =>
+              j.status === "running" &&
+              BigInt(j.ready_at_ns) <= BigInt(s.town.block_timestamp_ns),
+          )
+          .map((j) => j.job_id),
+        settlement: "wallet_claim" as const,
+      },
+      livingTownProductionRead,
+      now,
+    );
   }
   cursor(): LivingTownCheckpoint | null {
     return this.state()?.checkpoint ?? null;

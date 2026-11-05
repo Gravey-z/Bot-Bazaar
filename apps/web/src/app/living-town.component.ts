@@ -17,7 +17,10 @@ import {
 } from "./living-town-controller";
 import { createLivingTownPort, townTransactionUrl } from "./living-town-port";
 import type { TownState } from "./living-town-controller";
-import type { livingTownListing } from "@bot-bazaar/chain";
+import type {
+  livingTownListing,
+  livingTownProductionJob,
+} from "@bot-bazaar/chain";
 
 @Injectable()
 export class LivingTownScreen {
@@ -225,6 +228,22 @@ export class LivingTownComponent implements OnInit, OnDestroy {
         expected_shop_revision: s.revision,
         name: this.renameName(),
       });
+  }
+  protected canClaim(job: ReturnType<typeof livingTownProductionJob>): boolean {
+    return (
+      this.screen.controller.canClaim && !this.reserved() && this.isReady(job)
+    );
+  }
+  protected isReady(job: ReturnType<typeof livingTownProductionJob>): boolean {
+    const timestamp = this.state().observation?.chainTimestampNs;
+    return (
+      job.status === "running" &&
+      !!timestamp &&
+      BigInt(timestamp) >= BigInt(job.ready_at_ns)
+    );
+  }
+  protected claim(id: string): void {
+    void this.screen.controller.act("complete_production", { job_id: id });
   }
   protected moveTab(event: KeyboardEvent, index: number): void {
     const next =

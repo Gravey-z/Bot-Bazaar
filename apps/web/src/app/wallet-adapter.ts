@@ -3,8 +3,14 @@ import {
   LivingTownClient,
   createLivingTownCall,
   livingTownWalletRequest,
+  createLivingTownCompletionCall,
+  livingTownCompletionWalletRequest,
 } from "@bot-bazaar/chain";
-import type { LivingTownIdentity, LivingTownCall } from "@bot-bazaar/chain";
+import type {
+  LivingTownIdentity,
+  LivingTownCall,
+  LivingTownCompletionCall,
+} from "@bot-bazaar/chain";
 import { createRpcTransport } from "@bot-bazaar/chain";
 import type { PublicConfig } from "@bot-bazaar/shared";
 import type { WalletManifest } from "@hot-labs/near-connect";
@@ -61,7 +67,7 @@ export async function createWalletPort(
   WalletPort & {
     livingTown(
       accountId: string,
-      call: LivingTownCall,
+      call: LivingTownCall | LivingTownCompletionCall,
       identity: LivingTownIdentity,
     ): Promise<unknown>;
   }
@@ -195,7 +201,10 @@ export async function createWalletPort(
     async livingTown(accountId, input, identity) {
       let call;
       try {
-        call = createLivingTownCall(input.method, input.args);
+        call =
+          input.method === "complete_production"
+            ? createLivingTownCompletionCall(input.args)
+            : createLivingTownCall(input.method, input.args);
         const client = new LivingTownClient(identity, rpc);
         if (
           client.identity.deployment.contract_id !== config.contractId ||
@@ -209,7 +218,13 @@ export async function createWalletPort(
       }
       return wallet
         .signAndSendTransaction(
-          livingTownWalletRequest(config.contractId, accountId, call),
+          call.method === "complete_production"
+            ? livingTownCompletionWalletRequest(
+                config.contractId,
+                accountId,
+                call,
+              )
+            : livingTownWalletRequest(config.contractId, accountId, call),
         )
         .catch(rejectWallet);
     },

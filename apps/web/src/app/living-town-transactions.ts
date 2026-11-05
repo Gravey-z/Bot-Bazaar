@@ -2,6 +2,7 @@ import {
   LivingTownClient,
   canonicalLivingTownJson,
   createLivingTownCall,
+  createLivingTownCompletionCall,
   livingTownCommandDigest,
   parseLivingTownIdentity,
   parseLivingTownJson,
@@ -9,6 +10,8 @@ import {
 } from "@bot-bazaar/chain";
 import type {
   LivingTownCall,
+  LivingTownCompletionCall,
+  LivingTownCompletionStatus,
   LivingTownIdentity,
   LivingTownMethod,
   LivingTownReceiptStatus,
@@ -17,6 +20,29 @@ import type { WalletStorage } from "./wallet-context";
 import { walletTransactionHash } from "./registration-reader";
 
 export class LivingTownNotOpenedError extends Error {}
+export type TownTransactionMethod = LivingTownMethod | "complete_production";
+type TownCall = LivingTownCall | LivingTownCompletionCall;
+export type TownTransactionStatus =
+  LivingTownReceiptStatus | LivingTownCompletionStatus;
+async function attemptDigest(
+  identity: LivingTownIdentity,
+  account: string,
+  call: TownCall,
+): Promise<string> {
+  if (call.method !== "complete_production")
+    return livingTownCommandDigest(identity.deployment, account, call);
+  const bytes = new TextEncoder().encode(
+    canonicalLivingTownJson({ identity, account, call }),
+  );
+  return Array.from(
+    new Uint8Array(await crypto.subtle.digest("SHA-256", bytes)),
+    (v) => v.toString(16).padStart(2, "0"),
+  ).join("");
+}
+const decodeCall = (method: TownTransactionMethod, args: unknown): TownCall =>
+  method === "complete_production"
+    ? createLivingTownCompletionCall(args)
+    : createLivingTownCall(method, args);
 type Phase =
   | "prepared"
   | "awaiting_wallet"
@@ -28,7 +54,7 @@ type Phase =
 export interface LivingTownAttempt {
   readonly id: string;
   readonly accountId: string;
-  readonly call: LivingTownCall;
+  readonly call: TownCall;
   readonly digest: string;
   readonly referenceBlockHeight: string;
   readonly phase: Phase;
@@ -65,7 +91,8 @@ const exact = (v: unknown, keys: string[]): Record<string, unknown> => {
   );
   return v as Record<string, unknown>;
 };
-// Public command intent only. V1 journal keys and codecs remain independent.
+// Public owner commands and non-command claims share one pending slot/lock.
+// Completion digests bind local intent only; they are not command sequences.
 export class LivingTownTransactions {
   private readonly key: string;
   private readonly identity: LivingTownIdentity;
@@ -74,7 +101,7 @@ export class LivingTownTransactions {
     private readonly storage: WalletStorage,
     private readonly send: (
       account: string,
-      call: LivingTownCall,
+      call: TownCall,
     ) => Promise<unknown>,
     private readonly lock: LivingTownLock = browserLock,
     private readonly uuid: () => string = () => crypto.randomUUID(),
@@ -109,20 +136,13 @@ export class LivingTownTransactions {
           "not_submitted",
         ].includes(String(r["phase"])),
     );
-    const call = createLivingTownCall(
-      c["method"] as LivingTownMethod,
-      c["args"],
-    );
+    const call = decodeCall(c["method"] as TownTransactionMethod, c["args"]);
     requireValue(
       c["gas"] === call.gas &&
         c["deposit"] === "0" &&
         BigInt(parseU64(r["referenceBlockHeight"])) > 0n &&
         r["digest"] ===
-          (await livingTownCommandDigest(
-            this.identity.deployment,
-            r["accountId"],
-            call,
-          )),
+          (await attemptDigest(this.identity, r["accountId"], call)),
     );
     requireValue(
       (r["transactionHash"] === null && r["hashSource"] === null) ||
@@ -194,7 +214,7 @@ export class LivingTownTransactions {
   async last(): Promise<LivingTownAttempt | null> {
     return (await this.load()).last;
   }
-  private async admit(account: string, call: LivingTownCall) {
+  private async admit(account: string, call: TownCall) {
     const reader = await this.client.finalized(),
       d = this.identity;
     requireValue(
@@ -205,6 +225,26 @@ export class LivingTownTransactions {
         ...Object.values(d.controllers),
       ].includes(account),
     );
+    if (call.method === "complete_production") {
+      const player = await reader.getPlayer(account);
+      requireValue(player.data?.shop_id);
+      const page = await reader.getProductionJobs({
+        shop_id: player.data.shop_id,
+        status: "running",
+        after_id: null,
+        limit: "50",
+        expected_market_revision: player.market_revision,
+      });
+      const job = page.data.items.find((j) => j.job_id === call.args.job_id);
+      requireValue(
+        job &&
+          job.status === "running" &&
+          job.owner.kind === "player" &&
+          job.owner.account_id === account &&
+          BigInt(job.ready_at_ns) <= BigInt(reader.block.timestampNs),
+      );
+      return reader;
+    }
     const lookup = await reader.getCommand(account, call.args.command.sequence);
     requireValue(
       lookup.data.kind === "not_applied" &&
@@ -221,19 +261,15 @@ export class LivingTownTransactions {
   }
   async prepare(
     account: string,
-    method: LivingTownMethod,
+    method: TownTransactionMethod,
     args: unknown,
   ): Promise<LivingTownAttempt> {
     return this.lock(this.key, async () => {
       const e = await this.load();
       requireValue(e.pending === null);
-      const call = createLivingTownCall(method, args),
+      const call = decodeCall(method, args),
         reader = await this.admit(account, call),
-        digest = await livingTownCommandDigest(
-          this.identity.deployment,
-          account,
-          call,
-        );
+        digest = await attemptDigest(this.identity, account, call);
       const a: LivingTownAttempt = {
         id: this.uuid(),
         accountId: account,
@@ -318,20 +354,24 @@ export class LivingTownTransactions {
       });
     });
   }
-  async refresh(): Promise<LivingTownReceiptStatus | null> {
+  async refresh(): Promise<TownTransactionStatus | null> {
     return this.lock(this.key, async () => {
       const e = await this.load(),
         a = e.pending;
       if (!a) return null;
       // Absence/pruning of get_command never unlocks an unresolved wallet attempt.
       if (!a.transactionHash) return null;
-      const status = await this.client.receipt({
+      const proof = {
         transactionHash: a.transactionHash,
         signerId: a.accountId,
         deployment: this.identity.deployment,
         call: a.call,
         referenceBlockHeight: a.referenceBlockHeight,
-      });
+      };
+      const status =
+        a.call.method === "complete_production"
+          ? await this.client.completionReceipt({ ...proof, call: a.call })
+          : await this.client.receipt({ ...proof, call: a.call });
       if (
         status.kind === "succeeded" ||
         (status.kind === "failed" && a.hashSource === "wallet")
