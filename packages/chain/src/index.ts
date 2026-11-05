@@ -138,6 +138,7 @@ export type {
 } from "./living-town/projection.js";
 
 export { parseLivingTownWebProfile } from "./living-town/web-profile.js";
+export { livingTownListingEffect } from "./living-town/listings.js";
 export type { LivingTownWebProfile } from "./living-town/web-profile.js";
 
 export {

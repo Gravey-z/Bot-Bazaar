@@ -9,9 +9,9 @@ pub(crate) enum Owner {
 }
 
 #[cfg(test)]
-mod tests {
+pub(crate) mod tests {
     use super::*;
-    pub(super) fn context(actor: &str, payload: Value, time: u64) {
+    pub(crate) fn context(actor: &str, payload: Value, time: u64) {
         let mut c = near_sdk::test_utils::VMContextBuilder::new()
             .current_account_id("town.testnet".parse().unwrap())
             .predecessor_account_id(actor.parse().unwrap())
@@ -29,7 +29,7 @@ mod tests {
             valid_until_ns: Decimal(500_000_000_000),
         }
     }
-    pub(super) fn town() -> LivingTown {
+    pub(crate) fn town() -> LivingTown {
         let digest = config_digest();
         context(
             "town.testnet",
@@ -61,7 +61,7 @@ mod tests {
             .inventory = Inventory::new([10, 10, 20, 20, 0, 0]);
         t
     }
-    pub(super) fn start(t: &mut LivingTown, seq: u64, q: u64) -> Value {
+    pub(crate) fn start(t: &mut LivingTown, seq: u64, q: u64) -> Value {
         context(
             "player.testnet",
             json!({"shop_id":"4","recipe_id":"health_potion","recipe_version":"1","quantity":q.to_string(),"expected_shop_revision":"1","command":command(seq)}),

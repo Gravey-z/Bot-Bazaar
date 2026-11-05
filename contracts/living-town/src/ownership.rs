@@ -196,6 +196,7 @@ pub(crate) enum Outcome {
     Renamed(Shop),
     Purchased(Box<super::purchases::Purchase>),
     Started(Box<super::production::Started>),
+    Listing(Box<super::listings::Change>),
 }
 impl Outcome {
     fn method(&self) -> &'static str {
@@ -205,6 +206,13 @@ impl Outcome {
             Self::Renamed(_) => "rename_shop",
             Self::Purchased(_) => "buy_from_merchant",
             Self::Started(_) => "start_production",
+            Self::Listing(change) => {
+                if change.cancelled {
+                    "cancel_listing"
+                } else {
+                    "set_listing"
+                }
+            }
         }
     }
     fn view(&self) -> Value {
@@ -214,6 +222,7 @@ impl Outcome {
             Self::Renamed(s) => json!({"kind":"shop_renamed","shop":s.view()}),
             Self::Purchased(p) => p.view(),
             Self::Started(p) => p.view(),
+            Self::Listing(p) => p.view(),
         }
     }
 }
@@ -321,7 +330,14 @@ impl LivingTown {
     ) -> ([u8; 32], Option<Value>) {
         self.assert_versions();
         require!(command.sequence.0 > 0, "LT:E_INVALID_INTEGER");
-        let principal = if method == "start_production" {
+        let principal = if method == "cancel_listing" {
+            let id = normalized["listing_id"]
+                .as_str()
+                .and_then(|v| v.parse::<u64>().ok())
+                .expect("listing id");
+            let (shop, _, _) = self.listing_row(id).expect("authorized listing");
+            self.listing_owner(shop).principal()
+        } else if method == "start_production" || method == "set_listing" {
             match normalized["shop_id"]
                 .as_str()
                 .and_then(|v| v.parse::<usize>().ok())
@@ -364,7 +380,10 @@ impl LivingTown {
                         .unwrap_or_else(|| env::panic_str("LT:E_ARITHMETIC_OVERFLOW")),
             "LT:E_COMMAND_EXPIRED"
         );
-        require!(!self.paused, "LT:E_MARKET_PAUSED");
+        require!(
+            !self.paused || method == "cancel_listing",
+            "LT:E_MARKET_PAUSED"
+        );
         (digest, None)
     }
     pub(super) fn persist_economic_state(&mut self, admission: bool) {
@@ -374,6 +393,9 @@ impl LivingTown {
         self.trades.flush();
         self.jobs.flush();
         self.active_jobs.flush();
+        self.player_listings.flush();
+        self.listing_slots.flush();
+        self.listing_index.flush();
         env::state_write(self);
         let used = env::storage_usage();
         require!(used <= 16 * 1024 * 1024, "LT:E_STORAGE_CAPACITY");
@@ -408,12 +430,13 @@ impl LivingTown {
         );
         let principal = match &record.outcome {
             Outcome::Started(s) => s.job.owner.principal(),
+            Outcome::Listing(s) => s.owner.principal(),
             _ => format!("account:{actor}"),
         };
         self.commands.insert(principal.clone(), record.clone());
         // Force all buffered collection writes and the root into this receipt before
         // checking measured storage/funding. A failed requirement reverts the receipt.
-        self.persist_economic_state(true);
+        self.persist_economic_state(!matches!(&record.outcome,Outcome::Listing(c) if c.cancelled));
         let event = json!({"standard":"bot_bazaar_living_town","version":"2.0.0","event":record.outcome.method(),"data":[{"contract_id":env::current_account_id(),"config_version":self.config_version.to_string(),"event_sequence":self.market_revision.to_string(),"market_revision":self.market_revision.to_string(),"block_height":env::block_height().to_string(),"block_timestamp_ns":env::block_timestamp().to_string(),"predecessor_account_id":actor,"principal":principal,"command_sequence":record.sequence.to_string(),"payload_sha256":hex(&digest),"outcome":record.outcome.view()}]});
         let encoded = serde_json::to_string(&event).expect("event");
         require!(encoded.len() <= 32768, "LT:E_STORAGE_CAPACITY");

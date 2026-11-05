@@ -103,7 +103,15 @@ export function describeTownAttempt(a: LivingTownAttempt): string {
     return `Create shop: ${args.name}.`;
   if (a.call.method === "rename_shop" && "shop_id" in args && "name" in args)
     return `Rename shop #${args.shop_id}: ${args.name}.`;
-  if ("item_id" in args)
+  if (
+    a.call.method === "set_listing" &&
+    "item_id" in args &&
+    "unit_price" in args
+  )
+    return `Set ${args.item_id} remaining stock to ${args.quantity} at ${args.unit_price} gold each.`;
+  if (a.call.method === "cancel_listing" && "listing_id" in args)
+    return `Cancel listing #${args.listing_id} and release its remaining stock.`;
+  if ("item_id" in args && "max_total_price" in args)
     return `Buy ${args.quantity} ${args.item_id.replaceAll("_", " ")}: maximum ${args.max_total_price} game gold.`;
   return "Review the original saved request.";
 }

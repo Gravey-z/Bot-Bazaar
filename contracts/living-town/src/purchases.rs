@@ -311,27 +311,21 @@ impl LivingTown {
             "LT:E_STALE_SNAPSHOT"
         );
         let mut rows = Vec::new();
-        for (index, npc) in self.npcs.iter().enumerate() {
-            for (slot, l) in npc.listings.iter().enumerate() {
-                if let Some(l) = l
-                    && shop_id.is_none_or(|id| id.0 == index as u64 + 1)
-                    && item_id.is_none_or(|item| item as usize == slot)
-                    && (!active_only || l.quantity > 0)
-                    && after_id.is_none_or(|id| l.id > id.0)
-                {
-                    rows.push(listing_view(
-                        index,
-                        [
-                            Item::Crystal,
-                            Item::Wood,
-                            Item::Herb,
-                            Item::Iron,
-                            Item::HealthPotion,
-                            Item::IronTool,
-                        ][slot],
-                        l,
-                    ));
-                }
+        for id in 1..self.next_listing_id {
+            if after_id.is_some_and(|after| id <= after.0) {
+                continue;
+            }
+            if let Some((shop, item, listing)) = self.listing_row(id)
+                && shop_id.is_none_or(|filter| filter.0 == shop)
+                && item_id.is_none_or(|filter| filter == item)
+                && (!active_only || listing.quantity > 0)
+            {
+                rows.push(super::listings::view(
+                    shop,
+                    item,
+                    &listing,
+                    &self.listing_owner(shop),
+                ));
             }
         }
         rows.sort_by_key(|v| {

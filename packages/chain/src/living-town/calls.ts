@@ -1,5 +1,6 @@
 import { livingTownRecipeId } from "./recipes.js";
 import { livingTownProductionEffect } from "./production.js";
+import { livingTownListingEffect } from "./listings.js";
 import {
   accountId,
   bounded,
@@ -7,12 +8,14 @@ import {
   choice,
   object,
   positiveU64,
+  nullable,
 } from "../wire.js";
 import {
   livingTownSnapshot,
   livingTownCommand,
   livingTownOwnershipEffect,
   livingTownPurchaseEffect,
+  livingTownItem,
   parseLivingTownDeployment,
   decodeLivingTownSnapshot,
 } from "./wire.js";
@@ -31,6 +34,19 @@ const name = (v: unknown): string => {
   return v;
 };
 export const livingTownCallArguments = {
+  set_listing: object({
+    shop_id: positiveU64,
+    item_id: livingTownItem,
+    quantity: bounded(0n, 100n),
+    unit_price: bounded(1n, 100n),
+    expected_listing_revision: nullable(positiveU64),
+    command: livingTownCommand,
+  }),
+  cancel_listing: object({
+    listing_id: positiveU64,
+    expected_listing_revision: positiveU64,
+    command: livingTownCommand,
+  }),
   start_production: object({
     shop_id: positiveU64,
     recipe_id: livingTownRecipeId,
@@ -94,6 +110,7 @@ export type LivingTownResult = ReturnType<
       | ReturnType<typeof livingTownOwnershipEffect>
       | ReturnType<typeof livingTownPurchaseEffect>
       | ReturnType<typeof livingTownProductionEffect>
+      | ReturnType<typeof livingTownListingEffect>
     >
   >
 >;
@@ -115,6 +132,9 @@ export async function livingTownCommandDigest(
   deployment: unknown,
   predecessor: string,
   call: LivingTownCall,
+  // NPC cancellation has only a listing ID in its arguments. Resolve its
+  // merchant lane from a verified listing read; this is never a contract arg.
+  cancelPrincipal?: string,
 ): Promise<string> {
   const d = parseLivingTownDeployment(deployment),
     actor = accountId(predecessor),
@@ -125,7 +145,7 @@ export async function livingTownCommandDigest(
     genesis_hash: d.genesis_hash,
     contract_id: d.contract_id,
     api_version: d.api_version,
-    principal: livingTownCallPrincipal(actor, c),
+    principal: livingTownCallPrincipal(actor, c, cancelPrincipal),
     predecessor_account_id: actor,
     method: c.method,
     args: c.args,
@@ -186,11 +206,13 @@ export function decodeLivingTownResult(
   deployment: unknown,
 ): LivingTownResult {
   return decodeLivingTownSnapshot(value, deployment, (v) =>
-    method === "start_production"
-      ? livingTownProductionEffect(v)
-      : method === "buy_from_merchant"
-        ? livingTownPurchaseEffect(v)
-        : livingTownOwnershipEffect(v),
+    method === "set_listing" || method === "cancel_listing"
+      ? livingTownListingEffect(v)
+      : method === "start_production"
+        ? livingTownProductionEffect(v)
+        : method === "buy_from_merchant"
+          ? livingTownPurchaseEffect(v)
+          : livingTownOwnershipEffect(v),
   );
 }
 export async function verifyLivingTownEffect(
@@ -204,14 +226,53 @@ export async function verifyLivingTownEffect(
     effect = result.data;
   const args = call.args as Record<string, unknown>,
     command = call.args.command;
+  const cancelPrincipal =
+    call.method === "cancel_listing" ? effect.principal : undefined;
   check(
-    effect.principal === livingTownCallPrincipal(accountId(signer), call) &&
+    effect.principal ===
+      livingTownCallPrincipal(accountId(signer), call, cancelPrincipal) &&
       effect.command_sequence === command.sequence &&
       effect.payload_sha256 ===
-        (await livingTownCommandDigest(deployment, signer, call)),
+        (await livingTownCommandDigest(
+          deployment,
+          signer,
+          call,
+          cancelPrincipal,
+        )),
     "V2 command effect binding mismatch",
   );
   const outcome = effect.outcome;
+  if (call.method === "set_listing" || call.method === "cancel_listing") {
+    check(
+      outcome.kind ===
+        (call.method === "set_listing" ? "listing_set" : "listing_cancelled"),
+      "Listing outcome mismatch",
+    );
+    const l = outcome.listing;
+    check(
+      l.owner.kind !== "player" || l.owner.account_id === signer,
+      "Listing signer owner mismatch",
+    );
+    check(
+      l.revision ===
+        (call.method === "set_listing" &&
+        args["expected_listing_revision"] === null
+          ? "1"
+          : (
+              BigInt(String(args["expected_listing_revision"])) + 1n
+            ).toString()),
+      "Listing revision mismatch",
+    );
+    check(
+      call.method === "set_listing"
+        ? l.shop_id === args["shop_id"] &&
+            l.item_id === args["item_id"] &&
+            l.remaining_quantity === args["quantity"] &&
+            l.unit_price === args["unit_price"]
+        : l.listing_id === args["listing_id"] && l.remaining_quantity === "0",
+      "Listing reviewed terms mismatch",
+    );
+  }
   if (call.method === "register_player")
     check(
       outcome.kind === "player_registered" &&
@@ -284,10 +345,24 @@ export { canonicalLivingTownJson };
 export function livingTownCallPrincipal(
   signer: string,
   call: LivingTownCall,
+  cancelPrincipal?: string,
 ): string {
+  if (call.method === "cancel_listing" && cancelPrincipal !== undefined) {
+    check(
+      cancelPrincipal === `account:${accountId(signer)}` ||
+        ["merchant:rex", "merchant:luna", "merchant:bolt"].includes(
+          cancelPrincipal,
+        ),
+      "Invalid resolved cancellation principal",
+    );
+    return cancelPrincipal;
+  }
   const args = call.args as Record<string, unknown>;
   const id = BigInt(String(args["shop_id"] ?? "0"));
-  return call.method === "start_production" && id >= 1n && id <= 3n
+  return (call.method === "start_production" ||
+    call.method === "set_listing") &&
+    id >= 1n &&
+    id <= 3n
     ? `merchant:${["rex", "luna", "bolt"][Number(id - 1n)]}`
     : `account:${accountId(signer)}`;
 }

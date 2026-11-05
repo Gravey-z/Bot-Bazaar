@@ -1,3 +1,4 @@
+import { livingTownListingEffect } from "./listings.js";
 import {
   livingTownProductionEffect,
   livingTownProductionJob,
@@ -92,11 +93,15 @@ const listingsArgs = object({
   },
 });
 const effect = (v: unknown) =>
-  record(record(v)["outcome"])["kind"] === "production_started"
-    ? livingTownProductionEffect(v)
-    : record(record(v)["outcome"])["kind"] === "raw_purchased"
-      ? livingTownPurchaseEffect(v)
-      : livingTownOwnershipEffect(v);
+  ["listing_set", "listing_cancelled"].includes(
+    String(record(record(v)["outcome"])["kind"]),
+  )
+    ? livingTownListingEffect(v)
+    : record(record(v)["outcome"])["kind"] === "production_started"
+      ? livingTownProductionEffect(v)
+      : record(record(v)["outcome"])["kind"] === "raw_purchased"
+        ? livingTownPurchaseEffect(v)
+        : livingTownOwnershipEffect(v);
 const commandLookup = (v: unknown) => {
   const kind = record(v)["kind"];
   if (kind === "found")
@@ -104,6 +109,8 @@ const commandLookup = (v: unknown) => {
       kind: choice(["found"] as const),
       high_water: positiveU64,
       method: choice([
+        "set_listing",
+        "cancel_listing",
         "start_production",
         "register_player",
         "create_shop",
@@ -368,6 +375,8 @@ export class FinalizedLivingTownReader {
                 shop_renamed: "rename_shop",
                 raw_purchased: "buy_from_merchant",
                 production_started: "start_production",
+                listing_set: "set_listing",
+                listing_cancelled: "cancel_listing",
               } as const
             )[d.effect.outcome.kind],
         "V2 command lookup mismatch",

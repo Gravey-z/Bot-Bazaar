@@ -571,7 +571,12 @@ export class LivingTownProjectionStore {
       t = s.town.data;
     // Settlement/retention reads are rebuilt at one finalized block. Preserve a
     // visible gap until jobs, shop revisions and ledgers can advance together.
-    if (o.kind === "production_started" || o.kind === "production_completed")
+    if (
+      o.kind === "production_started" ||
+      o.kind === "production_completed" ||
+      o.kind === "listing_set" ||
+      o.kind === "listing_cancelled"
+    )
       return false;
     if (o.kind === "player_registered") {
       requireValue(
