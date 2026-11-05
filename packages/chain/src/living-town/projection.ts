@@ -1,3 +1,7 @@
+import type {
+  LivingTownCompletionProof,
+  LivingTownCompletionStatus,
+} from "./completion.js";
 import {
   array,
   boolean,
@@ -115,7 +119,41 @@ export function livingTownIndexedReceipt(
   if (status.kind !== "succeeded" && status.kind !== "failed") return null;
   if (status.kind === "failed")
     return { proof, status, event: null, logIndex: null };
-  const r = record(evidence.response);
+  return {
+    proof,
+    status,
+    ...extractConfirmedEvent(proof, status, evidence.response),
+  };
+}
+
+type EventProof = {
+  deployment: { contract_id: string; config_version: string };
+  signerId: string;
+  call: { method: string };
+};
+type EventStatus = {
+  executionReceiptId: string;
+  block: { hash: string };
+  result: {
+    event_sequence: string;
+    market_revision: string;
+    block_height: string;
+    block_timestamp_ns: string;
+    data: {
+      principal: string | null;
+      command_sequence: string | null;
+      payload_sha256: string | null;
+      replayed: boolean;
+      outcome: unknown;
+    };
+  };
+};
+function extractConfirmedEvent(
+  proof: EventProof,
+  status: EventStatus,
+  response: unknown,
+): { event: unknown | null; logIndex: string | null } {
+  const r = record(response);
   check(Array.isArray(r["receipts_outcome"]), "missing event receipts");
   const row = r["receipts_outcome"]
     .map(record)
@@ -133,7 +171,7 @@ export function livingTownIndexedReceipt(
     .filter(({ v }) => v.startsWith("EVENT_JSON:"));
   if (status.result.data.replayed) {
     check(events.length === 0, "replayed command emitted event");
-    return { proof, status, event: null, logIndex: null };
+    return { event: null, logIndex: null };
   }
   check(events.length === 1, "expected one confirmed effect event");
   const entry = events[0]!;
@@ -153,15 +191,15 @@ export function livingTownIndexedReceipt(
         block_height: positiveU64,
         block_timestamp_ns: parseU64,
         predecessor_account_id: accountId,
-        principal: (v: unknown): string => {
+        principal: (v: unknown): string | null => {
           check(
             v === status.result.data.principal,
             "V2 event principal mismatch",
           );
-          return String(v);
+          return v === null ? null : String(v);
         },
-        command_sequence: positiveU64,
-        payload_sha256: livingTownDigest,
+        command_sequence: nullable(positiveU64),
+        payload_sha256: nullable(livingTownDigest),
         outcome: record,
       }),
       1,
@@ -184,5 +222,26 @@ export function livingTownIndexedReceipt(
         canonicalLivingTownJson(s.data.outcome),
     "V2 effect event/result mismatch",
   );
-  return { proof, status, event, logIndex: String(entry.i) };
+  return { event, logIndex: String(entry.i) };
+}
+
+export interface LivingTownIndexedCompletion {
+  proof: LivingTownCompletionProof;
+  status: Extract<LivingTownCompletionStatus, { kind: "succeeded" | "failed" }>;
+  event: unknown | null;
+  logIndex: string | null;
+}
+export function livingTownIndexedCompletion(
+  proof: LivingTownCompletionProof,
+  evidence: { status: LivingTownCompletionStatus; response: unknown },
+): LivingTownIndexedCompletion | null {
+  const status = evidence.status;
+  if (status.kind !== "succeeded" && status.kind !== "failed") return null;
+  if (status.kind === "failed")
+    return { proof, status, event: null, logIndex: null };
+  return {
+    proof,
+    status,
+    ...extractConfirmedEvent(proof, status, evidence.response),
+  };
 }

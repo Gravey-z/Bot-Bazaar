@@ -155,3 +155,6 @@ export type {
   LivingTownCompletionResult,
   LivingTownCompletionStatus,
 } from "./living-town/completion.js";
+
+export { livingTownIndexedCompletion } from "./living-town/projection.js";
+export type { LivingTownIndexedCompletion } from "./living-town/projection.js";

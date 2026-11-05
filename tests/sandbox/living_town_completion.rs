@@ -100,6 +100,23 @@ async fn permissionless_completion_is_rewardless_exact_once_and_cannot_release_a
     let stored = c.view_state().await?;
     let early = capture(&url, &c, &keeper, "1", false).await?;
     assert_eq!(c.view_state().await?, stored);
+    let cancellation = keeper
+        .call(c.id(), "cancel_production")
+        .args_json(json!({"job_id":"1"}))
+        .gas(near_workspaces::types::Gas::from_tgas(100))
+        .transact()
+        .await?
+        .into_result();
+    assert!(
+        cancellation
+            .unwrap_err()
+            .to_string()
+            .contains("MethodNotFound")
+    );
+    assert_eq!(c.view_state().await?, stored);
+    println!(
+        "LIFECYCLE_POLICY cancellation_absent=true no_refund=true running_promises_unchanged=true"
+    );
     for (args, code) in [
         (json!({"job_id":"999"}), "LT:E_JOB_NOT_FOUND"),
         (json!({"job_id":"0"}), "LT:E_INVALID_ARGUMENT"),

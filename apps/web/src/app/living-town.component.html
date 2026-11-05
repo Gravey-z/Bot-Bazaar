@@ -475,9 +475,10 @@
               @case ("production") {
                 <h3>A workshop, a little later.</h3>
                 <p>
-                  Production is not available yet. No crafting jobs are running
-                  here.
+                  Production controls are coming later. No jobs are started from
+                  this screen.
                 </p>
+                <p>{{ productionPolicy }}</p>
               }
               @case ("history") {
                 <h3>Your story starts with ownership.</h3>
@@ -628,9 +629,10 @@
                 <span aria-hidden="true">✦</span>
                 <h3>Your workshop is next.</h3>
                 <p>
-                  Production is not available yet. You can gather ingredients
-                  now; no crafting job is running or earning items here.
+                  Production controls and job history are coming later. Check
+                  Inventory for confirmed items and reserved output capacity.
                 </p>
+                <p>{{ productionPolicy }}</p>
               </div>
             }
             @case ("history") {

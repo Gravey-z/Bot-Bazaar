@@ -44,6 +44,8 @@ type Listing = ReturnType<typeof livingTownListing>;
   styleUrl: "./living-town.component.css",
 })
 export class LivingTownComponent implements OnInit, OnDestroy {
+  protected readonly productionPolicy =
+    "Inputs are consumed when production starts. Batches cannot be cancelled or refunded. The full batch becomes claimable together when its production time has elapsed on the network. A town pause blocks new starts; ready batches can still be claimed.";
   protected readonly screen = inject(LivingTownScreen);
   protected readonly state = this.screen.state;
   protected readonly tab = signal<Tab>("overview");

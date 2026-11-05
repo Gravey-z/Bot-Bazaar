@@ -502,6 +502,11 @@ export class LivingTownClient {
   async completionReceipt(
     proof: LivingTownCompletionProof,
   ): Promise<LivingTownCompletionStatus> {
+    return (await this.completionReceiptEvidence(proof)).status;
+  }
+  async completionReceiptEvidence(
+    proof: LivingTownCompletionProof,
+  ): Promise<{ status: LivingTownCompletionStatus; response: unknown }> {
     await this.network();
     check(
       canonicalLivingTownJson(proof.deployment) ===
@@ -520,19 +525,27 @@ export class LivingTownClient {
         error instanceof ChainRpcError &&
         error.code === "UNKNOWN_TRANSACTION"
       )
-        return { kind: "unknown", transactionHash: proof.transactionHash };
+        return {
+          status: { kind: "unknown", transactionHash: proof.transactionHash },
+          response: null,
+        };
       throw error;
     }
     const head = await this.block();
-    return verifyLivingTownCompletionReceipt(response, proof, async (hash) => {
-      const b = await this.block(hash);
-      check(
-        BigInt(b.height) <= BigInt(head.height),
-        "Completion beyond finalized head",
-      );
-      await this.at(b);
-      return b;
-    });
+    const status = await verifyLivingTownCompletionReceipt(
+      response,
+      proof,
+      async (hash) => {
+        const b = await this.block(hash);
+        check(
+          BigInt(b.height) <= BigInt(head.height),
+          "Completion beyond finalized head",
+        );
+        await this.at(b);
+        return b;
+      },
+    );
+    return { status, response };
   }
   async receiptEvidence(
     proof: LivingTownProof,

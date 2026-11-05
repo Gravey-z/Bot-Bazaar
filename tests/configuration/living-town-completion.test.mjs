@@ -9,6 +9,7 @@ import {
   livingTownProductionJob,
   LivingTownClient,
   FinalizedLivingTownReader,
+  livingTownIndexedCompletion,
 } from "../../packages/chain/dist/index.js";
 const f = JSON.parse(
   readFileSync(
@@ -249,6 +250,23 @@ test("completion client verifies deployment, historical code and receipt finalit
   await assert.rejects(
     new LivingTownClient(bad.identity, bad.rpc).completionReceipt(proof(step)),
   );
+});
+
+test("completion evidence exposes the exact already-verified response for event ingestion without another RPC", async () => {
+  const { rpc, identity } = rpcFixture();
+  let txReads = 0;
+  const client = new LivingTownClient(identity, async (m, p) => {
+    if (m === "tx") txReads++;
+    return rpc(m, p);
+  });
+  const step = f.steps.find((s) => s.result?.data?.replayed === false),
+    p = proof(step),
+    evidence = await client.completionReceiptEvidence(p);
+  assert.equal(txReads, 1);
+  assert.equal(evidence.status.kind, "succeeded");
+  const record = livingTownIndexedCompletion(p, evidence);
+  assert.equal(record.event.event, "complete_production");
+  assert.equal(txReads, 1);
 });
 
 test("job paging distinguishes running/completed states and preserves explicit history gaps", async () => {
