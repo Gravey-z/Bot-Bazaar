@@ -28,13 +28,14 @@ import {
 import type { Draft, Row } from "./projection.js";
 export class ReadApiError extends Error {
   constructor(
-    readonly status: 400 | 409 | 503,
+    readonly status: 400 | 404 | 409 | 503,
     readonly code:
       | "invalid_query"
       | "invalid_cursor"
       | "cursor_deployment_mismatch"
       | "feed_generation_mismatch"
-      | "read_unavailable",
+      | "read_unavailable"
+      | "shop_not_found",
   ) {
     super(code);
   }

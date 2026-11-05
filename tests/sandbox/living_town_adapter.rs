@@ -36,6 +36,12 @@ async fn adapter_captures_real_v2_receipts_and_historical_code_views() -> Result
     let url = worker.rpc_addr();
     let c = worker.dev_deploy(&wasm()?).await?;
     c.call("initialize_town").args_json(json!({"owner_account_id":c.id(),"operator_account_id":"operator.testnet","merchant_controllers":{"rex":"rex.testnet","luna":"luna.testnet","bolt":"bolt.testnet"},"network_genesis_hash":"11111111111111111111111111111111","config_sha256":digest})).transact().await?.into_result()?;
+    let initial_town: Value = c.view("get_town").args_json(json!({})).await?.json()?;
+    let initial_block = rpc(
+        &url,
+        "block",
+        json!({"block_id":initial_town["block_height"].as_str().unwrap().parse::<u64>()?}),
+    )?;
     let player = worker.dev_create_account().await?;
     let mut steps = Vec::new();
     let mut last_args = Value::Null;
@@ -99,9 +105,24 @@ async fn adapter_captures_real_v2_receipts_and_historical_code_views() -> Result
             last_args = args;
         }
     }
+    let final_block = rpc(&url, "block", json!({"finality":"final"}))?;
+    let mut final_views = serde_json::Map::new();
+    for (method, args) in [
+        ("get_town", "e30="),
+        ("get_shop", "eyJzaG9wX2lkIjoiNCJ9"),
+        ("get_shop_inventory", "eyJzaG9wX2lkIjoiNCJ9"),
+    ] {
+        let result = rpc(
+            &url,
+            "query",
+            json!({"request_type":"call_function","account_id":c.id(),"block_id":final_block["header"]["hash"],"method_name":method,"args_base64":args}),
+        )?;
+        let bytes: Vec<u8> = serde_json::from_value(result["result"].clone())?;
+        final_views.insert(method.to_owned(), serde_json::from_slice::<Value>(&bytes)?);
+    }
     println!(
         "ADAPTER_SANDBOX={}",
-        json!({"source":"actual disposable local sandbox; synthetic declared V2 genesis; not Testnet","contract_id":c.id(),"player_id":player.id(),"steps":steps})
+        json!({"source":"actual disposable local sandbox; synthetic declared V2 genesis; not Testnet","contract_id":c.id(),"player_id":player.id(),"steps":steps,"initial_town":initial_town,"initial_block":initial_block,"final_views":final_views,"final_block":final_block})
     );
     Ok(())
 }

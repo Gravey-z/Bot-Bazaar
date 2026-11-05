@@ -118,3 +118,13 @@ export type {
   LivingTownProof,
   LivingTownReceiptStatus,
 } from "./living-town/receipts.js";
+
+export {
+  livingTownCheckpoint,
+  livingTownReadEnvelope,
+  livingTownIndexedReceipt,
+} from "./living-town/projection.js";
+export type {
+  LivingTownCheckpoint,
+  LivingTownIndexedReceipt,
+} from "./living-town/projection.js";

@@ -428,6 +428,11 @@ export class LivingTownClient {
     return this.at(await this.block());
   }
   async receipt(proof: LivingTownProof): Promise<LivingTownReceiptStatus> {
+    return (await this.receiptEvidence(proof)).status;
+  }
+  async receiptEvidence(
+    proof: LivingTownProof,
+  ): Promise<{ status: LivingTownReceiptStatus; response: unknown }> {
     await this.network();
     check(
       canonicalLivingTownJson(proof.deployment) ===
@@ -444,20 +449,28 @@ export class LivingTownClient {
     } catch (e) {
       if (e instanceof ChainRpcError && e.code === "UNKNOWN_TRANSACTION")
         return {
-          kind: "unknown" as const,
-          transactionHash: proof.transactionHash,
+          status: {
+            kind: "unknown" as const,
+            transactionHash: proof.transactionHash,
+          },
+          response: null,
         };
       throw e;
     }
     const finalized = await this.block();
-    return verifyLivingTownReceipt(response, proof, async (hash) => {
-      const b = await this.block(hash);
-      check(
-        BigInt(b.height) <= BigInt(finalized.height),
-        "V2 receipt beyond finalized head",
-      );
-      await this.at(b);
-      return b;
-    });
+    const status = await verifyLivingTownReceipt(
+      response,
+      proof,
+      async (hash) => {
+        const b = await this.block(hash);
+        check(
+          BigInt(b.height) <= BigInt(finalized.height),
+          "V2 receipt beyond finalized head",
+        );
+        await this.at(b);
+        return b;
+      },
+    );
+    return { status, response };
   }
 }

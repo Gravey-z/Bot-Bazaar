@@ -26,7 +26,13 @@ export interface LivingTownProof {
 }
 export type LivingTownReceiptStatus =
   | { kind: "unknown" | "pending"; transactionHash: string }
-  | { kind: "failed"; transactionHash: string; code: "EXECUTION_FAILED" }
+  | {
+      kind: "failed";
+      transactionHash: string;
+      code: "EXECUTION_FAILED";
+      executionReceiptId: string;
+      block: FinalizedBlock;
+    }
   | {
       kind: "succeeded";
       transactionHash: string;
@@ -152,7 +158,13 @@ export async function verifyLivingTownReceipt(
   const failed = all.some((o) => Object.hasOwn(record(o["status"]), "Failure"));
   if (failed || Object.hasOwn(final, "Failure")) {
     check(failed && Object.hasOwn(final, "Failure"), "inconsistent V2 failure");
-    return { kind: "failed", transactionHash, code: "EXECUTION_FAILED" };
+    return {
+      kind: "failed",
+      transactionHash,
+      code: "EXECUTION_FAILED",
+      executionReceiptId: rootId,
+      block,
+    };
   }
   const encoded = final["SuccessValue"];
   check(

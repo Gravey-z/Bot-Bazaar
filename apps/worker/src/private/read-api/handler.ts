@@ -1,13 +1,20 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
 import type { ActivityPage } from "@bot-bazaar/shared";
+import { parseU64 } from "@bot-bazaar/chain";
+import type { LivingTownHealth } from "../living-town/health.js";
 import type { HealthPage } from "./health.js";
 import { ReadApiError } from "../activity/repository.js";
 import { defaultBoundary } from "./config.js";
 import type { BoundaryConfig } from "./config.js";
 import { ReadLimits } from "./limits.js";
 export interface ReadCapabilities {
-  health: () => HealthPage;
+  health: () => HealthPage | LivingTownHealth;
   activity: (after: string | undefined, limit: number) => ActivityPage;
+  livingTown?: Readonly<{
+    town: () => unknown;
+    shop: (id: string) => unknown;
+    inventory: (id: string) => unknown;
+  }>;
 }
 // Only read capabilities enter the HTTP handler. Provider, scheduler, credentials
 // and transaction methods are absent from this interface.
@@ -75,7 +82,25 @@ export function createReadHandler(
       const url = new URL(raw, "http://worker.invalid");
       if (url.origin !== "http://worker.invalid" || url.hash !== "")
         throw new ReadApiError(400, "invalid_query");
-      if (url.pathname !== "/health" && url.pathname !== "/activity") {
+      const shopRoute = /^\/api\/shops\/([1-9][0-9]{0,19})(\/inventory)?$/.exec(
+        url.pathname,
+      );
+      const townRoute = url.pathname === "/api/town";
+      const projectionRoute = !!read.livingTown && (townRoute || !!shopRoute);
+      if (projectionRoute && raw.split("?")[0] !== url.pathname)
+        throw new ReadApiError(400, "invalid_query");
+      if (shopRoute) {
+        try {
+          parseU64(shopRoute[1]);
+        } catch {
+          throw new ReadApiError(400, "invalid_query");
+        }
+      }
+      if (
+        url.pathname !== "/health" &&
+        url.pathname !== "/activity" &&
+        !projectionRoute
+      ) {
         send(404, { error: "not_found" });
         return;
       }
@@ -96,7 +121,7 @@ export function createReadHandler(
       }
       // Validate the query even for preflight, before any read callback.
       if (
-        url.pathname === "/health"
+        url.pathname === "/health" || projectionRoute
           ? [...url.searchParams].length !== 0
           : [...url.searchParams.keys()].some(
               (key) => key !== "after" && key !== "limit",
@@ -131,10 +156,18 @@ export function createReadHandler(
         response.end();
         return;
       }
-      let value: HealthPage | ActivityPage, status: number;
+      let value: unknown, status: number;
       if (url.pathname === "/health") {
-        value = read.health();
-        status = 503;
+        const health = read.health();
+        value = health;
+        status = health.status === "ready" ? 200 : 503;
+      } else if (projectionRoute) {
+        value = townRoute
+          ? read.livingTown!.town()
+          : shopRoute![2]
+            ? read.livingTown!.inventory(shopRoute![1]!)
+            : read.livingTown!.shop(shopRoute![1]!);
+        status = 200;
       } else {
         value = read.activity(
           url.searchParams.get("after") ?? undefined,
