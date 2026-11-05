@@ -184,14 +184,18 @@ fn settle(
             .is_some_and(|v| v <= 1_000_000),
         "LT:E_BALANCE_CAP"
     );
+    // Check every revision before changing even the staged party copies.
+    let buyer_revision = next(buyer.ledger_revision);
+    let seller_revision = next(seller.ledger_revision);
+    let listing_revision = next(listing.revision);
     buyer.gold -= total;
     buyer.inventory.quantities[slot] = new_item;
-    buyer.ledger_revision = next(buyer.ledger_revision);
+    buyer.ledger_revision = buyer_revision;
     seller.gold = seller_gold;
     seller.held.quantities[slot] -= quantity;
-    seller.ledger_revision = next(seller.ledger_revision);
+    seller.ledger_revision = seller_revision;
     listing.quantity -= quantity;
-    listing.revision = next(listing.revision);
+    listing.revision = listing_revision;
     seller.listings[slot] = Some(listing.clone());
     listing
 }
@@ -578,6 +582,102 @@ mod tests {
         assert_eq!(buyer.inventory.quantities[0], 1000);
         assert_eq!(buyer.gold, 96);
         assert_eq!(seller.held.quantities[0], 9);
+        let before_buyer = near_sdk::borsh::to_vec(&buyer).unwrap();
+        let before_seller = near_sdk::borsh::to_vec(&seller).unwrap();
+        assert!(
+            std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| settle(
+                &mut buyer,
+                &mut seller,
+                0,
+                1,
+                2,
+                4
+            )))
+            .is_err()
+        );
+        assert_eq!(near_sdk::borsh::to_vec(&buyer).unwrap(), before_buyer);
+        assert_eq!(near_sdk::borsh::to_vec(&seller).unwrap(), before_seller);
+    }
+    #[test]
+    fn revision_overflow_rejects_before_mutating_either_settlement_party() {
+        for case in 0..3 {
+            let (mut buyer, mut seller) = fixture();
+            match case {
+                0 => buyer.ledger_revision = u64::MAX,
+                1 => seller.ledger_revision = u64::MAX,
+                _ => seller.listings[0].as_mut().unwrap().revision = u64::MAX,
+            }
+            let revision = seller.listings[0].as_ref().unwrap().revision;
+            let before_buyer = near_sdk::borsh::to_vec(&buyer).unwrap();
+            let before_seller = near_sdk::borsh::to_vec(&seller).unwrap();
+            assert!(
+                std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| settle(
+                    &mut buyer,
+                    &mut seller,
+                    0,
+                    1,
+                    revision,
+                    4
+                )))
+                .is_err()
+            );
+            assert_eq!(near_sdk::borsh::to_vec(&buyer).unwrap(), before_buyer);
+            assert_eq!(near_sdk::borsh::to_vec(&seller).unwrap(), before_seller);
+        }
+    }
+    #[test]
+    fn invalid_purchase_quotes_preserve_both_parties_and_the_listing() {
+        for (q, revision, max) in [
+            (0, 1, 4),
+            (101, 1, 404),
+            (1, 2, 4),
+            (1, 1, 0),
+            (1, 1, 10001),
+            (2, 1, 7),
+        ] {
+            let (mut buyer, mut seller) = fixture();
+            let before_buyer = near_sdk::borsh::to_vec(&buyer).unwrap();
+            let before_seller = near_sdk::borsh::to_vec(&seller).unwrap();
+            assert!(
+                std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| settle(
+                    &mut buyer,
+                    &mut seller,
+                    0,
+                    q,
+                    revision,
+                    max
+                )))
+                .is_err()
+            );
+            assert_eq!(near_sdk::borsh::to_vec(&buyer).unwrap(), before_buyer);
+            assert_eq!(near_sdk::borsh::to_vec(&seller).unwrap(), before_seller);
+        }
+    }
+    #[test]
+    fn exact_item_and_gold_headroom_preserve_unrelated_promises_and_conservation() {
+        let (mut buyer, mut seller) = fixture();
+        buyer.inventory.quantities[0] = 998;
+        buyer.reservations.inbound.quantities[0] = 1;
+        buyer.reservations.gold_trade = 10;
+        seller.gold = 999_995;
+        seller.reservations.gold_inbound = 1;
+        let total_gold = buyer.gold + seller.gold;
+        let total_items = buyer.inventory.quantities[0] + seller.held.quantities[0];
+        settle(&mut buyer, &mut seller, 0, 1, 1, 4);
+        assert_eq!(
+            buyer.inventory.quantities[0] + buyer.reservations.inbound.quantities[0],
+            1000
+        );
+        assert_eq!(seller.gold + seller.reservations.gold_inbound, 1_000_000);
+        assert_eq!(buyer.reservations.gold_trade, 10);
+        assert_eq!(buyer.gold + seller.gold, total_gold);
+        assert_eq!(
+            buyer.inventory.quantities[0] + seller.held.quantities[0],
+            total_items
+        );
+        // Release the independent incoming-item promise, isolating seller gold
+        // headroom as the next purchase's rejection reason.
+        buyer.reservations.inbound.quantities[0] = 0;
         let before_buyer = near_sdk::borsh::to_vec(&buyer).unwrap();
         let before_seller = near_sdk::borsh::to_vec(&seller).unwrap();
         assert!(

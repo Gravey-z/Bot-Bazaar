@@ -1,0 +1,3312 @@
+{
+  "source": "actual disposable local WASM sandbox; synthetic declared genesis; not Testnet",
+  "contract_id": "dev-20261105220910-16680428888534.test.near",
+  "before": {
+    "block": {
+      "author": "test.near",
+      "chunks": [
+        {
+          "balance_burnt": "88837923856200000000",
+          "bandwidth_requests": {
+            "V1": {
+              "requests": []
+            }
+          },
+          "chunk_hash": "2BZ7szwzCH8FwYd6eovprkoDVJvw6s4dUYyBazKo8YzR",
+          "congestion_info": {
+            "allowed_shard": 0,
+            "buffered_receipts_gas": "0",
+            "delayed_receipts_gas": "0",
+            "receipt_bytes": 0
+          },
+          "encoded_length": 223,
+          "encoded_merkle_root": "HZXA9qPN5N7MbNBxtaER16UmdzQix73XMtVmoEW6W7rr",
+          "gas_limit": 1000000000000000,
+          "gas_used": 888379238562,
+          "height_created": 51,
+          "height_included": 51,
+          "outcome_root": "CV58zJjgeBjNzYqQchZGc9jeW35ceYkSTuPcpWcYNap8",
+          "outgoing_receipts_root": "fAvEVpsr7Df7NSHzsjteisc7AahSXSbp4wvqdWo7nGG",
+          "prev_block_hash": "b9ivvoKqW9jeKPf4PxwMxDv6z7kcWSdCLgwms9MmrtC",
+          "prev_state_root": "5mPHhJWg8H27ffZ9gDFLTvLuckToA31ugtc84VZcN72D",
+          "proposed_split": null,
+          "rent_paid": "0",
+          "shard_id": 0,
+          "signature": "ed25519:4zaWnBUhnQQcKdr1Xz5enidcVDdnKHc2CaNhayxhZyD8Q3Y7YMZ54wF1iaJy9Vwj9LoGDVCA9e46sBrT64c5bUGb",
+          "tx_root": "11111111111111111111111111111111",
+          "validator_proposals": [],
+          "validator_reward": "0"
+        }
+      ],
+      "header": {
+        "approvals": [
+          "ed25519:4nGMA3mKPKuQuFQsAbqjh6f3CUoJo38ms7bvyxBkBJmbotFk5mt6AJh6iVxrsfs1425fvAAfLfSHdVp3aLWnJyUn"
+        ],
+        "block_body_hash": "5fcsCGpt42wHDh47rGu4NNuDtwK2orFgbKvs7q4huQDk",
+        "block_merkle_root": "5uqApit45CAf3zguo2UWSwip9H5c4DfTYnDzwrMdF9nH",
+        "block_ordinal": 52,
+        "challenges_result": [],
+        "challenges_root": "11111111111111111111111111111111",
+        "chunk_endorsements": [[1]],
+        "chunk_headers_root": "7CC75bh6bCYneXB1fimAUfmKjL8pDJJGskBPcCQLqgD1",
+        "chunk_mask": [true],
+        "chunk_receipts_root": "AHRKde43egsttXsYyUznLRwqd7mn4Ba8aukxmhZJseA7",
+        "chunk_tx_root": "7tkzFg8RHBmMw1ncRJZCCZAizgq4rwCftTKYLce8RU8t",
+        "chunks_included": 1,
+        "epoch_id": "11111111111111111111111111111111",
+        "epoch_sync_data_hash": null,
+        "gas_price": "100000000",
+        "hash": "D381UHt9PEN4PjNXWRaRqSRFLRQh8yRYD4barH1yZkbh",
+        "height": 51,
+        "last_ds_final_block": "b9ivvoKqW9jeKPf4PxwMxDv6z7kcWSdCLgwms9MmrtC",
+        "last_final_block": "CBWcqgG4n5DwZkVxhce1NBjaaUDvmdbbFr7zDfjw88tf",
+        "latest_protocol_version": 86,
+        "next_bp_hash": "F2T3cxkBA6CSLGzFAoyTL7nLkvm3MCg8Rd8WWb6M2LnY",
+        "next_epoch_id": "BegiuBuKPJ7VF6YBtUFFuTKxNPBM7gLbqcPP23ZBo372",
+        "outcome_root": "4xz5cZoMQMRi7Q1iArvJ9JGMDQVXMmfs3NvwnfEKXk7w",
+        "prev_hash": "b9ivvoKqW9jeKPf4PxwMxDv6z7kcWSdCLgwms9MmrtC",
+        "prev_height": 50,
+        "prev_state_root": "7CguW8ivABr74MbdcZTt1TeYUTjHCPEdZQtePKrFG3CE",
+        "random_value": "68Vn3kemB6cXZNhk9VetZaTd63tL74JJ6542SJPXjVcz",
+        "rent_paid": "0",
+        "shard_split": null,
+        "signature": "ed25519:5tm7Z9YHx6EgMrGG9PGn2JCckkVUN9ZiKaQVqY1bVExcec6gBTQ6LVyHnbt2JgZLbgAnbLrk6iZ8E7Sx7EpMbqAL",
+        "timestamp": 1793916556460694000,
+        "timestamp_nanosec": "1793916556460693994",
+        "total_supply": "2050029999962196736350289000000000",
+        "validator_proposals": [],
+        "validator_reward": "0"
+      }
+    },
+    "town": {
+      "deployment": {
+        "network_id": "testnet",
+        "genesis_hash": "11111111111111111111111111111111",
+        "contract_id": "dev-20261105220910-16680428888534.test.near",
+        "api_version": "2.0.0",
+        "state_schema": "1",
+        "command_schema": "1",
+        "config_version": "1",
+        "config_sha256": "a932efb48c70a73ce46472cd754288649541b34604e2ea49a4093961e71a2d10"
+      },
+      "market_revision": "7",
+      "event_sequence": "7",
+      "block_height": "51",
+      "block_timestamp_ns": "1793916556460693994",
+      "data": {
+        "paused": false,
+        "registered_player_count": "2",
+        "epoch": "0",
+        "genesis_time_ns": "1793916552156884769",
+        "npc_shops": [
+          {
+            "shop_id": "1",
+            "owner": {
+              "kind": "merchant",
+              "merchant_id": "rex"
+            },
+            "name": "Rex",
+            "revision": "1",
+            "production_slots": "1",
+            "policy_revision": "1",
+            "created_at_ns": "1793916552156884769",
+            "ownership_command_sequence": null
+          },
+          {
+            "shop_id": "2",
+            "owner": {
+              "kind": "merchant",
+              "merchant_id": "luna"
+            },
+            "name": "Luna",
+            "revision": "1",
+            "production_slots": "1",
+            "policy_revision": "1",
+            "created_at_ns": "1793916552156884769",
+            "ownership_command_sequence": null
+          },
+          {
+            "shop_id": "3",
+            "owner": {
+              "kind": "merchant",
+              "merchant_id": "bolt"
+            },
+            "name": "Bolt",
+            "revision": "1",
+            "production_slots": "1",
+            "policy_revision": "1",
+            "created_at_ns": "1793916552156884769",
+            "ownership_command_sequence": null
+          }
+        ],
+        "npc_ledgers": [
+          {
+            "actor": {
+              "kind": "merchant",
+              "merchant_id": "rex"
+            },
+            "revision": "3",
+            "gold": {
+              "held": "200",
+              "available": "200",
+              "trade_reserved": "0",
+              "trade_inbound_reserved": "0"
+            },
+            "inventory": {
+              "held": {
+                "crystal": "10",
+                "wood": "0",
+                "herb": "0",
+                "iron": "0",
+                "health_potion": "0",
+                "iron_tool": "0"
+              },
+              "available": {
+                "crystal": "8",
+                "wood": "0",
+                "herb": "0",
+                "iron": "0",
+                "health_potion": "0",
+                "iron_tool": "0"
+              },
+              "listing_reserved": {
+                "crystal": "2",
+                "wood": "0",
+                "herb": "0",
+                "iron": "0",
+                "health_potion": "0",
+                "iron_tool": "0"
+              },
+              "trade_reserved": {
+                "crystal": "0",
+                "wood": "0",
+                "herb": "0",
+                "iron": "0",
+                "health_potion": "0",
+                "iron_tool": "0"
+              },
+              "production_output_reserved": {
+                "crystal": "0",
+                "wood": "0",
+                "herb": "0",
+                "iron": "0",
+                "health_potion": "0",
+                "iron_tool": "0"
+              },
+              "trade_inbound_reserved": {
+                "crystal": "0",
+                "wood": "0",
+                "herb": "0",
+                "iron": "0",
+                "health_potion": "0",
+                "iron_tool": "0"
+              }
+            }
+          },
+          {
+            "actor": {
+              "kind": "merchant",
+              "merchant_id": "luna"
+            },
+            "revision": "1",
+            "gold": {
+              "held": "200",
+              "available": "200",
+              "trade_reserved": "0",
+              "trade_inbound_reserved": "0"
+            },
+            "inventory": {
+              "held": {
+                "crystal": "0",
+                "wood": "0",
+                "herb": "20",
+                "iron": "0",
+                "health_potion": "0",
+                "iron_tool": "0"
+              },
+              "available": {
+                "crystal": "0",
+                "wood": "0",
+                "herb": "8",
+                "iron": "0",
+                "health_potion": "0",
+                "iron_tool": "0"
+              },
+              "listing_reserved": {
+                "crystal": "0",
+                "wood": "0",
+                "herb": "12",
+                "iron": "0",
+                "health_potion": "0",
+                "iron_tool": "0"
+              },
+              "trade_reserved": {
+                "crystal": "0",
+                "wood": "0",
+                "herb": "0",
+                "iron": "0",
+                "health_potion": "0",
+                "iron_tool": "0"
+              },
+              "production_output_reserved": {
+                "crystal": "0",
+                "wood": "0",
+                "herb": "0",
+                "iron": "0",
+                "health_potion": "0",
+                "iron_tool": "0"
+              },
+              "trade_inbound_reserved": {
+                "crystal": "0",
+                "wood": "0",
+                "herb": "0",
+                "iron": "0",
+                "health_potion": "0",
+                "iron_tool": "0"
+              }
+            }
+          },
+          {
+            "actor": {
+              "kind": "merchant",
+              "merchant_id": "bolt"
+            },
+            "revision": "1",
+            "gold": {
+              "held": "200",
+              "available": "200",
+              "trade_reserved": "0",
+              "trade_inbound_reserved": "0"
+            },
+            "inventory": {
+              "held": {
+                "crystal": "0",
+                "wood": "10",
+                "herb": "0",
+                "iron": "20",
+                "health_potion": "0",
+                "iron_tool": "0"
+              },
+              "available": {
+                "crystal": "0",
+                "wood": "2",
+                "herb": "0",
+                "iron": "4",
+                "health_potion": "0",
+                "iron_tool": "0"
+              },
+              "listing_reserved": {
+                "crystal": "0",
+                "wood": "8",
+                "herb": "0",
+                "iron": "16",
+                "health_potion": "0",
+                "iron_tool": "0"
+              },
+              "trade_reserved": {
+                "crystal": "0",
+                "wood": "0",
+                "herb": "0",
+                "iron": "0",
+                "health_potion": "0",
+                "iron_tool": "0"
+              },
+              "production_output_reserved": {
+                "crystal": "0",
+                "wood": "0",
+                "herb": "0",
+                "iron": "0",
+                "health_potion": "0",
+                "iron_tool": "0"
+              },
+              "trade_inbound_reserved": {
+                "crystal": "0",
+                "wood": "0",
+                "herb": "0",
+                "iron": "0",
+                "health_potion": "0",
+                "iron_tool": "0"
+              }
+            }
+          }
+        ],
+        "customer_pool": {
+          "pool_id": "town_customers",
+          "gold": "100",
+          "epoch": "0",
+          "last_funded_epoch": "0",
+          "potion_units_bought": "0",
+          "tool_units_bought": "0",
+          "revision": "1"
+        },
+        "totals": {
+          "initial_gold": "700",
+          "player_grants": "200",
+          "customer_topups": "0",
+          "upgrade_burns": "0",
+          "treasury_burns": "0",
+          "seed_items": {
+            "crystal": "10",
+            "wood": "10",
+            "herb": "20",
+            "iron": "20",
+            "health_potion": "0",
+            "iron_tool": "0"
+          },
+          "supplied_items": {
+            "crystal": "0",
+            "wood": "0",
+            "herb": "0",
+            "iron": "0",
+            "health_potion": "0",
+            "iron_tool": "0"
+          },
+          "recipe_inputs_consumed": {
+            "crystal": "0",
+            "wood": "0",
+            "herb": "0",
+            "iron": "0",
+            "health_potion": "0",
+            "iron_tool": "0"
+          },
+          "completed_outputs": {
+            "crystal": "0",
+            "wood": "0",
+            "herb": "0",
+            "iron": "0",
+            "health_potion": "0",
+            "iron_tool": "0"
+          },
+          "customer_consumed": {
+            "crystal": "0",
+            "wood": "0",
+            "herb": "0",
+            "iron": "0",
+            "health_potion": "0",
+            "iron_tool": "0"
+          }
+        },
+        "market_event": null,
+        "next_shop_id": "6",
+        "next_listing_id": "5",
+        "next_job_id": "1",
+        "next_offer_id": "1",
+        "next_trade_id": "1",
+        "next_market_event_id": "1",
+        "retained_events_from": "1",
+        "limits": {
+          "max_players": "1000",
+          "max_actor_gold": "1000000",
+          "max_actor_item": "1000",
+          "max_listing_quantity": "100",
+          "max_purchase_quantity": "100",
+          "max_unit_price": "100",
+          "max_total_price": "10000",
+          "max_batch_quantity": "10",
+          "max_page_size": "50",
+          "max_expire_batch": "24",
+          "max_name_bytes": "32",
+          "max_command_lifetime_seconds": "600",
+          "max_offer_lifetime_seconds": "600",
+          "retained_command_results": "1",
+          "retained_jobs": "256",
+          "retained_trades": "256",
+          "retained_events": "256",
+          "max_active_offers": "12",
+          "max_recipe_versions": "4"
+        }
+      }
+    },
+    "shops": [
+      {
+        "shop": {
+          "deployment": {
+            "network_id": "testnet",
+            "genesis_hash": "11111111111111111111111111111111",
+            "contract_id": "dev-20261105220910-16680428888534.test.near",
+            "api_version": "2.0.0",
+            "state_schema": "1",
+            "command_schema": "1",
+            "config_version": "1",
+            "config_sha256": "a932efb48c70a73ce46472cd754288649541b34604e2ea49a4093961e71a2d10"
+          },
+          "market_revision": "7",
+          "event_sequence": "7",
+          "block_height": "51",
+          "block_timestamp_ns": "1793916556460693994",
+          "data": {
+            "shop_id": "4",
+            "owner": {
+              "kind": "player",
+              "account_id": "dev-20261105220910-78014434024613.test.near"
+            },
+            "name": "Buyer A",
+            "revision": "1",
+            "production_slots": "1",
+            "policy_revision": "1",
+            "created_at_ns": "1793916552915472320",
+            "ownership_command_sequence": "2"
+          }
+        },
+        "ledger": {
+          "deployment": {
+            "network_id": "testnet",
+            "genesis_hash": "11111111111111111111111111111111",
+            "contract_id": "dev-20261105220910-16680428888534.test.near",
+            "api_version": "2.0.0",
+            "state_schema": "1",
+            "command_schema": "1",
+            "config_version": "1",
+            "config_sha256": "a932efb48c70a73ce46472cd754288649541b34604e2ea49a4093961e71a2d10"
+          },
+          "market_revision": "7",
+          "event_sequence": "7",
+          "block_height": "51",
+          "block_timestamp_ns": "1793916556460693994",
+          "data": {
+            "actor": {
+              "kind": "player",
+              "account_id": "dev-20261105220910-78014434024613.test.near"
+            },
+            "revision": "1",
+            "gold": {
+              "held": "100",
+              "available": "100",
+              "trade_reserved": "0",
+              "trade_inbound_reserved": "0"
+            },
+            "inventory": {
+              "held": {
+                "crystal": "0",
+                "wood": "0",
+                "herb": "0",
+                "iron": "0",
+                "health_potion": "0",
+                "iron_tool": "0"
+              },
+              "available": {
+                "crystal": "0",
+                "wood": "0",
+                "herb": "0",
+                "iron": "0",
+                "health_potion": "0",
+                "iron_tool": "0"
+              },
+              "listing_reserved": {
+                "crystal": "0",
+                "wood": "0",
+                "herb": "0",
+                "iron": "0",
+                "health_potion": "0",
+                "iron_tool": "0"
+              },
+              "trade_reserved": {
+                "crystal": "0",
+                "wood": "0",
+                "herb": "0",
+                "iron": "0",
+                "health_potion": "0",
+                "iron_tool": "0"
+              },
+              "production_output_reserved": {
+                "crystal": "0",
+                "wood": "0",
+                "herb": "0",
+                "iron": "0",
+                "health_potion": "0",
+                "iron_tool": "0"
+              },
+              "trade_inbound_reserved": {
+                "crystal": "0",
+                "wood": "0",
+                "herb": "0",
+                "iron": "0",
+                "health_potion": "0",
+                "iron_tool": "0"
+              }
+            }
+          }
+        },
+        "jobs": {
+          "deployment": {
+            "network_id": "testnet",
+            "genesis_hash": "11111111111111111111111111111111",
+            "contract_id": "dev-20261105220910-16680428888534.test.near",
+            "api_version": "2.0.0",
+            "state_schema": "1",
+            "command_schema": "1",
+            "config_version": "1",
+            "config_sha256": "a932efb48c70a73ce46472cd754288649541b34604e2ea49a4093961e71a2d10"
+          },
+          "market_revision": "7",
+          "event_sequence": "7",
+          "block_height": "51",
+          "block_timestamp_ns": "1793916556460693994",
+          "data": {
+            "items": [],
+            "next_after_id": null,
+            "has_more": false,
+            "history_gap": false,
+            "pruned_through": "0"
+          }
+        }
+      },
+      {
+        "shop": {
+          "deployment": {
+            "network_id": "testnet",
+            "genesis_hash": "11111111111111111111111111111111",
+            "contract_id": "dev-20261105220910-16680428888534.test.near",
+            "api_version": "2.0.0",
+            "state_schema": "1",
+            "command_schema": "1",
+            "config_version": "1",
+            "config_sha256": "a932efb48c70a73ce46472cd754288649541b34604e2ea49a4093961e71a2d10"
+          },
+          "market_revision": "7",
+          "event_sequence": "7",
+          "block_height": "51",
+          "block_timestamp_ns": "1793916556460693994",
+          "data": {
+            "shop_id": "5",
+            "owner": {
+              "kind": "player",
+              "account_id": "dev-20261105220911-38268115059205.test.near"
+            },
+            "name": "Buyer B",
+            "revision": "1",
+            "production_slots": "1",
+            "policy_revision": "1",
+            "created_at_ns": "1793916553669866725",
+            "ownership_command_sequence": "2"
+          }
+        },
+        "ledger": {
+          "deployment": {
+            "network_id": "testnet",
+            "genesis_hash": "11111111111111111111111111111111",
+            "contract_id": "dev-20261105220910-16680428888534.test.near",
+            "api_version": "2.0.0",
+            "state_schema": "1",
+            "command_schema": "1",
+            "config_version": "1",
+            "config_sha256": "a932efb48c70a73ce46472cd754288649541b34604e2ea49a4093961e71a2d10"
+          },
+          "market_revision": "7",
+          "event_sequence": "7",
+          "block_height": "51",
+          "block_timestamp_ns": "1793916556460693994",
+          "data": {
+            "actor": {
+              "kind": "player",
+              "account_id": "dev-20261105220911-38268115059205.test.near"
+            },
+            "revision": "1",
+            "gold": {
+              "held": "100",
+              "available": "100",
+              "trade_reserved": "0",
+              "trade_inbound_reserved": "0"
+            },
+            "inventory": {
+              "held": {
+                "crystal": "0",
+                "wood": "0",
+                "herb": "0",
+                "iron": "0",
+                "health_potion": "0",
+                "iron_tool": "0"
+              },
+              "available": {
+                "crystal": "0",
+                "wood": "0",
+                "herb": "0",
+                "iron": "0",
+                "health_potion": "0",
+                "iron_tool": "0"
+              },
+              "listing_reserved": {
+                "crystal": "0",
+                "wood": "0",
+                "herb": "0",
+                "iron": "0",
+                "health_potion": "0",
+                "iron_tool": "0"
+              },
+              "trade_reserved": {
+                "crystal": "0",
+                "wood": "0",
+                "herb": "0",
+                "iron": "0",
+                "health_potion": "0",
+                "iron_tool": "0"
+              },
+              "production_output_reserved": {
+                "crystal": "0",
+                "wood": "0",
+                "herb": "0",
+                "iron": "0",
+                "health_potion": "0",
+                "iron_tool": "0"
+              },
+              "trade_inbound_reserved": {
+                "crystal": "0",
+                "wood": "0",
+                "herb": "0",
+                "iron": "0",
+                "health_potion": "0",
+                "iron_tool": "0"
+              }
+            }
+          }
+        },
+        "jobs": {
+          "deployment": {
+            "network_id": "testnet",
+            "genesis_hash": "11111111111111111111111111111111",
+            "contract_id": "dev-20261105220910-16680428888534.test.near",
+            "api_version": "2.0.0",
+            "state_schema": "1",
+            "command_schema": "1",
+            "config_version": "1",
+            "config_sha256": "a932efb48c70a73ce46472cd754288649541b34604e2ea49a4093961e71a2d10"
+          },
+          "market_revision": "7",
+          "event_sequence": "7",
+          "block_height": "51",
+          "block_timestamp_ns": "1793916556460693994",
+          "data": {
+            "items": [],
+            "next_after_id": null,
+            "has_more": false,
+            "history_gap": false,
+            "pruned_through": "0"
+          }
+        }
+      }
+    ]
+  },
+  "after": {
+    "block": {
+      "author": "test.near",
+      "chunks": [
+        {
+          "balance_burnt": "511021257402400000000",
+          "bandwidth_requests": {
+            "V1": {
+              "requests": []
+            }
+          },
+          "chunk_hash": "C8mWHQkiPbV3FMAwXs51L5sgkwJspJ4ojCovhaYrDChn",
+          "congestion_info": {
+            "allowed_shard": 0,
+            "buffered_receipts_gas": "0",
+            "delayed_receipts_gas": "0",
+            "receipt_bytes": 0
+          },
+          "encoded_length": 223,
+          "encoded_merkle_root": "AFvL5Nx4FrQV2HiLMKEtx7ixyE7f784ojwUEhA7Cj9Zn",
+          "gas_limit": 1000000000000000,
+          "gas_used": 6919562051734,
+          "height_created": 121,
+          "height_included": 121,
+          "outcome_root": "2q73U6GDWnWRiT7u5RjgtPg1MpJpJkrtV1tahNUA5Z47",
+          "outgoing_receipts_root": "J41uLcpFfh4FVXrYcTxJYA5Bvf5EfA88CRTmCZndKADu",
+          "prev_block_hash": "AYkVnyQs3tNeGm6k7FkB9q7aeyMENbePoA6MDqviKacs",
+          "prev_state_root": "7QNH6AhB1g6AzBJ76kEztrfXp86oAxrsDhnopTW9fCjA",
+          "proposed_split": null,
+          "rent_paid": "0",
+          "shard_id": 0,
+          "signature": "ed25519:5FLWLzfewmLT9nvJpYAbkV6K6snHmQQaJrcPkbhUkKRbG1ci2zWewaRmeQgVEkmc798zbUvRaAJVfvmzixqCsRNd",
+          "tx_root": "11111111111111111111111111111111",
+          "validator_proposals": [],
+          "validator_reward": "0"
+        }
+      ],
+      "header": {
+        "approvals": [
+          "ed25519:3W8oYruZiWqiuJPyxXtPnrTvQkbzrbYimpdhJBVCMxu7okpeZ15w2ggWXwRfpLAaX6mLfZFAGgHxq1vDkPVGLWRP"
+        ],
+        "block_body_hash": "FRru7EBshfGTA7ACyymb1B5roRpKDw5ZUkM5ZFXcyyL2",
+        "block_merkle_root": "DerkfGPbBjP8cQsiQt5EiXgf7qqrkx55TC6GNW14ziZe",
+        "block_ordinal": 122,
+        "challenges_result": [],
+        "challenges_root": "11111111111111111111111111111111",
+        "chunk_endorsements": [[1]],
+        "chunk_headers_root": "2Ds3Lq2hTrHWVGcmJzJntqsKNUequGTuJMbVPKwxTJZU",
+        "chunk_mask": [true],
+        "chunk_receipts_root": "7sBtyBAvqp6RkDK2da1ePdw22esK9eWS46bpdBrSkCDd",
+        "chunk_tx_root": "7tkzFg8RHBmMw1ncRJZCCZAizgq4rwCftTKYLce8RU8t",
+        "chunks_included": 1,
+        "epoch_id": "6kJ4FuWcnhM9uPqgW7VBkUw1JjVGk2PgtSivFjTofWc8",
+        "epoch_sync_data_hash": "6jAVhPiD1mQivTDj3L2cY6Cau6vrrbVc3jYkXG7NUMvX",
+        "gas_price": "100000000",
+        "hash": "EBjnXDmj87mtaciGuDkSGMVC4DxSVR29JihkBbQHPQYZ",
+        "height": 121,
+        "last_ds_final_block": "AYkVnyQs3tNeGm6k7FkB9q7aeyMENbePoA6MDqviKacs",
+        "last_final_block": "FoFydSgd9Beeik9WfFaSgFzSgBsftuLzZHmgSoCHBghF",
+        "latest_protocol_version": 86,
+        "next_bp_hash": "DPPb8oYyCFySytvdC19QwDhW8NEhvSi8b7GeLUJGL94a",
+        "next_epoch_id": "AYkVnyQs3tNeGm6k7FkB9q7aeyMENbePoA6MDqviKacs",
+        "outcome_root": "HWsoLUGVH93SqRWHrvU6wmbYJ9tbfemSEK6bMzWDnD7U",
+        "prev_hash": "AYkVnyQs3tNeGm6k7FkB9q7aeyMENbePoA6MDqviKacs",
+        "prev_height": 120,
+        "prev_state_root": "8X69bAcZ4qaTKW1289bZRJEe5kJiSHtoFdUw6NakXzT1",
+        "random_value": "4AKgRx2f1cFG1hY2NPyyPK776Y8WFp1mxDg4ioLhiYQm",
+        "rent_paid": "0",
+        "shard_split": null,
+        "signature": "ed25519:2iJZ5ehSrwBCDHjCks54NJaNbdS4soLrQYtER4PvEwLoUFamY1zo9H1mrojhUfuZHuW6AEGaHhxN1HbXxro2QbAG",
+        "timestamp": 1793916565326138000,
+        "timestamp_nanosec": "1793916565326138120",
+        "total_supply": "2050030055859734544173992038269131",
+        "validator_proposals": [],
+        "validator_reward": "0"
+      }
+    },
+    "town": {
+      "deployment": {
+        "network_id": "testnet",
+        "genesis_hash": "11111111111111111111111111111111",
+        "contract_id": "dev-20261105220910-16680428888534.test.near",
+        "api_version": "2.0.0",
+        "state_schema": "1",
+        "command_schema": "1",
+        "config_version": "1",
+        "config_sha256": "a932efb48c70a73ce46472cd754288649541b34604e2ea49a4093961e71a2d10"
+      },
+      "market_revision": "13",
+      "event_sequence": "13",
+      "block_height": "121",
+      "block_timestamp_ns": "1793916565326138120",
+      "data": {
+        "paused": false,
+        "registered_player_count": "2",
+        "epoch": "0",
+        "genesis_time_ns": "1793916552156884769",
+        "npc_shops": [
+          {
+            "shop_id": "1",
+            "owner": {
+              "kind": "merchant",
+              "merchant_id": "rex"
+            },
+            "name": "Rex",
+            "revision": "1",
+            "production_slots": "1",
+            "policy_revision": "1",
+            "created_at_ns": "1793916552156884769",
+            "ownership_command_sequence": null
+          },
+          {
+            "shop_id": "2",
+            "owner": {
+              "kind": "merchant",
+              "merchant_id": "luna"
+            },
+            "name": "Luna",
+            "revision": "1",
+            "production_slots": "1",
+            "policy_revision": "1",
+            "created_at_ns": "1793916552156884769",
+            "ownership_command_sequence": null
+          },
+          {
+            "shop_id": "3",
+            "owner": {
+              "kind": "merchant",
+              "merchant_id": "bolt"
+            },
+            "name": "Bolt",
+            "revision": "1",
+            "production_slots": "1",
+            "policy_revision": "1",
+            "created_at_ns": "1793916552156884769",
+            "ownership_command_sequence": null
+          }
+        ],
+        "npc_ledgers": [
+          {
+            "actor": {
+              "kind": "merchant",
+              "merchant_id": "rex"
+            },
+            "revision": "9",
+            "gold": {
+              "held": "216",
+              "available": "216",
+              "trade_reserved": "0",
+              "trade_inbound_reserved": "0"
+            },
+            "inventory": {
+              "held": {
+                "crystal": "7",
+                "wood": "0",
+                "herb": "0",
+                "iron": "0",
+                "health_potion": "0",
+                "iron_tool": "0"
+              },
+              "available": {
+                "crystal": "7",
+                "wood": "0",
+                "herb": "0",
+                "iron": "0",
+                "health_potion": "0",
+                "iron_tool": "0"
+              },
+              "listing_reserved": {
+                "crystal": "0",
+                "wood": "0",
+                "herb": "0",
+                "iron": "0",
+                "health_potion": "0",
+                "iron_tool": "0"
+              },
+              "trade_reserved": {
+                "crystal": "0",
+                "wood": "0",
+                "herb": "0",
+                "iron": "0",
+                "health_potion": "0",
+                "iron_tool": "0"
+              },
+              "production_output_reserved": {
+                "crystal": "0",
+                "wood": "0",
+                "herb": "0",
+                "iron": "0",
+                "health_potion": "0",
+                "iron_tool": "0"
+              },
+              "trade_inbound_reserved": {
+                "crystal": "0",
+                "wood": "0",
+                "herb": "0",
+                "iron": "0",
+                "health_potion": "0",
+                "iron_tool": "0"
+              }
+            }
+          },
+          {
+            "actor": {
+              "kind": "merchant",
+              "merchant_id": "luna"
+            },
+            "revision": "1",
+            "gold": {
+              "held": "200",
+              "available": "200",
+              "trade_reserved": "0",
+              "trade_inbound_reserved": "0"
+            },
+            "inventory": {
+              "held": {
+                "crystal": "0",
+                "wood": "0",
+                "herb": "20",
+                "iron": "0",
+                "health_potion": "0",
+                "iron_tool": "0"
+              },
+              "available": {
+                "crystal": "0",
+                "wood": "0",
+                "herb": "8",
+                "iron": "0",
+                "health_potion": "0",
+                "iron_tool": "0"
+              },
+              "listing_reserved": {
+                "crystal": "0",
+                "wood": "0",
+                "herb": "12",
+                "iron": "0",
+                "health_potion": "0",
+                "iron_tool": "0"
+              },
+              "trade_reserved": {
+                "crystal": "0",
+                "wood": "0",
+                "herb": "0",
+                "iron": "0",
+                "health_potion": "0",
+                "iron_tool": "0"
+              },
+              "production_output_reserved": {
+                "crystal": "0",
+                "wood": "0",
+                "herb": "0",
+                "iron": "0",
+                "health_potion": "0",
+                "iron_tool": "0"
+              },
+              "trade_inbound_reserved": {
+                "crystal": "0",
+                "wood": "0",
+                "herb": "0",
+                "iron": "0",
+                "health_potion": "0",
+                "iron_tool": "0"
+              }
+            }
+          },
+          {
+            "actor": {
+              "kind": "merchant",
+              "merchant_id": "bolt"
+            },
+            "revision": "1",
+            "gold": {
+              "held": "200",
+              "available": "200",
+              "trade_reserved": "0",
+              "trade_inbound_reserved": "0"
+            },
+            "inventory": {
+              "held": {
+                "crystal": "0",
+                "wood": "10",
+                "herb": "0",
+                "iron": "20",
+                "health_potion": "0",
+                "iron_tool": "0"
+              },
+              "available": {
+                "crystal": "0",
+                "wood": "2",
+                "herb": "0",
+                "iron": "4",
+                "health_potion": "0",
+                "iron_tool": "0"
+              },
+              "listing_reserved": {
+                "crystal": "0",
+                "wood": "8",
+                "herb": "0",
+                "iron": "16",
+                "health_potion": "0",
+                "iron_tool": "0"
+              },
+              "trade_reserved": {
+                "crystal": "0",
+                "wood": "0",
+                "herb": "0",
+                "iron": "0",
+                "health_potion": "0",
+                "iron_tool": "0"
+              },
+              "production_output_reserved": {
+                "crystal": "0",
+                "wood": "0",
+                "herb": "0",
+                "iron": "0",
+                "health_potion": "0",
+                "iron_tool": "0"
+              },
+              "trade_inbound_reserved": {
+                "crystal": "0",
+                "wood": "0",
+                "herb": "0",
+                "iron": "0",
+                "health_potion": "0",
+                "iron_tool": "0"
+              }
+            }
+          }
+        ],
+        "customer_pool": {
+          "pool_id": "town_customers",
+          "gold": "100",
+          "epoch": "0",
+          "last_funded_epoch": "0",
+          "potion_units_bought": "0",
+          "tool_units_bought": "0",
+          "revision": "1"
+        },
+        "totals": {
+          "initial_gold": "700",
+          "player_grants": "200",
+          "customer_topups": "0",
+          "upgrade_burns": "0",
+          "treasury_burns": "0",
+          "seed_items": {
+            "crystal": "10",
+            "wood": "10",
+            "herb": "20",
+            "iron": "20",
+            "health_potion": "0",
+            "iron_tool": "0"
+          },
+          "supplied_items": {
+            "crystal": "0",
+            "wood": "0",
+            "herb": "0",
+            "iron": "0",
+            "health_potion": "0",
+            "iron_tool": "0"
+          },
+          "recipe_inputs_consumed": {
+            "crystal": "0",
+            "wood": "0",
+            "herb": "0",
+            "iron": "0",
+            "health_potion": "0",
+            "iron_tool": "0"
+          },
+          "completed_outputs": {
+            "crystal": "0",
+            "wood": "0",
+            "herb": "0",
+            "iron": "0",
+            "health_potion": "0",
+            "iron_tool": "0"
+          },
+          "customer_consumed": {
+            "crystal": "0",
+            "wood": "0",
+            "herb": "0",
+            "iron": "0",
+            "health_potion": "0",
+            "iron_tool": "0"
+          }
+        },
+        "market_event": null,
+        "next_shop_id": "6",
+        "next_listing_id": "5",
+        "next_job_id": "1",
+        "next_offer_id": "1",
+        "next_trade_id": "4",
+        "next_market_event_id": "1",
+        "retained_events_from": "1",
+        "limits": {
+          "max_players": "1000",
+          "max_actor_gold": "1000000",
+          "max_actor_item": "1000",
+          "max_listing_quantity": "100",
+          "max_purchase_quantity": "100",
+          "max_unit_price": "100",
+          "max_total_price": "10000",
+          "max_batch_quantity": "10",
+          "max_page_size": "50",
+          "max_expire_batch": "24",
+          "max_name_bytes": "32",
+          "max_command_lifetime_seconds": "600",
+          "max_offer_lifetime_seconds": "600",
+          "retained_command_results": "1",
+          "retained_jobs": "256",
+          "retained_trades": "256",
+          "retained_events": "256",
+          "max_active_offers": "12",
+          "max_recipe_versions": "4"
+        }
+      }
+    },
+    "shops": [
+      {
+        "shop": {
+          "deployment": {
+            "network_id": "testnet",
+            "genesis_hash": "11111111111111111111111111111111",
+            "contract_id": "dev-20261105220910-16680428888534.test.near",
+            "api_version": "2.0.0",
+            "state_schema": "1",
+            "command_schema": "1",
+            "config_version": "1",
+            "config_sha256": "a932efb48c70a73ce46472cd754288649541b34604e2ea49a4093961e71a2d10"
+          },
+          "market_revision": "13",
+          "event_sequence": "13",
+          "block_height": "121",
+          "block_timestamp_ns": "1793916565326138120",
+          "data": {
+            "shop_id": "4",
+            "owner": {
+              "kind": "player",
+              "account_id": "dev-20261105220910-78014434024613.test.near"
+            },
+            "name": "Buyer A",
+            "revision": "1",
+            "production_slots": "1",
+            "policy_revision": "1",
+            "created_at_ns": "1793916552915472320",
+            "ownership_command_sequence": "2"
+          }
+        },
+        "ledger": {
+          "deployment": {
+            "network_id": "testnet",
+            "genesis_hash": "11111111111111111111111111111111",
+            "contract_id": "dev-20261105220910-16680428888534.test.near",
+            "api_version": "2.0.0",
+            "state_schema": "1",
+            "command_schema": "1",
+            "config_version": "1",
+            "config_sha256": "a932efb48c70a73ce46472cd754288649541b34604e2ea49a4093961e71a2d10"
+          },
+          "market_revision": "13",
+          "event_sequence": "13",
+          "block_height": "121",
+          "block_timestamp_ns": "1793916565326138120",
+          "data": {
+            "actor": {
+              "kind": "player",
+              "account_id": "dev-20261105220910-78014434024613.test.near"
+            },
+            "revision": "3",
+            "gold": {
+              "held": "89",
+              "available": "89",
+              "trade_reserved": "0",
+              "trade_inbound_reserved": "0"
+            },
+            "inventory": {
+              "held": {
+                "crystal": "2",
+                "wood": "0",
+                "herb": "0",
+                "iron": "0",
+                "health_potion": "0",
+                "iron_tool": "0"
+              },
+              "available": {
+                "crystal": "2",
+                "wood": "0",
+                "herb": "0",
+                "iron": "0",
+                "health_potion": "0",
+                "iron_tool": "0"
+              },
+              "listing_reserved": {
+                "crystal": "0",
+                "wood": "0",
+                "herb": "0",
+                "iron": "0",
+                "health_potion": "0",
+                "iron_tool": "0"
+              },
+              "trade_reserved": {
+                "crystal": "0",
+                "wood": "0",
+                "herb": "0",
+                "iron": "0",
+                "health_potion": "0",
+                "iron_tool": "0"
+              },
+              "production_output_reserved": {
+                "crystal": "0",
+                "wood": "0",
+                "herb": "0",
+                "iron": "0",
+                "health_potion": "0",
+                "iron_tool": "0"
+              },
+              "trade_inbound_reserved": {
+                "crystal": "0",
+                "wood": "0",
+                "herb": "0",
+                "iron": "0",
+                "health_potion": "0",
+                "iron_tool": "0"
+              }
+            }
+          }
+        },
+        "jobs": {
+          "deployment": {
+            "network_id": "testnet",
+            "genesis_hash": "11111111111111111111111111111111",
+            "contract_id": "dev-20261105220910-16680428888534.test.near",
+            "api_version": "2.0.0",
+            "state_schema": "1",
+            "command_schema": "1",
+            "config_version": "1",
+            "config_sha256": "a932efb48c70a73ce46472cd754288649541b34604e2ea49a4093961e71a2d10"
+          },
+          "market_revision": "13",
+          "event_sequence": "13",
+          "block_height": "121",
+          "block_timestamp_ns": "1793916565326138120",
+          "data": {
+            "items": [],
+            "next_after_id": null,
+            "has_more": false,
+            "history_gap": false,
+            "pruned_through": "0"
+          }
+        }
+      },
+      {
+        "shop": {
+          "deployment": {
+            "network_id": "testnet",
+            "genesis_hash": "11111111111111111111111111111111",
+            "contract_id": "dev-20261105220910-16680428888534.test.near",
+            "api_version": "2.0.0",
+            "state_schema": "1",
+            "command_schema": "1",
+            "config_version": "1",
+            "config_sha256": "a932efb48c70a73ce46472cd754288649541b34604e2ea49a4093961e71a2d10"
+          },
+          "market_revision": "13",
+          "event_sequence": "13",
+          "block_height": "121",
+          "block_timestamp_ns": "1793916565326138120",
+          "data": {
+            "shop_id": "5",
+            "owner": {
+              "kind": "player",
+              "account_id": "dev-20261105220911-38268115059205.test.near"
+            },
+            "name": "Buyer B",
+            "revision": "1",
+            "production_slots": "1",
+            "policy_revision": "1",
+            "created_at_ns": "1793916553669866725",
+            "ownership_command_sequence": "2"
+          }
+        },
+        "ledger": {
+          "deployment": {
+            "network_id": "testnet",
+            "genesis_hash": "11111111111111111111111111111111",
+            "contract_id": "dev-20261105220910-16680428888534.test.near",
+            "api_version": "2.0.0",
+            "state_schema": "1",
+            "command_schema": "1",
+            "config_version": "1",
+            "config_sha256": "a932efb48c70a73ce46472cd754288649541b34604e2ea49a4093961e71a2d10"
+          },
+          "market_revision": "13",
+          "event_sequence": "13",
+          "block_height": "121",
+          "block_timestamp_ns": "1793916565326138120",
+          "data": {
+            "actor": {
+              "kind": "player",
+              "account_id": "dev-20261105220911-38268115059205.test.near"
+            },
+            "revision": "2",
+            "gold": {
+              "held": "95",
+              "available": "95",
+              "trade_reserved": "0",
+              "trade_inbound_reserved": "0"
+            },
+            "inventory": {
+              "held": {
+                "crystal": "1",
+                "wood": "0",
+                "herb": "0",
+                "iron": "0",
+                "health_potion": "0",
+                "iron_tool": "0"
+              },
+              "available": {
+                "crystal": "1",
+                "wood": "0",
+                "herb": "0",
+                "iron": "0",
+                "health_potion": "0",
+                "iron_tool": "0"
+              },
+              "listing_reserved": {
+                "crystal": "0",
+                "wood": "0",
+                "herb": "0",
+                "iron": "0",
+                "health_potion": "0",
+                "iron_tool": "0"
+              },
+              "trade_reserved": {
+                "crystal": "0",
+                "wood": "0",
+                "herb": "0",
+                "iron": "0",
+                "health_potion": "0",
+                "iron_tool": "0"
+              },
+              "production_output_reserved": {
+                "crystal": "0",
+                "wood": "0",
+                "herb": "0",
+                "iron": "0",
+                "health_potion": "0",
+                "iron_tool": "0"
+              },
+              "trade_inbound_reserved": {
+                "crystal": "0",
+                "wood": "0",
+                "herb": "0",
+                "iron": "0",
+                "health_potion": "0",
+                "iron_tool": "0"
+              }
+            }
+          }
+        },
+        "jobs": {
+          "deployment": {
+            "network_id": "testnet",
+            "genesis_hash": "11111111111111111111111111111111",
+            "contract_id": "dev-20261105220910-16680428888534.test.near",
+            "api_version": "2.0.0",
+            "state_schema": "1",
+            "command_schema": "1",
+            "config_version": "1",
+            "config_sha256": "a932efb48c70a73ce46472cd754288649541b34604e2ea49a4093961e71a2d10"
+          },
+          "market_revision": "13",
+          "event_sequence": "13",
+          "block_height": "121",
+          "block_timestamp_ns": "1793916565326138120",
+          "data": {
+            "items": [],
+            "next_after_id": null,
+            "has_more": false,
+            "history_gap": false,
+            "pruned_through": "0"
+          }
+        }
+      }
+    ]
+  },
+  "steps": [
+    {
+      "method": "buy_from_merchant",
+      "args": {
+        "merchant_id": "rex",
+        "item_id": "crystal",
+        "quantity": "1",
+        "expected_listing_revision": "3",
+        "max_total_price": "5",
+        "command": {
+          "sequence": "3",
+          "config_version": "1",
+          "valid_until_ns": "1793917056853473832"
+        }
+      },
+      "signer_id": "dev-20261105220910-78014434024613.test.near",
+      "transaction_hash": "HEfALPpEvhRHJp1YdXD3jUmeG6Cu5udxAFBAsXWNvYDJ",
+      "reference_block_height": "54",
+      "receipt": {
+        "final_execution_status": "FINAL",
+        "receipts_outcome": [
+          {
+            "block_hash": "96AE4LEeJGrsCknt3J2apg6dryQiQM2g2gcWiQjbZD13",
+            "id": "FjzKmp5rUHQ4rhAaokgousDJYsMLhMxR2m1rj5qzHaPf",
+            "outcome": {
+              "executor_id": "dev-20261105220910-16680428888534.test.near",
+              "gas_burnt": 10685404308115,
+              "logs": [
+                "EVENT_JSON:{\"standard\":\"bot_bazaar_living_town\",\"version\":\"2.0.0\",\"event\":\"buy_from_merchant\",\"data\":[{\"contract_id\":\"dev-20261105220910-16680428888534.test.near\",\"config_version\":\"1\",\"event_sequence\":\"8\",\"market_revision\":\"8\",\"block_height\":\"57\",\"block_timestamp_ns\":\"1793916557223550815\",\"predecessor_account_id\":\"dev-20261105220910-78014434024613.test.near\",\"principal\":\"account:dev-20261105220910-78014434024613.test.near\",\"command_sequence\":\"3\",\"payload_sha256\":\"967645a2b6fa41703e490af9b888a9806cb2f1bba08e63f57f3770b088586309\",\"outcome\":{\"kind\":\"raw_purchased\",\"trade\":{\"trade_id\":\"1\",\"kind\":\"raw_purchase\",\"buyer\":{\"kind\":\"player\",\"account_id\":\"dev-20261105220910-78014434024613.test.near\"},\"customer_pool_id\":null,\"seller\":{\"kind\":\"merchant\",\"merchant_id\":\"rex\"},\"item_id\":\"crystal\",\"quantity\":\"1\",\"unit_price\":\"5\",\"total_price\":\"5\",\"listing_id\":\"1\",\"offer_id\":null,\"consumed_quantity\":\"0\",\"settled_at_ns\":\"1793916557223550815\",\"command_principal\":\"account:dev-20261105220910-78014434024613.test.near\",\"command_sequence\":\"3\",\"event_sequence\":\"8\"},\"listing\":{\"listing_id\":\"1\",\"shop_id\":\"1\",\"owner\":{\"kind\":\"merchant\",\"merchant_id\":\"rex\"},\"item_id\":\"crystal\",\"remaining_quantity\":\"1\",\"unit_price\":\"5\",\"revision\":\"4\",\"active\":true},\"buyer\":{\"actor\":{\"kind\":\"player\",\"account_id\":\"dev-20261105220910-78014434024613.test.near\"},\"revision\":\"2\",\"gold\":{\"held\":\"95\",\"available\":\"95\",\"trade_reserved\":\"0\",\"trade_inbound_reserved\":\"0\"},\"inventory\":{\"held\":{\"crystal\":\"1\",\"wood\":\"0\",\"herb\":\"0\",\"iron\":\"0\",\"health_potion\":\"0\",\"iron_tool\":\"0\"},\"available\":{\"crystal\":\"1\",\"wood\":\"0\",\"herb\":\"0\",\"iron\":\"0\",\"health_potion\":\"0\",\"iron_tool\":\"0\"},\"listing_reserved\":{\"crystal\":\"0\",\"wood\":\"0\",\"herb\":\"0\",\"iron\":\"0\",\"health_potion\":\"0\",\"iron_tool\":\"0\"},\"trade_reserved\":{\"crystal\":\"0\",\"wood\":\"0\",\"herb\":\"0\",\"iron\":\"0\",\"health_potion\":\"0\",\"iron_tool\":\"0\"},\"production_output_reserved\":{\"crystal\":\"0\",\"wood\":\"0\",\"herb\":\"0\",\"iron\":\"0\",\"health_potion\":\"0\",\"iron_tool\":\"0\"},\"trade_inbound_reserved\":{\"crystal\":\"0\",\"wood\":\"0\",\"herb\":\"0\",\"iron\":\"0\",\"health_potion\":\"0\",\"iron_tool\":\"0\"}}},\"seller\":{\"actor\":{\"kind\":\"merchant\",\"merchant_id\":\"rex\"},\"revision\":\"4\",\"gold\":{\"held\":\"205\",\"available\":\"205\",\"trade_reserved\":\"0\",\"trade_inbound_reserved\":\"0\"},\"inventory\":{\"held\":{\"crystal\":\"9\",\"wood\":\"0\",\"herb\":\"0\",\"iron\":\"0\",\"health_potion\":\"0\",\"iron_tool\":\"0\"},\"available\":{\"crystal\":\"8\",\"wood\":\"0\",\"herb\":\"0\",\"iron\":\"0\",\"health_potion\":\"0\",\"iron_tool\":\"0\"},\"listing_reserved\":{\"crystal\":\"1\",\"wood\":\"0\",\"herb\":\"0\",\"iron\":\"0\",\"health_potion\":\"0\",\"iron_tool\":\"0\"},\"trade_reserved\":{\"crystal\":\"0\",\"wood\":\"0\",\"herb\":\"0\",\"iron\":\"0\",\"health_potion\":\"0\",\"iron_tool\":\"0\"},\"production_output_reserved\":{\"crystal\":\"0\",\"wood\":\"0\",\"herb\":\"0\",\"iron\":\"0\",\"health_potion\":\"0\",\"iron_tool\":\"0\"},\"trade_inbound_reserved\":{\"crystal\":\"0\",\"wood\":\"0\",\"herb\":\"0\",\"iron\":\"0\",\"health_potion\":\"0\",\"iron_tool\":\"0\"}}}}}]}"
+              ],
+              "metadata": {
+                "contracts": [
+                  {
+                    "local": "HVGVmzvEAQzRtBM6h9b2F7nZgTcdhzTejswCkctVLmam"
+                  }
+                ],
+                "gas_profile": [
+                  {
+                    "cost": "BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "10590724440"
+                  },
+                  {
+                    "cost": "CONTRACT_LOADING_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "35445963"
+                  },
+                  {
+                    "cost": "CONTRACT_LOADING_BYTES",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "411033486005"
+                  },
+                  {
+                    "cost": "LOG_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "3543313050"
+                  },
+                  {
+                    "cost": "LOG_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "37867331379"
+                  },
+                  {
+                    "cost": "READ_CACHED_TRIE_NODE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "50160000000"
+                  },
+                  {
+                    "cost": "READ_MEMORY_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "49587400800"
+                  },
+                  {
+                    "cost": "READ_MEMORY_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "50451291576"
+                  },
+                  {
+                    "cost": "READ_REGISTER_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "25171651860"
+                  },
+                  {
+                    "cost": "READ_REGISTER_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "287899602"
+                  },
+                  {
+                    "cost": "SHA256_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "9081940500"
+                  },
+                  {
+                    "cost": "SHA256_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "55686963459"
+                  },
+                  {
+                    "cost": "STORAGE_HAS_KEY_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "54039896625"
+                  },
+                  {
+                    "cost": "STORAGE_HAS_KEY_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "1878241545"
+                  },
+                  {
+                    "cost": "STORAGE_READ_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "225427382996"
+                  },
+                  {
+                    "cost": "STORAGE_READ_KEY_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "4921452747"
+                  },
+                  {
+                    "cost": "STORAGE_READ_VALUE_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "12231988720"
+                  },
+                  {
+                    "cost": "STORAGE_WRITE_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "320983680000"
+                  },
+                  {
+                    "cost": "STORAGE_WRITE_EVICTED_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "124775737695"
+                  },
+                  {
+                    "cost": "STORAGE_WRITE_KEY_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "11559190188"
+                  },
+                  {
+                    "cost": "STORAGE_WRITE_VALUE_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "146004263073"
+                  },
+                  {
+                    "cost": "TOUCHING_TRIE_NODE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "38760000000"
+                  },
+                  {
+                    "cost": "UTF8_DECODING_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "3111779061"
+                  },
+                  {
+                    "cost": "UTF8_DECODING_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "836544394251"
+                  },
+                  {
+                    "cost": "WASM_INSTRUCTION",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "7207697990592"
+                  },
+                  {
+                    "cost": "WRITE_MEMORY_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "33645538332"
+                  },
+                  {
+                    "cost": "WRITE_MEMORY_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "8043298716"
+                  },
+                  {
+                    "cost": "WRITE_REGISTER_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "40117314804"
+                  },
+                  {
+                    "cost": "WRITE_REGISTER_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "23626720260"
+                  }
+                ],
+                "version": 4
+              },
+              "receipt_ids": ["HH3KUekxykY6cA7iJ1XpQ3GmXdYJLMsYgS7GU4V2x8WY"],
+              "status": {
+                "SuccessValue": "eyJkZXBsb3ltZW50Ijp7Im5ldHdvcmtfaWQiOiJ0ZXN0bmV0IiwiZ2VuZXNpc19oYXNoIjoiMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTEiLCJjb250cmFjdF9pZCI6ImRldi0yMDI2MTEwNTIyMDkxMC0xNjY4MDQyODg4ODUzNC50ZXN0Lm5lYXIiLCJhcGlfdmVyc2lvbiI6IjIuMC4wIiwic3RhdGVfc2NoZW1hIjoiMSIsImNvbW1hbmRfc2NoZW1hIjoiMSIsImNvbmZpZ192ZXJzaW9uIjoiMSIsImNvbmZpZ19zaGEyNTYiOiJhOTMyZWZiNDhjNzBhNzNjZTQ2NDcyY2Q3NTQyODg2NDk1NDFiMzQ2MDRlMmVhNDlhNDA5Mzk2MWU3MWEyZDEwIn0sIm1hcmtldF9yZXZpc2lvbiI6IjgiLCJldmVudF9zZXF1ZW5jZSI6IjgiLCJibG9ja19oZWlnaHQiOiI1NyIsImJsb2NrX3RpbWVzdGFtcF9ucyI6IjE3OTM5MTY1NTcyMjM1NTA4MTUiLCJkYXRhIjp7InByaW5jaXBhbCI6ImFjY291bnQ6ZGV2LTIwMjYxMTA1MjIwOTEwLTc4MDE0NDM0MDI0NjEzLnRlc3QubmVhciIsImNvbW1hbmRfc2VxdWVuY2UiOiIzIiwicGF5bG9hZF9zaGEyNTYiOiI5Njc2NDVhMmI2ZmE0MTcwM2U0OTBhZjliODg4YTk4MDZjYjJmMWJiYTA4ZTYzZjU3ZjM3NzBiMDg4NTg2MzA5IiwicmVwbGF5ZWQiOmZhbHNlLCJlZmZlY3RfcmV2aXNpb24iOiI4IiwiZWZmZWN0X2V2ZW50X3NlcXVlbmNlIjoiOCIsIm91dGNvbWUiOnsia2luZCI6InJhd19wdXJjaGFzZWQiLCJ0cmFkZSI6eyJ0cmFkZV9pZCI6IjEiLCJraW5kIjoicmF3X3B1cmNoYXNlIiwiYnV5ZXIiOnsia2luZCI6InBsYXllciIsImFjY291bnRfaWQiOiJkZXYtMjAyNjExMDUyMjA5MTAtNzgwMTQ0MzQwMjQ2MTMudGVzdC5uZWFyIn0sImN1c3RvbWVyX3Bvb2xfaWQiOm51bGwsInNlbGxlciI6eyJraW5kIjoibWVyY2hhbnQiLCJtZXJjaGFudF9pZCI6InJleCJ9LCJpdGVtX2lkIjoiY3J5c3RhbCIsInF1YW50aXR5IjoiMSIsInVuaXRfcHJpY2UiOiI1IiwidG90YWxfcHJpY2UiOiI1IiwibGlzdGluZ19pZCI6IjEiLCJvZmZlcl9pZCI6bnVsbCwiY29uc3VtZWRfcXVhbnRpdHkiOiIwIiwic2V0dGxlZF9hdF9ucyI6IjE3OTM5MTY1NTcyMjM1NTA4MTUiLCJjb21tYW5kX3ByaW5jaXBhbCI6ImFjY291bnQ6ZGV2LTIwMjYxMTA1MjIwOTEwLTc4MDE0NDM0MDI0NjEzLnRlc3QubmVhciIsImNvbW1hbmRfc2VxdWVuY2UiOiIzIiwiZXZlbnRfc2VxdWVuY2UiOiI4In0sImxpc3RpbmciOnsibGlzdGluZ19pZCI6IjEiLCJzaG9wX2lkIjoiMSIsIm93bmVyIjp7ImtpbmQiOiJtZXJjaGFudCIsIm1lcmNoYW50X2lkIjoicmV4In0sIml0ZW1faWQiOiJjcnlzdGFsIiwicmVtYWluaW5nX3F1YW50aXR5IjoiMSIsInVuaXRfcHJpY2UiOiI1IiwicmV2aXNpb24iOiI0IiwiYWN0aXZlIjp0cnVlfSwiYnV5ZXIiOnsiYWN0b3IiOnsia2luZCI6InBsYXllciIsImFjY291bnRfaWQiOiJkZXYtMjAyNjExMDUyMjA5MTAtNzgwMTQ0MzQwMjQ2MTMudGVzdC5uZWFyIn0sInJldmlzaW9uIjoiMiIsImdvbGQiOnsiaGVsZCI6Ijk1IiwiYXZhaWxhYmxlIjoiOTUiLCJ0cmFkZV9yZXNlcnZlZCI6IjAiLCJ0cmFkZV9pbmJvdW5kX3Jlc2VydmVkIjoiMCJ9LCJpbnZlbnRvcnkiOnsiaGVsZCI6eyJjcnlzdGFsIjoiMSIsIndvb2QiOiIwIiwiaGVyYiI6IjAiLCJpcm9uIjoiMCIsImhlYWx0aF9wb3Rpb24iOiIwIiwiaXJvbl90b29sIjoiMCJ9LCJhdmFpbGFibGUiOnsiY3J5c3RhbCI6IjEiLCJ3b29kIjoiMCIsImhlcmIiOiIwIiwiaXJvbiI6IjAiLCJoZWFsdGhfcG90aW9uIjoiMCIsImlyb25fdG9vbCI6IjAifSwibGlzdGluZ19yZXNlcnZlZCI6eyJjcnlzdGFsIjoiMCIsIndvb2QiOiIwIiwiaGVyYiI6IjAiLCJpcm9uIjoiMCIsImhlYWx0aF9wb3Rpb24iOiIwIiwiaXJvbl90b29sIjoiMCJ9LCJ0cmFkZV9yZXNlcnZlZCI6eyJjcnlzdGFsIjoiMCIsIndvb2QiOiIwIiwiaGVyYiI6IjAiLCJpcm9uIjoiMCIsImhlYWx0aF9wb3Rpb24iOiIwIiwiaXJvbl90b29sIjoiMCJ9LCJwcm9kdWN0aW9uX291dHB1dF9yZXNlcnZlZCI6eyJjcnlzdGFsIjoiMCIsIndvb2QiOiIwIiwiaGVyYiI6IjAiLCJpcm9uIjoiMCIsImhlYWx0aF9wb3Rpb24iOiIwIiwiaXJvbl90b29sIjoiMCJ9LCJ0cmFkZV9pbmJvdW5kX3Jlc2VydmVkIjp7ImNyeXN0YWwiOiIwIiwid29vZCI6IjAiLCJoZXJiIjoiMCIsImlyb24iOiIwIiwiaGVhbHRoX3BvdGlvbiI6IjAiLCJpcm9uX3Rvb2wiOiIwIn19fSwic2VsbGVyIjp7ImFjdG9yIjp7ImtpbmQiOiJtZXJjaGFudCIsIm1lcmNoYW50X2lkIjoicmV4In0sInJldmlzaW9uIjoiNCIsImdvbGQiOnsiaGVsZCI6IjIwNSIsImF2YWlsYWJsZSI6IjIwNSIsInRyYWRlX3Jlc2VydmVkIjoiMCIsInRyYWRlX2luYm91bmRfcmVzZXJ2ZWQiOiIwIn0sImludmVudG9yeSI6eyJoZWxkIjp7ImNyeXN0YWwiOiI5Iiwid29vZCI6IjAiLCJoZXJiIjoiMCIsImlyb24iOiIwIiwiaGVhbHRoX3BvdGlvbiI6IjAiLCJpcm9uX3Rvb2wiOiIwIn0sImF2YWlsYWJsZSI6eyJjcnlzdGFsIjoiOCIsIndvb2QiOiIwIiwiaGVyYiI6IjAiLCJpcm9uIjoiMCIsImhlYWx0aF9wb3Rpb24iOiIwIiwiaXJvbl90b29sIjoiMCJ9LCJsaXN0aW5nX3Jlc2VydmVkIjp7ImNyeXN0YWwiOiIxIiwid29vZCI6IjAiLCJoZXJiIjoiMCIsImlyb24iOiIwIiwiaGVhbHRoX3BvdGlvbiI6IjAiLCJpcm9uX3Rvb2wiOiIwIn0sInRyYWRlX3Jlc2VydmVkIjp7ImNyeXN0YWwiOiIwIiwid29vZCI6IjAiLCJoZXJiIjoiMCIsImlyb24iOiIwIiwiaGVhbHRoX3BvdGlvbiI6IjAiLCJpcm9uX3Rvb2wiOiIwIn0sInByb2R1Y3Rpb25fb3V0cHV0X3Jlc2VydmVkIjp7ImNyeXN0YWwiOiIwIiwid29vZCI6IjAiLCJoZXJiIjoiMCIsImlyb24iOiIwIiwiaGVhbHRoX3BvdGlvbiI6IjAiLCJpcm9uX3Rvb2wiOiIwIn0sInRyYWRlX2luYm91bmRfcmVzZXJ2ZWQiOnsiY3J5c3RhbCI6IjAiLCJ3b29kIjoiMCIsImhlcmIiOiIwIiwiaXJvbiI6IjAiLCJoZWFsdGhfcG90aW9uIjoiMCIsImlyb25fdG9vbCI6IjAifX19fX19"
+              },
+              "tokens_burnt": "1068540430811500000000"
+            },
+            "proof": []
+          },
+          {
+            "block_hash": "2HrkXLubgpLj2SrcTvp4vvAxf8tBwyVAzzhDdh1ukedy",
+            "id": "HH3KUekxykY6cA7iJ1XpQ3GmXdYJLMsYgS7GU4V2x8WY",
+            "outcome": {
+              "executor_id": "dev-20261105220910-78014434024613.test.near",
+              "gas_burnt": 223182562500,
+              "logs": [],
+              "metadata": {
+                "contracts": [null],
+                "gas_profile": [],
+                "version": 4
+              },
+              "receipt_ids": [],
+              "status": {
+                "SuccessValue": ""
+              },
+              "tokens_burnt": "0"
+            },
+            "proof": []
+          }
+        ],
+        "status": {
+          "SuccessValue": "eyJkZXBsb3ltZW50Ijp7Im5ldHdvcmtfaWQiOiJ0ZXN0bmV0IiwiZ2VuZXNpc19oYXNoIjoiMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTEiLCJjb250cmFjdF9pZCI6ImRldi0yMDI2MTEwNTIyMDkxMC0xNjY4MDQyODg4ODUzNC50ZXN0Lm5lYXIiLCJhcGlfdmVyc2lvbiI6IjIuMC4wIiwic3RhdGVfc2NoZW1hIjoiMSIsImNvbW1hbmRfc2NoZW1hIjoiMSIsImNvbmZpZ192ZXJzaW9uIjoiMSIsImNvbmZpZ19zaGEyNTYiOiJhOTMyZWZiNDhjNzBhNzNjZTQ2NDcyY2Q3NTQyODg2NDk1NDFiMzQ2MDRlMmVhNDlhNDA5Mzk2MWU3MWEyZDEwIn0sIm1hcmtldF9yZXZpc2lvbiI6IjgiLCJldmVudF9zZXF1ZW5jZSI6IjgiLCJibG9ja19oZWlnaHQiOiI1NyIsImJsb2NrX3RpbWVzdGFtcF9ucyI6IjE3OTM5MTY1NTcyMjM1NTA4MTUiLCJkYXRhIjp7InByaW5jaXBhbCI6ImFjY291bnQ6ZGV2LTIwMjYxMTA1MjIwOTEwLTc4MDE0NDM0MDI0NjEzLnRlc3QubmVhciIsImNvbW1hbmRfc2VxdWVuY2UiOiIzIiwicGF5bG9hZF9zaGEyNTYiOiI5Njc2NDVhMmI2ZmE0MTcwM2U0OTBhZjliODg4YTk4MDZjYjJmMWJiYTA4ZTYzZjU3ZjM3NzBiMDg4NTg2MzA5IiwicmVwbGF5ZWQiOmZhbHNlLCJlZmZlY3RfcmV2aXNpb24iOiI4IiwiZWZmZWN0X2V2ZW50X3NlcXVlbmNlIjoiOCIsIm91dGNvbWUiOnsia2luZCI6InJhd19wdXJjaGFzZWQiLCJ0cmFkZSI6eyJ0cmFkZV9pZCI6IjEiLCJraW5kIjoicmF3X3B1cmNoYXNlIiwiYnV5ZXIiOnsia2luZCI6InBsYXllciIsImFjY291bnRfaWQiOiJkZXYtMjAyNjExMDUyMjA5MTAtNzgwMTQ0MzQwMjQ2MTMudGVzdC5uZWFyIn0sImN1c3RvbWVyX3Bvb2xfaWQiOm51bGwsInNlbGxlciI6eyJraW5kIjoibWVyY2hhbnQiLCJtZXJjaGFudF9pZCI6InJleCJ9LCJpdGVtX2lkIjoiY3J5c3RhbCIsInF1YW50aXR5IjoiMSIsInVuaXRfcHJpY2UiOiI1IiwidG90YWxfcHJpY2UiOiI1IiwibGlzdGluZ19pZCI6IjEiLCJvZmZlcl9pZCI6bnVsbCwiY29uc3VtZWRfcXVhbnRpdHkiOiIwIiwic2V0dGxlZF9hdF9ucyI6IjE3OTM5MTY1NTcyMjM1NTA4MTUiLCJjb21tYW5kX3ByaW5jaXBhbCI6ImFjY291bnQ6ZGV2LTIwMjYxMTA1MjIwOTEwLTc4MDE0NDM0MDI0NjEzLnRlc3QubmVhciIsImNvbW1hbmRfc2VxdWVuY2UiOiIzIiwiZXZlbnRfc2VxdWVuY2UiOiI4In0sImxpc3RpbmciOnsibGlzdGluZ19pZCI6IjEiLCJzaG9wX2lkIjoiMSIsIm93bmVyIjp7ImtpbmQiOiJtZXJjaGFudCIsIm1lcmNoYW50X2lkIjoicmV4In0sIml0ZW1faWQiOiJjcnlzdGFsIiwicmVtYWluaW5nX3F1YW50aXR5IjoiMSIsInVuaXRfcHJpY2UiOiI1IiwicmV2aXNpb24iOiI0IiwiYWN0aXZlIjp0cnVlfSwiYnV5ZXIiOnsiYWN0b3IiOnsia2luZCI6InBsYXllciIsImFjY291bnRfaWQiOiJkZXYtMjAyNjExMDUyMjA5MTAtNzgwMTQ0MzQwMjQ2MTMudGVzdC5uZWFyIn0sInJldmlzaW9uIjoiMiIsImdvbGQiOnsiaGVsZCI6Ijk1IiwiYXZhaWxhYmxlIjoiOTUiLCJ0cmFkZV9yZXNlcnZlZCI6IjAiLCJ0cmFkZV9pbmJvdW5kX3Jlc2VydmVkIjoiMCJ9LCJpbnZlbnRvcnkiOnsiaGVsZCI6eyJjcnlzdGFsIjoiMSIsIndvb2QiOiIwIiwiaGVyYiI6IjAiLCJpcm9uIjoiMCIsImhlYWx0aF9wb3Rpb24iOiIwIiwiaXJvbl90b29sIjoiMCJ9LCJhdmFpbGFibGUiOnsiY3J5c3RhbCI6IjEiLCJ3b29kIjoiMCIsImhlcmIiOiIwIiwiaXJvbiI6IjAiLCJoZWFsdGhfcG90aW9uIjoiMCIsImlyb25fdG9vbCI6IjAifSwibGlzdGluZ19yZXNlcnZlZCI6eyJjcnlzdGFsIjoiMCIsIndvb2QiOiIwIiwiaGVyYiI6IjAiLCJpcm9uIjoiMCIsImhlYWx0aF9wb3Rpb24iOiIwIiwiaXJvbl90b29sIjoiMCJ9LCJ0cmFkZV9yZXNlcnZlZCI6eyJjcnlzdGFsIjoiMCIsIndvb2QiOiIwIiwiaGVyYiI6IjAiLCJpcm9uIjoiMCIsImhlYWx0aF9wb3Rpb24iOiIwIiwiaXJvbl90b29sIjoiMCJ9LCJwcm9kdWN0aW9uX291dHB1dF9yZXNlcnZlZCI6eyJjcnlzdGFsIjoiMCIsIndvb2QiOiIwIiwiaGVyYiI6IjAiLCJpcm9uIjoiMCIsImhlYWx0aF9wb3Rpb24iOiIwIiwiaXJvbl90b29sIjoiMCJ9LCJ0cmFkZV9pbmJvdW5kX3Jlc2VydmVkIjp7ImNyeXN0YWwiOiIwIiwid29vZCI6IjAiLCJoZXJiIjoiMCIsImlyb24iOiIwIiwiaGVhbHRoX3BvdGlvbiI6IjAiLCJpcm9uX3Rvb2wiOiIwIn19fSwic2VsbGVyIjp7ImFjdG9yIjp7ImtpbmQiOiJtZXJjaGFudCIsIm1lcmNoYW50X2lkIjoicmV4In0sInJldmlzaW9uIjoiNCIsImdvbGQiOnsiaGVsZCI6IjIwNSIsImF2YWlsYWJsZSI6IjIwNSIsInRyYWRlX3Jlc2VydmVkIjoiMCIsInRyYWRlX2luYm91bmRfcmVzZXJ2ZWQiOiIwIn0sImludmVudG9yeSI6eyJoZWxkIjp7ImNyeXN0YWwiOiI5Iiwid29vZCI6IjAiLCJoZXJiIjoiMCIsImlyb24iOiIwIiwiaGVhbHRoX3BvdGlvbiI6IjAiLCJpcm9uX3Rvb2wiOiIwIn0sImF2YWlsYWJsZSI6eyJjcnlzdGFsIjoiOCIsIndvb2QiOiIwIiwiaGVyYiI6IjAiLCJpcm9uIjoiMCIsImhlYWx0aF9wb3Rpb24iOiIwIiwiaXJvbl90b29sIjoiMCJ9LCJsaXN0aW5nX3Jlc2VydmVkIjp7ImNyeXN0YWwiOiIxIiwid29vZCI6IjAiLCJoZXJiIjoiMCIsImlyb24iOiIwIiwiaGVhbHRoX3BvdGlvbiI6IjAiLCJpcm9uX3Rvb2wiOiIwIn0sInRyYWRlX3Jlc2VydmVkIjp7ImNyeXN0YWwiOiIwIiwid29vZCI6IjAiLCJoZXJiIjoiMCIsImlyb24iOiIwIiwiaGVhbHRoX3BvdGlvbiI6IjAiLCJpcm9uX3Rvb2wiOiIwIn0sInByb2R1Y3Rpb25fb3V0cHV0X3Jlc2VydmVkIjp7ImNyeXN0YWwiOiIwIiwid29vZCI6IjAiLCJoZXJiIjoiMCIsImlyb24iOiIwIiwiaGVhbHRoX3BvdGlvbiI6IjAiLCJpcm9uX3Rvb2wiOiIwIn0sInRyYWRlX2luYm91bmRfcmVzZXJ2ZWQiOnsiY3J5c3RhbCI6IjAiLCJ3b29kIjoiMCIsImhlcmIiOiIwIiwiaXJvbiI6IjAiLCJoZWFsdGhfcG90aW9uIjoiMCIsImlyb25fdG9vbCI6IjAifX19fX19"
+        },
+        "transaction": {
+          "actions": [
+            {
+              "FunctionCall": {
+                "args": "eyJtZXJjaGFudF9pZCI6InJleCIsIml0ZW1faWQiOiJjcnlzdGFsIiwicXVhbnRpdHkiOiIxIiwiZXhwZWN0ZWRfbGlzdGluZ19yZXZpc2lvbiI6IjMiLCJtYXhfdG90YWxfcHJpY2UiOiI1IiwiY29tbWFuZCI6eyJzZXF1ZW5jZSI6IjMiLCJjb25maWdfdmVyc2lvbiI6IjEiLCJ2YWxpZF91bnRpbF9ucyI6IjE3OTM5MTcwNTY4NTM0NzM4MzIifX0=",
+                "deposit": "0",
+                "gas": 100000000000000,
+                "method_name": "buy_from_merchant"
+              }
+            }
+          ],
+          "hash": "HEfALPpEvhRHJp1YdXD3jUmeG6Cu5udxAFBAsXWNvYDJ",
+          "nonce": 8000007,
+          "priority_fee": 0,
+          "public_key": "ed25519:AvbonTmBV4huLW7aw9gNRhdP15eBVwmVzGBvZDYXr3BZ",
+          "receiver_id": "dev-20261105220910-16680428888534.test.near",
+          "signature": "ed25519:5TSchqej1LbuKHYYQsBChpcP42kjTrL4vCQgCzhPe8sGSmryyJrDMESCmoXq6iCiSNSz4WRLexYV8n43NRQeWLxk",
+          "signer_id": "dev-20261105220910-78014434024613.test.near"
+        },
+        "transaction_outcome": {
+          "block_hash": "6PQYxuA6DTi4ftiXEFC7zj1FTYGWusL9Y2swB7XJYukW",
+          "id": "HEfALPpEvhRHJp1YdXD3jUmeG6Cu5udxAFBAsXWNvYDJ",
+          "outcome": {
+            "executor_id": "dev-20261105220910-78014434024613.test.near",
+            "gas_burnt": 318263815010,
+            "logs": [],
+            "metadata": {
+              "gas_profile": null,
+              "version": 1
+            },
+            "receipt_ids": ["FjzKmp5rUHQ4rhAaokgousDJYsMLhMxR2m1rj5qzHaPf"],
+            "status": {
+              "SuccessReceiptId": "FjzKmp5rUHQ4rhAaokgousDJYsMLhMxR2m1rj5qzHaPf"
+            },
+            "tokens_burnt": "31826381501000000000"
+          },
+          "proof": []
+        }
+      },
+      "block": {
+        "author": "test.near",
+        "chunks": [
+          {
+            "balance_burnt": "31826381501000000000",
+            "bandwidth_requests": {
+              "V1": {
+                "requests": []
+              }
+            },
+            "chunk_hash": "HriWgbAPYssQKxsRsxBLQHAY8LfSQyogQ3xXr4McLm66",
+            "congestion_info": {
+              "allowed_shard": 0,
+              "buffered_receipts_gas": "0",
+              "delayed_receipts_gas": "0",
+              "receipt_bytes": 0
+            },
+            "encoded_length": 490,
+            "encoded_merkle_root": "GSdhCcgqrFDC16zdbjarzCGrfZmq9P9oMGXjhNX6b76n",
+            "gas_limit": 1000000000000000,
+            "gas_used": 318263815010,
+            "height_created": 57,
+            "height_included": 57,
+            "outcome_root": "45XavcgkJY2CLTjA2pouYnzE9CseHFnb3PYVggUGtf12",
+            "outgoing_receipts_root": "9438cZzmaPwNP7bxGUwb1xFMKRtH4vxzFLMfryK5SMgD",
+            "prev_block_hash": "6PQYxuA6DTi4ftiXEFC7zj1FTYGWusL9Y2swB7XJYukW",
+            "prev_state_root": "8fWfeDbrZeD7LKDAafuwMEtuLvFzPgtE1FMpNVBSkNZK",
+            "proposed_split": null,
+            "rent_paid": "0",
+            "shard_id": 0,
+            "signature": "ed25519:4M77vDp8Q4YLknYzEyK9brvkjbBqM5dGbtPtMgs8FB6mtxaQkMES7ymWZT9aWSVvyyTrShhHux7PA4joZKpZ2QbJ",
+            "tx_root": "11111111111111111111111111111111",
+            "validator_proposals": [],
+            "validator_reward": "0"
+          }
+        ],
+        "header": {
+          "approvals": [
+            "ed25519:3WEjWQoAXw78bdgySSViXzG2FJ94tFMLYtJL6EjxpucbFYPJaLKYWrQjt1Te5soYbWvc8mc6GzjrXLJrWoMckMyY"
+          ],
+          "block_body_hash": "FFGE3yo9CLkofj3Mb9eG8CgxmgQWDfCLjoZP8dLy7Nnb",
+          "block_merkle_root": "4fEkz7gV1je5M48jTooAWeyc4SCxVfDmCjbEusBL9LDE",
+          "block_ordinal": 58,
+          "challenges_result": [],
+          "challenges_root": "11111111111111111111111111111111",
+          "chunk_endorsements": [[1]],
+          "chunk_headers_root": "9z345fGDd7xwTyZowMakthn68J7avnxFLYHRjQDpeUA3",
+          "chunk_mask": [true],
+          "chunk_receipts_root": "FLVTL6zvnMyNcx2wBfrJhNjvFq7bcwxsWsFCy6muHuyY",
+          "chunk_tx_root": "7tkzFg8RHBmMw1ncRJZCCZAizgq4rwCftTKYLce8RU8t",
+          "chunks_included": 1,
+          "epoch_id": "11111111111111111111111111111111",
+          "epoch_sync_data_hash": null,
+          "gas_price": "100000000",
+          "hash": "96AE4LEeJGrsCknt3J2apg6dryQiQM2g2gcWiQjbZD13",
+          "height": 57,
+          "last_ds_final_block": "6PQYxuA6DTi4ftiXEFC7zj1FTYGWusL9Y2swB7XJYukW",
+          "last_final_block": "5XrahKFXJyEyXyzGn3wh2wN3XphJ8WpyCECeCY7CpNwK",
+          "latest_protocol_version": 86,
+          "next_bp_hash": "F2T3cxkBA6CSLGzFAoyTL7nLkvm3MCg8Rd8WWb6M2LnY",
+          "next_epoch_id": "BegiuBuKPJ7VF6YBtUFFuTKxNPBM7gLbqcPP23ZBo372",
+          "outcome_root": "4LnzFY6DbmEk9jUmXfFQqqSBeoMHCbRMd9a5aSuE5ecD",
+          "prev_hash": "6PQYxuA6DTi4ftiXEFC7zj1FTYGWusL9Y2swB7XJYukW",
+          "prev_height": 56,
+          "prev_state_root": "CmjfKtdVVU36ds5n8eq5k2CHZAvPUJ6zL3mtc8k5ZrHJ",
+          "random_value": "ATDiidtkQeaTPswZC1Lt5js6UGJaq4rtHWZSBErNwxs8",
+          "rent_paid": "0",
+          "shard_split": null,
+          "signature": "ed25519:TEKu4X26kiraLcHmCcPGKkaX8yWTRQd5g3ye5ZiCpVnnTNFtaaEte6BTb7i4FA48HgGcFqV2JZVPQMj48vEeKoN",
+          "timestamp": 1793916557223550700,
+          "timestamp_nanosec": "1793916557223550815",
+          "total_supply": "2050029999961863045656453800000000",
+          "validator_proposals": [],
+          "validator_reward": "0"
+        }
+      },
+      "account": {
+        "amount": "100000837466352482500000000",
+        "block_hash": "96AE4LEeJGrsCknt3J2apg6dryQiQM2g2gcWiQjbZD13",
+        "block_height": 57,
+        "code_hash": "HVGVmzvEAQzRtBM6h9b2F7nZgTcdhzTejswCkctVLmam",
+        "locked": "0",
+        "storage_paid_at": 0,
+        "storage_usage": 382884
+      },
+      "foundation": {
+        "deployment": {
+          "network_id": "testnet",
+          "genesis_hash": "11111111111111111111111111111111",
+          "contract_id": "dev-20261105220910-16680428888534.test.near",
+          "api_version": "2.0.0",
+          "state_schema": "1",
+          "command_schema": "1",
+          "config_version": "1",
+          "config_sha256": "a932efb48c70a73ce46472cd754288649541b34604e2ea49a4093961e71a2d10"
+        },
+        "market_revision": "8",
+        "event_sequence": "8",
+        "block_height": "57",
+        "block_timestamp_ns": "1793916557223550815",
+        "data": {
+          "owner_account_id": "dev-20261105220910-16680428888534.test.near",
+          "operator_account_id": "operator.testnet",
+          "merchant_controllers": {
+            "rex": "dev-20261105220911-10282688170599.test.near",
+            "luna": "luna.testnet",
+            "bolt": "bolt.testnet"
+          },
+          "item_ids": [
+            "crystal",
+            "wood",
+            "herb",
+            "iron",
+            "health_potion",
+            "iron_tool"
+          ],
+          "supported_methods": [
+            "initialize_town",
+            "get_foundation",
+            "get_town",
+            "register_player",
+            "create_shop",
+            "rename_shop",
+            "get_player",
+            "get_shop",
+            "get_player_shops",
+            "get_command",
+            "buy_from_merchant",
+            "get_listings",
+            "get_trade",
+            "get_shop_inventory",
+            "get_recipes",
+            "start_production",
+            "get_production_jobs",
+            "complete_production",
+            "set_listing",
+            "cancel_listing"
+          ]
+        }
+      }
+    },
+    {
+      "method": "buy_from_merchant",
+      "args": {
+        "merchant_id": "rex",
+        "item_id": "crystal",
+        "quantity": "1",
+        "expected_listing_revision": "3",
+        "max_total_price": "5",
+        "command": {
+          "sequence": "3",
+          "config_version": "1",
+          "valid_until_ns": "1793917056853473832"
+        }
+      },
+      "signer_id": "dev-20261105220910-78014434024613.test.near",
+      "transaction_hash": "9BBB5a6iDfs4uc6FxihRxwmh7KDnVce7YtbUC7eJUuLp",
+      "reference_block_height": "60",
+      "receipt": {
+        "final_execution_status": "FINAL",
+        "receipts_outcome": [
+          {
+            "block_hash": "6mqTkFDfSpJS6ivXVNUcAeFwUVA3TXcCJwA3gf2MHVnE",
+            "id": "De5eWeYj2sJq2H9tJJMGwxtqpEUzyt5A8mY3R8FgQc5N",
+            "outcome": {
+              "executor_id": "dev-20261105220910-16680428888534.test.near",
+              "gas_burnt": 6371919286091,
+              "logs": [],
+              "metadata": {
+                "contracts": [
+                  {
+                    "local": "HVGVmzvEAQzRtBM6h9b2F7nZgTcdhzTejswCkctVLmam"
+                  }
+                ],
+                "gas_profile": [
+                  {
+                    "cost": "BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "7678275219"
+                  },
+                  {
+                    "cost": "CONTRACT_LOADING_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "35445963"
+                  },
+                  {
+                    "cost": "CONTRACT_LOADING_BYTES",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "411033486005"
+                  },
+                  {
+                    "cost": "READ_CACHED_TRIE_NODE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "2280000000"
+                  },
+                  {
+                    "cost": "READ_MEMORY_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "20878905600"
+                  },
+                  {
+                    "cost": "READ_MEMORY_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "27213742947"
+                  },
+                  {
+                    "cost": "READ_REGISTER_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "22654486674"
+                  },
+                  {
+                    "cost": "READ_REGISTER_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "324663228"
+                  },
+                  {
+                    "cost": "SHA256_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "9081940500"
+                  },
+                  {
+                    "cost": "SHA256_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "55686963459"
+                  },
+                  {
+                    "cost": "STORAGE_HAS_KEY_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "54039896625"
+                  },
+                  {
+                    "cost": "STORAGE_HAS_KEY_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "1878241545"
+                  },
+                  {
+                    "cost": "STORAGE_READ_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "112713691498"
+                  },
+                  {
+                    "cost": "STORAGE_READ_KEY_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "2383345041"
+                  },
+                  {
+                    "cost": "STORAGE_READ_VALUE_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "14324893212"
+                  },
+                  {
+                    "cost": "STORAGE_WRITE_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "64196736000"
+                  },
+                  {
+                    "cost": "STORAGE_WRITE_EVICTED_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "54760008435"
+                  },
+                  {
+                    "cost": "STORAGE_WRITE_KEY_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "352414335"
+                  },
+                  {
+                    "cost": "STORAGE_WRITE_VALUE_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "52886608995"
+                  },
+                  {
+                    "cost": "TOUCHING_TRIE_NODE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "11400000000"
+                  },
+                  {
+                    "cost": "WASM_INSTRUCTION",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "4475111398032"
+                  },
+                  {
+                    "cost": "WRITE_MEMORY_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "28037948610"
+                  },
+                  {
+                    "cost": "WRITE_MEMORY_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "9015685320"
+                  },
+                  {
+                    "cost": "WRITE_REGISTER_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "28655224860"
+                  },
+                  {
+                    "cost": "WRITE_REGISTER_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "16757294112"
+                  }
+                ],
+                "version": 4
+              },
+              "receipt_ids": ["DEQsiCgghHZRkegXEYHBgzCe2Kb21HkJiUzKrnRHGZ7p"],
+              "status": {
+                "SuccessValue": "eyJkZXBsb3ltZW50Ijp7Im5ldHdvcmtfaWQiOiJ0ZXN0bmV0IiwiZ2VuZXNpc19oYXNoIjoiMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTEiLCJjb250cmFjdF9pZCI6ImRldi0yMDI2MTEwNTIyMDkxMC0xNjY4MDQyODg4ODUzNC50ZXN0Lm5lYXIiLCJhcGlfdmVyc2lvbiI6IjIuMC4wIiwic3RhdGVfc2NoZW1hIjoiMSIsImNvbW1hbmRfc2NoZW1hIjoiMSIsImNvbmZpZ192ZXJzaW9uIjoiMSIsImNvbmZpZ19zaGEyNTYiOiJhOTMyZWZiNDhjNzBhNzNjZTQ2NDcyY2Q3NTQyODg2NDk1NDFiMzQ2MDRlMmVhNDlhNDA5Mzk2MWU3MWEyZDEwIn0sIm1hcmtldF9yZXZpc2lvbiI6IjgiLCJldmVudF9zZXF1ZW5jZSI6IjgiLCJibG9ja19oZWlnaHQiOiI2MyIsImJsb2NrX3RpbWVzdGFtcF9ucyI6IjE3OTM5MTY1NTc5OTI3OTAzODUiLCJkYXRhIjp7InByaW5jaXBhbCI6ImFjY291bnQ6ZGV2LTIwMjYxMTA1MjIwOTEwLTc4MDE0NDM0MDI0NjEzLnRlc3QubmVhciIsImNvbW1hbmRfc2VxdWVuY2UiOiIzIiwicGF5bG9hZF9zaGEyNTYiOiI5Njc2NDVhMmI2ZmE0MTcwM2U0OTBhZjliODg4YTk4MDZjYjJmMWJiYTA4ZTYzZjU3ZjM3NzBiMDg4NTg2MzA5IiwicmVwbGF5ZWQiOnRydWUsImVmZmVjdF9yZXZpc2lvbiI6IjgiLCJlZmZlY3RfZXZlbnRfc2VxdWVuY2UiOiI4Iiwib3V0Y29tZSI6eyJraW5kIjoicmF3X3B1cmNoYXNlZCIsInRyYWRlIjp7InRyYWRlX2lkIjoiMSIsImtpbmQiOiJyYXdfcHVyY2hhc2UiLCJidXllciI6eyJraW5kIjoicGxheWVyIiwiYWNjb3VudF9pZCI6ImRldi0yMDI2MTEwNTIyMDkxMC03ODAxNDQzNDAyNDYxMy50ZXN0Lm5lYXIifSwiY3VzdG9tZXJfcG9vbF9pZCI6bnVsbCwic2VsbGVyIjp7ImtpbmQiOiJtZXJjaGFudCIsIm1lcmNoYW50X2lkIjoicmV4In0sIml0ZW1faWQiOiJjcnlzdGFsIiwicXVhbnRpdHkiOiIxIiwidW5pdF9wcmljZSI6IjUiLCJ0b3RhbF9wcmljZSI6IjUiLCJsaXN0aW5nX2lkIjoiMSIsIm9mZmVyX2lkIjpudWxsLCJjb25zdW1lZF9xdWFudGl0eSI6IjAiLCJzZXR0bGVkX2F0X25zIjoiMTc5MzkxNjU1NzIyMzU1MDgxNSIsImNvbW1hbmRfcHJpbmNpcGFsIjoiYWNjb3VudDpkZXYtMjAyNjExMDUyMjA5MTAtNzgwMTQ0MzQwMjQ2MTMudGVzdC5uZWFyIiwiY29tbWFuZF9zZXF1ZW5jZSI6IjMiLCJldmVudF9zZXF1ZW5jZSI6IjgifSwibGlzdGluZyI6eyJsaXN0aW5nX2lkIjoiMSIsInNob3BfaWQiOiIxIiwib3duZXIiOnsia2luZCI6Im1lcmNoYW50IiwibWVyY2hhbnRfaWQiOiJyZXgifSwiaXRlbV9pZCI6ImNyeXN0YWwiLCJyZW1haW5pbmdfcXVhbnRpdHkiOiIxIiwidW5pdF9wcmljZSI6IjUiLCJyZXZpc2lvbiI6IjQiLCJhY3RpdmUiOnRydWV9LCJidXllciI6eyJhY3RvciI6eyJraW5kIjoicGxheWVyIiwiYWNjb3VudF9pZCI6ImRldi0yMDI2MTEwNTIyMDkxMC03ODAxNDQzNDAyNDYxMy50ZXN0Lm5lYXIifSwicmV2aXNpb24iOiIyIiwiZ29sZCI6eyJoZWxkIjoiOTUiLCJhdmFpbGFibGUiOiI5NSIsInRyYWRlX3Jlc2VydmVkIjoiMCIsInRyYWRlX2luYm91bmRfcmVzZXJ2ZWQiOiIwIn0sImludmVudG9yeSI6eyJoZWxkIjp7ImNyeXN0YWwiOiIxIiwid29vZCI6IjAiLCJoZXJiIjoiMCIsImlyb24iOiIwIiwiaGVhbHRoX3BvdGlvbiI6IjAiLCJpcm9uX3Rvb2wiOiIwIn0sImF2YWlsYWJsZSI6eyJjcnlzdGFsIjoiMSIsIndvb2QiOiIwIiwiaGVyYiI6IjAiLCJpcm9uIjoiMCIsImhlYWx0aF9wb3Rpb24iOiIwIiwiaXJvbl90b29sIjoiMCJ9LCJsaXN0aW5nX3Jlc2VydmVkIjp7ImNyeXN0YWwiOiIwIiwid29vZCI6IjAiLCJoZXJiIjoiMCIsImlyb24iOiIwIiwiaGVhbHRoX3BvdGlvbiI6IjAiLCJpcm9uX3Rvb2wiOiIwIn0sInRyYWRlX3Jlc2VydmVkIjp7ImNyeXN0YWwiOiIwIiwid29vZCI6IjAiLCJoZXJiIjoiMCIsImlyb24iOiIwIiwiaGVhbHRoX3BvdGlvbiI6IjAiLCJpcm9uX3Rvb2wiOiIwIn0sInByb2R1Y3Rpb25fb3V0cHV0X3Jlc2VydmVkIjp7ImNyeXN0YWwiOiIwIiwid29vZCI6IjAiLCJoZXJiIjoiMCIsImlyb24iOiIwIiwiaGVhbHRoX3BvdGlvbiI6IjAiLCJpcm9uX3Rvb2wiOiIwIn0sInRyYWRlX2luYm91bmRfcmVzZXJ2ZWQiOnsiY3J5c3RhbCI6IjAiLCJ3b29kIjoiMCIsImhlcmIiOiIwIiwiaXJvbiI6IjAiLCJoZWFsdGhfcG90aW9uIjoiMCIsImlyb25fdG9vbCI6IjAifX19LCJzZWxsZXIiOnsiYWN0b3IiOnsia2luZCI6Im1lcmNoYW50IiwibWVyY2hhbnRfaWQiOiJyZXgifSwicmV2aXNpb24iOiI0IiwiZ29sZCI6eyJoZWxkIjoiMjA1IiwiYXZhaWxhYmxlIjoiMjA1IiwidHJhZGVfcmVzZXJ2ZWQiOiIwIiwidHJhZGVfaW5ib3VuZF9yZXNlcnZlZCI6IjAifSwiaW52ZW50b3J5Ijp7ImhlbGQiOnsiY3J5c3RhbCI6IjkiLCJ3b29kIjoiMCIsImhlcmIiOiIwIiwiaXJvbiI6IjAiLCJoZWFsdGhfcG90aW9uIjoiMCIsImlyb25fdG9vbCI6IjAifSwiYXZhaWxhYmxlIjp7ImNyeXN0YWwiOiI4Iiwid29vZCI6IjAiLCJoZXJiIjoiMCIsImlyb24iOiIwIiwiaGVhbHRoX3BvdGlvbiI6IjAiLCJpcm9uX3Rvb2wiOiIwIn0sImxpc3RpbmdfcmVzZXJ2ZWQiOnsiY3J5c3RhbCI6IjEiLCJ3b29kIjoiMCIsImhlcmIiOiIwIiwiaXJvbiI6IjAiLCJoZWFsdGhfcG90aW9uIjoiMCIsImlyb25fdG9vbCI6IjAifSwidHJhZGVfcmVzZXJ2ZWQiOnsiY3J5c3RhbCI6IjAiLCJ3b29kIjoiMCIsImhlcmIiOiIwIiwiaXJvbiI6IjAiLCJoZWFsdGhfcG90aW9uIjoiMCIsImlyb25fdG9vbCI6IjAifSwicHJvZHVjdGlvbl9vdXRwdXRfcmVzZXJ2ZWQiOnsiY3J5c3RhbCI6IjAiLCJ3b29kIjoiMCIsImhlcmIiOiIwIiwiaXJvbiI6IjAiLCJoZWFsdGhfcG90aW9uIjoiMCIsImlyb25fdG9vbCI6IjAifSwidHJhZGVfaW5ib3VuZF9yZXNlcnZlZCI6eyJjcnlzdGFsIjoiMCIsIndvb2QiOiIwIiwiaGVyYiI6IjAiLCJpcm9uIjoiMCIsImhlYWx0aF9wb3Rpb24iOiIwIiwiaXJvbl90b29sIjoiMCJ9fX19fX0="
+              },
+              "tokens_burnt": "637191928609100000000"
+            },
+            "proof": []
+          },
+          {
+            "block_hash": "F8nrP3E7PCHDDGpCywugrtY53DCvSdCj8jPRexGHfRzm",
+            "id": "DEQsiCgghHZRkegXEYHBgzCe2Kb21HkJiUzKrnRHGZ7p",
+            "outcome": {
+              "executor_id": "dev-20261105220910-78014434024613.test.near",
+              "gas_burnt": 223182562500,
+              "logs": [],
+              "metadata": {
+                "contracts": [null],
+                "gas_profile": [],
+                "version": 4
+              },
+              "receipt_ids": [],
+              "status": {
+                "SuccessValue": ""
+              },
+              "tokens_burnt": "0"
+            },
+            "proof": []
+          }
+        ],
+        "status": {
+          "SuccessValue": "eyJkZXBsb3ltZW50Ijp7Im5ldHdvcmtfaWQiOiJ0ZXN0bmV0IiwiZ2VuZXNpc19oYXNoIjoiMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTEiLCJjb250cmFjdF9pZCI6ImRldi0yMDI2MTEwNTIyMDkxMC0xNjY4MDQyODg4ODUzNC50ZXN0Lm5lYXIiLCJhcGlfdmVyc2lvbiI6IjIuMC4wIiwic3RhdGVfc2NoZW1hIjoiMSIsImNvbW1hbmRfc2NoZW1hIjoiMSIsImNvbmZpZ192ZXJzaW9uIjoiMSIsImNvbmZpZ19zaGEyNTYiOiJhOTMyZWZiNDhjNzBhNzNjZTQ2NDcyY2Q3NTQyODg2NDk1NDFiMzQ2MDRlMmVhNDlhNDA5Mzk2MWU3MWEyZDEwIn0sIm1hcmtldF9yZXZpc2lvbiI6IjgiLCJldmVudF9zZXF1ZW5jZSI6IjgiLCJibG9ja19oZWlnaHQiOiI2MyIsImJsb2NrX3RpbWVzdGFtcF9ucyI6IjE3OTM5MTY1NTc5OTI3OTAzODUiLCJkYXRhIjp7InByaW5jaXBhbCI6ImFjY291bnQ6ZGV2LTIwMjYxMTA1MjIwOTEwLTc4MDE0NDM0MDI0NjEzLnRlc3QubmVhciIsImNvbW1hbmRfc2VxdWVuY2UiOiIzIiwicGF5bG9hZF9zaGEyNTYiOiI5Njc2NDVhMmI2ZmE0MTcwM2U0OTBhZjliODg4YTk4MDZjYjJmMWJiYTA4ZTYzZjU3ZjM3NzBiMDg4NTg2MzA5IiwicmVwbGF5ZWQiOnRydWUsImVmZmVjdF9yZXZpc2lvbiI6IjgiLCJlZmZlY3RfZXZlbnRfc2VxdWVuY2UiOiI4Iiwib3V0Y29tZSI6eyJraW5kIjoicmF3X3B1cmNoYXNlZCIsInRyYWRlIjp7InRyYWRlX2lkIjoiMSIsImtpbmQiOiJyYXdfcHVyY2hhc2UiLCJidXllciI6eyJraW5kIjoicGxheWVyIiwiYWNjb3VudF9pZCI6ImRldi0yMDI2MTEwNTIyMDkxMC03ODAxNDQzNDAyNDYxMy50ZXN0Lm5lYXIifSwiY3VzdG9tZXJfcG9vbF9pZCI6bnVsbCwic2VsbGVyIjp7ImtpbmQiOiJtZXJjaGFudCIsIm1lcmNoYW50X2lkIjoicmV4In0sIml0ZW1faWQiOiJjcnlzdGFsIiwicXVhbnRpdHkiOiIxIiwidW5pdF9wcmljZSI6IjUiLCJ0b3RhbF9wcmljZSI6IjUiLCJsaXN0aW5nX2lkIjoiMSIsIm9mZmVyX2lkIjpudWxsLCJjb25zdW1lZF9xdWFudGl0eSI6IjAiLCJzZXR0bGVkX2F0X25zIjoiMTc5MzkxNjU1NzIyMzU1MDgxNSIsImNvbW1hbmRfcHJpbmNpcGFsIjoiYWNjb3VudDpkZXYtMjAyNjExMDUyMjA5MTAtNzgwMTQ0MzQwMjQ2MTMudGVzdC5uZWFyIiwiY29tbWFuZF9zZXF1ZW5jZSI6IjMiLCJldmVudF9zZXF1ZW5jZSI6IjgifSwibGlzdGluZyI6eyJsaXN0aW5nX2lkIjoiMSIsInNob3BfaWQiOiIxIiwib3duZXIiOnsia2luZCI6Im1lcmNoYW50IiwibWVyY2hhbnRfaWQiOiJyZXgifSwiaXRlbV9pZCI6ImNyeXN0YWwiLCJyZW1haW5pbmdfcXVhbnRpdHkiOiIxIiwidW5pdF9wcmljZSI6IjUiLCJyZXZpc2lvbiI6IjQiLCJhY3RpdmUiOnRydWV9LCJidXllciI6eyJhY3RvciI6eyJraW5kIjoicGxheWVyIiwiYWNjb3VudF9pZCI6ImRldi0yMDI2MTEwNTIyMDkxMC03ODAxNDQzNDAyNDYxMy50ZXN0Lm5lYXIifSwicmV2aXNpb24iOiIyIiwiZ29sZCI6eyJoZWxkIjoiOTUiLCJhdmFpbGFibGUiOiI5NSIsInRyYWRlX3Jlc2VydmVkIjoiMCIsInRyYWRlX2luYm91bmRfcmVzZXJ2ZWQiOiIwIn0sImludmVudG9yeSI6eyJoZWxkIjp7ImNyeXN0YWwiOiIxIiwid29vZCI6IjAiLCJoZXJiIjoiMCIsImlyb24iOiIwIiwiaGVhbHRoX3BvdGlvbiI6IjAiLCJpcm9uX3Rvb2wiOiIwIn0sImF2YWlsYWJsZSI6eyJjcnlzdGFsIjoiMSIsIndvb2QiOiIwIiwiaGVyYiI6IjAiLCJpcm9uIjoiMCIsImhlYWx0aF9wb3Rpb24iOiIwIiwiaXJvbl90b29sIjoiMCJ9LCJsaXN0aW5nX3Jlc2VydmVkIjp7ImNyeXN0YWwiOiIwIiwid29vZCI6IjAiLCJoZXJiIjoiMCIsImlyb24iOiIwIiwiaGVhbHRoX3BvdGlvbiI6IjAiLCJpcm9uX3Rvb2wiOiIwIn0sInRyYWRlX3Jlc2VydmVkIjp7ImNyeXN0YWwiOiIwIiwid29vZCI6IjAiLCJoZXJiIjoiMCIsImlyb24iOiIwIiwiaGVhbHRoX3BvdGlvbiI6IjAiLCJpcm9uX3Rvb2wiOiIwIn0sInByb2R1Y3Rpb25fb3V0cHV0X3Jlc2VydmVkIjp7ImNyeXN0YWwiOiIwIiwid29vZCI6IjAiLCJoZXJiIjoiMCIsImlyb24iOiIwIiwiaGVhbHRoX3BvdGlvbiI6IjAiLCJpcm9uX3Rvb2wiOiIwIn0sInRyYWRlX2luYm91bmRfcmVzZXJ2ZWQiOnsiY3J5c3RhbCI6IjAiLCJ3b29kIjoiMCIsImhlcmIiOiIwIiwiaXJvbiI6IjAiLCJoZWFsdGhfcG90aW9uIjoiMCIsImlyb25fdG9vbCI6IjAifX19LCJzZWxsZXIiOnsiYWN0b3IiOnsia2luZCI6Im1lcmNoYW50IiwibWVyY2hhbnRfaWQiOiJyZXgifSwicmV2aXNpb24iOiI0IiwiZ29sZCI6eyJoZWxkIjoiMjA1IiwiYXZhaWxhYmxlIjoiMjA1IiwidHJhZGVfcmVzZXJ2ZWQiOiIwIiwidHJhZGVfaW5ib3VuZF9yZXNlcnZlZCI6IjAifSwiaW52ZW50b3J5Ijp7ImhlbGQiOnsiY3J5c3RhbCI6IjkiLCJ3b29kIjoiMCIsImhlcmIiOiIwIiwiaXJvbiI6IjAiLCJoZWFsdGhfcG90aW9uIjoiMCIsImlyb25fdG9vbCI6IjAifSwiYXZhaWxhYmxlIjp7ImNyeXN0YWwiOiI4Iiwid29vZCI6IjAiLCJoZXJiIjoiMCIsImlyb24iOiIwIiwiaGVhbHRoX3BvdGlvbiI6IjAiLCJpcm9uX3Rvb2wiOiIwIn0sImxpc3RpbmdfcmVzZXJ2ZWQiOnsiY3J5c3RhbCI6IjEiLCJ3b29kIjoiMCIsImhlcmIiOiIwIiwiaXJvbiI6IjAiLCJoZWFsdGhfcG90aW9uIjoiMCIsImlyb25fdG9vbCI6IjAifSwidHJhZGVfcmVzZXJ2ZWQiOnsiY3J5c3RhbCI6IjAiLCJ3b29kIjoiMCIsImhlcmIiOiIwIiwiaXJvbiI6IjAiLCJoZWFsdGhfcG90aW9uIjoiMCIsImlyb25fdG9vbCI6IjAifSwicHJvZHVjdGlvbl9vdXRwdXRfcmVzZXJ2ZWQiOnsiY3J5c3RhbCI6IjAiLCJ3b29kIjoiMCIsImhlcmIiOiIwIiwiaXJvbiI6IjAiLCJoZWFsdGhfcG90aW9uIjoiMCIsImlyb25fdG9vbCI6IjAifSwidHJhZGVfaW5ib3VuZF9yZXNlcnZlZCI6eyJjcnlzdGFsIjoiMCIsIndvb2QiOiIwIiwiaGVyYiI6IjAiLCJpcm9uIjoiMCIsImhlYWx0aF9wb3Rpb24iOiIwIiwiaXJvbl90b29sIjoiMCJ9fX19fX0="
+        },
+        "transaction": {
+          "actions": [
+            {
+              "FunctionCall": {
+                "args": "eyJtZXJjaGFudF9pZCI6InJleCIsIml0ZW1faWQiOiJjcnlzdGFsIiwicXVhbnRpdHkiOiIxIiwiZXhwZWN0ZWRfbGlzdGluZ19yZXZpc2lvbiI6IjMiLCJtYXhfdG90YWxfcHJpY2UiOiI1IiwiY29tbWFuZCI6eyJzZXF1ZW5jZSI6IjMiLCJjb25maWdfdmVyc2lvbiI6IjEiLCJ2YWxpZF91bnRpbF9ucyI6IjE3OTM5MTcwNTY4NTM0NzM4MzIifX0=",
+                "deposit": "0",
+                "gas": 100000000000000,
+                "method_name": "buy_from_merchant"
+              }
+            }
+          ],
+          "hash": "9BBB5a6iDfs4uc6FxihRxwmh7KDnVce7YtbUC7eJUuLp",
+          "nonce": 8000008,
+          "priority_fee": 0,
+          "public_key": "ed25519:AvbonTmBV4huLW7aw9gNRhdP15eBVwmVzGBvZDYXr3BZ",
+          "receiver_id": "dev-20261105220910-16680428888534.test.near",
+          "signature": "ed25519:2iQfbTfaBJX2aZzhssoixVY9GMF98fL1S6gJfYWWTnrwATEi5yghxPU7g1nWFvP4BoN4aMCvJ7jtsqy4kDxgxjQ2",
+          "signer_id": "dev-20261105220910-78014434024613.test.near"
+        },
+        "transaction_outcome": {
+          "block_hash": "AsRcH4CaGxDjxpQWGWJfoUsFzn95ARAtXYhoV2pyan4V",
+          "id": "9BBB5a6iDfs4uc6FxihRxwmh7KDnVce7YtbUC7eJUuLp",
+          "outcome": {
+            "executor_id": "dev-20261105220910-78014434024613.test.near",
+            "gas_burnt": 318263815010,
+            "logs": [],
+            "metadata": {
+              "gas_profile": null,
+              "version": 1
+            },
+            "receipt_ids": ["De5eWeYj2sJq2H9tJJMGwxtqpEUzyt5A8mY3R8FgQc5N"],
+            "status": {
+              "SuccessReceiptId": "De5eWeYj2sJq2H9tJJMGwxtqpEUzyt5A8mY3R8FgQc5N"
+            },
+            "tokens_burnt": "31826381501000000000"
+          },
+          "proof": []
+        }
+      },
+      "block": {
+        "author": "test.near",
+        "chunks": [
+          {
+            "balance_burnt": "31826381501000000000",
+            "bandwidth_requests": {
+              "V1": {
+                "requests": []
+              }
+            },
+            "chunk_hash": "9hwHSpGRq21su6uNeBt2P2DtLajTYNLyDSxMUMf6Enwf",
+            "congestion_info": {
+              "allowed_shard": 0,
+              "buffered_receipts_gas": "0",
+              "delayed_receipts_gas": "0",
+              "receipt_bytes": 0
+            },
+            "encoded_length": 490,
+            "encoded_merkle_root": "9QwLybby4uBmzBbUazcmdWnhy8292TMC98AP32ZBsqCk",
+            "gas_limit": 1000000000000000,
+            "gas_used": 318263815010,
+            "height_created": 63,
+            "height_included": 63,
+            "outcome_root": "3LZDJUec8yKdGXGCUt3iy6h3cvktWeHNEbqEdAkZeZP5",
+            "outgoing_receipts_root": "4D53wvb7UsR96htvUeXy3147WYog2vX78zjysDzGN46c",
+            "prev_block_hash": "AsRcH4CaGxDjxpQWGWJfoUsFzn95ARAtXYhoV2pyan4V",
+            "prev_state_root": "FBCr43DKDr3ssU5UvmMbiDMGiTcnfC6svCtqoYZa1LFF",
+            "proposed_split": null,
+            "rent_paid": "0",
+            "shard_id": 0,
+            "signature": "ed25519:wG1cwZ8jBDVChkU6XPzriHE3tvemJ2BLWu1z9URMx66rAsUKyV1EHSJup2VZwbodC21fgDTt6aswix8B2NpnkfD",
+            "tx_root": "11111111111111111111111111111111",
+            "validator_proposals": [],
+            "validator_reward": "0"
+          }
+        ],
+        "header": {
+          "approvals": [
+            "ed25519:3F4C5BiHmUMgBCbaM3tBoLfVghbMa448v49Qv8pJRgWTeUrc1SS1H56zXU4De6hVoivguyEipVDeuoH9A83nhmZ3"
+          ],
+          "block_body_hash": "6miKkbHPhEyeEu9gByz6GWWRHsaBjLEk9LEEGLPqk7zM",
+          "block_merkle_root": "9Q6BaK4s864NJ7ibNDdRQVs32r4PosGzkiDVHrV158uh",
+          "block_ordinal": 64,
+          "challenges_result": [],
+          "challenges_root": "11111111111111111111111111111111",
+          "chunk_endorsements": [[1]],
+          "chunk_headers_root": "WEQzma1VUpxMwUC2BVAmWMFz8YzazjNywkXiUiTGrCn",
+          "chunk_mask": [true],
+          "chunk_receipts_root": "2LUYXMXjZhytyXDNroWDNmbYVk7SoV97vH1S1wTyeuqW",
+          "chunk_tx_root": "7tkzFg8RHBmMw1ncRJZCCZAizgq4rwCftTKYLce8RU8t",
+          "chunks_included": 1,
+          "epoch_id": "BegiuBuKPJ7VF6YBtUFFuTKxNPBM7gLbqcPP23ZBo372",
+          "epoch_sync_data_hash": null,
+          "gas_price": "100000000",
+          "hash": "6mqTkFDfSpJS6ivXVNUcAeFwUVA3TXcCJwA3gf2MHVnE",
+          "height": 63,
+          "last_ds_final_block": "AsRcH4CaGxDjxpQWGWJfoUsFzn95ARAtXYhoV2pyan4V",
+          "last_final_block": "9SvUHuj8Ya7cjwhTuZuCndGPXMLPAjDyoZnXrpKDooLt",
+          "latest_protocol_version": 86,
+          "next_bp_hash": "BRcHTvdUnSz2kRn9JBZM6hUh2QgNaXnnZLtk9pWZ64gH",
+          "next_epoch_id": "6kJ4FuWcnhM9uPqgW7VBkUw1JjVGk2PgtSivFjTofWc8",
+          "outcome_root": "BGdkA7Ej7hz3GQW1fv4jVAmvc97NmmkPJJspYyjR15pF",
+          "prev_hash": "AsRcH4CaGxDjxpQWGWJfoUsFzn95ARAtXYhoV2pyan4V",
+          "prev_height": 62,
+          "prev_state_root": "FwaSq4zzaXw2qYrHyixwVR3qJ4JdqfUqev2V31upaL9u",
+          "random_value": "GhYsLEJ7Zp7g5PSpMVtQWkRFNN5K6k6EoQvt2gxDUhg2",
+          "rent_paid": "0",
+          "shard_split": null,
+          "signature": "ed25519:4fqofmMkxBcWmiBo3fXLiURcgoM4DLKgjAG38AxohqCeHVF6DZr2YWYfzzfti9d5XeGyXu14yVZFUdgAA63nRnEp",
+          "timestamp": 1793916557992790300,
+          "timestamp_nanosec": "1793916557992790385",
+          "total_supply": "2050030031197143895869538449129524",
+          "validator_proposals": [],
+          "validator_reward": "0"
+        }
+      },
+      "account": {
+        "amount": "100001001967791368900000000",
+        "block_hash": "6mqTkFDfSpJS6ivXVNUcAeFwUVA3TXcCJwA3gf2MHVnE",
+        "block_height": 63,
+        "code_hash": "HVGVmzvEAQzRtBM6h9b2F7nZgTcdhzTejswCkctVLmam",
+        "locked": "0",
+        "storage_paid_at": 0,
+        "storage_usage": 382884
+      },
+      "foundation": {
+        "deployment": {
+          "network_id": "testnet",
+          "genesis_hash": "11111111111111111111111111111111",
+          "contract_id": "dev-20261105220910-16680428888534.test.near",
+          "api_version": "2.0.0",
+          "state_schema": "1",
+          "command_schema": "1",
+          "config_version": "1",
+          "config_sha256": "a932efb48c70a73ce46472cd754288649541b34604e2ea49a4093961e71a2d10"
+        },
+        "market_revision": "8",
+        "event_sequence": "8",
+        "block_height": "63",
+        "block_timestamp_ns": "1793916557992790385",
+        "data": {
+          "owner_account_id": "dev-20261105220910-16680428888534.test.near",
+          "operator_account_id": "operator.testnet",
+          "merchant_controllers": {
+            "rex": "dev-20261105220911-10282688170599.test.near",
+            "luna": "luna.testnet",
+            "bolt": "bolt.testnet"
+          },
+          "item_ids": [
+            "crystal",
+            "wood",
+            "herb",
+            "iron",
+            "health_potion",
+            "iron_tool"
+          ],
+          "supported_methods": [
+            "initialize_town",
+            "get_foundation",
+            "get_town",
+            "register_player",
+            "create_shop",
+            "rename_shop",
+            "get_player",
+            "get_shop",
+            "get_player_shops",
+            "get_command",
+            "buy_from_merchant",
+            "get_listings",
+            "get_trade",
+            "get_shop_inventory",
+            "get_recipes",
+            "start_production",
+            "get_production_jobs",
+            "complete_production",
+            "set_listing",
+            "cancel_listing"
+          ]
+        }
+      }
+    },
+    {
+      "method": "buy_from_merchant",
+      "args": {
+        "merchant_id": "rex",
+        "item_id": "crystal",
+        "quantity": "1",
+        "expected_listing_revision": "4",
+        "max_total_price": "5",
+        "command": {
+          "sequence": "3",
+          "config_version": "1",
+          "valid_until_ns": "1793917059125514369"
+        }
+      },
+      "signer_id": "dev-20261105220911-38268115059205.test.near",
+      "transaction_hash": "Fq2GeVvX1VrppWF4rviZq5HMHiKkPnwJ698UniBTHHfn",
+      "reference_block_height": "72",
+      "receipt": {
+        "final_execution_status": "FINAL",
+        "receipts_outcome": [
+          {
+            "block_hash": "4XEz2ZPsS7bpNJv5TUR5zoM7bx1yqSSRYA8EHxXrCPFp",
+            "id": "ABTC4XqFDsb234vQhLBPqJd5E4rc2chc8pjZFb3VvvT8",
+            "outcome": {
+              "executor_id": "dev-20261105220910-16680428888534.test.near",
+              "gas_burnt": 10688078142895,
+              "logs": [
+                "EVENT_JSON:{\"standard\":\"bot_bazaar_living_town\",\"version\":\"2.0.0\",\"event\":\"buy_from_merchant\",\"data\":[{\"contract_id\":\"dev-20261105220910-16680428888534.test.near\",\"config_version\":\"1\",\"event_sequence\":\"9\",\"market_revision\":\"9\",\"block_height\":\"75\",\"block_timestamp_ns\":\"1793916559502308830\",\"predecessor_account_id\":\"dev-20261105220911-38268115059205.test.near\",\"principal\":\"account:dev-20261105220911-38268115059205.test.near\",\"command_sequence\":\"3\",\"payload_sha256\":\"66a99ca7869c04621926be1bfc04a52a123adb6cf466b10ac04239fb2d2d6ed1\",\"outcome\":{\"kind\":\"raw_purchased\",\"trade\":{\"trade_id\":\"2\",\"kind\":\"raw_purchase\",\"buyer\":{\"kind\":\"player\",\"account_id\":\"dev-20261105220911-38268115059205.test.near\"},\"customer_pool_id\":null,\"seller\":{\"kind\":\"merchant\",\"merchant_id\":\"rex\"},\"item_id\":\"crystal\",\"quantity\":\"1\",\"unit_price\":\"5\",\"total_price\":\"5\",\"listing_id\":\"1\",\"offer_id\":null,\"consumed_quantity\":\"0\",\"settled_at_ns\":\"1793916559502308830\",\"command_principal\":\"account:dev-20261105220911-38268115059205.test.near\",\"command_sequence\":\"3\",\"event_sequence\":\"9\"},\"listing\":{\"listing_id\":\"1\",\"shop_id\":\"1\",\"owner\":{\"kind\":\"merchant\",\"merchant_id\":\"rex\"},\"item_id\":\"crystal\",\"remaining_quantity\":\"0\",\"unit_price\":\"5\",\"revision\":\"5\",\"active\":false},\"buyer\":{\"actor\":{\"kind\":\"player\",\"account_id\":\"dev-20261105220911-38268115059205.test.near\"},\"revision\":\"2\",\"gold\":{\"held\":\"95\",\"available\":\"95\",\"trade_reserved\":\"0\",\"trade_inbound_reserved\":\"0\"},\"inventory\":{\"held\":{\"crystal\":\"1\",\"wood\":\"0\",\"herb\":\"0\",\"iron\":\"0\",\"health_potion\":\"0\",\"iron_tool\":\"0\"},\"available\":{\"crystal\":\"1\",\"wood\":\"0\",\"herb\":\"0\",\"iron\":\"0\",\"health_potion\":\"0\",\"iron_tool\":\"0\"},\"listing_reserved\":{\"crystal\":\"0\",\"wood\":\"0\",\"herb\":\"0\",\"iron\":\"0\",\"health_potion\":\"0\",\"iron_tool\":\"0\"},\"trade_reserved\":{\"crystal\":\"0\",\"wood\":\"0\",\"herb\":\"0\",\"iron\":\"0\",\"health_potion\":\"0\",\"iron_tool\":\"0\"},\"production_output_reserved\":{\"crystal\":\"0\",\"wood\":\"0\",\"herb\":\"0\",\"iron\":\"0\",\"health_potion\":\"0\",\"iron_tool\":\"0\"},\"trade_inbound_reserved\":{\"crystal\":\"0\",\"wood\":\"0\",\"herb\":\"0\",\"iron\":\"0\",\"health_potion\":\"0\",\"iron_tool\":\"0\"}}},\"seller\":{\"actor\":{\"kind\":\"merchant\",\"merchant_id\":\"rex\"},\"revision\":\"5\",\"gold\":{\"held\":\"210\",\"available\":\"210\",\"trade_reserved\":\"0\",\"trade_inbound_reserved\":\"0\"},\"inventory\":{\"held\":{\"crystal\":\"8\",\"wood\":\"0\",\"herb\":\"0\",\"iron\":\"0\",\"health_potion\":\"0\",\"iron_tool\":\"0\"},\"available\":{\"crystal\":\"8\",\"wood\":\"0\",\"herb\":\"0\",\"iron\":\"0\",\"health_potion\":\"0\",\"iron_tool\":\"0\"},\"listing_reserved\":{\"crystal\":\"0\",\"wood\":\"0\",\"herb\":\"0\",\"iron\":\"0\",\"health_potion\":\"0\",\"iron_tool\":\"0\"},\"trade_reserved\":{\"crystal\":\"0\",\"wood\":\"0\",\"herb\":\"0\",\"iron\":\"0\",\"health_potion\":\"0\",\"iron_tool\":\"0\"},\"production_output_reserved\":{\"crystal\":\"0\",\"wood\":\"0\",\"herb\":\"0\",\"iron\":\"0\",\"health_potion\":\"0\",\"iron_tool\":\"0\"},\"trade_inbound_reserved\":{\"crystal\":\"0\",\"wood\":\"0\",\"herb\":\"0\",\"iron\":\"0\",\"health_potion\":\"0\",\"iron_tool\":\"0\"}}}}}]}"
+              ],
+              "metadata": {
+                "contracts": [
+                  {
+                    "local": "HVGVmzvEAQzRtBM6h9b2F7nZgTcdhzTejswCkctVLmam"
+                  }
+                ],
+                "gas_profile": [
+                  {
+                    "cost": "BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "10590724440"
+                  },
+                  {
+                    "cost": "CONTRACT_LOADING_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "35445963"
+                  },
+                  {
+                    "cost": "CONTRACT_LOADING_BYTES",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "411033486005"
+                  },
+                  {
+                    "cost": "LOG_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "3543313050"
+                  },
+                  {
+                    "cost": "LOG_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "37880530170"
+                  },
+                  {
+                    "cost": "READ_CACHED_TRIE_NODE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "50160000000"
+                  },
+                  {
+                    "cost": "READ_MEMORY_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "49587400800"
+                  },
+                  {
+                    "cost": "READ_MEMORY_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "50458894242"
+                  },
+                  {
+                    "cost": "READ_REGISTER_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "25171651860"
+                  },
+                  {
+                    "cost": "READ_REGISTER_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "287899602"
+                  },
+                  {
+                    "cost": "SHA256_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "9081940500"
+                  },
+                  {
+                    "cost": "SHA256_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "55686963459"
+                  },
+                  {
+                    "cost": "STORAGE_HAS_KEY_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "54039896625"
+                  },
+                  {
+                    "cost": "STORAGE_HAS_KEY_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "1878241545"
+                  },
+                  {
+                    "cost": "STORAGE_READ_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "225427382996"
+                  },
+                  {
+                    "cost": "STORAGE_READ_KEY_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "4921452747"
+                  },
+                  {
+                    "cost": "STORAGE_READ_VALUE_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "12231988720"
+                  },
+                  {
+                    "cost": "STORAGE_WRITE_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "320983680000"
+                  },
+                  {
+                    "cost": "STORAGE_WRITE_EVICTED_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "124775737695"
+                  },
+                  {
+                    "cost": "STORAGE_WRITE_KEY_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "11559190188"
+                  },
+                  {
+                    "cost": "STORAGE_WRITE_VALUE_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "146004263073"
+                  },
+                  {
+                    "cost": "TOUCHING_TRIE_NODE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "41040000000"
+                  },
+                  {
+                    "cost": "UTF8_DECODING_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "3111779061"
+                  },
+                  {
+                    "cost": "UTF8_DECODING_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "836835974730"
+                  },
+                  {
+                    "cost": "WASM_INSTRUCTION",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "7207779443436"
+                  },
+                  {
+                    "cost": "WRITE_MEMORY_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "33645538332"
+                  },
+                  {
+                    "cost": "WRITE_MEMORY_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "8043298716"
+                  },
+                  {
+                    "cost": "WRITE_REGISTER_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "40117314804"
+                  },
+                  {
+                    "cost": "WRITE_REGISTER_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "23626720260"
+                  }
+                ],
+                "version": 4
+              },
+              "receipt_ids": ["6g9Yi3UeiYvq1Zu4Jn7QzFYYHeVRWHZgcwnZTof5rspr"],
+              "status": {
+                "SuccessValue": "eyJkZXBsb3ltZW50Ijp7Im5ldHdvcmtfaWQiOiJ0ZXN0bmV0IiwiZ2VuZXNpc19oYXNoIjoiMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTEiLCJjb250cmFjdF9pZCI6ImRldi0yMDI2MTEwNTIyMDkxMC0xNjY4MDQyODg4ODUzNC50ZXN0Lm5lYXIiLCJhcGlfdmVyc2lvbiI6IjIuMC4wIiwic3RhdGVfc2NoZW1hIjoiMSIsImNvbW1hbmRfc2NoZW1hIjoiMSIsImNvbmZpZ192ZXJzaW9uIjoiMSIsImNvbmZpZ19zaGEyNTYiOiJhOTMyZWZiNDhjNzBhNzNjZTQ2NDcyY2Q3NTQyODg2NDk1NDFiMzQ2MDRlMmVhNDlhNDA5Mzk2MWU3MWEyZDEwIn0sIm1hcmtldF9yZXZpc2lvbiI6IjkiLCJldmVudF9zZXF1ZW5jZSI6IjkiLCJibG9ja19oZWlnaHQiOiI3NSIsImJsb2NrX3RpbWVzdGFtcF9ucyI6IjE3OTM5MTY1NTk1MDIzMDg4MzAiLCJkYXRhIjp7InByaW5jaXBhbCI6ImFjY291bnQ6ZGV2LTIwMjYxMTA1MjIwOTExLTM4MjY4MTE1MDU5MjA1LnRlc3QubmVhciIsImNvbW1hbmRfc2VxdWVuY2UiOiIzIiwicGF5bG9hZF9zaGEyNTYiOiI2NmE5OWNhNzg2OWMwNDYyMTkyNmJlMWJmYzA0YTUyYTEyM2FkYjZjZjQ2NmIxMGFjMDQyMzlmYjJkMmQ2ZWQxIiwicmVwbGF5ZWQiOmZhbHNlLCJlZmZlY3RfcmV2aXNpb24iOiI5IiwiZWZmZWN0X2V2ZW50X3NlcXVlbmNlIjoiOSIsIm91dGNvbWUiOnsia2luZCI6InJhd19wdXJjaGFzZWQiLCJ0cmFkZSI6eyJ0cmFkZV9pZCI6IjIiLCJraW5kIjoicmF3X3B1cmNoYXNlIiwiYnV5ZXIiOnsia2luZCI6InBsYXllciIsImFjY291bnRfaWQiOiJkZXYtMjAyNjExMDUyMjA5MTEtMzgyNjgxMTUwNTkyMDUudGVzdC5uZWFyIn0sImN1c3RvbWVyX3Bvb2xfaWQiOm51bGwsInNlbGxlciI6eyJraW5kIjoibWVyY2hhbnQiLCJtZXJjaGFudF9pZCI6InJleCJ9LCJpdGVtX2lkIjoiY3J5c3RhbCIsInF1YW50aXR5IjoiMSIsInVuaXRfcHJpY2UiOiI1IiwidG90YWxfcHJpY2UiOiI1IiwibGlzdGluZ19pZCI6IjEiLCJvZmZlcl9pZCI6bnVsbCwiY29uc3VtZWRfcXVhbnRpdHkiOiIwIiwic2V0dGxlZF9hdF9ucyI6IjE3OTM5MTY1NTk1MDIzMDg4MzAiLCJjb21tYW5kX3ByaW5jaXBhbCI6ImFjY291bnQ6ZGV2LTIwMjYxMTA1MjIwOTExLTM4MjY4MTE1MDU5MjA1LnRlc3QubmVhciIsImNvbW1hbmRfc2VxdWVuY2UiOiIzIiwiZXZlbnRfc2VxdWVuY2UiOiI5In0sImxpc3RpbmciOnsibGlzdGluZ19pZCI6IjEiLCJzaG9wX2lkIjoiMSIsIm93bmVyIjp7ImtpbmQiOiJtZXJjaGFudCIsIm1lcmNoYW50X2lkIjoicmV4In0sIml0ZW1faWQiOiJjcnlzdGFsIiwicmVtYWluaW5nX3F1YW50aXR5IjoiMCIsInVuaXRfcHJpY2UiOiI1IiwicmV2aXNpb24iOiI1IiwiYWN0aXZlIjpmYWxzZX0sImJ1eWVyIjp7ImFjdG9yIjp7ImtpbmQiOiJwbGF5ZXIiLCJhY2NvdW50X2lkIjoiZGV2LTIwMjYxMTA1MjIwOTExLTM4MjY4MTE1MDU5MjA1LnRlc3QubmVhciJ9LCJyZXZpc2lvbiI6IjIiLCJnb2xkIjp7ImhlbGQiOiI5NSIsImF2YWlsYWJsZSI6Ijk1IiwidHJhZGVfcmVzZXJ2ZWQiOiIwIiwidHJhZGVfaW5ib3VuZF9yZXNlcnZlZCI6IjAifSwiaW52ZW50b3J5Ijp7ImhlbGQiOnsiY3J5c3RhbCI6IjEiLCJ3b29kIjoiMCIsImhlcmIiOiIwIiwiaXJvbiI6IjAiLCJoZWFsdGhfcG90aW9uIjoiMCIsImlyb25fdG9vbCI6IjAifSwiYXZhaWxhYmxlIjp7ImNyeXN0YWwiOiIxIiwid29vZCI6IjAiLCJoZXJiIjoiMCIsImlyb24iOiIwIiwiaGVhbHRoX3BvdGlvbiI6IjAiLCJpcm9uX3Rvb2wiOiIwIn0sImxpc3RpbmdfcmVzZXJ2ZWQiOnsiY3J5c3RhbCI6IjAiLCJ3b29kIjoiMCIsImhlcmIiOiIwIiwiaXJvbiI6IjAiLCJoZWFsdGhfcG90aW9uIjoiMCIsImlyb25fdG9vbCI6IjAifSwidHJhZGVfcmVzZXJ2ZWQiOnsiY3J5c3RhbCI6IjAiLCJ3b29kIjoiMCIsImhlcmIiOiIwIiwiaXJvbiI6IjAiLCJoZWFsdGhfcG90aW9uIjoiMCIsImlyb25fdG9vbCI6IjAifSwicHJvZHVjdGlvbl9vdXRwdXRfcmVzZXJ2ZWQiOnsiY3J5c3RhbCI6IjAiLCJ3b29kIjoiMCIsImhlcmIiOiIwIiwiaXJvbiI6IjAiLCJoZWFsdGhfcG90aW9uIjoiMCIsImlyb25fdG9vbCI6IjAifSwidHJhZGVfaW5ib3VuZF9yZXNlcnZlZCI6eyJjcnlzdGFsIjoiMCIsIndvb2QiOiIwIiwiaGVyYiI6IjAiLCJpcm9uIjoiMCIsImhlYWx0aF9wb3Rpb24iOiIwIiwiaXJvbl90b29sIjoiMCJ9fX0sInNlbGxlciI6eyJhY3RvciI6eyJraW5kIjoibWVyY2hhbnQiLCJtZXJjaGFudF9pZCI6InJleCJ9LCJyZXZpc2lvbiI6IjUiLCJnb2xkIjp7ImhlbGQiOiIyMTAiLCJhdmFpbGFibGUiOiIyMTAiLCJ0cmFkZV9yZXNlcnZlZCI6IjAiLCJ0cmFkZV9pbmJvdW5kX3Jlc2VydmVkIjoiMCJ9LCJpbnZlbnRvcnkiOnsiaGVsZCI6eyJjcnlzdGFsIjoiOCIsIndvb2QiOiIwIiwiaGVyYiI6IjAiLCJpcm9uIjoiMCIsImhlYWx0aF9wb3Rpb24iOiIwIiwiaXJvbl90b29sIjoiMCJ9LCJhdmFpbGFibGUiOnsiY3J5c3RhbCI6IjgiLCJ3b29kIjoiMCIsImhlcmIiOiIwIiwiaXJvbiI6IjAiLCJoZWFsdGhfcG90aW9uIjoiMCIsImlyb25fdG9vbCI6IjAifSwibGlzdGluZ19yZXNlcnZlZCI6eyJjcnlzdGFsIjoiMCIsIndvb2QiOiIwIiwiaGVyYiI6IjAiLCJpcm9uIjoiMCIsImhlYWx0aF9wb3Rpb24iOiIwIiwiaXJvbl90b29sIjoiMCJ9LCJ0cmFkZV9yZXNlcnZlZCI6eyJjcnlzdGFsIjoiMCIsIndvb2QiOiIwIiwiaGVyYiI6IjAiLCJpcm9uIjoiMCIsImhlYWx0aF9wb3Rpb24iOiIwIiwiaXJvbl90b29sIjoiMCJ9LCJwcm9kdWN0aW9uX291dHB1dF9yZXNlcnZlZCI6eyJjcnlzdGFsIjoiMCIsIndvb2QiOiIwIiwiaGVyYiI6IjAiLCJpcm9uIjoiMCIsImhlYWx0aF9wb3Rpb24iOiIwIiwiaXJvbl90b29sIjoiMCJ9LCJ0cmFkZV9pbmJvdW5kX3Jlc2VydmVkIjp7ImNyeXN0YWwiOiIwIiwid29vZCI6IjAiLCJoZXJiIjoiMCIsImlyb24iOiIwIiwiaGVhbHRoX3BvdGlvbiI6IjAiLCJpcm9uX3Rvb2wiOiIwIn19fX19fQ=="
+              },
+              "tokens_burnt": "1068807814289500000000"
+            },
+            "proof": []
+          },
+          {
+            "block_hash": "5gM29JiY6nkDKbvGCHz2BVwB3wK2akGM2juaNqgi6q8h",
+            "id": "6g9Yi3UeiYvq1Zu4Jn7QzFYYHeVRWHZgcwnZTof5rspr",
+            "outcome": {
+              "executor_id": "dev-20261105220911-38268115059205.test.near",
+              "gas_burnt": 223182562500,
+              "logs": [],
+              "metadata": {
+                "contracts": [null],
+                "gas_profile": [],
+                "version": 4
+              },
+              "receipt_ids": [],
+              "status": {
+                "SuccessValue": ""
+              },
+              "tokens_burnt": "0"
+            },
+            "proof": []
+          }
+        ],
+        "status": {
+          "SuccessValue": "eyJkZXBsb3ltZW50Ijp7Im5ldHdvcmtfaWQiOiJ0ZXN0bmV0IiwiZ2VuZXNpc19oYXNoIjoiMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTEiLCJjb250cmFjdF9pZCI6ImRldi0yMDI2MTEwNTIyMDkxMC0xNjY4MDQyODg4ODUzNC50ZXN0Lm5lYXIiLCJhcGlfdmVyc2lvbiI6IjIuMC4wIiwic3RhdGVfc2NoZW1hIjoiMSIsImNvbW1hbmRfc2NoZW1hIjoiMSIsImNvbmZpZ192ZXJzaW9uIjoiMSIsImNvbmZpZ19zaGEyNTYiOiJhOTMyZWZiNDhjNzBhNzNjZTQ2NDcyY2Q3NTQyODg2NDk1NDFiMzQ2MDRlMmVhNDlhNDA5Mzk2MWU3MWEyZDEwIn0sIm1hcmtldF9yZXZpc2lvbiI6IjkiLCJldmVudF9zZXF1ZW5jZSI6IjkiLCJibG9ja19oZWlnaHQiOiI3NSIsImJsb2NrX3RpbWVzdGFtcF9ucyI6IjE3OTM5MTY1NTk1MDIzMDg4MzAiLCJkYXRhIjp7InByaW5jaXBhbCI6ImFjY291bnQ6ZGV2LTIwMjYxMTA1MjIwOTExLTM4MjY4MTE1MDU5MjA1LnRlc3QubmVhciIsImNvbW1hbmRfc2VxdWVuY2UiOiIzIiwicGF5bG9hZF9zaGEyNTYiOiI2NmE5OWNhNzg2OWMwNDYyMTkyNmJlMWJmYzA0YTUyYTEyM2FkYjZjZjQ2NmIxMGFjMDQyMzlmYjJkMmQ2ZWQxIiwicmVwbGF5ZWQiOmZhbHNlLCJlZmZlY3RfcmV2aXNpb24iOiI5IiwiZWZmZWN0X2V2ZW50X3NlcXVlbmNlIjoiOSIsIm91dGNvbWUiOnsia2luZCI6InJhd19wdXJjaGFzZWQiLCJ0cmFkZSI6eyJ0cmFkZV9pZCI6IjIiLCJraW5kIjoicmF3X3B1cmNoYXNlIiwiYnV5ZXIiOnsia2luZCI6InBsYXllciIsImFjY291bnRfaWQiOiJkZXYtMjAyNjExMDUyMjA5MTEtMzgyNjgxMTUwNTkyMDUudGVzdC5uZWFyIn0sImN1c3RvbWVyX3Bvb2xfaWQiOm51bGwsInNlbGxlciI6eyJraW5kIjoibWVyY2hhbnQiLCJtZXJjaGFudF9pZCI6InJleCJ9LCJpdGVtX2lkIjoiY3J5c3RhbCIsInF1YW50aXR5IjoiMSIsInVuaXRfcHJpY2UiOiI1IiwidG90YWxfcHJpY2UiOiI1IiwibGlzdGluZ19pZCI6IjEiLCJvZmZlcl9pZCI6bnVsbCwiY29uc3VtZWRfcXVhbnRpdHkiOiIwIiwic2V0dGxlZF9hdF9ucyI6IjE3OTM5MTY1NTk1MDIzMDg4MzAiLCJjb21tYW5kX3ByaW5jaXBhbCI6ImFjY291bnQ6ZGV2LTIwMjYxMTA1MjIwOTExLTM4MjY4MTE1MDU5MjA1LnRlc3QubmVhciIsImNvbW1hbmRfc2VxdWVuY2UiOiIzIiwiZXZlbnRfc2VxdWVuY2UiOiI5In0sImxpc3RpbmciOnsibGlzdGluZ19pZCI6IjEiLCJzaG9wX2lkIjoiMSIsIm93bmVyIjp7ImtpbmQiOiJtZXJjaGFudCIsIm1lcmNoYW50X2lkIjoicmV4In0sIml0ZW1faWQiOiJjcnlzdGFsIiwicmVtYWluaW5nX3F1YW50aXR5IjoiMCIsInVuaXRfcHJpY2UiOiI1IiwicmV2aXNpb24iOiI1IiwiYWN0aXZlIjpmYWxzZX0sImJ1eWVyIjp7ImFjdG9yIjp7ImtpbmQiOiJwbGF5ZXIiLCJhY2NvdW50X2lkIjoiZGV2LTIwMjYxMTA1MjIwOTExLTM4MjY4MTE1MDU5MjA1LnRlc3QubmVhciJ9LCJyZXZpc2lvbiI6IjIiLCJnb2xkIjp7ImhlbGQiOiI5NSIsImF2YWlsYWJsZSI6Ijk1IiwidHJhZGVfcmVzZXJ2ZWQiOiIwIiwidHJhZGVfaW5ib3VuZF9yZXNlcnZlZCI6IjAifSwiaW52ZW50b3J5Ijp7ImhlbGQiOnsiY3J5c3RhbCI6IjEiLCJ3b29kIjoiMCIsImhlcmIiOiIwIiwiaXJvbiI6IjAiLCJoZWFsdGhfcG90aW9uIjoiMCIsImlyb25fdG9vbCI6IjAifSwiYXZhaWxhYmxlIjp7ImNyeXN0YWwiOiIxIiwid29vZCI6IjAiLCJoZXJiIjoiMCIsImlyb24iOiIwIiwiaGVhbHRoX3BvdGlvbiI6IjAiLCJpcm9uX3Rvb2wiOiIwIn0sImxpc3RpbmdfcmVzZXJ2ZWQiOnsiY3J5c3RhbCI6IjAiLCJ3b29kIjoiMCIsImhlcmIiOiIwIiwiaXJvbiI6IjAiLCJoZWFsdGhfcG90aW9uIjoiMCIsImlyb25fdG9vbCI6IjAifSwidHJhZGVfcmVzZXJ2ZWQiOnsiY3J5c3RhbCI6IjAiLCJ3b29kIjoiMCIsImhlcmIiOiIwIiwiaXJvbiI6IjAiLCJoZWFsdGhfcG90aW9uIjoiMCIsImlyb25fdG9vbCI6IjAifSwicHJvZHVjdGlvbl9vdXRwdXRfcmVzZXJ2ZWQiOnsiY3J5c3RhbCI6IjAiLCJ3b29kIjoiMCIsImhlcmIiOiIwIiwiaXJvbiI6IjAiLCJoZWFsdGhfcG90aW9uIjoiMCIsImlyb25fdG9vbCI6IjAifSwidHJhZGVfaW5ib3VuZF9yZXNlcnZlZCI6eyJjcnlzdGFsIjoiMCIsIndvb2QiOiIwIiwiaGVyYiI6IjAiLCJpcm9uIjoiMCIsImhlYWx0aF9wb3Rpb24iOiIwIiwiaXJvbl90b29sIjoiMCJ9fX0sInNlbGxlciI6eyJhY3RvciI6eyJraW5kIjoibWVyY2hhbnQiLCJtZXJjaGFudF9pZCI6InJleCJ9LCJyZXZpc2lvbiI6IjUiLCJnb2xkIjp7ImhlbGQiOiIyMTAiLCJhdmFpbGFibGUiOiIyMTAiLCJ0cmFkZV9yZXNlcnZlZCI6IjAiLCJ0cmFkZV9pbmJvdW5kX3Jlc2VydmVkIjoiMCJ9LCJpbnZlbnRvcnkiOnsiaGVsZCI6eyJjcnlzdGFsIjoiOCIsIndvb2QiOiIwIiwiaGVyYiI6IjAiLCJpcm9uIjoiMCIsImhlYWx0aF9wb3Rpb24iOiIwIiwiaXJvbl90b29sIjoiMCJ9LCJhdmFpbGFibGUiOnsiY3J5c3RhbCI6IjgiLCJ3b29kIjoiMCIsImhlcmIiOiIwIiwiaXJvbiI6IjAiLCJoZWFsdGhfcG90aW9uIjoiMCIsImlyb25fdG9vbCI6IjAifSwibGlzdGluZ19yZXNlcnZlZCI6eyJjcnlzdGFsIjoiMCIsIndvb2QiOiIwIiwiaGVyYiI6IjAiLCJpcm9uIjoiMCIsImhlYWx0aF9wb3Rpb24iOiIwIiwiaXJvbl90b29sIjoiMCJ9LCJ0cmFkZV9yZXNlcnZlZCI6eyJjcnlzdGFsIjoiMCIsIndvb2QiOiIwIiwiaGVyYiI6IjAiLCJpcm9uIjoiMCIsImhlYWx0aF9wb3Rpb24iOiIwIiwiaXJvbl90b29sIjoiMCJ9LCJwcm9kdWN0aW9uX291dHB1dF9yZXNlcnZlZCI6eyJjcnlzdGFsIjoiMCIsIndvb2QiOiIwIiwiaGVyYiI6IjAiLCJpcm9uIjoiMCIsImhlYWx0aF9wb3Rpb24iOiIwIiwiaXJvbl90b29sIjoiMCJ9LCJ0cmFkZV9pbmJvdW5kX3Jlc2VydmVkIjp7ImNyeXN0YWwiOiIwIiwid29vZCI6IjAiLCJoZXJiIjoiMCIsImlyb24iOiIwIiwiaGVhbHRoX3BvdGlvbiI6IjAiLCJpcm9uX3Rvb2wiOiIwIn19fX19fQ=="
+        },
+        "transaction": {
+          "actions": [
+            {
+              "FunctionCall": {
+                "args": "eyJtZXJjaGFudF9pZCI6InJleCIsIml0ZW1faWQiOiJjcnlzdGFsIiwicXVhbnRpdHkiOiIxIiwiZXhwZWN0ZWRfbGlzdGluZ19yZXZpc2lvbiI6IjQiLCJtYXhfdG90YWxfcHJpY2UiOiI1IiwiY29tbWFuZCI6eyJzZXF1ZW5jZSI6IjMiLCJjb25maWdfdmVyc2lvbiI6IjEiLCJ2YWxpZF91bnRpbF9ucyI6IjE3OTM5MTcwNTkxMjU1MTQzNjkifX0=",
+                "deposit": "0",
+                "gas": 100000000000000,
+                "method_name": "buy_from_merchant"
+              }
+            }
+          ],
+          "hash": "Fq2GeVvX1VrppWF4rviZq5HMHiKkPnwJ698UniBTHHfn",
+          "nonce": 11000005,
+          "priority_fee": 0,
+          "public_key": "ed25519:BZ8Y7EPdXSjoKQPQ1UMvByzovvgC55TQVM42z92hketT",
+          "receiver_id": "dev-20261105220910-16680428888534.test.near",
+          "signature": "ed25519:5ShywEMvf2y2bAUs1Dp9CSHVtwv1skrrESszAQjmLyYjJPwS5JSpF8EjWFGp4HYYnYHe8TxiSsWXac4JNa3pQbSB",
+          "signer_id": "dev-20261105220911-38268115059205.test.near"
+        },
+        "transaction_outcome": {
+          "block_hash": "4eKAgyvW4Du2h41CP2B9NoTLzMhr8K8R5fKBnNuvJD5c",
+          "id": "Fq2GeVvX1VrppWF4rviZq5HMHiKkPnwJ698UniBTHHfn",
+          "outcome": {
+            "executor_id": "dev-20261105220911-38268115059205.test.near",
+            "gas_burnt": 318263815010,
+            "logs": [],
+            "metadata": {
+              "gas_profile": null,
+              "version": 1
+            },
+            "receipt_ids": ["ABTC4XqFDsb234vQhLBPqJd5E4rc2chc8pjZFb3VvvT8"],
+            "status": {
+              "SuccessReceiptId": "ABTC4XqFDsb234vQhLBPqJd5E4rc2chc8pjZFb3VvvT8"
+            },
+            "tokens_burnt": "31826381501000000000"
+          },
+          "proof": []
+        }
+      },
+      "block": {
+        "author": "test.near",
+        "chunks": [
+          {
+            "balance_burnt": "31826381501000000000",
+            "bandwidth_requests": {
+              "V1": {
+                "requests": []
+              }
+            },
+            "chunk_hash": "7tQtWGUUayWi5fRDjUNCwSTkahSbwjFXTsFHLGcTvDMs",
+            "congestion_info": {
+              "allowed_shard": 0,
+              "buffered_receipts_gas": "0",
+              "delayed_receipts_gas": "0",
+              "receipt_bytes": 0
+            },
+            "encoded_length": 490,
+            "encoded_merkle_root": "6jcmPD1D6G96MfaK66JUV9W4bvevQFKBfpSC3Hyd6Z8J",
+            "gas_limit": 1000000000000000,
+            "gas_used": 318263815010,
+            "height_created": 75,
+            "height_included": 75,
+            "outcome_root": "J5wtcid1XgcpnZ11zFT2JSuubHqsHuvhyTQPN5u5GGTi",
+            "outgoing_receipts_root": "Cqjvsev8w42NPGpjo33hBVFyUs7xcyYfGBqmHTVhBNZq",
+            "prev_block_hash": "4eKAgyvW4Du2h41CP2B9NoTLzMhr8K8R5fKBnNuvJD5c",
+            "prev_state_root": "CNytWSfvWd54pxqQWRGqi62tH6i4VLyCVSGuBSmVo4oX",
+            "proposed_split": null,
+            "rent_paid": "0",
+            "shard_id": 0,
+            "signature": "ed25519:3TEpCPx5HrPAjr5UbQwTqeRGHi6oqRsXv6VLsKAtpoj3FurGwVWjGY72UBmKeBkNfu5qSSWNa4gH5SvLhi9QhtgQ",
+            "tx_root": "11111111111111111111111111111111",
+            "validator_proposals": [],
+            "validator_reward": "0"
+          }
+        ],
+        "header": {
+          "approvals": [
+            "ed25519:hvq4MdPnNgCFzvCrYjs1eVtH45jPM9qvxwEgrdGgTm2UXYMgzn4s3L8qGfj2k9bzb9Vmkr6xxRTKCHRzdawkPjp"
+          ],
+          "block_body_hash": "8uoLSMwYJfPkK1h6Nf57CkMzCjn6e6JfzjNd6kUjLhhi",
+          "block_merkle_root": "4ReXStfSN1SA2VA3KVvXLud7xYH4xAvDHgxtpQhbdrhk",
+          "block_ordinal": 76,
+          "challenges_result": [],
+          "challenges_root": "11111111111111111111111111111111",
+          "chunk_endorsements": [[1]],
+          "chunk_headers_root": "De1RSDG19y59AfV8KXc7HLUgy2jr3TARumsoabaqyBhy",
+          "chunk_mask": [true],
+          "chunk_receipts_root": "2XdBTmW5XcUXTRTYdRfsPUBQdYMQmaSzcZxGpCFphix9",
+          "chunk_tx_root": "7tkzFg8RHBmMw1ncRJZCCZAizgq4rwCftTKYLce8RU8t",
+          "chunks_included": 1,
+          "epoch_id": "BegiuBuKPJ7VF6YBtUFFuTKxNPBM7gLbqcPP23ZBo372",
+          "epoch_sync_data_hash": null,
+          "gas_price": "100000000",
+          "hash": "4XEz2ZPsS7bpNJv5TUR5zoM7bx1yqSSRYA8EHxXrCPFp",
+          "height": 75,
+          "last_ds_final_block": "4eKAgyvW4Du2h41CP2B9NoTLzMhr8K8R5fKBnNuvJD5c",
+          "last_final_block": "At6ovQnHUb4cBH9A7uWrVfWrdAY311hc9muqBk1EvcAS",
+          "latest_protocol_version": 86,
+          "next_bp_hash": "BRcHTvdUnSz2kRn9JBZM6hUh2QgNaXnnZLtk9pWZ64gH",
+          "next_epoch_id": "6kJ4FuWcnhM9uPqgW7VBkUw1JjVGk2PgtSivFjTofWc8",
+          "outcome_root": "61b9XQmJJVhnjewdzw8VCjfVQQLRSyoRkCq7uQEAFfL1",
+          "prev_hash": "4eKAgyvW4Du2h41CP2B9NoTLzMhr8K8R5fKBnNuvJD5c",
+          "prev_height": 74,
+          "prev_state_root": "Fh3xeXTpFAhtrqQrtByoxpNUP2JSrbKc1iepA422HBgN",
+          "random_value": "2jrn1gie4yvJ9AfWz5o18XgPDoyxiwASSP6hx2e4jKQN",
+          "rent_paid": "0",
+          "shard_split": null,
+          "signature": "ed25519:4NUZPk3WXq2dqtDcsyYR5dASa5RRqEMYz2Tp2cuMMRJpUNiw4M4VTGSJF6bqagbepqBnfUKNxKHWKXJEAK523ydV",
+          "timestamp": 1793916559502308900,
+          "timestamp_nanosec": "1793916559502308830",
+          "total_supply": "2050030031196026997615019849129524",
+          "validator_proposals": [],
+          "validator_reward": "0"
+        }
+      },
+      "account": {
+        "amount": "100001454960866110600000000",
+        "block_hash": "4XEz2ZPsS7bpNJv5TUR5zoM7bx1yqSSRYA8EHxXrCPFp",
+        "block_height": 75,
+        "code_hash": "HVGVmzvEAQzRtBM6h9b2F7nZgTcdhzTejswCkctVLmam",
+        "locked": "0",
+        "storage_paid_at": 0,
+        "storage_usage": 383767
+      },
+      "foundation": {
+        "deployment": {
+          "network_id": "testnet",
+          "genesis_hash": "11111111111111111111111111111111",
+          "contract_id": "dev-20261105220910-16680428888534.test.near",
+          "api_version": "2.0.0",
+          "state_schema": "1",
+          "command_schema": "1",
+          "config_version": "1",
+          "config_sha256": "a932efb48c70a73ce46472cd754288649541b34604e2ea49a4093961e71a2d10"
+        },
+        "market_revision": "9",
+        "event_sequence": "9",
+        "block_height": "75",
+        "block_timestamp_ns": "1793916559502308830",
+        "data": {
+          "owner_account_id": "dev-20261105220910-16680428888534.test.near",
+          "operator_account_id": "operator.testnet",
+          "merchant_controllers": {
+            "rex": "dev-20261105220911-10282688170599.test.near",
+            "luna": "luna.testnet",
+            "bolt": "bolt.testnet"
+          },
+          "item_ids": [
+            "crystal",
+            "wood",
+            "herb",
+            "iron",
+            "health_potion",
+            "iron_tool"
+          ],
+          "supported_methods": [
+            "initialize_town",
+            "get_foundation",
+            "get_town",
+            "register_player",
+            "create_shop",
+            "rename_shop",
+            "get_player",
+            "get_shop",
+            "get_player_shops",
+            "get_command",
+            "buy_from_merchant",
+            "get_listings",
+            "get_trade",
+            "get_shop_inventory",
+            "get_recipes",
+            "start_production",
+            "get_production_jobs",
+            "complete_production",
+            "set_listing",
+            "cancel_listing"
+          ]
+        }
+      }
+    },
+    {
+      "method": "buy_from_merchant",
+      "args": {
+        "merchant_id": "rex",
+        "item_id": "crystal",
+        "quantity": "1",
+        "expected_listing_revision": "3",
+        "max_total_price": "5",
+        "command": {
+          "sequence": "3",
+          "config_version": "1",
+          "valid_until_ns": "1793917056853473832"
+        }
+      },
+      "signer_id": "dev-20261105220910-78014434024613.test.near",
+      "transaction_hash": "76Tj4hX4HEQD8PFJYf8hqZjPzQkLBy2Lq4MAkdtcxSLh",
+      "reference_block_height": "84",
+      "receipt": {
+        "final_execution_status": "FINAL",
+        "receipts_outcome": [
+          {
+            "block_hash": "BM6oqW6eqwkTzjCJ28A34GJHqZ8diB24xVqCHKe3bpE3",
+            "id": "9nKeuve2urZPKUdXbkaYX2wZBUNHR7PFyMr3v3azqTaa",
+            "outcome": {
+              "executor_id": "dev-20261105220910-16680428888534.test.near",
+              "gas_burnt": 6372079921373,
+              "logs": [],
+              "metadata": {
+                "contracts": [
+                  {
+                    "local": "HVGVmzvEAQzRtBM6h9b2F7nZgTcdhzTejswCkctVLmam"
+                  }
+                ],
+                "gas_profile": [
+                  {
+                    "cost": "BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "7678275219"
+                  },
+                  {
+                    "cost": "CONTRACT_LOADING_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "35445963"
+                  },
+                  {
+                    "cost": "CONTRACT_LOADING_BYTES",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "411033486005"
+                  },
+                  {
+                    "cost": "READ_CACHED_TRIE_NODE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "2280000000"
+                  },
+                  {
+                    "cost": "READ_MEMORY_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "20878905600"
+                  },
+                  {
+                    "cost": "READ_MEMORY_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "27221345613"
+                  },
+                  {
+                    "cost": "READ_REGISTER_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "22654486674"
+                  },
+                  {
+                    "cost": "READ_REGISTER_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "324663228"
+                  },
+                  {
+                    "cost": "SHA256_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "9081940500"
+                  },
+                  {
+                    "cost": "SHA256_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "55686963459"
+                  },
+                  {
+                    "cost": "STORAGE_HAS_KEY_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "54039896625"
+                  },
+                  {
+                    "cost": "STORAGE_HAS_KEY_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "1878241545"
+                  },
+                  {
+                    "cost": "STORAGE_READ_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "112713691498"
+                  },
+                  {
+                    "cost": "STORAGE_READ_KEY_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "2383345041"
+                  },
+                  {
+                    "cost": "STORAGE_READ_VALUE_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "14324893212"
+                  },
+                  {
+                    "cost": "STORAGE_WRITE_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "64196736000"
+                  },
+                  {
+                    "cost": "STORAGE_WRITE_EVICTED_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "54760008435"
+                  },
+                  {
+                    "cost": "STORAGE_WRITE_KEY_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "352414335"
+                  },
+                  {
+                    "cost": "STORAGE_WRITE_VALUE_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "52886608995"
+                  },
+                  {
+                    "cost": "TOUCHING_TRIE_NODE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "11400000000"
+                  },
+                  {
+                    "cost": "WASM_INSTRUCTION",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "4475264430648"
+                  },
+                  {
+                    "cost": "WRITE_MEMORY_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "28037948610"
+                  },
+                  {
+                    "cost": "WRITE_MEMORY_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "9015685320"
+                  },
+                  {
+                    "cost": "WRITE_REGISTER_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "28655224860"
+                  },
+                  {
+                    "cost": "WRITE_REGISTER_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "16757294112"
+                  }
+                ],
+                "version": 4
+              },
+              "receipt_ids": ["6LU1eHSUFF2zECuNgc4j3e8zyfSPM8csZhBErHmFSGzq"],
+              "status": {
+                "SuccessValue": "eyJkZXBsb3ltZW50Ijp7Im5ldHdvcmtfaWQiOiJ0ZXN0bmV0IiwiZ2VuZXNpc19oYXNoIjoiMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTEiLCJjb250cmFjdF9pZCI6ImRldi0yMDI2MTEwNTIyMDkxMC0xNjY4MDQyODg4ODUzNC50ZXN0Lm5lYXIiLCJhcGlfdmVyc2lvbiI6IjIuMC4wIiwic3RhdGVfc2NoZW1hIjoiMSIsImNvbW1hbmRfc2NoZW1hIjoiMSIsImNvbmZpZ192ZXJzaW9uIjoiMSIsImNvbmZpZ19zaGEyNTYiOiJhOTMyZWZiNDhjNzBhNzNjZTQ2NDcyY2Q3NTQyODg2NDk1NDFiMzQ2MDRlMmVhNDlhNDA5Mzk2MWU3MWEyZDEwIn0sIm1hcmtldF9yZXZpc2lvbiI6IjEwIiwiZXZlbnRfc2VxdWVuY2UiOiIxMCIsImJsb2NrX2hlaWdodCI6Ijg3IiwiYmxvY2tfdGltZXN0YW1wX25zIjoiMTc5MzkxNjU2MTAxODQ2MzQ0OCIsImRhdGEiOnsicHJpbmNpcGFsIjoiYWNjb3VudDpkZXYtMjAyNjExMDUyMjA5MTAtNzgwMTQ0MzQwMjQ2MTMudGVzdC5uZWFyIiwiY29tbWFuZF9zZXF1ZW5jZSI6IjMiLCJwYXlsb2FkX3NoYTI1NiI6Ijk2NzY0NWEyYjZmYTQxNzAzZTQ5MGFmOWI4ODhhOTgwNmNiMmYxYmJhMDhlNjNmNTdmMzc3MGIwODg1ODYzMDkiLCJyZXBsYXllZCI6dHJ1ZSwiZWZmZWN0X3JldmlzaW9uIjoiOCIsImVmZmVjdF9ldmVudF9zZXF1ZW5jZSI6IjgiLCJvdXRjb21lIjp7ImtpbmQiOiJyYXdfcHVyY2hhc2VkIiwidHJhZGUiOnsidHJhZGVfaWQiOiIxIiwia2luZCI6InJhd19wdXJjaGFzZSIsImJ1eWVyIjp7ImtpbmQiOiJwbGF5ZXIiLCJhY2NvdW50X2lkIjoiZGV2LTIwMjYxMTA1MjIwOTEwLTc4MDE0NDM0MDI0NjEzLnRlc3QubmVhciJ9LCJjdXN0b21lcl9wb29sX2lkIjpudWxsLCJzZWxsZXIiOnsia2luZCI6Im1lcmNoYW50IiwibWVyY2hhbnRfaWQiOiJyZXgifSwiaXRlbV9pZCI6ImNyeXN0YWwiLCJxdWFudGl0eSI6IjEiLCJ1bml0X3ByaWNlIjoiNSIsInRvdGFsX3ByaWNlIjoiNSIsImxpc3RpbmdfaWQiOiIxIiwib2ZmZXJfaWQiOm51bGwsImNvbnN1bWVkX3F1YW50aXR5IjoiMCIsInNldHRsZWRfYXRfbnMiOiIxNzkzOTE2NTU3MjIzNTUwODE1IiwiY29tbWFuZF9wcmluY2lwYWwiOiJhY2NvdW50OmRldi0yMDI2MTEwNTIyMDkxMC03ODAxNDQzNDAyNDYxMy50ZXN0Lm5lYXIiLCJjb21tYW5kX3NlcXVlbmNlIjoiMyIsImV2ZW50X3NlcXVlbmNlIjoiOCJ9LCJsaXN0aW5nIjp7Imxpc3RpbmdfaWQiOiIxIiwic2hvcF9pZCI6IjEiLCJvd25lciI6eyJraW5kIjoibWVyY2hhbnQiLCJtZXJjaGFudF9pZCI6InJleCJ9LCJpdGVtX2lkIjoiY3J5c3RhbCIsInJlbWFpbmluZ19xdWFudGl0eSI6IjEiLCJ1bml0X3ByaWNlIjoiNSIsInJldmlzaW9uIjoiNCIsImFjdGl2ZSI6dHJ1ZX0sImJ1eWVyIjp7ImFjdG9yIjp7ImtpbmQiOiJwbGF5ZXIiLCJhY2NvdW50X2lkIjoiZGV2LTIwMjYxMTA1MjIwOTEwLTc4MDE0NDM0MDI0NjEzLnRlc3QubmVhciJ9LCJyZXZpc2lvbiI6IjIiLCJnb2xkIjp7ImhlbGQiOiI5NSIsImF2YWlsYWJsZSI6Ijk1IiwidHJhZGVfcmVzZXJ2ZWQiOiIwIiwidHJhZGVfaW5ib3VuZF9yZXNlcnZlZCI6IjAifSwiaW52ZW50b3J5Ijp7ImhlbGQiOnsiY3J5c3RhbCI6IjEiLCJ3b29kIjoiMCIsImhlcmIiOiIwIiwiaXJvbiI6IjAiLCJoZWFsdGhfcG90aW9uIjoiMCIsImlyb25fdG9vbCI6IjAifSwiYXZhaWxhYmxlIjp7ImNyeXN0YWwiOiIxIiwid29vZCI6IjAiLCJoZXJiIjoiMCIsImlyb24iOiIwIiwiaGVhbHRoX3BvdGlvbiI6IjAiLCJpcm9uX3Rvb2wiOiIwIn0sImxpc3RpbmdfcmVzZXJ2ZWQiOnsiY3J5c3RhbCI6IjAiLCJ3b29kIjoiMCIsImhlcmIiOiIwIiwiaXJvbiI6IjAiLCJoZWFsdGhfcG90aW9uIjoiMCIsImlyb25fdG9vbCI6IjAifSwidHJhZGVfcmVzZXJ2ZWQiOnsiY3J5c3RhbCI6IjAiLCJ3b29kIjoiMCIsImhlcmIiOiIwIiwiaXJvbiI6IjAiLCJoZWFsdGhfcG90aW9uIjoiMCIsImlyb25fdG9vbCI6IjAifSwicHJvZHVjdGlvbl9vdXRwdXRfcmVzZXJ2ZWQiOnsiY3J5c3RhbCI6IjAiLCJ3b29kIjoiMCIsImhlcmIiOiIwIiwiaXJvbiI6IjAiLCJoZWFsdGhfcG90aW9uIjoiMCIsImlyb25fdG9vbCI6IjAifSwidHJhZGVfaW5ib3VuZF9yZXNlcnZlZCI6eyJjcnlzdGFsIjoiMCIsIndvb2QiOiIwIiwiaGVyYiI6IjAiLCJpcm9uIjoiMCIsImhlYWx0aF9wb3Rpb24iOiIwIiwiaXJvbl90b29sIjoiMCJ9fX0sInNlbGxlciI6eyJhY3RvciI6eyJraW5kIjoibWVyY2hhbnQiLCJtZXJjaGFudF9pZCI6InJleCJ9LCJyZXZpc2lvbiI6IjQiLCJnb2xkIjp7ImhlbGQiOiIyMDUiLCJhdmFpbGFibGUiOiIyMDUiLCJ0cmFkZV9yZXNlcnZlZCI6IjAiLCJ0cmFkZV9pbmJvdW5kX3Jlc2VydmVkIjoiMCJ9LCJpbnZlbnRvcnkiOnsiaGVsZCI6eyJjcnlzdGFsIjoiOSIsIndvb2QiOiIwIiwiaGVyYiI6IjAiLCJpcm9uIjoiMCIsImhlYWx0aF9wb3Rpb24iOiIwIiwiaXJvbl90b29sIjoiMCJ9LCJhdmFpbGFibGUiOnsiY3J5c3RhbCI6IjgiLCJ3b29kIjoiMCIsImhlcmIiOiIwIiwiaXJvbiI6IjAiLCJoZWFsdGhfcG90aW9uIjoiMCIsImlyb25fdG9vbCI6IjAifSwibGlzdGluZ19yZXNlcnZlZCI6eyJjcnlzdGFsIjoiMSIsIndvb2QiOiIwIiwiaGVyYiI6IjAiLCJpcm9uIjoiMCIsImhlYWx0aF9wb3Rpb24iOiIwIiwiaXJvbl90b29sIjoiMCJ9LCJ0cmFkZV9yZXNlcnZlZCI6eyJjcnlzdGFsIjoiMCIsIndvb2QiOiIwIiwiaGVyYiI6IjAiLCJpcm9uIjoiMCIsImhlYWx0aF9wb3Rpb24iOiIwIiwiaXJvbl90b29sIjoiMCJ9LCJwcm9kdWN0aW9uX291dHB1dF9yZXNlcnZlZCI6eyJjcnlzdGFsIjoiMCIsIndvb2QiOiIwIiwiaGVyYiI6IjAiLCJpcm9uIjoiMCIsImhlYWx0aF9wb3Rpb24iOiIwIiwiaXJvbl90b29sIjoiMCJ9LCJ0cmFkZV9pbmJvdW5kX3Jlc2VydmVkIjp7ImNyeXN0YWwiOiIwIiwid29vZCI6IjAiLCJoZXJiIjoiMCIsImlyb24iOiIwIiwiaGVhbHRoX3BvdGlvbiI6IjAiLCJpcm9uX3Rvb2wiOiIwIn19fX19fQ=="
+              },
+              "tokens_burnt": "637207992137300000000"
+            },
+            "proof": []
+          },
+          {
+            "block_hash": "WeNrqkwLtTX7HbMmrjXsr4o15XsmxhMciL5fPVFwajW",
+            "id": "6LU1eHSUFF2zECuNgc4j3e8zyfSPM8csZhBErHmFSGzq",
+            "outcome": {
+              "executor_id": "dev-20261105220910-78014434024613.test.near",
+              "gas_burnt": 223182562500,
+              "logs": [],
+              "metadata": {
+                "contracts": [null],
+                "gas_profile": [],
+                "version": 4
+              },
+              "receipt_ids": [],
+              "status": {
+                "SuccessValue": ""
+              },
+              "tokens_burnt": "0"
+            },
+            "proof": []
+          }
+        ],
+        "status": {
+          "SuccessValue": "eyJkZXBsb3ltZW50Ijp7Im5ldHdvcmtfaWQiOiJ0ZXN0bmV0IiwiZ2VuZXNpc19oYXNoIjoiMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTEiLCJjb250cmFjdF9pZCI6ImRldi0yMDI2MTEwNTIyMDkxMC0xNjY4MDQyODg4ODUzNC50ZXN0Lm5lYXIiLCJhcGlfdmVyc2lvbiI6IjIuMC4wIiwic3RhdGVfc2NoZW1hIjoiMSIsImNvbW1hbmRfc2NoZW1hIjoiMSIsImNvbmZpZ192ZXJzaW9uIjoiMSIsImNvbmZpZ19zaGEyNTYiOiJhOTMyZWZiNDhjNzBhNzNjZTQ2NDcyY2Q3NTQyODg2NDk1NDFiMzQ2MDRlMmVhNDlhNDA5Mzk2MWU3MWEyZDEwIn0sIm1hcmtldF9yZXZpc2lvbiI6IjEwIiwiZXZlbnRfc2VxdWVuY2UiOiIxMCIsImJsb2NrX2hlaWdodCI6Ijg3IiwiYmxvY2tfdGltZXN0YW1wX25zIjoiMTc5MzkxNjU2MTAxODQ2MzQ0OCIsImRhdGEiOnsicHJpbmNpcGFsIjoiYWNjb3VudDpkZXYtMjAyNjExMDUyMjA5MTAtNzgwMTQ0MzQwMjQ2MTMudGVzdC5uZWFyIiwiY29tbWFuZF9zZXF1ZW5jZSI6IjMiLCJwYXlsb2FkX3NoYTI1NiI6Ijk2NzY0NWEyYjZmYTQxNzAzZTQ5MGFmOWI4ODhhOTgwNmNiMmYxYmJhMDhlNjNmNTdmMzc3MGIwODg1ODYzMDkiLCJyZXBsYXllZCI6dHJ1ZSwiZWZmZWN0X3JldmlzaW9uIjoiOCIsImVmZmVjdF9ldmVudF9zZXF1ZW5jZSI6IjgiLCJvdXRjb21lIjp7ImtpbmQiOiJyYXdfcHVyY2hhc2VkIiwidHJhZGUiOnsidHJhZGVfaWQiOiIxIiwia2luZCI6InJhd19wdXJjaGFzZSIsImJ1eWVyIjp7ImtpbmQiOiJwbGF5ZXIiLCJhY2NvdW50X2lkIjoiZGV2LTIwMjYxMTA1MjIwOTEwLTc4MDE0NDM0MDI0NjEzLnRlc3QubmVhciJ9LCJjdXN0b21lcl9wb29sX2lkIjpudWxsLCJzZWxsZXIiOnsia2luZCI6Im1lcmNoYW50IiwibWVyY2hhbnRfaWQiOiJyZXgifSwiaXRlbV9pZCI6ImNyeXN0YWwiLCJxdWFudGl0eSI6IjEiLCJ1bml0X3ByaWNlIjoiNSIsInRvdGFsX3ByaWNlIjoiNSIsImxpc3RpbmdfaWQiOiIxIiwib2ZmZXJfaWQiOm51bGwsImNvbnN1bWVkX3F1YW50aXR5IjoiMCIsInNldHRsZWRfYXRfbnMiOiIxNzkzOTE2NTU3MjIzNTUwODE1IiwiY29tbWFuZF9wcmluY2lwYWwiOiJhY2NvdW50OmRldi0yMDI2MTEwNTIyMDkxMC03ODAxNDQzNDAyNDYxMy50ZXN0Lm5lYXIiLCJjb21tYW5kX3NlcXVlbmNlIjoiMyIsImV2ZW50X3NlcXVlbmNlIjoiOCJ9LCJsaXN0aW5nIjp7Imxpc3RpbmdfaWQiOiIxIiwic2hvcF9pZCI6IjEiLCJvd25lciI6eyJraW5kIjoibWVyY2hhbnQiLCJtZXJjaGFudF9pZCI6InJleCJ9LCJpdGVtX2lkIjoiY3J5c3RhbCIsInJlbWFpbmluZ19xdWFudGl0eSI6IjEiLCJ1bml0X3ByaWNlIjoiNSIsInJldmlzaW9uIjoiNCIsImFjdGl2ZSI6dHJ1ZX0sImJ1eWVyIjp7ImFjdG9yIjp7ImtpbmQiOiJwbGF5ZXIiLCJhY2NvdW50X2lkIjoiZGV2LTIwMjYxMTA1MjIwOTEwLTc4MDE0NDM0MDI0NjEzLnRlc3QubmVhciJ9LCJyZXZpc2lvbiI6IjIiLCJnb2xkIjp7ImhlbGQiOiI5NSIsImF2YWlsYWJsZSI6Ijk1IiwidHJhZGVfcmVzZXJ2ZWQiOiIwIiwidHJhZGVfaW5ib3VuZF9yZXNlcnZlZCI6IjAifSwiaW52ZW50b3J5Ijp7ImhlbGQiOnsiY3J5c3RhbCI6IjEiLCJ3b29kIjoiMCIsImhlcmIiOiIwIiwiaXJvbiI6IjAiLCJoZWFsdGhfcG90aW9uIjoiMCIsImlyb25fdG9vbCI6IjAifSwiYXZhaWxhYmxlIjp7ImNyeXN0YWwiOiIxIiwid29vZCI6IjAiLCJoZXJiIjoiMCIsImlyb24iOiIwIiwiaGVhbHRoX3BvdGlvbiI6IjAiLCJpcm9uX3Rvb2wiOiIwIn0sImxpc3RpbmdfcmVzZXJ2ZWQiOnsiY3J5c3RhbCI6IjAiLCJ3b29kIjoiMCIsImhlcmIiOiIwIiwiaXJvbiI6IjAiLCJoZWFsdGhfcG90aW9uIjoiMCIsImlyb25fdG9vbCI6IjAifSwidHJhZGVfcmVzZXJ2ZWQiOnsiY3J5c3RhbCI6IjAiLCJ3b29kIjoiMCIsImhlcmIiOiIwIiwiaXJvbiI6IjAiLCJoZWFsdGhfcG90aW9uIjoiMCIsImlyb25fdG9vbCI6IjAifSwicHJvZHVjdGlvbl9vdXRwdXRfcmVzZXJ2ZWQiOnsiY3J5c3RhbCI6IjAiLCJ3b29kIjoiMCIsImhlcmIiOiIwIiwiaXJvbiI6IjAiLCJoZWFsdGhfcG90aW9uIjoiMCIsImlyb25fdG9vbCI6IjAifSwidHJhZGVfaW5ib3VuZF9yZXNlcnZlZCI6eyJjcnlzdGFsIjoiMCIsIndvb2QiOiIwIiwiaGVyYiI6IjAiLCJpcm9uIjoiMCIsImhlYWx0aF9wb3Rpb24iOiIwIiwiaXJvbl90b29sIjoiMCJ9fX0sInNlbGxlciI6eyJhY3RvciI6eyJraW5kIjoibWVyY2hhbnQiLCJtZXJjaGFudF9pZCI6InJleCJ9LCJyZXZpc2lvbiI6IjQiLCJnb2xkIjp7ImhlbGQiOiIyMDUiLCJhdmFpbGFibGUiOiIyMDUiLCJ0cmFkZV9yZXNlcnZlZCI6IjAiLCJ0cmFkZV9pbmJvdW5kX3Jlc2VydmVkIjoiMCJ9LCJpbnZlbnRvcnkiOnsiaGVsZCI6eyJjcnlzdGFsIjoiOSIsIndvb2QiOiIwIiwiaGVyYiI6IjAiLCJpcm9uIjoiMCIsImhlYWx0aF9wb3Rpb24iOiIwIiwiaXJvbl90b29sIjoiMCJ9LCJhdmFpbGFibGUiOnsiY3J5c3RhbCI6IjgiLCJ3b29kIjoiMCIsImhlcmIiOiIwIiwiaXJvbiI6IjAiLCJoZWFsdGhfcG90aW9uIjoiMCIsImlyb25fdG9vbCI6IjAifSwibGlzdGluZ19yZXNlcnZlZCI6eyJjcnlzdGFsIjoiMSIsIndvb2QiOiIwIiwiaGVyYiI6IjAiLCJpcm9uIjoiMCIsImhlYWx0aF9wb3Rpb24iOiIwIiwiaXJvbl90b29sIjoiMCJ9LCJ0cmFkZV9yZXNlcnZlZCI6eyJjcnlzdGFsIjoiMCIsIndvb2QiOiIwIiwiaGVyYiI6IjAiLCJpcm9uIjoiMCIsImhlYWx0aF9wb3Rpb24iOiIwIiwiaXJvbl90b29sIjoiMCJ9LCJwcm9kdWN0aW9uX291dHB1dF9yZXNlcnZlZCI6eyJjcnlzdGFsIjoiMCIsIndvb2QiOiIwIiwiaGVyYiI6IjAiLCJpcm9uIjoiMCIsImhlYWx0aF9wb3Rpb24iOiIwIiwiaXJvbl90b29sIjoiMCJ9LCJ0cmFkZV9pbmJvdW5kX3Jlc2VydmVkIjp7ImNyeXN0YWwiOiIwIiwid29vZCI6IjAiLCJoZXJiIjoiMCIsImlyb24iOiIwIiwiaGVhbHRoX3BvdGlvbiI6IjAiLCJpcm9uX3Rvb2wiOiIwIn19fX19fQ=="
+        },
+        "transaction": {
+          "actions": [
+            {
+              "FunctionCall": {
+                "args": "eyJtZXJjaGFudF9pZCI6InJleCIsIml0ZW1faWQiOiJjcnlzdGFsIiwicXVhbnRpdHkiOiIxIiwiZXhwZWN0ZWRfbGlzdGluZ19yZXZpc2lvbiI6IjMiLCJtYXhfdG90YWxfcHJpY2UiOiI1IiwiY29tbWFuZCI6eyJzZXF1ZW5jZSI6IjMiLCJjb25maWdfdmVyc2lvbiI6IjEiLCJ2YWxpZF91bnRpbF9ucyI6IjE3OTM5MTcwNTY4NTM0NzM4MzIifX0=",
+                "deposit": "0",
+                "gas": 100000000000000,
+                "method_name": "buy_from_merchant"
+              }
+            }
+          ],
+          "hash": "76Tj4hX4HEQD8PFJYf8hqZjPzQkLBy2Lq4MAkdtcxSLh",
+          "nonce": 8000010,
+          "priority_fee": 0,
+          "public_key": "ed25519:AvbonTmBV4huLW7aw9gNRhdP15eBVwmVzGBvZDYXr3BZ",
+          "receiver_id": "dev-20261105220910-16680428888534.test.near",
+          "signature": "ed25519:TFJt5swrsrmX1o7jCLdSc6u2fmpwuDmCfWbH9QgKF7H2BmPP9DWJtTLDcW3F1sDRByFyTXqMH4Bk3eHUTQdWAf2",
+          "signer_id": "dev-20261105220910-78014434024613.test.near"
+        },
+        "transaction_outcome": {
+          "block_hash": "4fCToqvu5Qq8bFSZSHRV1kusGrjoogg4DBaEZDiSrpxH",
+          "id": "76Tj4hX4HEQD8PFJYf8hqZjPzQkLBy2Lq4MAkdtcxSLh",
+          "outcome": {
+            "executor_id": "dev-20261105220910-78014434024613.test.near",
+            "gas_burnt": 318263815010,
+            "logs": [],
+            "metadata": {
+              "gas_profile": null,
+              "version": 1
+            },
+            "receipt_ids": ["9nKeuve2urZPKUdXbkaYX2wZBUNHR7PFyMr3v3azqTaa"],
+            "status": {
+              "SuccessReceiptId": "9nKeuve2urZPKUdXbkaYX2wZBUNHR7PFyMr3v3azqTaa"
+            },
+            "tokens_burnt": "31826381501000000000"
+          },
+          "proof": []
+        }
+      },
+      "block": {
+        "author": "test.near",
+        "chunks": [
+          {
+            "balance_burnt": "31826381501000000000",
+            "bandwidth_requests": {
+              "V1": {
+                "requests": []
+              }
+            },
+            "chunk_hash": "6f8vkZcS5wYMsRQZZ4pu7T2gFJaXUvghzUF4Khwoq6ET",
+            "congestion_info": {
+              "allowed_shard": 0,
+              "buffered_receipts_gas": "0",
+              "delayed_receipts_gas": "0",
+              "receipt_bytes": 0
+            },
+            "encoded_length": 490,
+            "encoded_merkle_root": "DLFQGKiHaYsaahKSzQHTFYXToxHTk4R19vrKou9UdZA7",
+            "gas_limit": 1000000000000000,
+            "gas_used": 318263815010,
+            "height_created": 87,
+            "height_included": 87,
+            "outcome_root": "2kwMrt8MSR2UBhFY54bk9avZv5ZwVznPA35efAG4d6Co",
+            "outgoing_receipts_root": "ChXYqE4WN29i7dyv9ntCqRCQLvUjy72pMdmoiFCVqde3",
+            "prev_block_hash": "4fCToqvu5Qq8bFSZSHRV1kusGrjoogg4DBaEZDiSrpxH",
+            "prev_state_root": "5EHBJASTgM8HVEyzMoghFAVqVF6jEokk1opefGsRAR1z",
+            "proposed_split": null,
+            "rent_paid": "0",
+            "shard_id": 0,
+            "signature": "ed25519:4HEmV8AVRm6CqgfBuTJC6JmFmgXj6uUj7JqixnkizKnViZANo8CspCAR3T6CunTrL9aUgQbue4V3tMB7vXj4CDEy",
+            "tx_root": "11111111111111111111111111111111",
+            "validator_proposals": [],
+            "validator_reward": "0"
+          }
+        ],
+        "header": {
+          "approvals": [
+            "ed25519:4kQsTMLZLrwhvBQtB5a59ahT8naDVzf3wg6EKWZxcmVe7DdisRT8TMHeyY9nWaft9oRiUd5qRpQSycCYMkqFShgF"
+          ],
+          "block_body_hash": "G4TG5g9FUkyEWaUEg8Sqn9MRWfc87JFGSU18h2tod3Jh",
+          "block_merkle_root": "EhqDzZitCNjMQZv1yc6NRytPeE5FAA95ZaJYUXM8jJEw",
+          "block_ordinal": 88,
+          "challenges_result": [],
+          "challenges_root": "11111111111111111111111111111111",
+          "chunk_endorsements": [[1]],
+          "chunk_headers_root": "12hg7CQnXS61vxjos9wvK71zTeJgduHhJeTMBEJSqMsH",
+          "chunk_mask": [true],
+          "chunk_receipts_root": "EvrBCQKnfz1Dyqy8QgfMv5WyzqoiwVebpoBehvuSohLs",
+          "chunk_tx_root": "7tkzFg8RHBmMw1ncRJZCCZAizgq4rwCftTKYLce8RU8t",
+          "chunks_included": 1,
+          "epoch_id": "BegiuBuKPJ7VF6YBtUFFuTKxNPBM7gLbqcPP23ZBo372",
+          "epoch_sync_data_hash": null,
+          "gas_price": "100000000",
+          "hash": "BM6oqW6eqwkTzjCJ28A34GJHqZ8diB24xVqCHKe3bpE3",
+          "height": 87,
+          "last_ds_final_block": "4fCToqvu5Qq8bFSZSHRV1kusGrjoogg4DBaEZDiSrpxH",
+          "last_final_block": "GbDa6G6vv7PP7jPVS9dHjAPZdywpXfDDUqWgB8EdQHPw",
+          "latest_protocol_version": 86,
+          "next_bp_hash": "BRcHTvdUnSz2kRn9JBZM6hUh2QgNaXnnZLtk9pWZ64gH",
+          "next_epoch_id": "6kJ4FuWcnhM9uPqgW7VBkUw1JjVGk2PgtSivFjTofWc8",
+          "outcome_root": "DyACsUhg8EUyRm5GfkWhGo6pzdCuf6wQDdoH5SNK3q5H",
+          "prev_hash": "4fCToqvu5Qq8bFSZSHRV1kusGrjoogg4DBaEZDiSrpxH",
+          "prev_height": 86,
+          "prev_state_root": "F1BTzSLoc2EdWy3fS8o9rdL8BLv5JSXeWi8vbYwhpWFa",
+          "random_value": "Hbop3KPSUf2KUFmtzdtvhgmSyQG4pqwX9AtFvsAUzP6H",
+          "rent_paid": "0",
+          "shard_split": null,
+          "signature": "ed25519:4sXV8Tg3gHacFmmCHCDqaTEeQPno8WLgdMDT7D16pQepSLhhxnHpCBS1iVQxnMbXZnysR2kMk9cBBpQwwkcW8erq",
+          "timestamp": 1793916561018463500,
+          "timestamp_nanosec": "1793916561018463448",
+          "total_supply": "2050030031194332268925590949129524",
+          "validator_proposals": [],
+          "validator_reward": "0"
+        }
+      },
+      "account": {
+        "amount": "100001896804135959800000000",
+        "block_hash": "BM6oqW6eqwkTzjCJ28A34GJHqZ8diB24xVqCHKe3bpE3",
+        "block_height": 87,
+        "code_hash": "HVGVmzvEAQzRtBM6h9b2F7nZgTcdhzTejswCkctVLmam",
+        "locked": "0",
+        "storage_paid_at": 0,
+        "storage_usage": 383767
+      },
+      "foundation": {
+        "deployment": {
+          "network_id": "testnet",
+          "genesis_hash": "11111111111111111111111111111111",
+          "contract_id": "dev-20261105220910-16680428888534.test.near",
+          "api_version": "2.0.0",
+          "state_schema": "1",
+          "command_schema": "1",
+          "config_version": "1",
+          "config_sha256": "a932efb48c70a73ce46472cd754288649541b34604e2ea49a4093961e71a2d10"
+        },
+        "market_revision": "10",
+        "event_sequence": "10",
+        "block_height": "87",
+        "block_timestamp_ns": "1793916561018463448",
+        "data": {
+          "owner_account_id": "dev-20261105220910-16680428888534.test.near",
+          "operator_account_id": "operator.testnet",
+          "merchant_controllers": {
+            "rex": "dev-20261105220911-10282688170599.test.near",
+            "luna": "luna.testnet",
+            "bolt": "bolt.testnet"
+          },
+          "item_ids": [
+            "crystal",
+            "wood",
+            "herb",
+            "iron",
+            "health_potion",
+            "iron_tool"
+          ],
+          "supported_methods": [
+            "initialize_town",
+            "get_foundation",
+            "get_town",
+            "register_player",
+            "create_shop",
+            "rename_shop",
+            "get_player",
+            "get_shop",
+            "get_player_shops",
+            "get_command",
+            "buy_from_merchant",
+            "get_listings",
+            "get_trade",
+            "get_shop_inventory",
+            "get_recipes",
+            "start_production",
+            "get_production_jobs",
+            "complete_production",
+            "set_listing",
+            "cancel_listing"
+          ]
+        }
+      }
+    },
+    {
+      "method": "buy_from_merchant",
+      "args": {
+        "merchant_id": "rex",
+        "item_id": "crystal",
+        "quantity": "1",
+        "expected_listing_revision": "6",
+        "max_total_price": "6",
+        "command": {
+          "sequence": "4",
+          "config_version": "1",
+          "valid_until_ns": "1793917061772922245"
+        }
+      },
+      "signer_id": "dev-20261105220910-78014434024613.test.near",
+      "transaction_hash": "FkthU9XSNs1DnHddGJuq7yXAJWxNdGRFg6SSK9Tqa5TS",
+      "reference_block_height": "99",
+      "receipt": {
+        "final_execution_status": "FINAL",
+        "receipts_outcome": [
+          {
+            "block_hash": "6oPwy9Lx41QAZp9PtjgDU6pVFBie6An6dXq6p7k3QJM7",
+            "id": "dqnFq1PwtC5GJCkXNkbUYyPt88KCsUF8EZAzGbgecmH",
+            "outcome": {
+              "executor_id": "dev-20261105220910-16680428888534.test.near",
+              "gas_burnt": 10760391034938,
+              "logs": [
+                "EVENT_JSON:{\"standard\":\"bot_bazaar_living_town\",\"version\":\"2.0.0\",\"event\":\"buy_from_merchant\",\"data\":[{\"contract_id\":\"dev-20261105220910-16680428888534.test.near\",\"config_version\":\"1\",\"event_sequence\":\"11\",\"market_revision\":\"11\",\"block_height\":\"102\",\"block_timestamp_ns\":\"1793916562914215466\",\"predecessor_account_id\":\"dev-20261105220910-78014434024613.test.near\",\"principal\":\"account:dev-20261105220910-78014434024613.test.near\",\"command_sequence\":\"4\",\"payload_sha256\":\"216e41f6b9144e4c2e10b0945d7f7d2948c337d8f2d5e708e19b9770490c6b04\",\"outcome\":{\"kind\":\"raw_purchased\",\"trade\":{\"trade_id\":\"3\",\"kind\":\"raw_purchase\",\"buyer\":{\"kind\":\"player\",\"account_id\":\"dev-20261105220910-78014434024613.test.near\"},\"customer_pool_id\":null,\"seller\":{\"kind\":\"merchant\",\"merchant_id\":\"rex\"},\"item_id\":\"crystal\",\"quantity\":\"1\",\"unit_price\":\"6\",\"total_price\":\"6\",\"listing_id\":\"1\",\"offer_id\":null,\"consumed_quantity\":\"0\",\"settled_at_ns\":\"1793916562914215466\",\"command_principal\":\"account:dev-20261105220910-78014434024613.test.near\",\"command_sequence\":\"4\",\"event_sequence\":\"11\"},\"listing\":{\"listing_id\":\"1\",\"shop_id\":\"1\",\"owner\":{\"kind\":\"merchant\",\"merchant_id\":\"rex\"},\"item_id\":\"crystal\",\"remaining_quantity\":\"0\",\"unit_price\":\"6\",\"revision\":\"7\",\"active\":false},\"buyer\":{\"actor\":{\"kind\":\"player\",\"account_id\":\"dev-20261105220910-78014434024613.test.near\"},\"revision\":\"3\",\"gold\":{\"held\":\"89\",\"available\":\"89\",\"trade_reserved\":\"0\",\"trade_inbound_reserved\":\"0\"},\"inventory\":{\"held\":{\"crystal\":\"2\",\"wood\":\"0\",\"herb\":\"0\",\"iron\":\"0\",\"health_potion\":\"0\",\"iron_tool\":\"0\"},\"available\":{\"crystal\":\"2\",\"wood\":\"0\",\"herb\":\"0\",\"iron\":\"0\",\"health_potion\":\"0\",\"iron_tool\":\"0\"},\"listing_reserved\":{\"crystal\":\"0\",\"wood\":\"0\",\"herb\":\"0\",\"iron\":\"0\",\"health_potion\":\"0\",\"iron_tool\":\"0\"},\"trade_reserved\":{\"crystal\":\"0\",\"wood\":\"0\",\"herb\":\"0\",\"iron\":\"0\",\"health_potion\":\"0\",\"iron_tool\":\"0\"},\"production_output_reserved\":{\"crystal\":\"0\",\"wood\":\"0\",\"herb\":\"0\",\"iron\":\"0\",\"health_potion\":\"0\",\"iron_tool\":\"0\"},\"trade_inbound_reserved\":{\"crystal\":\"0\",\"wood\":\"0\",\"herb\":\"0\",\"iron\":\"0\",\"health_potion\":\"0\",\"iron_tool\":\"0\"}}},\"seller\":{\"actor\":{\"kind\":\"merchant\",\"merchant_id\":\"rex\"},\"revision\":\"7\",\"gold\":{\"held\":\"216\",\"available\":\"216\",\"trade_reserved\":\"0\",\"trade_inbound_reserved\":\"0\"},\"inventory\":{\"held\":{\"crystal\":\"7\",\"wood\":\"0\",\"herb\":\"0\",\"iron\":\"0\",\"health_potion\":\"0\",\"iron_tool\":\"0\"},\"available\":{\"crystal\":\"7\",\"wood\":\"0\",\"herb\":\"0\",\"iron\":\"0\",\"health_potion\":\"0\",\"iron_tool\":\"0\"},\"listing_reserved\":{\"crystal\":\"0\",\"wood\":\"0\",\"herb\":\"0\",\"iron\":\"0\",\"health_potion\":\"0\",\"iron_tool\":\"0\"},\"trade_reserved\":{\"crystal\":\"0\",\"wood\":\"0\",\"herb\":\"0\",\"iron\":\"0\",\"health_potion\":\"0\",\"iron_tool\":\"0\"},\"production_output_reserved\":{\"crystal\":\"0\",\"wood\":\"0\",\"herb\":\"0\",\"iron\":\"0\",\"health_potion\":\"0\",\"iron_tool\":\"0\"},\"trade_inbound_reserved\":{\"crystal\":\"0\",\"wood\":\"0\",\"herb\":\"0\",\"iron\":\"0\",\"health_potion\":\"0\",\"iron_tool\":\"0\"}}}}}]}"
+              ],
+              "metadata": {
+                "contracts": [
+                  {
+                    "local": "HVGVmzvEAQzRtBM6h9b2F7nZgTcdhzTejswCkctVLmam"
+                  }
+                ],
+                "gas_profile": [
+                  {
+                    "cost": "BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "10590724440"
+                  },
+                  {
+                    "cost": "CONTRACT_LOADING_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "35445963"
+                  },
+                  {
+                    "cost": "CONTRACT_LOADING_BYTES",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "411033486005"
+                  },
+                  {
+                    "cost": "LOG_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "3543313050"
+                  },
+                  {
+                    "cost": "LOG_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "37933325334"
+                  },
+                  {
+                    "cost": "READ_CACHED_TRIE_NODE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "50160000000"
+                  },
+                  {
+                    "cost": "READ_MEMORY_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "49587400800"
+                  },
+                  {
+                    "cost": "READ_MEMORY_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "50496907572"
+                  },
+                  {
+                    "cost": "READ_REGISTER_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "25171651860"
+                  },
+                  {
+                    "cost": "READ_REGISTER_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "357780060"
+                  },
+                  {
+                    "cost": "SHA256_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "9081940500"
+                  },
+                  {
+                    "cost": "SHA256_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "55686963459"
+                  },
+                  {
+                    "cost": "STORAGE_HAS_KEY_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "54039896625"
+                  },
+                  {
+                    "cost": "STORAGE_HAS_KEY_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "1878241545"
+                  },
+                  {
+                    "cost": "STORAGE_READ_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "225427382996"
+                  },
+                  {
+                    "cost": "STORAGE_READ_KEY_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "4921452747"
+                  },
+                  {
+                    "cost": "STORAGE_READ_VALUE_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "16210190556"
+                  },
+                  {
+                    "cost": "STORAGE_WRITE_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "320983680000"
+                  },
+                  {
+                    "cost": "STORAGE_WRITE_EVICTED_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "147546908358"
+                  },
+                  {
+                    "cost": "STORAGE_WRITE_KEY_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "11559190188"
+                  },
+                  {
+                    "cost": "STORAGE_WRITE_VALUE_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "146004263073"
+                  },
+                  {
+                    "cost": "TOUCHING_TRIE_NODE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "43320000000"
+                  },
+                  {
+                    "cost": "UTF8_DECODING_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "3111779061"
+                  },
+                  {
+                    "cost": "UTF8_DECODING_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "838002296646"
+                  },
+                  {
+                    "cost": "WASM_INSTRUCTION",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "7242414180012"
+                  },
+                  {
+                    "cost": "WRITE_MEMORY_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "33645538332"
+                  },
+                  {
+                    "cost": "WRITE_MEMORY_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "9974453064"
+                  },
+                  {
+                    "cost": "WRITE_REGISTER_BASE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "40117314804"
+                  },
+                  {
+                    "cost": "WRITE_REGISTER_BYTE",
+                    "cost_category": "WASM_HOST_COST",
+                    "gas_used": "29017338012"
+                  }
+                ],
+                "version": 4
+              },
+              "receipt_ids": ["Bch2dMW7BEiAoLD3zwQYi2UyeVopQK4Fg5iQbK8zs4n8"],
+              "status": {
+                "SuccessValue": "eyJkZXBsb3ltZW50Ijp7Im5ldHdvcmtfaWQiOiJ0ZXN0bmV0IiwiZ2VuZXNpc19oYXNoIjoiMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTEiLCJjb250cmFjdF9pZCI6ImRldi0yMDI2MTEwNTIyMDkxMC0xNjY4MDQyODg4ODUzNC50ZXN0Lm5lYXIiLCJhcGlfdmVyc2lvbiI6IjIuMC4wIiwic3RhdGVfc2NoZW1hIjoiMSIsImNvbW1hbmRfc2NoZW1hIjoiMSIsImNvbmZpZ192ZXJzaW9uIjoiMSIsImNvbmZpZ19zaGEyNTYiOiJhOTMyZWZiNDhjNzBhNzNjZTQ2NDcyY2Q3NTQyODg2NDk1NDFiMzQ2MDRlMmVhNDlhNDA5Mzk2MWU3MWEyZDEwIn0sIm1hcmtldF9yZXZpc2lvbiI6IjExIiwiZXZlbnRfc2VxdWVuY2UiOiIxMSIsImJsb2NrX2hlaWdodCI6IjEwMiIsImJsb2NrX3RpbWVzdGFtcF9ucyI6IjE3OTM5MTY1NjI5MTQyMTU0NjYiLCJkYXRhIjp7InByaW5jaXBhbCI6ImFjY291bnQ6ZGV2LTIwMjYxMTA1MjIwOTEwLTc4MDE0NDM0MDI0NjEzLnRlc3QubmVhciIsImNvbW1hbmRfc2VxdWVuY2UiOiI0IiwicGF5bG9hZF9zaGEyNTYiOiIyMTZlNDFmNmI5MTQ0ZTRjMmUxMGIwOTQ1ZDdmN2QyOTQ4YzMzN2Q4ZjJkNWU3MDhlMTliOTc3MDQ5MGM2YjA0IiwicmVwbGF5ZWQiOmZhbHNlLCJlZmZlY3RfcmV2aXNpb24iOiIxMSIsImVmZmVjdF9ldmVudF9zZXF1ZW5jZSI6IjExIiwib3V0Y29tZSI6eyJraW5kIjoicmF3X3B1cmNoYXNlZCIsInRyYWRlIjp7InRyYWRlX2lkIjoiMyIsImtpbmQiOiJyYXdfcHVyY2hhc2UiLCJidXllciI6eyJraW5kIjoicGxheWVyIiwiYWNjb3VudF9pZCI6ImRldi0yMDI2MTEwNTIyMDkxMC03ODAxNDQzNDAyNDYxMy50ZXN0Lm5lYXIifSwiY3VzdG9tZXJfcG9vbF9pZCI6bnVsbCwic2VsbGVyIjp7ImtpbmQiOiJtZXJjaGFudCIsIm1lcmNoYW50X2lkIjoicmV4In0sIml0ZW1faWQiOiJjcnlzdGFsIiwicXVhbnRpdHkiOiIxIiwidW5pdF9wcmljZSI6IjYiLCJ0b3RhbF9wcmljZSI6IjYiLCJsaXN0aW5nX2lkIjoiMSIsIm9mZmVyX2lkIjpudWxsLCJjb25zdW1lZF9xdWFudGl0eSI6IjAiLCJzZXR0bGVkX2F0X25zIjoiMTc5MzkxNjU2MjkxNDIxNTQ2NiIsImNvbW1hbmRfcHJpbmNpcGFsIjoiYWNjb3VudDpkZXYtMjAyNjExMDUyMjA5MTAtNzgwMTQ0MzQwMjQ2MTMudGVzdC5uZWFyIiwiY29tbWFuZF9zZXF1ZW5jZSI6IjQiLCJldmVudF9zZXF1ZW5jZSI6IjExIn0sImxpc3RpbmciOnsibGlzdGluZ19pZCI6IjEiLCJzaG9wX2lkIjoiMSIsIm93bmVyIjp7ImtpbmQiOiJtZXJjaGFudCIsIm1lcmNoYW50X2lkIjoicmV4In0sIml0ZW1faWQiOiJjcnlzdGFsIiwicmVtYWluaW5nX3F1YW50aXR5IjoiMCIsInVuaXRfcHJpY2UiOiI2IiwicmV2aXNpb24iOiI3IiwiYWN0aXZlIjpmYWxzZX0sImJ1eWVyIjp7ImFjdG9yIjp7ImtpbmQiOiJwbGF5ZXIiLCJhY2NvdW50X2lkIjoiZGV2LTIwMjYxMTA1MjIwOTEwLTc4MDE0NDM0MDI0NjEzLnRlc3QubmVhciJ9LCJyZXZpc2lvbiI6IjMiLCJnb2xkIjp7ImhlbGQiOiI4OSIsImF2YWlsYWJsZSI6Ijg5IiwidHJhZGVfcmVzZXJ2ZWQiOiIwIiwidHJhZGVfaW5ib3VuZF9yZXNlcnZlZCI6IjAifSwiaW52ZW50b3J5Ijp7ImhlbGQiOnsiY3J5c3RhbCI6IjIiLCJ3b29kIjoiMCIsImhlcmIiOiIwIiwiaXJvbiI6IjAiLCJoZWFsdGhfcG90aW9uIjoiMCIsImlyb25fdG9vbCI6IjAifSwiYXZhaWxhYmxlIjp7ImNyeXN0YWwiOiIyIiwid29vZCI6IjAiLCJoZXJiIjoiMCIsImlyb24iOiIwIiwiaGVhbHRoX3BvdGlvbiI6IjAiLCJpcm9uX3Rvb2wiOiIwIn0sImxpc3RpbmdfcmVzZXJ2ZWQiOnsiY3J5c3RhbCI6IjAiLCJ3b29kIjoiMCIsImhlcmIiOiIwIiwiaXJvbiI6IjAiLCJoZWFsdGhfcG90aW9uIjoiMCIsImlyb25fdG9vbCI6IjAifSwidHJhZGVfcmVzZXJ2ZWQiOnsiY3J5c3RhbCI6IjAiLCJ3b29kIjoiMCIsImhlcmIiOiIwIiwiaXJvbiI6IjAiLCJoZWFsdGhfcG90aW9uIjoiMCIsImlyb25fdG9vbCI6IjAifSwicHJvZHVjdGlvbl9vdXRwdXRfcmVzZXJ2ZWQiOnsiY3J5c3RhbCI6IjAiLCJ3b29kIjoiMCIsImhlcmIiOiIwIiwiaXJvbiI6IjAiLCJoZWFsdGhfcG90aW9uIjoiMCIsImlyb25fdG9vbCI6IjAifSwidHJhZGVfaW5ib3VuZF9yZXNlcnZlZCI6eyJjcnlzdGFsIjoiMCIsIndvb2QiOiIwIiwiaGVyYiI6IjAiLCJpcm9uIjoiMCIsImhlYWx0aF9wb3Rpb24iOiIwIiwiaXJvbl90b29sIjoiMCJ9fX0sInNlbGxlciI6eyJhY3RvciI6eyJraW5kIjoibWVyY2hhbnQiLCJtZXJjaGFudF9pZCI6InJleCJ9LCJyZXZpc2lvbiI6IjciLCJnb2xkIjp7ImhlbGQiOiIyMTYiLCJhdmFpbGFibGUiOiIyMTYiLCJ0cmFkZV9yZXNlcnZlZCI6IjAiLCJ0cmFkZV9pbmJvdW5kX3Jlc2VydmVkIjoiMCJ9LCJpbnZlbnRvcnkiOnsiaGVsZCI6eyJjcnlzdGFsIjoiNyIsIndvb2QiOiIwIiwiaGVyYiI6IjAiLCJpcm9uIjoiMCIsImhlYWx0aF9wb3Rpb24iOiIwIiwiaXJvbl90b29sIjoiMCJ9LCJhdmFpbGFibGUiOnsiY3J5c3RhbCI6IjciLCJ3b29kIjoiMCIsImhlcmIiOiIwIiwiaXJvbiI6IjAiLCJoZWFsdGhfcG90aW9uIjoiMCIsImlyb25fdG9vbCI6IjAifSwibGlzdGluZ19yZXNlcnZlZCI6eyJjcnlzdGFsIjoiMCIsIndvb2QiOiIwIiwiaGVyYiI6IjAiLCJpcm9uIjoiMCIsImhlYWx0aF9wb3Rpb24iOiIwIiwiaXJvbl90b29sIjoiMCJ9LCJ0cmFkZV9yZXNlcnZlZCI6eyJjcnlzdGFsIjoiMCIsIndvb2QiOiIwIiwiaGVyYiI6IjAiLCJpcm9uIjoiMCIsImhlYWx0aF9wb3Rpb24iOiIwIiwiaXJvbl90b29sIjoiMCJ9LCJwcm9kdWN0aW9uX291dHB1dF9yZXNlcnZlZCI6eyJjcnlzdGFsIjoiMCIsIndvb2QiOiIwIiwiaGVyYiI6IjAiLCJpcm9uIjoiMCIsImhlYWx0aF9wb3Rpb24iOiIwIiwiaXJvbl90b29sIjoiMCJ9LCJ0cmFkZV9pbmJvdW5kX3Jlc2VydmVkIjp7ImNyeXN0YWwiOiIwIiwid29vZCI6IjAiLCJoZXJiIjoiMCIsImlyb24iOiIwIiwiaGVhbHRoX3BvdGlvbiI6IjAiLCJpcm9uX3Rvb2wiOiIwIn19fX19fQ=="
+              },
+              "tokens_burnt": "1076039103493800000000"
+            },
+            "proof": []
+          },
+          {
+            "block_hash": "Hp54UzxamQPGUa7YkR2YTY5MrJuiSzhM8tKZ6zDZqL3N",
+            "id": "Bch2dMW7BEiAoLD3zwQYi2UyeVopQK4Fg5iQbK8zs4n8",
+            "outcome": {
+              "executor_id": "dev-20261105220910-78014434024613.test.near",
+              "gas_burnt": 223182562500,
+              "logs": [],
+              "metadata": {
+                "contracts": [null],
+                "gas_profile": [],
+                "version": 4
+              },
+              "receipt_ids": [],
+              "status": {
+                "SuccessValue": ""
+              },
+              "tokens_burnt": "0"
+            },
+            "proof": []
+          }
+        ],
+        "status": {
+          "SuccessValue": "eyJkZXBsb3ltZW50Ijp7Im5ldHdvcmtfaWQiOiJ0ZXN0bmV0IiwiZ2VuZXNpc19oYXNoIjoiMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTEiLCJjb250cmFjdF9pZCI6ImRldi0yMDI2MTEwNTIyMDkxMC0xNjY4MDQyODg4ODUzNC50ZXN0Lm5lYXIiLCJhcGlfdmVyc2lvbiI6IjIuMC4wIiwic3RhdGVfc2NoZW1hIjoiMSIsImNvbW1hbmRfc2NoZW1hIjoiMSIsImNvbmZpZ192ZXJzaW9uIjoiMSIsImNvbmZpZ19zaGEyNTYiOiJhOTMyZWZiNDhjNzBhNzNjZTQ2NDcyY2Q3NTQyODg2NDk1NDFiMzQ2MDRlMmVhNDlhNDA5Mzk2MWU3MWEyZDEwIn0sIm1hcmtldF9yZXZpc2lvbiI6IjExIiwiZXZlbnRfc2VxdWVuY2UiOiIxMSIsImJsb2NrX2hlaWdodCI6IjEwMiIsImJsb2NrX3RpbWVzdGFtcF9ucyI6IjE3OTM5MTY1NjI5MTQyMTU0NjYiLCJkYXRhIjp7InByaW5jaXBhbCI6ImFjY291bnQ6ZGV2LTIwMjYxMTA1MjIwOTEwLTc4MDE0NDM0MDI0NjEzLnRlc3QubmVhciIsImNvbW1hbmRfc2VxdWVuY2UiOiI0IiwicGF5bG9hZF9zaGEyNTYiOiIyMTZlNDFmNmI5MTQ0ZTRjMmUxMGIwOTQ1ZDdmN2QyOTQ4YzMzN2Q4ZjJkNWU3MDhlMTliOTc3MDQ5MGM2YjA0IiwicmVwbGF5ZWQiOmZhbHNlLCJlZmZlY3RfcmV2aXNpb24iOiIxMSIsImVmZmVjdF9ldmVudF9zZXF1ZW5jZSI6IjExIiwib3V0Y29tZSI6eyJraW5kIjoicmF3X3B1cmNoYXNlZCIsInRyYWRlIjp7InRyYWRlX2lkIjoiMyIsImtpbmQiOiJyYXdfcHVyY2hhc2UiLCJidXllciI6eyJraW5kIjoicGxheWVyIiwiYWNjb3VudF9pZCI6ImRldi0yMDI2MTEwNTIyMDkxMC03ODAxNDQzNDAyNDYxMy50ZXN0Lm5lYXIifSwiY3VzdG9tZXJfcG9vbF9pZCI6bnVsbCwic2VsbGVyIjp7ImtpbmQiOiJtZXJjaGFudCIsIm1lcmNoYW50X2lkIjoicmV4In0sIml0ZW1faWQiOiJjcnlzdGFsIiwicXVhbnRpdHkiOiIxIiwidW5pdF9wcmljZSI6IjYiLCJ0b3RhbF9wcmljZSI6IjYiLCJsaXN0aW5nX2lkIjoiMSIsIm9mZmVyX2lkIjpudWxsLCJjb25zdW1lZF9xdWFudGl0eSI6IjAiLCJzZXR0bGVkX2F0X25zIjoiMTc5MzkxNjU2MjkxNDIxNTQ2NiIsImNvbW1hbmRfcHJpbmNpcGFsIjoiYWNjb3VudDpkZXYtMjAyNjExMDUyMjA5MTAtNzgwMTQ0MzQwMjQ2MTMudGVzdC5uZWFyIiwiY29tbWFuZF9zZXF1ZW5jZSI6IjQiLCJldmVudF9zZXF1ZW5jZSI6IjExIn0sImxpc3RpbmciOnsibGlzdGluZ19pZCI6IjEiLCJzaG9wX2lkIjoiMSIsIm93bmVyIjp7ImtpbmQiOiJtZXJjaGFudCIsIm1lcmNoYW50X2lkIjoicmV4In0sIml0ZW1faWQiOiJjcnlzdGFsIiwicmVtYWluaW5nX3F1YW50aXR5IjoiMCIsInVuaXRfcHJpY2UiOiI2IiwicmV2aXNpb24iOiI3IiwiYWN0aXZlIjpmYWxzZX0sImJ1eWVyIjp7ImFjdG9yIjp7ImtpbmQiOiJwbGF5ZXIiLCJhY2NvdW50X2lkIjoiZGV2LTIwMjYxMTA1MjIwOTEwLTc4MDE0NDM0MDI0NjEzLnRlc3QubmVhciJ9LCJyZXZpc2lvbiI6IjMiLCJnb2xkIjp7ImhlbGQiOiI4OSIsImF2YWlsYWJsZSI6Ijg5IiwidHJhZGVfcmVzZXJ2ZWQiOiIwIiwidHJhZGVfaW5ib3VuZF9yZXNlcnZlZCI6IjAifSwiaW52ZW50b3J5Ijp7ImhlbGQiOnsiY3J5c3RhbCI6IjIiLCJ3b29kIjoiMCIsImhlcmIiOiIwIiwiaXJvbiI6IjAiLCJoZWFsdGhfcG90aW9uIjoiMCIsImlyb25fdG9vbCI6IjAifSwiYXZhaWxhYmxlIjp7ImNyeXN0YWwiOiIyIiwid29vZCI6IjAiLCJoZXJiIjoiMCIsImlyb24iOiIwIiwiaGVhbHRoX3BvdGlvbiI6IjAiLCJpcm9uX3Rvb2wiOiIwIn0sImxpc3RpbmdfcmVzZXJ2ZWQiOnsiY3J5c3RhbCI6IjAiLCJ3b29kIjoiMCIsImhlcmIiOiIwIiwiaXJvbiI6IjAiLCJoZWFsdGhfcG90aW9uIjoiMCIsImlyb25fdG9vbCI6IjAifSwidHJhZGVfcmVzZXJ2ZWQiOnsiY3J5c3RhbCI6IjAiLCJ3b29kIjoiMCIsImhlcmIiOiIwIiwiaXJvbiI6IjAiLCJoZWFsdGhfcG90aW9uIjoiMCIsImlyb25fdG9vbCI6IjAifSwicHJvZHVjdGlvbl9vdXRwdXRfcmVzZXJ2ZWQiOnsiY3J5c3RhbCI6IjAiLCJ3b29kIjoiMCIsImhlcmIiOiIwIiwiaXJvbiI6IjAiLCJoZWFsdGhfcG90aW9uIjoiMCIsImlyb25fdG9vbCI6IjAifSwidHJhZGVfaW5ib3VuZF9yZXNlcnZlZCI6eyJjcnlzdGFsIjoiMCIsIndvb2QiOiIwIiwiaGVyYiI6IjAiLCJpcm9uIjoiMCIsImhlYWx0aF9wb3Rpb24iOiIwIiwiaXJvbl90b29sIjoiMCJ9fX0sInNlbGxlciI6eyJhY3RvciI6eyJraW5kIjoibWVyY2hhbnQiLCJtZXJjaGFudF9pZCI6InJleCJ9LCJyZXZpc2lvbiI6IjciLCJnb2xkIjp7ImhlbGQiOiIyMTYiLCJhdmFpbGFibGUiOiIyMTYiLCJ0cmFkZV9yZXNlcnZlZCI6IjAiLCJ0cmFkZV9pbmJvdW5kX3Jlc2VydmVkIjoiMCJ9LCJpbnZlbnRvcnkiOnsiaGVsZCI6eyJjcnlzdGFsIjoiNyIsIndvb2QiOiIwIiwiaGVyYiI6IjAiLCJpcm9uIjoiMCIsImhlYWx0aF9wb3Rpb24iOiIwIiwiaXJvbl90b29sIjoiMCJ9LCJhdmFpbGFibGUiOnsiY3J5c3RhbCI6IjciLCJ3b29kIjoiMCIsImhlcmIiOiIwIiwiaXJvbiI6IjAiLCJoZWFsdGhfcG90aW9uIjoiMCIsImlyb25fdG9vbCI6IjAifSwibGlzdGluZ19yZXNlcnZlZCI6eyJjcnlzdGFsIjoiMCIsIndvb2QiOiIwIiwiaGVyYiI6IjAiLCJpcm9uIjoiMCIsImhlYWx0aF9wb3Rpb24iOiIwIiwiaXJvbl90b29sIjoiMCJ9LCJ0cmFkZV9yZXNlcnZlZCI6eyJjcnlzdGFsIjoiMCIsIndvb2QiOiIwIiwiaGVyYiI6IjAiLCJpcm9uIjoiMCIsImhlYWx0aF9wb3Rpb24iOiIwIiwiaXJvbl90b29sIjoiMCJ9LCJwcm9kdWN0aW9uX291dHB1dF9yZXNlcnZlZCI6eyJjcnlzdGFsIjoiMCIsIndvb2QiOiIwIiwiaGVyYiI6IjAiLCJpcm9uIjoiMCIsImhlYWx0aF9wb3Rpb24iOiIwIiwiaXJvbl90b29sIjoiMCJ9LCJ0cmFkZV9pbmJvdW5kX3Jlc2VydmVkIjp7ImNyeXN0YWwiOiIwIiwid29vZCI6IjAiLCJoZXJiIjoiMCIsImlyb24iOiIwIiwiaGVhbHRoX3BvdGlvbiI6IjAiLCJpcm9uX3Rvb2wiOiIwIn19fX19fQ=="
+        },
+        "transaction": {
+          "actions": [
+            {
+              "FunctionCall": {
+                "args": "eyJtZXJjaGFudF9pZCI6InJleCIsIml0ZW1faWQiOiJjcnlzdGFsIiwicXVhbnRpdHkiOiIxIiwiZXhwZWN0ZWRfbGlzdGluZ19yZXZpc2lvbiI6IjYiLCJtYXhfdG90YWxfcHJpY2UiOiI2IiwiY29tbWFuZCI6eyJzZXF1ZW5jZSI6IjQiLCJjb25maWdfdmVyc2lvbiI6IjEiLCJ2YWxpZF91bnRpbF9ucyI6IjE3OTM5MTcwNjE3NzI5MjIyNDUifX0=",
+                "deposit": "0",
+                "gas": 100000000000000,
+                "method_name": "buy_from_merchant"
+              }
+            }
+          ],
+          "hash": "FkthU9XSNs1DnHddGJuq7yXAJWxNdGRFg6SSK9Tqa5TS",
+          "nonce": 8000012,
+          "priority_fee": 0,
+          "public_key": "ed25519:AvbonTmBV4huLW7aw9gNRhdP15eBVwmVzGBvZDYXr3BZ",
+          "receiver_id": "dev-20261105220910-16680428888534.test.near",
+          "signature": "ed25519:4sHRC1NET1dcDQf3waDd4scoCe8zG2fR2XNS6BdFM7tUTc7AudNjCggnvrokJS1M57PGdFsHYW1K8PN5CVEBjeqe",
+          "signer_id": "dev-20261105220910-78014434024613.test.near"
+        },
+        "transaction_outcome": {
+          "block_hash": "GF6xoKkD3ZGbXf2tsgiPZwEvJnLNQkaCMJaMPd58QbQy",
+          "id": "FkthU9XSNs1DnHddGJuq7yXAJWxNdGRFg6SSK9Tqa5TS",
+          "outcome": {
+            "executor_id": "dev-20261105220910-78014434024613.test.near",
+            "gas_burnt": 318263815010,
+            "logs": [],
+            "metadata": {
+              "gas_profile": null,
+              "version": 1
+            },
+            "receipt_ids": ["dqnFq1PwtC5GJCkXNkbUYyPt88KCsUF8EZAzGbgecmH"],
+            "status": {
+              "SuccessReceiptId": "dqnFq1PwtC5GJCkXNkbUYyPt88KCsUF8EZAzGbgecmH"
+            },
+            "tokens_burnt": "31826381501000000000"
+          },
+          "proof": []
+        }
+      },
+      "block": {
+        "author": "test.near",
+        "chunks": [
+          {
+            "balance_burnt": "31826381501000000000",
+            "bandwidth_requests": {
+              "V1": {
+                "requests": []
+              }
+            },
+            "chunk_hash": "EafjqTWLNdizziP2V72svhFCftGpxS4Easb87DheKTjX",
+            "congestion_info": {
+              "allowed_shard": 0,
+              "buffered_receipts_gas": "0",
+              "delayed_receipts_gas": "0",
+              "receipt_bytes": 0
+            },
+            "encoded_length": 490,
+            "encoded_merkle_root": "GH9tmivsn5Lj6scRniaUsboV7vaDU4gJbJSkfWHTNx4w",
+            "gas_limit": 1000000000000000,
+            "gas_used": 318263815010,
+            "height_created": 102,
+            "height_included": 102,
+            "outcome_root": "3MGLjmPQdFBrFpby164UWpFwwMrXJnxtHByhffnwLW8q",
+            "outgoing_receipts_root": "8JCzRPhGmYaToFegttcGXrq4pKLrFEiiyyk3wpbAZQSz",
+            "prev_block_hash": "GF6xoKkD3ZGbXf2tsgiPZwEvJnLNQkaCMJaMPd58QbQy",
+            "prev_state_root": "3qf9d29ksJmzG34u6sbuKocY3EAh1ry75GwV2grxW1RV",
+            "proposed_split": null,
+            "rent_paid": "0",
+            "shard_id": 0,
+            "signature": "ed25519:4EtKUaDcztsuXKg9icYzJjC6WY8wYwHasrEY1ejDudPAsZUwZ2wYQaBYSap5CvghSd3GLGeBgfmrAZmPrbR8mqgW",
+            "tx_root": "11111111111111111111111111111111",
+            "validator_proposals": [],
+            "validator_reward": "0"
+          }
+        ],
+        "header": {
+          "approvals": [
+            "ed25519:5uoaTxHbLcFsiEnoV6qtYxATxw5PsezMHybYJTaXiDUPKEkjCMFhDAgXZm2oKVmqRx3jxPtPHdVcLSnAjb2zNBRz"
+          ],
+          "block_body_hash": "43EGUivKZxfum9MdavB6BTTnQQFSTuRQWfPgKp4DnK3Q",
+          "block_merkle_root": "9qvDYjztSBsvmEQS2gsFyTQJUrukR2wU8heNY7zHZGYV",
+          "block_ordinal": 103,
+          "challenges_result": [],
+          "challenges_root": "11111111111111111111111111111111",
+          "chunk_endorsements": [[1]],
+          "chunk_headers_root": "3tZy4K9tcbXmnEbR8BaSCaftcuFCM5UtHapxDeuYfZae",
+          "chunk_mask": [true],
+          "chunk_receipts_root": "8Y9n9cZUd5sdRdG3qCdSzwTQDDVxAibeYz8y4oFncGr7",
+          "chunk_tx_root": "7tkzFg8RHBmMw1ncRJZCCZAizgq4rwCftTKYLce8RU8t",
+          "chunks_included": 1,
+          "epoch_id": "BegiuBuKPJ7VF6YBtUFFuTKxNPBM7gLbqcPP23ZBo372",
+          "epoch_sync_data_hash": null,
+          "gas_price": "100000000",
+          "hash": "6oPwy9Lx41QAZp9PtjgDU6pVFBie6An6dXq6p7k3QJM7",
+          "height": 102,
+          "last_ds_final_block": "GF6xoKkD3ZGbXf2tsgiPZwEvJnLNQkaCMJaMPd58QbQy",
+          "last_final_block": "GqawJZN7Nq5R9hAVGLKz28MkR9UgbWtdfktt1regzcc1",
+          "latest_protocol_version": 86,
+          "next_bp_hash": "BRcHTvdUnSz2kRn9JBZM6hUh2QgNaXnnZLtk9pWZ64gH",
+          "next_epoch_id": "6kJ4FuWcnhM9uPqgW7VBkUw1JjVGk2PgtSivFjTofWc8",
+          "outcome_root": "CmaLbohy6jrRvC7WsbZjynVWQwxAz1U76qb8NCmToHKi",
+          "prev_hash": "GF6xoKkD3ZGbXf2tsgiPZwEvJnLNQkaCMJaMPd58QbQy",
+          "prev_height": 101,
+          "prev_state_root": "EcQ2EQmmHLQaAE5UoEREtnDrnFeSuczt1J7EuqSGnXwA",
+          "random_value": "4EYzQ5DTuLjs5PfL5zEbqFsFZdY3sopdrbjfTVTNFxWW",
+          "rent_paid": "0",
+          "shard_split": null,
+          "signature": "ed25519:5yt7A73nyVMD1xuYSCAC5e2Jy1pKxApDyRVq1UheJBkoVT92os5W4jFDk6ZUnTJhmp4EmxQxUWxZnL5FdY6ppfRS",
+          "timestamp": 1793916562914215400,
+          "timestamp_nanosec": "1793916562914215466",
+          "total_supply": "2050030031193335510530880549129524",
+          "validator_proposals": [],
+          "validator_reward": "0"
+        }
+      },
+      "account": {
+        "amount": "5221809494967506800000000",
+        "block_hash": "6oPwy9Lx41QAZp9PtjgDU6pVFBie6An6dXq6p7k3QJM7",
+        "block_height": 102,
+        "code_hash": "HVGVmzvEAQzRtBM6h9b2F7nZgTcdhzTejswCkctVLmam",
+        "locked": "0",
+        "storage_paid_at": 0,
+        "storage_usage": 383941
+      },
+      "foundation": {
+        "deployment": {
+          "network_id": "testnet",
+          "genesis_hash": "11111111111111111111111111111111",
+          "contract_id": "dev-20261105220910-16680428888534.test.near",
+          "api_version": "2.0.0",
+          "state_schema": "1",
+          "command_schema": "1",
+          "config_version": "1",
+          "config_sha256": "a932efb48c70a73ce46472cd754288649541b34604e2ea49a4093961e71a2d10"
+        },
+        "market_revision": "11",
+        "event_sequence": "11",
+        "block_height": "102",
+        "block_timestamp_ns": "1793916562914215466",
+        "data": {
+          "owner_account_id": "dev-20261105220910-16680428888534.test.near",
+          "operator_account_id": "operator.testnet",
+          "merchant_controllers": {
+            "rex": "dev-20261105220911-10282688170599.test.near",
+            "luna": "luna.testnet",
+            "bolt": "bolt.testnet"
+          },
+          "item_ids": [
+            "crystal",
+            "wood",
+            "herb",
+            "iron",
+            "health_potion",
+            "iron_tool"
+          ],
+          "supported_methods": [
+            "initialize_town",
+            "get_foundation",
+            "get_town",
+            "register_player",
+            "create_shop",
+            "rename_shop",
+            "get_player",
+            "get_shop",
+            "get_player_shops",
+            "get_command",
+            "buy_from_merchant",
+            "get_listings",
+            "get_trade",
+            "get_shop_inventory",
+            "get_recipes",
+            "start_production",
+            "get_production_jobs",
+            "complete_production",
+            "set_listing",
+            "cancel_listing"
+          ]
+        }
+      }
+    }
+  ]
+}

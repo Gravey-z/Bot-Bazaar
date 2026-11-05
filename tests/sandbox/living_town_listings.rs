@@ -5,7 +5,13 @@ use anyhow::{Result, ensure};
 use near_workspaces::{Account, Contract};
 use serde_json::{Value, json};
 
-async fn capture(url: &str, c: &Contract, a: &Account, method: &str, args: Value) -> Result<Value> {
+pub(super) async fn capture(
+    url: &str,
+    c: &Contract,
+    a: &Account,
+    method: &str,
+    args: Value,
+) -> Result<Value> {
     let reference = view(c, "get_town", json!({})).await?;
     let result = a
         .call(c.id(), method)

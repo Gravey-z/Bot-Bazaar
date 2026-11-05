@@ -507,6 +507,13 @@ export class LivingTownProjectionStore {
             .run(seq, status.executionReceiptId, receipt.logIndex, payload);
         if (BigInt(seq) > BigInt(s.latestSeen)) s.latestSeen = seq;
       }
+      // A cached effect is not a new transfer, but its finalized envelope can
+      // prove that other state changes are missing from this projection.
+      if (
+        status.kind === "succeeded" &&
+        BigInt(status.result.event_sequence) > BigInt(s.latestSeen)
+      )
+        s.latestSeen = status.result.event_sequence;
       while (true) {
         const next = (
           BigInt(s.checkpoint.through_event_sequence) + 1n
