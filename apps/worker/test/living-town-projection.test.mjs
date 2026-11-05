@@ -377,6 +377,67 @@ test("receipt event extraction ignores replay/failure logs and rejects forged su
   assert.equal(livingTownIndexedReceipt(proofs[5], failed).event, null);
 });
 
+test("production starts retain a visible gap until coherent snapshot recovery without crediting outputs", async (t) => {
+  const p = JSON.parse(
+    readFileSync(
+      new URL(
+        "../../../tests/fixtures/chain/living-town-production-sandbox.json",
+        import.meta.url,
+      ),
+      "utf8",
+    ),
+  );
+  const foundation = p.steps[0].foundation,
+    identity = {
+      deployment: foundation.deployment,
+      codeHash: p.steps[0].account.code_hash,
+      ownerId: foundation.data.owner_account_id,
+      operatorId: foundation.data.operator_account_id,
+      controllers: foundation.data.merchant_controllers,
+    };
+  const dir = mkdtempSync(join(tmpdir(), "living-town-production-"));
+  const store = new LivingTownProjectionStore(dir, identity, true);
+  t.after(() => {
+    store.close();
+    assert(dir.startsWith(join(tmpdir(), "living-town-production-")));
+    rmSync(dir, { recursive: true, force: true });
+  });
+  const baseline = (s) => ({
+    town: s.town,
+    block: block(s.block),
+    shops: s.shops.map((r) => ({ shop: r.shop, ledger: r.ledger })),
+  });
+  store.baseline(baseline(p.before), now);
+  const step = p.steps[0],
+    proof = {
+      transactionHash: step.transaction_hash,
+      signerId: step.signer_id,
+      deployment: foundation.deployment,
+      call: createLivingTownCall(step.method, step.args),
+      referenceBlockHeight: step.reference_block_height,
+    };
+  const status = await verifyLivingTownReceipt(step.receipt, proof, async () =>
+    block(step.block),
+  );
+  const indexed = livingTownIndexedReceipt(proof, {
+    status,
+    response: step.receipt,
+  });
+  assert.equal(store.commit(indexed, now), "indexed");
+  assert.equal(store.town(now).stale, true);
+  assert.equal(
+    store.cursor().through_event_sequence,
+    p.before.town.event_sequence,
+  );
+  store.baseline(baseline(p.after), now + 1);
+  assert.equal(store.commit(indexed, now + 1), "duplicate");
+  const inventory = store.inventory("4", now + 1).snapshot.data.inventory;
+  assert.equal(inventory.held.herb, "0");
+  assert.equal(inventory.held.health_potion, "0");
+  assert.equal(inventory.production_output_reserved.health_potion, "3");
+  assert.equal(store.town(now + 1).history_complete, false);
+});
+
 test("projector verifies receipt evidence, deduplicates before RPC and bounds coherent snapshot refresh", async (t) => {
   const f = fixture(t);
   let rpcReads = 0,

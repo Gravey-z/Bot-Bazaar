@@ -19,10 +19,10 @@ impl RecipeId {
 #[near(serializers = [borsh])]
 #[derive(Clone)]
 pub struct Recipe {
-    recipe_id: RecipeId,
+    pub(super) recipe_id: RecipeId,
     version: u64,
     inputs: Inventory,
-    output_item: Item,
+    pub(super) output_item: Item,
     output_per_unit: u64,
     duration_seconds: u64,
     max_batch_quantity: u64,
@@ -95,15 +95,15 @@ impl Recipe {
 #[near(serializers = [borsh])]
 #[derive(Clone)]
 pub struct ProductionTerms {
-    recipe_id: RecipeId,
-    recipe_version: u64,
-    config_version: u64,
-    quantity: u64,
-    inputs_consumed: Inventory,
-    output_item: Item,
-    output_quantity: u64,
-    start_at_ns: u64,
-    ready_at_ns: u64,
+    pub(super) recipe_id: RecipeId,
+    pub(super) recipe_version: u64,
+    pub(super) config_version: u64,
+    pub(super) quantity: u64,
+    pub(super) inputs_consumed: Inventory,
+    pub(super) output_item: Item,
+    pub(super) output_quantity: u64,
+    pub(super) start_at_ns: u64,
+    pub(super) ready_at_ns: u64,
 }
 impl ProductionTerms {
     pub fn view(&self) -> Value {

@@ -511,6 +511,7 @@ mod tests {
                     }
                 }),
                 ledger_revision: 1,
+                production_revision: 1,
                 reservations: Reservations::default(),
             },
         )

@@ -516,3 +516,22 @@ export function decodeLivingTownSnapshot<T>(
   );
   return snapshot;
 }
+
+export const livingTownProductionEffectBase = object({
+  principal: (v: unknown): string => {
+    check(typeof v === "string", "Principal required");
+    if (v.startsWith("account:")) accountId(v.slice(8));
+    else
+      check(
+        ["merchant:rex", "merchant:luna", "merchant:bolt"].includes(v),
+        "Invalid merchant principal",
+      );
+    return v;
+  },
+  command_sequence: positiveU64,
+  payload_sha256: livingTownDigest,
+  replayed: boolean,
+  effect_revision: positiveU64,
+  effect_event_sequence: positiveU64,
+  outcome: (v: unknown) => v,
+});

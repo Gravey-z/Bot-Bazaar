@@ -104,7 +104,7 @@ mod tests {
             assert!(
                 !town
                     .commands
-                    .contains_key(&"player.testnet".parse::<AccountId>().unwrap())
+                    .contains_key(&"account:player.testnet".to_owned())
             );
         }
     }
@@ -195,6 +195,7 @@ pub(crate) enum Outcome {
     Created(Shop),
     Renamed(Shop),
     Purchased(Box<super::purchases::Purchase>),
+    Started(Box<super::production::Started>),
 }
 impl Outcome {
     fn method(&self) -> &'static str {
@@ -203,6 +204,7 @@ impl Outcome {
             Self::Created(_) => "create_shop",
             Self::Renamed(_) => "rename_shop",
             Self::Purchased(_) => "buy_from_merchant",
+            Self::Started(_) => "start_production",
         }
     }
     fn view(&self) -> Value {
@@ -211,6 +213,7 @@ impl Outcome {
             Self::Created(s) => json!({"kind":"shop_created","shop":s.view()}),
             Self::Renamed(s) => json!({"kind":"shop_renamed","shop":s.view()}),
             Self::Purchased(p) => p.view(),
+            Self::Started(p) => p.view(),
         }
     }
 }
@@ -306,8 +309,8 @@ impl LivingTown {
         );
         id
     }
-    fn effect(&self, actor: &AccountId, record: &CommandRecord, replayed: bool) -> Value {
-        json!({"principal":format!("account:{actor}"),"command_sequence":record.sequence.to_string(),"payload_sha256":hex(&record.digest),"replayed":replayed,"effect_revision":record.revision.to_string(),"effect_event_sequence":record.revision.to_string(),"outcome":record.outcome.view()})
+    fn effect(&self, principal: &str, record: &CommandRecord, replayed: bool) -> Value {
+        json!({"principal":principal,"command_sequence":record.sequence.to_string(),"payload_sha256":hex(&record.digest),"replayed":replayed,"effect_revision":record.revision.to_string(),"effect_event_sequence":record.revision.to_string(),"outcome":record.outcome.view()})
     }
     pub(super) fn command_check(
         &self,
@@ -318,19 +321,30 @@ impl LivingTown {
     ) -> ([u8; 32], Option<Value>) {
         self.assert_versions();
         require!(command.sequence.0 > 0, "LT:E_INVALID_INTEGER");
-        let payload = json!({"domain":"bot-bazaar:living-town:command:1","network_id":"testnet","genesis_hash":self.genesis_hash,"contract_id":env::current_account_id(),"api_version":"2.0.0","principal":format!("account:{actor}"),"predecessor_account_id":actor,"method":method,"args":normalized});
+        let principal = if method == "start_production" {
+            match normalized["shop_id"]
+                .as_str()
+                .and_then(|v| v.parse::<usize>().ok())
+            {
+                Some(id @ 1..=3) => format!("merchant:{}", MERCHANTS[id - 1]),
+                _ => format!("account:{actor}"),
+            }
+        } else {
+            format!("account:{actor}")
+        };
+        let payload = json!({"domain":"bot-bazaar:living-town:command:1","network_id":"testnet","genesis_hash":self.genesis_hash,"contract_id":env::current_account_id(),"api_version":"2.0.0","principal":principal,"predecessor_account_id":actor,"method":method,"args":normalized});
         let digest = env::sha256_array(canonical_json(&payload).as_bytes());
-        let high = self.commands.get(actor).map_or(0, |r| r.sequence);
+        let high = self.commands.get(&principal).map_or(0, |r| r.sequence);
         if command.sequence.0 <= high {
             require!(command.sequence.0 == high, "LT:E_COMMAND_PRUNED");
-            let record = self.commands.get(actor).expect("high-water exists");
+            let record = self.commands.get(&principal).expect("high-water exists");
             require!(
                 record.digest == digest && record.outcome.method() == method,
                 "LT:E_COMMAND_CONFLICT"
             );
             return (
                 digest,
-                Some(self.snapshot(self.effect(actor, record, true))),
+                Some(self.snapshot(self.effect(&principal, record, true))),
             );
         }
         let expected = high
@@ -371,13 +385,19 @@ impl LivingTown {
             near_sdk::borsh::to_vec(&record).expect("record").len() <= 4096,
             "LT:E_STORAGE_CAPACITY"
         );
-        self.commands.insert(actor.clone(), record.clone());
+        let principal = match &record.outcome {
+            Outcome::Started(s) => s.job.owner.principal(),
+            _ => format!("account:{actor}"),
+        };
+        self.commands.insert(principal.clone(), record.clone());
         // Force all buffered collection writes and the root into this receipt before
         // checking measured storage/funding. A failed requirement reverts the receipt.
         self.players.flush();
         self.shops.flush();
         self.commands.flush();
         self.trades.flush();
+        self.jobs.flush();
+        self.active_jobs.flush();
         env::state_write(self);
         let used = env::storage_usage();
         require!(used <= 16 * 1024 * 1024, "LT:E_STORAGE_CAPACITY");
@@ -391,11 +411,11 @@ impl LivingTown {
             env::account_balance().as_yoctonear() >= required,
             "LT:E_STORAGE_CAPACITY"
         );
-        let event = json!({"standard":"bot_bazaar_living_town","version":"2.0.0","event":record.outcome.method(),"data":[{"contract_id":env::current_account_id(),"config_version":self.config_version.to_string(),"event_sequence":self.market_revision.to_string(),"market_revision":self.market_revision.to_string(),"block_height":env::block_height().to_string(),"block_timestamp_ns":env::block_timestamp().to_string(),"predecessor_account_id":actor,"principal":format!("account:{actor}"),"command_sequence":record.sequence.to_string(),"payload_sha256":hex(&digest),"outcome":record.outcome.view()}]});
+        let event = json!({"standard":"bot_bazaar_living_town","version":"2.0.0","event":record.outcome.method(),"data":[{"contract_id":env::current_account_id(),"config_version":self.config_version.to_string(),"event_sequence":self.market_revision.to_string(),"market_revision":self.market_revision.to_string(),"block_height":env::block_height().to_string(),"block_timestamp_ns":env::block_timestamp().to_string(),"predecessor_account_id":actor,"principal":principal,"command_sequence":record.sequence.to_string(),"payload_sha256":hex(&digest),"outcome":record.outcome.view()}]});
         let encoded = serde_json::to_string(&event).expect("event");
         require!(encoded.len() <= 32768, "LT:E_STORAGE_CAPACITY");
         env::log_str(&format!("EVENT_JSON:{encoded}"));
-        self.snapshot(self.effect(&actor, &record, false))
+        self.snapshot(self.effect(&principal, &record, false))
     }
 }
 #[near]
@@ -581,16 +601,21 @@ impl LivingTown {
             "LT:E_INVALID_ARGUMENT"
         );
         self.assert_versions();
-        let actor: AccountId = principal
-            .strip_prefix("account:")
-            .and_then(|s| s.parse().ok())
-            .unwrap_or_else(|| env::panic_str("LT:E_INVALID_ARGUMENT"));
-        let record = self.commands.get(&actor);
+        require!(
+            principal
+                .strip_prefix("account:")
+                .is_some_and(|s| s.parse::<AccountId>().is_ok())
+                || MERCHANTS
+                    .iter()
+                    .any(|m| principal == format!("merchant:{m}")),
+            "LT:E_INVALID_ARGUMENT"
+        );
+        let record = self.commands.get(&principal);
         let high = record.map_or(0, |r| r.sequence);
         let value = if let Some(r) = record
             && sequence.0 == high
         {
-            json!({"kind":"found","high_water":high.to_string(),"method":r.outcome.method(),"payload_sha256":hex(&r.digest),"effect":self.effect(&actor,r,false)})
+            json!({"kind":"found","high_water":high.to_string(),"method":r.outcome.method(),"payload_sha256":hex(&r.digest),"effect":self.effect(&principal,r,false)})
         } else if sequence.0 <= high {
             json!({"kind":"pruned","high_water":high.to_string(),"sequence":sequence.0.to_string()})
         } else {

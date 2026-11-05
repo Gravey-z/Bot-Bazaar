@@ -453,6 +453,9 @@ export class LivingTownProjectionStore {
   ): boolean {
     const o = result.data.outcome,
       t = s.town.data;
+    // Until P2.5 indexes jobs, retain this verified event behind a gap and
+    // rebuild current ledgers from a coherent finalized snapshot.
+    if (o.kind === "production_started") return false;
     if (o.kind === "player_registered") {
       requireValue(
         !this.readLedger(`account:${o.player.account_id}`),

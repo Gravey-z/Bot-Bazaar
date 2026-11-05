@@ -79,13 +79,15 @@ export const initialTownState: TownState = {
 };
 export function describeTownAttempt(a: LivingTownAttempt): string {
   const args = a.call.args;
+  if (a.call.method === "start_production" && "recipe_id" in args)
+    return `Start ${args.quantity} ${args.recipe_id.replaceAll("_", " ")} in shop #${args.shop_id}, recipe version ${args.recipe_version}.`;
   if (a.call.method === "register_player")
     return "Register player: one-time 100 game gold grant.";
   if (a.call.method === "create_shop" && "name" in args)
     return `Create shop: ${args.name}.`;
-  if (a.call.method === "rename_shop" && "shop_id" in args)
+  if (a.call.method === "rename_shop" && "shop_id" in args && "name" in args)
     return `Rename shop #${args.shop_id}: ${args.name}.`;
-  if ("quantity" in args)
+  if ("item_id" in args)
     return `Buy ${args.quantity} ${args.item_id.replaceAll("_", " ")}: maximum ${args.max_total_price} game gold.`;
   return "Review the original saved request.";
 }

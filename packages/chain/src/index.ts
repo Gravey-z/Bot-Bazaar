@@ -139,3 +139,8 @@ export type {
 
 export { parseLivingTownWebProfile } from "./living-town/web-profile.js";
 export type { LivingTownWebProfile } from "./living-town/web-profile.js";
+
+export {
+  livingTownProductionJob,
+  livingTownProductionEffect,
+} from "./living-town/production.js";

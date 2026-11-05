@@ -35,7 +35,7 @@ fn final_registration_slot_admits_once_and_rejection_keeps_all_markers() {
     assert!(
         !town
             .commands
-            .contains_key(&"overflow.testnet".parse::<AccountId>().unwrap())
+            .contains_key(&"account:overflow.testnet".to_owned())
     );
 }
 #[test]

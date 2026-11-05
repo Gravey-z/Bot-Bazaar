@@ -1,3 +1,7 @@
+import {
+  livingTownProductionEffect,
+  livingTownProductionJob,
+} from "./production.js";
 import type { RpcTransport } from "../rpc.js";
 import { ChainRpcError, encodeArguments } from "../rpc.js";
 import type { FinalizedBlock } from "../market-client.js";
@@ -83,9 +87,11 @@ const listingsArgs = object({
   },
 });
 const effect = (v: unknown) =>
-  record(record(v)["outcome"])["kind"] === "raw_purchased"
-    ? livingTownPurchaseEffect(v)
-    : livingTownOwnershipEffect(v);
+  record(record(v)["outcome"])["kind"] === "production_started"
+    ? livingTownProductionEffect(v)
+    : record(record(v)["outcome"])["kind"] === "raw_purchased"
+      ? livingTownPurchaseEffect(v)
+      : livingTownOwnershipEffect(v);
 const commandLookup = (v: unknown) => {
   const kind = record(v)["kind"];
   if (kind === "found")
@@ -93,6 +99,7 @@ const commandLookup = (v: unknown) => {
       kind: choice(["found"] as const),
       high_water: positiveU64,
       method: choice([
+        "start_production",
         "register_player",
         "create_shop",
         "rename_shop",
@@ -282,6 +289,32 @@ export class FinalizedLivingTownReader {
     this.checkPage(r, args, (row) => row.recipe_entry_id);
     return r;
   }
+  async getProductionJobs(
+    input: unknown,
+  ): Promise<Snapshot<Page<ReturnType<typeof livingTownProductionJob>>>> {
+    const args = object({
+      shop_id: positiveU64,
+      status: choice(["all", "running", "completed"] as const),
+      ...{
+        after_id: nullable(parseU64),
+        limit: bounded(1n, 50n),
+        expected_market_revision: positiveU64,
+      },
+    })(input);
+    const r = await this.view(
+      "get_production_jobs",
+      args,
+      page(livingTownProductionJob),
+    );
+    this.checkPage(r, args, (j) => j.job_id);
+    check(
+      r.data.items.every(
+        (j) => j.shop_id === args.shop_id && args.status !== "completed",
+      ),
+      "Production filter mismatch",
+    );
+    return r;
+  }
   async getTrade(
     id: string,
   ): Promise<Snapshot<ReturnType<typeof tradeLookup>>> {
@@ -298,7 +331,11 @@ export class FinalizedLivingTownReader {
     account: string,
     sequence: string,
   ): Promise<Snapshot<ReturnType<typeof commandLookup>>> {
-    const principal = `account:${accountId(account)}`,
+    const principal = account.startsWith("merchant:")
+        ? choice(["merchant:rex", "merchant:luna", "merchant:bolt"] as const)(
+            account,
+          )
+        : `account:${accountId(account)}`,
       seq = positiveU64(sequence),
       r = await this.view(
         "get_command",
@@ -319,6 +356,7 @@ export class FinalizedLivingTownReader {
                 shop_created: "create_shop",
                 shop_renamed: "rename_shop",
                 raw_purchased: "buy_from_merchant",
+                production_started: "start_production",
               } as const
             )[d.effect.outcome.kind],
         "V2 command lookup mismatch",

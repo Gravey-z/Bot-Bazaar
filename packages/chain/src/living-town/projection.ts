@@ -155,7 +155,7 @@ export function livingTownIndexedReceipt(
         predecessor_account_id: accountId,
         principal: (v: unknown): string => {
           check(
-            v === `account:${proof.signerId}`,
+            v === status.result.data.principal,
             "V2 event principal mismatch",
           );
           return String(v);
