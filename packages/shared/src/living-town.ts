@@ -8,6 +8,18 @@ export const livingTownItemIds = [
   "iron_tool",
 ] as const;
 export type LivingTownItem = (typeof livingTownItemIds)[number];
+export const livingTownFoundationMethods = [
+  "initialize_town",
+  "get_foundation",
+  "get_town",
+  "register_player",
+  "create_shop",
+  "rename_shop",
+  "get_player",
+  "get_shop",
+  "get_player_shops",
+  "get_command",
+] as const;
 export type LivingTownSix<T> = { readonly [K in LivingTownItem]: T };
 export const livingTownVersions = Object.freeze({
   api_version: "2.0.0",

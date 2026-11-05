@@ -1,4 +1,8 @@
-import { livingTownItemIds, livingTownVersions } from "@bot-bazaar/shared";
+import {
+  livingTownItemIds,
+  livingTownVersions,
+  livingTownFoundationMethods,
+} from "@bot-bazaar/shared";
 import type { LivingTownSix } from "@bot-bazaar/shared";
 import {
   accountId,
@@ -150,6 +154,86 @@ export const livingTownShop = object({
   created_at_ns: parseU64,
   ownership_command_sequence: nullable(positiveU64),
 });
+const playerShape = object({
+  account_id: accountId,
+  ledger: livingTownLedger,
+  shop_id: nullable(positiveU64),
+  grant_issued: boolean,
+  grant_command_sequence: positiveU64,
+});
+export function livingTownPlayer(
+  value: unknown,
+): ReturnType<typeof playerShape> {
+  const result = playerShape(value);
+  check(
+    result.grant_issued &&
+      result.ledger.actor.kind === "player" &&
+      result.ledger.actor.account_id === result.account_id,
+    "V2 player ledger/owner mismatch",
+  );
+  return result;
+}
+const ownershipOutcome = (value: unknown) => {
+  if (
+    value &&
+    typeof value === "object" &&
+    "kind" in value &&
+    value.kind === "player_registered"
+  )
+    return object({
+      kind: literal("player_registered"),
+      player: livingTownPlayer,
+    })(value);
+  return object({
+    kind: choice(["shop_created", "shop_renamed"] as const),
+    shop: livingTownShop,
+  })(value);
+};
+const ownershipEffectShape = object({
+  principal: (value: unknown) => {
+    check(
+      typeof value === "string" && value.startsWith("account:"),
+      "V2 ownership principal required",
+    );
+    accountId(value.slice(8));
+    return value;
+  },
+  command_sequence: positiveU64,
+  payload_sha256: livingTownDigest,
+  replayed: boolean,
+  effect_revision: positiveU64,
+  effect_event_sequence: positiveU64,
+  outcome: ownershipOutcome,
+});
+export function livingTownOwnershipEffect(
+  value: unknown,
+): ReturnType<typeof ownershipEffectShape> {
+  const result = ownershipEffectShape(value);
+  const owner =
+    result.outcome.kind === "player_registered"
+      ? result.outcome.player.account_id
+      : result.outcome.shop.owner.kind === "player"
+        ? result.outcome.shop.owner.account_id
+        : null;
+  check(
+    owner !== null &&
+      result.principal === `account:${owner}` &&
+      result.effect_revision === result.effect_event_sequence,
+    "V2 ownership effect identity mismatch",
+  );
+  if (result.outcome.kind === "player_registered")
+    check(
+      result.outcome.player.grant_command_sequence === result.command_sequence,
+      "V2 grant command mismatch",
+    );
+  if (result.outcome.kind === "shop_created")
+    check(
+      result.outcome.shop.ownership_command_sequence ===
+        result.command_sequence,
+      "V2 shop creation command mismatch",
+    );
+  return result;
+}
 export function livingTownSnapshot<T>(decode: Decoder<T>): Decoder<{
   deployment: ReturnType<typeof parseLivingTownDeployment>;
   market_revision: string;
@@ -185,8 +269,8 @@ const foundationShape = object({
   }),
   item_ids: array(livingTownItem, 6),
   supported_methods: array(
-    choice(["initialize_town", "get_foundation", "get_town"] as const),
-    3,
+    choice(livingTownFoundationMethods),
+    livingTownFoundationMethods.length,
   ),
 });
 export function livingTownFoundation(
@@ -195,8 +279,7 @@ export function livingTownFoundation(
   const result = foundationShape(value);
   check(
     result.item_ids.join() === livingTownItemIds.join() &&
-      result.supported_methods.join() ===
-        "initialize_town,get_foundation,get_town",
+      result.supported_methods.join() === livingTownFoundationMethods.join(),
     "V2 foundation capabilities/items mismatch",
   );
   const roles = [

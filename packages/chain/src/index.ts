@@ -75,6 +75,8 @@ export {
   livingTownGold,
   livingTownLedger,
   livingTownShop,
+  livingTownPlayer,
+  livingTownOwnershipEffect,
   livingTownSnapshot,
   livingTownFoundation,
   livingTownLimits,

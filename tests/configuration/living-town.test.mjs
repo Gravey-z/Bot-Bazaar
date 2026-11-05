@@ -5,6 +5,7 @@ import {
   livingTownItemIds,
   resourceIds,
   livingTownVersions,
+  livingTownFoundationMethods,
 } from "../../packages/shared/dist/index.js";
 import {
   livingTownItem,
@@ -16,6 +17,8 @@ import {
   livingTownFoundation,
   livingTownLimits,
   livingTownTown,
+  livingTownPlayer,
+  livingTownOwnershipEffect,
   decodeLivingTownSnapshot,
   livingTownJsonDigest,
   canonicalLivingTownJson,
@@ -261,7 +264,7 @@ test("foundation snapshot and capabilities cannot masquerade as a V1 or truncate
       bolt: "bolt.testnet",
     },
     item_ids: [...livingTownItemIds],
-    supported_methods: ["initialize_town", "get_foundation", "get_town"],
+    supported_methods: [...livingTownFoundationMethods],
   };
   const snapshot = {
     deployment: deployment(),
@@ -306,4 +309,61 @@ test("foundation snapshot and capabilities cannot masquerade as a V1 or truncate
     }),
   );
   assert.throws(() => livingTownTown({}));
+});
+
+test("ownership views and replay effects bind the player ledger, principal and original grant", () => {
+  const player = {
+    account_id: "player.testnet",
+    ledger: {
+      actor: { kind: "player", account_id: "player.testnet" },
+      revision: "1",
+      gold: {
+        held: "100",
+        available: "100",
+        trade_reserved: "0",
+        trade_inbound_reserved: "0",
+      },
+      inventory: inventory(),
+    },
+    shop_id: null,
+    grant_issued: true,
+    grant_command_sequence: "1",
+  };
+  assert.deepEqual(livingTownPlayer(player), player);
+  const effect = {
+    principal: "account:player.testnet",
+    command_sequence: "1",
+    payload_sha256: "a".repeat(64),
+    replayed: false,
+    effect_revision: "2",
+    effect_event_sequence: "2",
+    outcome: { kind: "player_registered", player },
+  };
+  assert.deepEqual(livingTownOwnershipEffect(effect), effect);
+  effect.replayed = true;
+  assert.equal(livingTownOwnershipEffect(effect).replayed, true);
+  for (const mutate of [
+    (v) => {
+      v.principal = "account:other.testnet";
+    },
+    (v) => {
+      v.outcome.player.ledger.actor.account_id = "other.testnet";
+    },
+    (v) => {
+      v.outcome.player.grant_issued = false;
+    },
+    (v) => {
+      v.command_sequence = "2";
+    },
+    (v) => {
+      v.effect_event_sequence = "3";
+    },
+    (v) => {
+      v.outcome.player.owner_account_id = "other.testnet";
+    },
+  ]) {
+    const bad = structuredClone(effect);
+    mutate(bad);
+    assert.throws(() => livingTownOwnershipEffect(bad));
+  }
 });

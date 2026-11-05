@@ -1,6 +1,11 @@
 use near_sdk::serde::{Deserialize, de::DeserializeOwned};
 use near_sdk::serde_json::{self, Value, json};
+use near_sdk::store::LookupMap;
 use near_sdk::{AccountId, PanicOnDefault, env, near, require};
+
+mod ownership;
+pub use ownership::{Command, Decimal};
+use ownership::{CommandRecord, Player, Shop};
 
 const CONFIG: &str = include_str!("../../../config/living-town-v1.json");
 pub const ITEM_IDS: [&str; 6] = [
@@ -149,7 +154,7 @@ fn valid_hash(value: &str) -> bool {
         == 32
 }
 
-// First V2 root; no V1 types/prefixes are imported. No economic mutations yet.
+// Development V2 root; never deserialize or upgrade V1 state with this crate.
 #[near(contract_state)]
 #[derive(PanicOnDefault)]
 pub struct LivingTown {
@@ -162,6 +167,14 @@ pub struct LivingTown {
     operator: AccountId,
     controllers: [AccountId; 3],
     npcs: [Npc; 3],
+    paused: bool,
+    market_revision: u64,
+    registered_player_count: u64,
+    issued_grants: u128,
+    next_shop_id: u64,
+    players: LookupMap<AccountId, Player>,
+    shops: LookupMap<u64, Shop>,
+    commands: LookupMap<AccountId, CommandRecord>,
 }
 impl LivingTown {
     fn assert_versions(&self) {
@@ -175,7 +188,7 @@ impl LivingTown {
         json!({"network_id":"testnet","genesis_hash":self.genesis_hash,"contract_id":env::current_account_id(),"api_version":"2.0.0","state_schema":self.state_schema.to_string(),"command_schema":"1","config_version":self.config_version.to_string(),"config_sha256":self.config_sha256})
     }
     fn snapshot(&self, data: Value) -> Value {
-        json!({"deployment":self.deployment(),"market_revision":"1","event_sequence":"1","block_height":env::block_height().to_string(),"block_timestamp_ns":env::block_timestamp().to_string(),"data":data})
+        json!({"deployment":self.deployment(),"market_revision":self.market_revision.to_string(),"event_sequence":self.market_revision.to_string(),"block_height":env::block_height().to_string(),"block_timestamp_ns":env::block_timestamp().to_string(),"data":data})
     }
     fn town(&self) -> Value {
         let mut shops = Vec::new();
@@ -195,7 +208,7 @@ impl LivingTown {
             ledgers.push(json!({"actor":owner,"revision":"1","gold":{"held":npc.gold.to_string(),"available":npc.gold.to_string(),"trade_reserved":"0","trade_inbound_reserved":"0"},"inventory":{"held":npc.held.view(),"available":available.view(),"listing_reserved":reserved.view(),"trade_reserved":zero,"production_output_reserved":zero,"trade_inbound_reserved":zero}}));
         }
         let zero = Inventory::default().view();
-        json!({"paused":false,"registered_player_count":"0","epoch":((env::block_timestamp()-self.genesis_time_ns)/60_000_000_000).to_string(),"genesis_time_ns":self.genesis_time_ns.to_string(),"npc_shops":shops,"npc_ledgers":ledgers,"customer_pool":{"pool_id":"town_customers","gold":"100","epoch":((env::block_timestamp()-self.genesis_time_ns)/60_000_000_000).to_string(),"last_funded_epoch":"0","potion_units_bought":"0","tool_units_bought":"0","revision":"1"},"totals":{"initial_gold":"700","player_grants":"0","customer_topups":"0","upgrade_burns":"0","treasury_burns":"0","seed_items":Inventory::new([10,10,20,20,0,0]).view(),"supplied_items":zero,"recipe_inputs_consumed":zero,"completed_outputs":zero,"customer_consumed":zero},"market_event":null,"next_shop_id":"4","next_listing_id":"5","next_job_id":"1","next_offer_id":"1","next_trade_id":"1","next_market_event_id":"1","retained_events_from":"1","limits":config()["limits"]})
+        json!({"paused":self.paused,"registered_player_count":self.registered_player_count.to_string(),"epoch":((env::block_timestamp()-self.genesis_time_ns)/60_000_000_000).to_string(),"genesis_time_ns":self.genesis_time_ns.to_string(),"npc_shops":shops,"npc_ledgers":ledgers,"customer_pool":{"pool_id":"town_customers","gold":"100","epoch":((env::block_timestamp()-self.genesis_time_ns)/60_000_000_000).to_string(),"last_funded_epoch":"0","potion_units_bought":"0","tool_units_bought":"0","revision":"1"},"totals":{"initial_gold":"700","player_grants":self.issued_grants.to_string(),"customer_topups":"0","upgrade_burns":"0","treasury_burns":"0","seed_items":Inventory::new([10,10,20,20,0,0]).view(),"supplied_items":zero,"recipe_inputs_consumed":zero,"completed_outputs":zero,"customer_consumed":zero},"market_event":null,"next_shop_id":self.next_shop_id.to_string(),"next_listing_id":"5","next_job_id":"1","next_offer_id":"1","next_trade_id":"1","next_market_event_id":"1","retained_events_from":"1","limits":config()["limits"]})
     }
 }
 #[near]
@@ -287,6 +300,14 @@ impl LivingTown {
             operator: operator_account_id,
             controllers,
             npcs,
+            paused: false,
+            market_revision: 1,
+            registered_player_count: 0,
+            issued_grants: 0,
+            next_shop_id: 4,
+            players: LookupMap::new(b"lt:v2:players:".to_vec()),
+            shops: LookupMap::new(b"lt:v2:shops:".to_vec()),
+            commands: LookupMap::new(b"lt:v2:principals:".to_vec()),
         };
         env::log_str(&format!(
             "EVENT_JSON:{}",
@@ -302,7 +323,7 @@ impl LivingTown {
     pub fn get_foundation(&self) -> Value {
         let _: EmptyArgs = input();
         self.assert_versions();
-        self.snapshot(json!({"owner_account_id":self.owner,"operator_account_id":self.operator,"merchant_controllers":{"rex":self.controllers[0],"luna":self.controllers[1],"bolt":self.controllers[2]},"item_ids":ITEM_IDS,"supported_methods":["initialize_town","get_foundation","get_town"]}))
+        self.snapshot(json!({"owner_account_id":self.owner,"operator_account_id":self.operator,"merchant_controllers":{"rex":self.controllers[0],"luna":self.controllers[1],"bolt":self.controllers[2]},"item_ids":ITEM_IDS,"supported_methods":["initialize_town","get_foundation","get_town","register_player","create_shop","rename_shop","get_player","get_shop","get_player_shops","get_command"]}))
     }
 }
 
