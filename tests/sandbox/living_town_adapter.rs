@@ -3,7 +3,7 @@ use anyhow::{Result, ensure};
 use serde_json::{Value, json};
 
 // Only the disposable sandbox URL is passed here; never a public RPC or key.
-fn rpc(url: &str, method: &str, params: Value) -> Result<Value> {
+pub(super) fn rpc(url: &str, method: &str, params: Value) -> Result<Value> {
     ensure!(url.starts_with("http://127.0.0.1:") || url.starts_with("http://localhost:"));
     let payload =
         json!({"jsonrpc":"2.0","id":"adapter-fixture","method":method,"params":params}).to_string();

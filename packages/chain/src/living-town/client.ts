@@ -33,6 +33,7 @@ import {
 } from "./wire.js";
 import { decodeLivingTownBytes } from "./calls.js";
 import { canonicalLivingTownJson } from "./json.js";
+import { livingTownRecipeEntry } from "./recipes.js";
 import { verifyLivingTownReceipt } from "./receipts.js";
 import type { LivingTownReceiptStatus, LivingTownProof } from "./receipts.js";
 
@@ -271,6 +272,14 @@ export class FinalizedLivingTownReader {
       ),
       "V2 listing filter mismatch",
     );
+    return r;
+  }
+  async getRecipes(
+    input: unknown,
+  ): Promise<Snapshot<Page<ReturnType<typeof livingTownRecipeEntry>>>> {
+    const args = livingTownPageArgs(input),
+      r = await this.view("get_recipes", args, page(livingTownRecipeEntry));
+    this.checkPage(r, args, (row) => row.recipe_entry_id);
     return r;
   }
   async getTrade(

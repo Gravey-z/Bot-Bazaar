@@ -104,6 +104,13 @@ export {
 } from "./living-town/calls.js";
 export type { LivingTownCall, LivingTownMethod } from "./living-town/calls.js";
 export {
+  livingTownRecipeId,
+  livingTownRecipe,
+  livingTownRecipeEntry,
+  livingTownProductionTerms,
+  planLivingTownProduction,
+} from "./living-town/recipes.js";
+export {
   LivingTownClient,
   LivingTownIdentityError,
   FinalizedLivingTownReader,

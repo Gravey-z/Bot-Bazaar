@@ -5,6 +5,7 @@ mod living_town_adapter;
 mod living_town_adversarial;
 mod living_town_ownership;
 mod living_town_purchases;
+mod living_town_recipes;
 
 fn wasm() -> Result<Vec<u8>> {
     std::fs::read(Path::new(

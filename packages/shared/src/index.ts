@@ -14,9 +14,11 @@ export {
   livingTownItemIds,
   livingTownVersions,
   livingTownFoundationMethods,
+  livingTownRecipeIds,
 } from "./living-town.js";
 export type {
   LivingTownItem,
+  LivingTownRecipeId,
   LivingTownSix,
   LivingTownDeployment,
   LivingTownInventory,
