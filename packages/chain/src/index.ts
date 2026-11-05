@@ -128,3 +128,6 @@ export type {
   LivingTownCheckpoint,
   LivingTownIndexedReceipt,
 } from "./living-town/projection.js";
+
+export { parseLivingTownWebProfile } from "./living-town/web-profile.js";
+export type { LivingTownWebProfile } from "./living-town/web-profile.js";

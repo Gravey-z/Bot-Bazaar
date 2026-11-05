@@ -22,6 +22,7 @@
             "outputPath": "dist",
             "assets": [
               { "glob": "config.json", "input": "public", "output": "/" },
+              { "glob": "living-town.json", "input": "public", "output": "/" },
               { "glob": "deployment.json", "input": "public", "output": "/" },
               { "glob": "_headers", "input": "public", "output": "/" },
               {

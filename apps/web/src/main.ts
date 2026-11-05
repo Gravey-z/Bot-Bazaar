@@ -15,6 +15,19 @@ async function start(): Promise<unknown> {
     const { ReplayComponent } = await import("./app/replay.component");
     return bootstrapApplication(ReplayComponent);
   }
+  if (!new URL(location.href).searchParams.has("classic")) {
+    const { LivingTownComponent } = await import("./app/living-town.component");
+    const { LIVING_TOWN_SETUP, loadLivingTownSetup } =
+      await import("./app/living-town-profile");
+    return bootstrapApplication(LivingTownComponent, {
+      providers: [
+        {
+          provide: LIVING_TOWN_SETUP,
+          useValue: await loadLivingTownSetup(new URL(document.baseURI)),
+        },
+      ],
+    });
+  }
   const { AppComponent } = await import("./app/app.component");
   return loadPublicDeployment(new URL("config.json", document.baseURI)).then(
     (deployment) => {

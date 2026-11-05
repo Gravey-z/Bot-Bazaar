@@ -1,3 +1,4 @@
+import { parseLivingTownWebProfile } from "../packages/chain/dist/index.js";
 import { readFile, readdir } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -43,6 +44,10 @@ for (const file of files.filter((entry) => entry.isFile())) {
     );
   }
 }
+if (files.some((file) => file.isFile() && file.name === "living-town.json"))
+  parseLivingTownWebProfile(
+    JSON.parse(await readFile(path.join(output, "living-town.json"), "utf8")),
+  );
 const config = parsePublicConfig(
   JSON.parse(await readFile(path.join(output, "config.json"), "utf8")),
 );
