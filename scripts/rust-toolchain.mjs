@@ -100,10 +100,70 @@ const tasks = {
   ],
   format: [["cargo", "fmt", "--all"]],
 };
+const buildV2 = [...build];
+buildV2[buildV2.indexOf("contracts/market/Cargo.toml")] =
+  "contracts/living-town/Cargo.toml";
+buildV2[buildV2.indexOf("target/near")] = "target/near/living-town";
+tasks["build-v2"] = [buildV2];
+tasks["unit-v2"] = [
+  ["cargo", "test", "-p", "bot-bazaar-living-town", "--lib", "--locked"],
+];
+tasks["test-v2"] = [
+  ...tasks["unit-v2"],
+  buildV2,
+  [
+    "cargo",
+    "test",
+    "-p",
+    "sandbox-tests",
+    "--test",
+    "living_town",
+    "--locked",
+    "--",
+    "--nocapture",
+    "--test-threads=1",
+  ],
+];
+tasks["check-v2"] = [
+  ["cargo", "fmt", "--all", "--", "--check"],
+  [
+    "cargo",
+    "clippy",
+    "-p",
+    "bot-bazaar-living-town",
+    "--lib",
+    "--tests",
+    "--locked",
+    "--",
+    "-D",
+    "warnings",
+  ],
+  [
+    "cargo",
+    "near",
+    "check",
+    "--manifest-path",
+    "contracts/living-town/Cargo.toml",
+    "--clippy",
+    "--locked",
+  ],
+  [
+    "cargo",
+    "clippy",
+    "-p",
+    "sandbox-tests",
+    "--test",
+    "living_town",
+    "--locked",
+    "--",
+    "-D",
+    "warnings",
+  ],
+];
 const task = process.argv[2];
 if (!Object.hasOwn(tasks, task)) {
   console.error(
-    "Usage: node scripts/rust-toolchain.mjs <build|unit|test|check|format>",
+    "Usage: node scripts/rust-toolchain.mjs <build|unit|test|check|format|build-v2|unit-v2|test-v2|check-v2>",
   );
   process.exit(1);
 }

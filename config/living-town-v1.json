@@ -1,0 +1,110 @@
+{
+  "schema": "bot-bazaar-living-town-config-v1",
+  "version": "1",
+  "items": ["crystal", "wood", "herb", "iron", "health_potion", "iron_tool"],
+  "economy": {
+    "starterGold": "100",
+    "merchantGold": "200",
+    "customerSeed": "100",
+    "customerCap": "200",
+    "customerTopup": "100",
+    "customerQuota": "2",
+    "epochSeconds": "60",
+    "goldCap": "1000000",
+    "itemCap": "1000",
+    "listingCap": "100",
+    "quantityCap": "100",
+    "priceCap": "100",
+    "totalCap": "10000",
+    "batchCap": "10",
+    "upgradeCost": "150",
+    "upgradeReserve": "30",
+    "treasuryRetain": "200",
+    "treasuryBurnCap": "100",
+    "materials": {
+      "crystal": {
+        "supplier": "rex",
+        "seed": "10",
+        "floor": "2",
+        "listed": "8",
+        "price": "4",
+        "minPrice": "3",
+        "maxPrice": "6",
+        "supply": "4",
+        "target": "10"
+      },
+      "wood": {
+        "supplier": "bolt",
+        "seed": "10",
+        "floor": "2",
+        "listed": "8",
+        "price": "2",
+        "minPrice": "1",
+        "maxPrice": "3",
+        "supply": "4",
+        "target": "10"
+      },
+      "herb": {
+        "supplier": "luna",
+        "seed": "20",
+        "floor": "8",
+        "listed": "12",
+        "price": "3",
+        "minPrice": "2",
+        "maxPrice": "4",
+        "supply": "8",
+        "target": "20"
+      },
+      "iron": {
+        "supplier": "bolt",
+        "seed": "20",
+        "floor": "4",
+        "listed": "16",
+        "price": "5",
+        "minPrice": "3",
+        "maxPrice": "6",
+        "supply": "8",
+        "target": "20"
+      }
+    },
+    "recipes": {
+      "health_potion": {
+        "inputs": {
+          "herb": "2",
+          "crystal": "1"
+        },
+        "seconds": "120",
+        "salePrice": "18"
+      },
+      "iron_tool": {
+        "inputs": {
+          "iron": "2",
+          "wood": "1"
+        },
+        "seconds": "180",
+        "salePrice": "24"
+      }
+    }
+  },
+  "limits": {
+    "max_players": "1000",
+    "max_actor_gold": "1000000",
+    "max_actor_item": "1000",
+    "max_listing_quantity": "100",
+    "max_purchase_quantity": "100",
+    "max_unit_price": "100",
+    "max_total_price": "10000",
+    "max_batch_quantity": "10",
+    "max_page_size": "50",
+    "max_expire_batch": "24",
+    "max_name_bytes": "32",
+    "max_command_lifetime_seconds": "600",
+    "max_offer_lifetime_seconds": "600",
+    "retained_command_results": "1",
+    "retained_jobs": "256",
+    "retained_trades": "256",
+    "retained_events": "256",
+    "max_active_offers": "12",
+    "max_recipe_versions": "4"
+  }
+}

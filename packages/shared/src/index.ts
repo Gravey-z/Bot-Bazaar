@@ -10,6 +10,14 @@ export const resourceIds = ["crystal", "wood", "herb", "iron"] as const;
 
 export type Resource = (typeof resourceIds)[number];
 
+export { livingTownItemIds, livingTownVersions } from "./living-town.js";
+export type {
+  LivingTownItem,
+  LivingTownSix,
+  LivingTownDeployment,
+  LivingTownInventory,
+} from "./living-town.js";
+
 export { ConfigurationError, parsePublicConfig } from "./config.js";
 export { parseWebDeployment, deploymentIdentity } from "./deployments.js";
 export type { WebDeployment } from "./deployments.js";

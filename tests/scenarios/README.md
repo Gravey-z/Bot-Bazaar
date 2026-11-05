@@ -1,5 +1,21 @@
 # Agent scenarios
 
+## Living Town V2 economy fixture
+
+Run `corepack pnpm test:economy` (or `node --test tests/scenarios/living-town-economy.test.mjs`). The same cases are discovered by `corepack pnpm test:unit`.
+
+`living-town-economy.json` records V2-E001/config 1 tuning. `living-town-economy.mjs` is a small specification model using exact BigInt gold/quantities, a controlled clock, FIFO cost lots, reservations and source/consumption/sink counters. It imports no application worker, provider, signer, environment, network client or credential. No Docker, RPC, wallet, paid inference or external dependency is needed for the targeted command.
+
+The tests assert four initial-price recipe pairs reach 180 gold, a 150-gold second-slot upgrade retains 30, and another pair remains affordable. At maximum raw retail bands seven pairs reach 191/41 before/after upgrade. They also check saleable-stock depletion/explicit replenishment and relisting after downtime, once-only grants/allocations (including zero allocation), customer budget/quota exhaustion, batch time, command payload conflicts, completion retries, FIFO mixed-cost partial sales, and deliberate overpriced/no-sale and below-cost behavior. The capacity boundary case explicitly lowers the model cap to four for stress; the normal fixture uses the specified 1,000-unit cap.
+
+The diagnostic report prints actual costs, revenue, COGS, profit, cash and simulated production seconds with `mode: offline_design_model`, `liveAiEvidence: false` and `chainEvidence: false`. Expected single-player four-pair results: revenue 168, COGS 88, profit 80, 1,200 production seconds, cash 180 before/30 after upgrade. The depletion case buys all 12 saleable herbs, leaves Luna's protected 8, skips 100 epochs, issues only the current 8-herb allowance, explicitly relists, then buys again with the original player's remaining gold.
+
+Overpriced potion at 19 or tool above 24 has no baseline customer demand. Cancel/reprice after checking cost; selling below cost can strand progression. There is no rescue grant or guaranteed recovery if no gold or usable/saleable goods remain. Worker/funding/supply outages can delay a valid sale; no model result promises a live sale time.
+
+This fixture proves the design's bounded single-player arithmetic and modeled transitions, **not** a V2 contract implementation, wallet/authority security, persistent database/backup recovery, receipt finality, multi-player fairness or provider integration. Its in-memory command cache models payload-bound retry behavior without selecting the final P0.6 protocol or P0.7 pruning format. Production implementations must reproduce these economic outcomes with contract/worker tests. Version changes to the tuning with the sibling `Bot Bazaar docks/living town/design/economy.md`; do not change the fixture to mask an unfunded economy.
+
+## V1 agent integration scenarios
+
 These commands have separate provenance and outputs. Neither starts the public worker or enables a provider automatically.
 
 | Command | Behaviour |

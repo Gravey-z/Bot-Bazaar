@@ -13,6 +13,10 @@ path = "sandbox.rs"
 name = "scenarios"
 path = "scenarios.rs"
 
+[[test]]
+name = "living_town"
+path = "living_town.rs"
+
 [dev-dependencies]
 bot-bazaar-market = { path = "../../contracts/market" }
 near-sdk = { version = "=5.29.1", features = ["unit-testing"] }
