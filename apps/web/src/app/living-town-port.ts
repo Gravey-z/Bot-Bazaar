@@ -260,6 +260,13 @@ export function createLivingTownPort(
       const reader = await readClient.finalized(),
         town = await reader.getTown(),
         player = account ? await reader.getPlayer(account) : null;
+      const recipes = await reader.getRecipes({
+        after_id: null,
+        limit: "50",
+        expected_market_revision: town.market_revision,
+      });
+      if (recipes.data.has_more || recipes.data.items.length !== 2)
+        throw new Error("Recipe catalogue unavailable");
       const listings = await reader.getListings({
         shop_id: null,
         item_id: null,
@@ -322,6 +329,7 @@ export function createLivingTownPort(
         stale: false,
         ownershipKnown: account !== null,
         production,
+        recipes: recipes.data.items.map((r) => r.recipe),
         chainTimestampNs: reader.block.timestampNs,
         source: "chain",
         ownershipUrl:
@@ -418,6 +426,7 @@ export function createLivingTownPort(
     submit: (id) => journal.submit(id),
     pending: () => journal.read(),
     restore: () => journal.restore(),
+    last: () => journal.last(),
     recoverHash: (id, hash) => journal.recoverHash(id, hash),
     discardPrepared: (id) => journal.discardPrepared(id),
     async reconcile() {

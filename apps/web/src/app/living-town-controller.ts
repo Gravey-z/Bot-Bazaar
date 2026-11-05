@@ -4,6 +4,8 @@ import type {
   TownTransactionStatus,
 } from "./living-town-transactions";
 import { LivingTownIdentityError } from "@bot-bazaar/chain";
+import { productionQuote } from "./living-town-production-ui";
+import type { TownRecipe } from "./living-town-production-ui";
 import type {
   livingTownProductionJob,
   livingTownPlayer,
@@ -37,6 +39,7 @@ export interface TownObservation {
     historyGap: boolean;
   };
   chainTimestampNs?: string;
+  recipes?: TownRecipe[];
 }
 export interface TownPort {
   accounts(): Promise<readonly { accountId: string }[]>;
@@ -53,6 +56,7 @@ export interface TownPort {
   submit(id: string): Promise<void>;
   pending(): Promise<LivingTownAttempt | null>;
   restore(): Promise<LivingTownAttempt | null>;
+  last?(): Promise<LivingTownAttempt | null>;
   reconcile(): Promise<TownTransactionStatus | null>;
   recoverHash(id: string, hash: string): Promise<void>;
   discardPrepared(id: string): Promise<void>;
@@ -63,6 +67,7 @@ export interface TownState {
   accounts: readonly string[];
   observation: TownObservation | null;
   pending: LivingTownAttempt | null;
+  lastAttempt: LivingTownAttempt | null;
   busy: boolean;
   transactionAvailable: boolean;
   message: string;
@@ -77,6 +82,7 @@ export const initialTownState: TownState = {
   accounts: [],
   observation: null,
   pending: null,
+  lastAttempt: null,
   busy: false,
   transactionAvailable: false,
   message: "",
@@ -139,7 +145,11 @@ export class LivingTownController {
     });
     try {
       const pending = await this.port.restore();
-      this.publish({ pending, transactionAvailable: true });
+      this.publish({
+        pending,
+        lastAttempt: (await this.port.last?.()) ?? null,
+        transactionAvailable: true,
+      });
     } catch {
       this.publish({
         transactionAvailable: false,
@@ -218,7 +228,9 @@ export class LivingTownController {
       );
       try {
         const pending = await this.port.pending();
-        if (request === this.accountEpoch) this.publish({ pending });
+        const lastAttempt = (await this.port.last?.()) ?? null;
+        if (request === this.accountEpoch)
+          this.publish({ pending, lastAttempt });
       } catch {
         if (request === this.accountEpoch)
           this.publish({
@@ -434,6 +446,21 @@ export class LivingTownController {
       )
         return;
     }
+    if (method === "start_production") {
+      const recipe = observation.recipes?.find(
+        (r) => r.recipe_id === args["recipe_id"],
+      );
+      if (!recipe || typeof args["quantity"] !== "string") return;
+      const quote = productionQuote(observation, recipe, args["quantity"]);
+      if (
+        !quote.review ||
+        quote.reason ||
+        args["shop_id"] !== quote.review.shopId ||
+        args["expected_shop_revision"] !== quote.review.shopRevision ||
+        args["recipe_version"] !== recipe.version
+      )
+        return;
+    }
     if (method === "register_player" && observation.player) return;
     if (method === "create_shop" && (!observation.player || observation.shop))
       return;
@@ -488,7 +515,10 @@ export class LivingTownController {
     this.publish({ busy: true });
     try {
       const status = await this.port.reconcile();
-      this.publish({ pending: await this.port.pending() });
+      this.publish({
+        pending: await this.port.pending(),
+        lastAttempt: (await this.port.last?.()) ?? null,
+      });
       if (status?.kind === "succeeded")
         this.publish({
           message:

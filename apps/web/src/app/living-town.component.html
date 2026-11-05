@@ -473,10 +473,10 @@
                 </p>
               }
               @case ("production") {
-                <h3>A workshop, a little later.</h3>
+                <h3>Your workshop begins with a shop.</h3>
                 <p>
-                  Production controls are coming later. No jobs are started from
-                  this screen.
+                  Create your shop to load confirmed recipes, inputs and your
+                  production queue.
                 </p>
                 <p>{{ productionPolicy }}</p>
               }
@@ -609,7 +609,14 @@
                   <tbody>
                     @for (row of items(); track row.id) {
                       <tr>
-                        <th scope="row">{{ row.name }}</th>
+                        <th scope="row">
+                          <span
+                            class="item-icon small-icon"
+                            aria-hidden="true"
+                            >{{ itemSymbol(row.id) }}</span
+                          >
+                          {{ row.name }}
+                        </th>
                         <td>{{ row.held }}</td>
                         <td>{{ row.available }}</td>
                         <td>{{ row.reserved }}</td>
@@ -625,48 +632,228 @@
               </p>
             }
             @case ("production") {
-              <div class="coming-later">
-                <span aria-hidden="true">✦</span>
-                <h3>Your workshop</h3>
-                <p>
-                  Starting new batches is coming next. Claim submits a wallet
-                  transaction for the whole batch and costs a NEAR network fee.
-                  Inventory changes only after finalized settlement.
-                </p>
+              <section class="workshop" aria-labelledby="workshop-title">
+                <div class="workshop-heading">
+                  <div>
+                    <p class="eyebrow">FROM MATERIALS TO SOMETHING MORE</p>
+                    <h3 id="workshop-title">Your workshop</h3>
+                  </div>
+                  <button
+                    type="button"
+                    class="quiet"
+                    [disabled]="state().busy"
+                    (click)="refreshProduction()"
+                  >
+                    Refresh production
+                  </button>
+                </div>
                 <p>{{ productionPolicy }}</p>
-                @if (state().observation?.production; as production) {
-                  @for (job of production.items; track job.job_id) {
-                    <article>
-                      <h4>
-                        Batch #{{ job.job_id }} ·
-                        {{ itemName(job.output_item) }} ×
-                        {{ job.output_quantity }}
-                      </h4>
-                      <p>
-                        {{
-                          job.status === "completed"
-                            ? "Completed — finalized settlement"
-                            : isReady(job)
-                              ? "Ready — awaiting settlement"
-                              : "Running — refresh for network readiness"
-                        }}
-                      </p>
-                      @if (job.status === "running") {
-                        <button
-                          type="button"
-                          class="primary"
-                          [disabled]="!canClaim(job)"
-                          (click)="claim(job.job_id)"
-                        >
-                          Claim batch #{{ job.job_id }}
-                        </button>
+                <label class="batch-quantity" for="batch-quantity"
+                  >Batch quantity
+                  <input
+                    id="batch-quantity"
+                    type="number"
+                    min="1"
+                    max="10"
+                    step="1"
+                    inputmode="numeric"
+                    [value]="batchQuantity()"
+                    (input)="
+                      batchQuantity.set(text($event));
+                      productionReview.set(null)
+                    "
+                    [disabled]="state().busy"
+                  />
+                  <span>1-10 units. Time grows with batch size.</span></label
+                >
+                <div class="recipe-grid">
+                  @for (card of recipeCards(); track card.recipe.recipe_id) {
+                    <article class="recipe-card">
+                      <span class="item-icon" aria-hidden="true">{{
+                        itemSymbol(card.recipe.output_item)
+                      }}</span>
+                      <h4>{{ itemName(card.recipe.output_item) }}</h4>
+                      @if (card.review; as quote) {
+                        <p>
+                          {{ quote.output }} output -
+                          {{ durationText(quote.durationSeconds) }} for the
+                          whole batch
+                        </p>
+                        <ul class="recipe-inputs">
+                          @for (input of quote.inputs; track input.id) {
+                            <li>
+                              <span
+                                ><span aria-hidden="true">{{
+                                  itemSymbol(input.id)
+                                }}</span>
+                                {{ itemName(input.id) }}</span
+                              ><span
+                                >{{ input.available }} available /
+                                {{ input.required }} required
+                                <small>({{ input.held }} held)</small></span
+                              >
+                            </li>
+                          }
+                        </ul>
+                      } @else {
+                        <p>
+                          Per unit:
+                          {{ durationText(card.recipe.duration_seconds) }},
+                          {{ card.recipe.output_per_unit }} output.
+                        </p>
                       }
+                      @if (card.reason) {
+                        <p class="recipe-reason">{{ card.reason }}</p>
+                      }
+                      <button
+                        type="button"
+                        class="quiet"
+                        [disabled]="!canAct() || !!card.reason || !card.review"
+                        (click)="reviewRecipe(card.recipe)"
+                      >
+                        Review {{ itemName(card.recipe.output_item) }}
+                      </button>
                     </article>
                   } @empty {
                     <p>
-                      No retained production batches in this finalized snapshot.
+                      Recipes are unavailable. Refresh for confirmed workshop
+                      data.
                     </p>
                   }
+                </div>
+                @if (!canAct()) {
+                  <p class="muted">
+                    Starting requires a fresh connected shop, an unpaused town
+                    and no unresolved wallet request.
+                  </p>
+                }
+                @if (productionReview(); as review) {
+                  <section
+                    class="production-review"
+                    aria-labelledby="production-review-title"
+                    tabindex="0"
+                  >
+                    <h4 id="production-review-title">Review your batch</h4>
+                    <p>Shop #{{ review.shopId }} - {{ review.accountId }}</p>
+                    <ul>
+                      @for (input of review.inputs; track input.id) {
+                        <li>
+                          Consume {{ input.required }}
+                          {{ itemName(input.id) }} immediately
+                        </li>
+                      }
+                    </ul>
+                    <p>
+                      Produce {{ review.output }}
+                      {{ itemName(review.recipe.output_item) }} together after
+                      {{ durationText(review.durationSeconds) }}. Recipe version
+                      {{ review.recipe.version }}.
+                    </p>
+                    <p>
+                      No cancellation or input refund. Start and Claim each
+                      require wallet approval and a NEAR network fee. Output
+                      arrives only after finalized Claim.
+                    </p>
+                    @if (!reviewCurrent()) {
+                      <p role="status">
+                        Your shop, inventory or recipe changed. Review a fresh
+                        batch before starting.
+                      </p>
+                    }
+                    <div class="workshop-actions">
+                      <button
+                        class="primary"
+                        type="button"
+                        [disabled]="!canAct() || !reviewCurrent()"
+                        (click)="startBatch()"
+                      >
+                        Approve Start in wallet</button
+                      ><button
+                        class="quiet"
+                        type="button"
+                        (click)="productionReview.set(null)"
+                      >
+                        Back to recipes
+                      </button>
+                    </div>
+                  </section>
+                }
+                <h4 class="queue-title">Production queue</h4>
+                <p class="muted">
+                  Countdowns estimate network readiness. Refresh confirms
+                  readiness; Claim settles the whole batch. Incoming capacity is
+                  not inventory you hold.
+                </p>
+                @if (queued(); as pending) {
+                  <article class="production-job queued" role="status">
+                    <strong
+                      >Queued request -
+                      {{
+                        pending.phase === "prepared"
+                          ? "awaiting your approval"
+                          : "awaiting confirmation"
+                      }}</strong
+                    >
+                    <p>
+                      {{ pendingSummary() }} This request is not a confirmed
+                      running job. Use saved transaction recovery below.
+                    </p>
+                  </article>
+                }
+                @if (productionFailure(); as failed) {
+                  <article class="production-job failed" role="status">
+                    <strong>{{
+                      failed.call.method === "start_production"
+                        ? "Start failed"
+                        : "Claim failed"
+                    }}</strong>
+                    <p>
+                      The original transaction failed. No output was credited by
+                      this screen; refresh confirmed jobs and inventory before
+                      retrying.
+                    </p>
+                  </article>
+                }
+                @if (state().observation?.production; as production) {
+                  <div class="production-jobs">
+                    @for (job of production.items; track job.job_id) {
+                      <article
+                        class="production-job"
+                        [class.completed]="job.status === 'completed'"
+                      >
+                        <div>
+                          <span class="item-icon" aria-hidden="true">{{
+                            itemSymbol(job.output_item)
+                          }}</span>
+                          <h4>
+                            Batch #{{ job.job_id }} -
+                            {{ itemName(job.output_item) }} -
+                            {{ job.output_quantity }}
+                          </h4>
+                        </div>
+                        <p>{{ jobCountdown(job) }}</p>
+                        <p class="muted">
+                          Whole batch: {{ jobDuration(job) }} - Recipe version
+                          {{ job.recipe_version }}
+                        </p>
+                        @if (job.status === "running") {
+                          <button
+                            type="button"
+                            class="primary"
+                            [disabled]="!canClaim(job)"
+                            (click)="claim(job.job_id)"
+                          >
+                            Claim batch #{{ job.job_id }}
+                          </button>
+                        }
+                      </article>
+                    } @empty {
+                      <p>
+                        No retained production batches in this finalized
+                        snapshot.
+                      </p>
+                    }
+                  </div>
                   @if (production.historyGap) {
                     <p>
                       Older completed batches have been pruned. This is retained
@@ -676,7 +863,7 @@
                 } @else {
                   <p>Production jobs have not been loaded.</p>
                 }
-              </div>
+              </section>
             }
             @case ("history") {
               <div class="coming-later">

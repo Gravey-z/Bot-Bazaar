@@ -1067,3 +1067,122 @@ footer a {
 .directory-shops span {
   font-size: 12px;
 }
+.workshop-heading,
+.workshop-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+.batch-quantity {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin: 24px 0;
+  font-weight: 600;
+}
+.batch-quantity input {
+  width: 80px;
+  padding: 10px;
+  border: 1px solid #899b91;
+  border-radius: 8px;
+  background: #fffdf7;
+  color: inherit;
+}
+.batch-quantity span,
+.recipe-inputs small {
+  font-size: 12px;
+  font-weight: 400;
+}
+.recipe-grid,
+.production-jobs {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 270px), 1fr));
+  gap: 18px;
+}
+.recipe-card,
+.production-job,
+.production-review {
+  border: 1px solid #cbd2c5;
+  border-radius: 14px;
+  padding: 22px;
+  background: #fffdf7;
+  overflow-wrap: anywhere;
+}
+.recipe-card h4,
+.production-job h4 {
+  font-size: 19px;
+  margin: 10px 0;
+}
+.recipe-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+.recipe-card button {
+  margin-top: auto;
+}
+.recipe-inputs {
+  padding: 0;
+  list-style: none;
+  width: 100%;
+  margin: 14px 0 24px;
+}
+.recipe-inputs li {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 6px;
+  border-top: 1px solid #e0e4d7;
+  padding: 10px 0;
+  font-size: 13px;
+}
+.recipe-reason {
+  color: #814329;
+  font-size: 13px;
+}
+.item-icon {
+  display: inline-grid;
+  place-items: center;
+  min-width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  background: #e8eee2;
+  color: #244f3c;
+  font-size: 25px;
+  vertical-align: middle;
+}
+.small-icon {
+  min-width: 26px;
+  height: 26px;
+  font-size: 17px;
+  margin-right: 6px;
+}
+.production-review {
+  margin-top: 24px;
+  border: 2px solid #56735c;
+  background: #f0f3e9;
+}
+.production-review h4,
+.queue-title {
+  font-size: 21px;
+  margin: 0 0 16px;
+}
+.queue-title {
+  margin-top: 32px;
+}
+.production-job {
+  margin-bottom: 12px;
+}
+.production-job.completed {
+  background: #f0f3e9;
+}
+.production-job.queued {
+  border-style: dashed;
+}
+.production-job.failed {
+  border-color: #ae6856;
+  background: #fff4ec;
+}

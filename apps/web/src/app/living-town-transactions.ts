@@ -7,6 +7,7 @@ import {
   parseLivingTownIdentity,
   parseLivingTownJson,
   parseU64,
+  planLivingTownProduction,
 } from "@bot-bazaar/chain";
 import type {
   LivingTownCall,
@@ -257,6 +258,67 @@ export class LivingTownTransactions {
         expiry > now &&
         expiry <= now + 600_000_000_000n,
     );
+    if (call.method === "start_production") {
+      const a = call.args;
+      requireValue(
+        "shop_id" in a &&
+          "recipe_id" in a &&
+          "quantity" in a &&
+          "recipe_version" in a &&
+          "expected_shop_revision" in a,
+      );
+      const town = await reader.getTown(),
+        shop = await reader.getShop(a.shop_id);
+      requireValue(
+        !town.data.paused &&
+          shop.data?.owner.kind === "player" &&
+          shop.data.owner.account_id === account &&
+          shop.data.revision === a.expected_shop_revision,
+      );
+      const recipes = await reader.getRecipes({
+        after_id: null,
+        limit: "50",
+        expected_market_revision: town.market_revision,
+      });
+      const recipe = recipes.data.items.find(
+        (r) => r.recipe.recipe_id === a.recipe_id,
+      )?.recipe;
+      requireValue(recipe && recipe.version === a.recipe_version);
+      const terms = planLivingTownProduction(
+        recipe,
+        d.deployment.config_version,
+        a.quantity,
+        reader.block.timestampNs,
+      );
+      const ledger = (await reader.getShopInventory(a.shop_id)).data;
+      const jobs = await reader.getProductionJobs({
+        shop_id: a.shop_id,
+        status: "running",
+        after_id: null,
+        limit: "50",
+        expected_market_revision: town.market_revision,
+      });
+      requireValue(
+        !jobs.data.has_more &&
+          jobs.data.items.length < Number(shop.data.production_slots),
+      );
+      for (const [id, q] of Object.entries(terms.inputs_consumed))
+        requireValue(
+          BigInt(
+            ledger.inventory.available[
+              id as keyof typeof terms.inputs_consumed
+            ],
+          ) >= BigInt(q),
+        );
+      const output = terms.output_item;
+      requireValue(
+        BigInt(ledger.inventory.held[output]) +
+          BigInt(ledger.inventory.production_output_reserved[output]) +
+          BigInt(ledger.inventory.trade_inbound_reserved[output]) +
+          BigInt(terms.output_quantity) <=
+          1000n,
+      );
+    }
     return reader;
   }
   async prepare(

@@ -16,6 +16,9 @@ import {
 const f = JSON.parse(
   readFileSync("tests/fixtures/chain/living-town-sandbox.json", "utf8"),
 );
+const recipeCapture = JSON.parse(
+  readFileSync("tests/fixtures/chain/living-town-recipes-sandbox.json", "utf8"),
+);
 const body = (s) =>
   JSON.parse(Buffer.from(s.receipt.status.SuccessValue, "base64").toString());
 const foundation = JSON.parse(
@@ -811,6 +814,14 @@ function receiptRpc(transform = ({ data }) => data) {
               history_gap: false,
               pruned_through: "0",
             },
+          };
+        else if (p.method_name === "get_recipes")
+          snapshot = {
+            ...copy(f.final_views.get_town),
+            data: copy(
+              JSON.parse(Buffer.from(recipeCapture.recipes.result).toString())
+                .data,
+            ),
           };
         else if (p.method_name === "get_listings")
           snapshot = {

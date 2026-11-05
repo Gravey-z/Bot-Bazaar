@@ -21,6 +21,14 @@ import type {
   livingTownListing,
   livingTownProductionJob,
 } from "@bot-bazaar/chain";
+import {
+  productionQuote,
+  productionReviewMatches,
+  productionCountdown,
+  durationText,
+  itemSymbol,
+} from "./living-town-production-ui";
+import type { ProductionReview, TownRecipe } from "./living-town-production-ui";
 
 @Injectable()
 export class LivingTownScreen {
@@ -57,6 +65,41 @@ export class LivingTownComponent implements OnInit, OnDestroy {
   protected readonly recoveryHash = signal("");
   protected readonly quantity = signal("1");
   protected readonly selected = signal<Listing | null>(null);
+  protected readonly batchQuantity = signal("1");
+  protected readonly productionReview = signal<ProductionReview | null>(null);
+  protected readonly elapsedMs = signal(0);
+  private observationAnchor = performance.now();
+  protected readonly recipeCards = computed(() =>
+    (this.state().observation?.recipes ?? []).map((recipe) => ({
+      recipe,
+      ...productionQuote(
+        this.state().observation,
+        recipe,
+        this.batchQuantity(),
+      ),
+    })),
+  );
+  protected readonly reviewCurrent = computed(() => {
+    const r = this.productionReview();
+    return !!r && productionReviewMatches(r, this.state().observation);
+  });
+  protected readonly queued = computed(() => {
+    const p = this.state().pending;
+    return p?.accountId === this.state().accountId &&
+      p.call.method === "start_production"
+      ? p
+      : null;
+  });
+  protected readonly productionFailure = computed(() => {
+    const p = this.state().lastAttempt;
+    return p?.accountId === this.state().accountId &&
+      p.phase === "failed" &&
+      ["start_production", "complete_production"].includes(p.call.method)
+      ? p
+      : null;
+  });
+  protected readonly durationText = durationText;
+  protected readonly itemSymbol = itemSymbol;
   protected readonly profiles = [
     { id: "rex", name: "Rex", specialty: "Crystals", color: "sage" },
     { id: "luna", name: "Luna", specialty: "Herbs", color: "lilac" },
@@ -92,6 +135,7 @@ export class LivingTownComponent implements OnInit, OnDestroy {
   });
   protected readonly canAct = computed(() => {
     this.state();
+    this.elapsedMs();
     return this.screen.controller.canTransact && !this.reserved();
   });
   protected readonly nameValid = computed(() =>
@@ -155,18 +199,35 @@ export class LivingTownComponent implements OnInit, OnDestroy {
         this.renameName.set("");
         this.recoveryHash.set("");
         this.tab.set("overview");
+        this.batchQuantity.set("1");
+        this.productionReview.set(null);
+      }
+    });
+    let previousObservation: TownState["observation"] | undefined;
+    effect(() => {
+      const observation = this.state().observation;
+      if (observation !== previousObservation) {
+        previousObservation = observation;
+        this.observationAnchor = performance.now();
+        this.elapsedMs.set(0);
       }
     });
   }
   private timer: ReturnType<typeof setInterval> | undefined;
+  private countdownTimer: ReturnType<typeof setInterval> | undefined;
   ngOnInit(): void {
     void this.screen.controller.start();
     this.timer = setInterval(() => {
-      void this.screen.controller.refresh();
+      this.refreshProduction();
     }, 15000);
+    this.countdownTimer = setInterval(
+      () => this.elapsedMs.set(performance.now() - this.observationAnchor),
+      1000,
+    );
   }
   ngOnDestroy(): void {
     if (this.timer) clearInterval(this.timer);
+    if (this.countdownTimer) clearInterval(this.countdownTimer);
     this.screen.controller.stop();
   }
   protected validName(name: string): boolean {
@@ -230,6 +291,7 @@ export class LivingTownComponent implements OnInit, OnDestroy {
       });
   }
   protected canClaim(job: ReturnType<typeof livingTownProductionJob>): boolean {
+    this.elapsedMs();
     return (
       this.screen.controller.canClaim && !this.reserved() && this.isReady(job)
     );
@@ -244,6 +306,51 @@ export class LivingTownComponent implements OnInit, OnDestroy {
   }
   protected claim(id: string): void {
     void this.screen.controller.act("complete_production", { job_id: id });
+  }
+  protected reviewRecipe(recipe: TownRecipe): void {
+    const quote = productionQuote(
+      this.state().observation,
+      recipe,
+      this.batchQuantity(),
+    );
+    if (!this.canAct() || quote.reason || !quote.review) return;
+    this.productionReview.set(quote.review);
+  }
+  protected startBatch(): void {
+    const r = this.productionReview();
+    if (!r || !this.canAct() || !this.reviewCurrent()) return;
+    this.productionReview.set(null);
+    void this.screen.controller.act("start_production", {
+      shop_id: r.shopId,
+      recipe_id: r.recipe.recipe_id,
+      recipe_version: r.recipe.version,
+      quantity: r.quantity,
+      expected_shop_revision: r.shopRevision,
+    });
+  }
+  protected jobCountdown(
+    job: ReturnType<typeof livingTownProductionJob>,
+  ): string {
+    return productionCountdown(
+      job,
+      this.state().observation?.chainTimestampNs,
+      this.elapsedMs(),
+    ).text;
+  }
+  protected jobDuration(
+    job: ReturnType<typeof livingTownProductionJob>,
+  ): string {
+    return durationText(
+      (
+        (BigInt(job.ready_at_ns) - BigInt(job.start_at_ns)) /
+        1000000000n
+      ).toString(),
+    );
+  }
+  protected refreshProduction(): void {
+    if (this.state().pending?.transactionHash)
+      void this.screen.controller.checkTransaction();
+    else void this.screen.controller.refresh();
   }
   protected moveTab(event: KeyboardEvent, index: number): void {
     const next =
