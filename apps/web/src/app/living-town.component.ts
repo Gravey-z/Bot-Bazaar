@@ -1,3 +1,4 @@
+import { LivingTownSalesComponent } from "./living-town-sales.component";
 import {
   Component,
   Injectable,
@@ -50,7 +51,7 @@ type Listing = ReturnType<typeof livingTownListing>;
 @Component({
   selector: "app-root",
   providers: [LivingTownScreen],
-  imports: [DatePipe],
+  imports: [DatePipe, LivingTownSalesComponent],
   templateUrl: "./living-town.component.html",
   styleUrl: "./living-town.component.css",
 })
@@ -59,6 +60,10 @@ export class LivingTownComponent implements OnInit, OnDestroy {
     "Inputs are consumed when production starts. Batches cannot be cancelled or refunded. The full batch becomes claimable together when its production time has elapsed on the network. A town pause blocks new starts; ready batches can still be claimed.";
   protected readonly screen = inject(LivingTownScreen);
   protected readonly state = this.screen.state;
+  protected readonly explorer =
+    this.screen.setup.kind === "ready"
+      ? this.screen.setup.profile.public.explorerUrl
+      : "";
   protected readonly tab = signal<Tab>("overview");
   protected readonly shopName = signal("");
   protected readonly renameName = signal("");
@@ -348,9 +353,15 @@ export class LivingTownComponent implements OnInit, OnDestroy {
     );
   }
   protected refreshProduction(): void {
-    if (this.state().pending?.transactionHash)
-      void this.screen.controller.checkTransaction();
-    else void this.screen.controller.refresh();
+    void (async () => {
+      if (this.state().pending?.transactionHash)
+        await this.screen.controller.checkTransaction();
+      else await this.screen.controller.refresh();
+      if (this.tab() === "history" && !this.state().history?.nextCursor)
+        await this.screen.controller.loadHistory();
+      else if (this.tab() === "inventory" && !this.state().market?.nextCursor)
+        await this.screen.controller.loadMarket();
+    })();
   }
   protected moveTab(event: KeyboardEvent, index: number): void {
     const next =

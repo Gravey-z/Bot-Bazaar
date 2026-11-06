@@ -827,8 +827,16 @@ function receiptRpc(transform = ({ data }) => data) {
           snapshot = {
             ...copy(f.final_views.get_town),
             data: {
-              items: [copy(body(f.steps[3]).data.outcome.listing)],
-              next_after_id: "1",
+              items:
+                JSON.parse(Buffer.from(p.args_base64, "base64").toString())
+                  .shop_id === null
+                  ? [copy(body(f.steps[3]).data.outcome.listing)]
+                  : [],
+              next_after_id:
+                JSON.parse(Buffer.from(p.args_base64, "base64").toString())
+                  .shop_id === null
+                  ? "1"
+                  : null,
               has_more: false,
               history_gap: false,
               pruned_through: "0",

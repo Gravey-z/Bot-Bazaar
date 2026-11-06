@@ -1,0 +1,171 @@
+:host {
+  display: block;
+  color: #203e35;
+}
+.sales-panel {
+  margin-top: 24px;
+  border-top: 1px solid #dcded2;
+  padding-top: 24px;
+  font-size: 13px;
+  line-height: 1.7;
+}
+.heading,
+.actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+h3,
+h4,
+p {
+  margin: 0 0 12px;
+}
+h3 {
+  font:
+    28px Georgia,
+    serif;
+}
+h4 {
+  font-size: 15px;
+}
+.eyebrow {
+  font-size: 9px;
+  letter-spacing: 1.7px;
+}
+.muted,
+small {
+  color: #5a6d62;
+}
+small {
+  display: block;
+}
+.shelves {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin: 20px 0;
+}
+.shelf,
+.review {
+  border: 1px solid #d5d8c9;
+  background: #faf9f3;
+  padding: 20px;
+  border-radius: 8px;
+}
+.review {
+  margin: 20px 0;
+  background: #f0f2e7;
+}
+dl {
+  margin: 0 0 12px;
+}
+dl div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+dd {
+  margin: 0;
+  font-weight: 600;
+}
+.listing-form {
+  display: flex;
+  align-items: end;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 20px 0;
+}
+label {
+  display: grid;
+  gap: 6px;
+  flex: 1;
+  min-width: 140px;
+}
+input,
+select,
+button {
+  font: inherit;
+  border: 1px solid #a5b39f;
+  border-radius: 5px;
+  padding: 9px 12px;
+  background: #fff;
+  color: inherit;
+  min-height: 42px;
+}
+input,
+select {
+  width: 100%;
+}
+button {
+  cursor: pointer;
+}
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+:is(button, input, select, a):focus-visible {
+  outline: 3px solid #64805a;
+  outline-offset: 3px;
+}
+.demand-note,
+.read-message {
+  padding: 12px;
+  background: #f0f2e7;
+  border-left: 3px solid #64805a;
+}
+.offers {
+  padding-left: 20px;
+}
+.totals {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+.totals div {
+  display: grid;
+  padding: 12px;
+  background: #f0f2e7;
+}
+.history-scroll {
+  overflow-x: auto;
+  margin: 20px 0;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+th,
+td {
+  padding: 12px;
+  border-bottom: 1px solid #dcded2;
+  vertical-align: top;
+}
+th {
+  font-size: 11px;
+}
+a {
+  color: #365e38;
+  white-space: nowrap;
+}
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+}
+@media (max-width: 640px) {
+  .shelves,
+  .totals {
+    grid-template-columns: 1fr;
+  }
+  .actions {
+    justify-content: flex-start;
+  }
+  .listing-form button {
+    width: 100%;
+  }
+}

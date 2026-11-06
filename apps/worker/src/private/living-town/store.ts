@@ -1084,6 +1084,7 @@ export class LivingTownProjectionStore {
       more = rows.length > items.length;
     return this.envelope(
       {
+        shop_id: parseU64(id),
         items,
         has_more: more,
         next_cursor: more

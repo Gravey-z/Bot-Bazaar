@@ -7,6 +7,8 @@ import {
   canonicalLivingTownJson,
   parseLivingTownJson,
   createLivingTownCall,
+  livingTownSalesHistoryRead,
+  livingTownMarketListingsRead,
 } from "@bot-bazaar/chain";
 import type {
   LivingTownProof,
@@ -164,6 +166,38 @@ export function createLivingTownPort(
       return null;
     }
   }
+  async function salesPage<T>(
+    path: string,
+    cursor: string | null,
+    decode: (v: unknown) => T,
+    signal?: AbortSignal,
+  ) {
+    const url = new URL(path, profile.public.workerUrl);
+    url.searchParams.set("limit", "20");
+    if (cursor !== null) url.searchParams.set("after", cursor);
+    const r = livingTownReadEnvelope(decode)(
+      await readProjection(url, scopedFetch(signal)),
+    );
+    if (
+      canonicalLivingTownJson(r.deployment) !==
+        canonicalLivingTownJson(profile.identity.deployment) ||
+      r.checkpoint.verified_code_hash !== profile.identity.codeHash
+    )
+      throw new Error("Sales view identity mismatch");
+    const receivedAt = Number(r.observed_at_ms);
+    if (
+      !Number.isSafeInteger(receivedAt) ||
+      !Number.isFinite(new Date(receivedAt).getTime())
+    )
+      throw new Error("Invalid sales observation time");
+    return {
+      data: r.snapshot.data,
+      receivedAt,
+      stale:
+        r.stale || receivedAt > Date.now() || Date.now() - receivedAt > 30000,
+      historyComplete: r.history_complete,
+    };
+  }
   let unsubscribe: (() => void) | undefined;
   let changed: (() => void) | undefined;
   const initializeWallet = async (): Promise<PortWallet> => {
@@ -184,6 +218,39 @@ export function createLivingTownPort(
     | undefined;
   let directoryEpoch = 0;
   return {
+    async market(cursor, signal) {
+      const r = await salesPage(
+        "/api/market/listings",
+        cursor,
+        livingTownMarketListingsRead,
+        signal,
+      );
+      return {
+        items: r.data.items,
+        nextCursor: r.data.next_cursor,
+        stale: r.stale,
+        receivedAt: r.receivedAt,
+      };
+    },
+    async history(shopId, cursor, signal) {
+      const r = await salesPage(
+        `/api/shops/${shopId}/history`,
+        cursor,
+        livingTownSalesHistoryRead,
+        signal,
+      );
+      if (r.data.shop_id !== shopId)
+        throw new Error("Sales history shop mismatch");
+      return {
+        shopId,
+        items: r.data.items,
+        costs: r.data.costs,
+        nextCursor: r.data.next_cursor,
+        stale: r.stale,
+        receivedAt: r.receivedAt,
+        historyComplete: r.historyComplete,
+      };
+    },
     async accounts() {
       return (await initializeWallet()).accounts();
     },
@@ -275,6 +342,8 @@ export function createLivingTownPort(
         limit: "50",
         expected_market_revision: town.market_revision,
       });
+      let ownListings:
+        ReturnType<typeof livingTownMarketListingsRead>["items"] | undefined;
       let shop: TownShop | null = null,
         ledger = player?.data?.ledger ?? null;
       const production: {
@@ -291,6 +360,23 @@ export function createLivingTownPort(
         )
           throw new Error("Shop owner mismatch");
         shop = s.data;
+        const owned = await reader.getListings({
+          shop_id: shop.shop_id,
+          item_id: null,
+          active_only: false,
+          after_id: null,
+          limit: "50",
+          expected_market_revision: town.market_revision,
+        });
+        if (
+          owned.data.has_more ||
+          owned.data.items.length > 2 ||
+          owned.data.items.some(
+            (l) => l.owner.kind !== "player" || l.owner.account_id !== account,
+          )
+        )
+          throw new Error("Owned listings unavailable");
+        ownListings = owned.data.items;
         const inv = await reader.getShopInventory(s.data.shop_id);
         if (inv.market_revision !== town.market_revision)
           throw new Error("Shop inventory revision mismatch");
@@ -325,6 +411,7 @@ export function createLivingTownPort(
         shop,
         ledger,
         listings: listings.data.items,
+        ...(ownListings ? { ownListings } : {}),
         receivedAt: Date.now(),
         stale: false,
         ownershipKnown: account !== null,

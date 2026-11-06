@@ -319,6 +319,63 @@ export class LivingTownTransactions {
           1000n,
       );
     }
+    if (call.method === "set_listing" || call.method === "cancel_listing") {
+      const town = await reader.getTown(),
+        player = await reader.getPlayer(account);
+      requireValue(
+        player.data?.shop_id &&
+          (!town.data.paused || call.method === "cancel_listing"),
+      );
+      const shop = await reader.getShop(player.data.shop_id);
+      requireValue(
+        shop.data?.owner.kind === "player" &&
+          shop.data.owner.account_id === account,
+      );
+      const listings = await reader.getListings({
+        shop_id: player.data.shop_id,
+        item_id: null,
+        active_only: false,
+        after_id: null,
+        limit: "50",
+        expected_market_revision: town.market_revision,
+      });
+      requireValue(!listings.data.has_more && listings.data.items.length <= 2);
+      const args = call.args as Record<string, unknown>;
+      if (call.method === "set_listing") {
+        requireValue(
+          args["shop_id"] === player.data.shop_id &&
+            ["health_potion", "iron_tool"].includes(String(args["item_id"])),
+        );
+        const listing = listings.data.items.find(
+          (l) => l.item_id === args["item_id"],
+        );
+        requireValue(
+          (listing?.revision ?? null) === args["expected_listing_revision"],
+        );
+        const ledger = (await reader.getShopInventory(player.data.shop_id))
+            .data,
+          item = args["item_id"] as "health_potion" | "iron_tool";
+        requireValue(
+          BigInt(String(args["quantity"])) <=
+            BigInt(ledger.inventory.available[item]) +
+              BigInt(listing?.remaining_quantity ?? "0"),
+        );
+      } else {
+        const listing = listings.data.items.find(
+          (l) => l.listing_id === args["listing_id"],
+        );
+        requireValue(
+          listing?.active &&
+            listing.owner.kind === "player" &&
+            listing.owner.account_id === account &&
+            listing.revision === args["expected_listing_revision"],
+        );
+      }
+    }
+    requireValue(
+      call.method !== "fund_customer_budget" &&
+        call.method !== "settle_customer_purchase",
+    );
     return reader;
   }
   async prepare(

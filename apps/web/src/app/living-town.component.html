@@ -484,7 +484,8 @@
                 <h3>Your story starts with ownership.</h3>
                 <p>
                   A verified ownership transaction will appear after your shop
-                  is created. Detailed trading history comes later.
+                  is created. Confirmed trading history becomes available in
+                  your manager.
                 </p>
               }
               @case ("assistant") {
@@ -630,6 +631,15 @@
                 Incoming capacity is promised space for production or trade
                 deliveries. It is not an item you already hold.
               </p>
+              <app-town-sales
+                [elapsedMs]="elapsedMs()"
+                mode="listings"
+                [state]="state()"
+                [controller]="screen.controller"
+                [explorer]="explorer"
+                [canEdit]="canAct()"
+                [canCancel]="screen.controller.canClaim && !reserved()"
+              />
             }
             @case ("production") {
               <section class="workshop" aria-labelledby="workshop-title">
@@ -866,15 +876,13 @@
               </section>
             }
             @case ("history") {
-              <div class="coming-later">
-                <span aria-hidden="true">↗</span>
-                <h3>A story worth keeping.</h3>
-                <p>
-                  Detailed trading history is not available yet. Your confirmed
-                  ownership transaction appears on Overview when its proof is
-                  available.
-                </p>
-              </div>
+              <app-town-sales
+                [elapsedMs]="elapsedMs()"
+                mode="history"
+                [state]="state()"
+                [controller]="screen.controller"
+                [explorer]="explorer"
+              />
             }
             @case ("assistant") {
               <div class="coming-later">

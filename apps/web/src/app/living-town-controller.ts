@@ -1,3 +1,5 @@
+import { listingQuote } from "./living-town-sales-ui";
+import type { TownMarketPage, TownHistoryPage } from "./living-town-sales-ui";
 import type { LivingTownAttempt } from "./living-town-transactions";
 import type {
   TownTransactionMethod,
@@ -29,6 +31,7 @@ export interface TownObservation {
   shop: TownShop | null;
   ledger: TownLedger | null;
   listings: ReturnType<typeof livingTownListing>[];
+  ownListings?: ReturnType<typeof livingTownListing>[];
   receivedAt: number;
   stale: boolean;
   ownershipKnown: boolean;
@@ -42,6 +45,12 @@ export interface TownObservation {
   recipes?: TownRecipe[];
 }
 export interface TownPort {
+  market?(cursor: string | null, signal?: AbortSignal): Promise<TownMarketPage>;
+  history?(
+    shopId: string,
+    cursor: string | null,
+    signal?: AbortSignal,
+  ): Promise<TownHistoryPage>;
   accounts(): Promise<readonly { accountId: string }[]>;
   connect(): Promise<readonly { accountId: string }[]>;
   disconnect(): Promise<void>;
@@ -75,6 +84,11 @@ export interface TownState {
   directory: TownShopPage | null;
   directoryBusy: boolean;
   directoryMessage: string;
+  market: TownMarketPage | null;
+  history: TownHistoryPage | null;
+  marketBusy: boolean;
+  historyBusy: boolean;
+  salesMessage: string;
 }
 export const initialTownState: TownState = {
   phase: "preview",
@@ -90,6 +104,11 @@ export const initialTownState: TownState = {
   directory: null,
   directoryBusy: false,
   directoryMessage: "",
+  market: null,
+  history: null,
+  marketBusy: false,
+  historyBusy: false,
+  salesMessage: "",
 };
 export function describeTownAttempt(a: LivingTownAttempt): string {
   const args = a.call.args;
@@ -127,6 +146,11 @@ export class LivingTownController {
   private accountEpoch = 0;
   private checkingAccounts = false;
   private browseEpoch = 0;
+  private marketEpoch = 0;
+  private historyEpoch = 0;
+  private marketAbort?: AbortController;
+  private historyAbort?: AbortController;
+  private readonly seenSales = new Set<string>();
   private readAbort: AbortController | undefined;
   private browseAbort: AbortController | undefined;
   private unsubscribe?: () => void;
@@ -183,10 +207,20 @@ export class LivingTownController {
   private invalidateReads(): void {
     this.epoch++;
     this.browseEpoch++;
+    this.marketEpoch++;
+    this.historyEpoch++;
+    this.marketAbort?.abort();
+    this.historyAbort?.abort();
+    this.seenSales.clear();
     this.readAbort?.abort();
     this.browseAbort?.abort();
     this.publish({
       directory: null,
+      market: null,
+      history: null,
+      marketBusy: false,
+      historyBusy: false,
+      salesMessage: "",
       directoryBusy: false,
       directoryMessage: "",
     });
@@ -409,6 +443,101 @@ export class LivingTownController {
       if (this.browseAbort === abort) this.browseAbort = undefined;
     }
   }
+  async loadMarket(restart = true): Promise<void> {
+    if (!this.port?.market || this.stopped || this.value.marketBusy) return;
+    const cursor = restart ? null : this.value.market?.nextCursor;
+    if (!restart && !cursor) return;
+    const epoch = ++this.marketEpoch,
+      abort = (this.marketAbort = new AbortController());
+    this.publish({ marketBusy: true, salesMessage: "" });
+    try {
+      const page = await this.port.market(cursor ?? null, abort.signal);
+      if (this.stopped || epoch !== this.marketEpoch) return;
+      const items = restart
+        ? page.items
+        : [...(this.value.market?.items ?? []), ...page.items];
+      if (
+        items.length > 2018 ||
+        new Set(items.map((l) => l.listing_id)).size !== items.length
+      )
+        throw Error("Market page overlap");
+      this.publish({ market: { ...page, items } });
+    } catch {
+      if (epoch === this.marketEpoch)
+        this.publish({
+          market: this.value.market
+            ? { ...this.value.market, stale: true, nextCursor: null }
+            : null,
+          salesMessage:
+            "Comparable offers are unavailable or their snapshot changed. Refresh offers to start again.",
+        });
+    } finally {
+      if (epoch === this.marketEpoch) this.publish({ marketBusy: false });
+    }
+  }
+  async loadHistory(restart = true): Promise<void> {
+    const shopId = this.value.observation?.shop?.shop_id,
+      account = this.value.accountId;
+    if (
+      !this.port?.history ||
+      !shopId ||
+      !account ||
+      this.stopped ||
+      this.value.historyBusy
+    )
+      return;
+    const cursor = restart ? null : this.value.history?.nextCursor;
+    if (!restart && !cursor) return;
+    const epoch = ++this.historyEpoch,
+      abort = (this.historyAbort = new AbortController());
+    this.publish({ historyBusy: true, salesMessage: "" });
+    try {
+      const page = await this.port.history(
+        shopId,
+        cursor ?? null,
+        abort.signal,
+      );
+      if (
+        this.stopped ||
+        epoch !== this.historyEpoch ||
+        account !== this.value.accountId ||
+        shopId !== this.value.observation?.shop?.shop_id
+      )
+        return;
+      if (page.shopId !== shopId) throw Error("History shop mismatch");
+      const items = restart
+        ? page.items
+        : [...(this.value.history?.items ?? []), ...page.items];
+      if (
+        items.length > 10000 ||
+        new Set(items.map((r) => r.event_sequence)).size !== items.length
+      )
+        throw Error("History page overlap");
+      this.publish({ history: { ...page, items } });
+      let changed = false;
+      for (const row of page.items)
+        if (row.kind === "customer_sale") {
+          const key = `${shopId}:${row.receipt_id}:${row.log_index}`;
+          if (!this.seenSales.has(key) && this.seenSales.size < 10000) {
+            this.seenSales.add(key);
+            changed = true;
+          }
+        }
+      // Only refresh facts; confirmed rows have stable identities and no replay animation.
+      if (changed) await this.refresh();
+    } catch {
+      if (epoch === this.historyEpoch)
+        this.publish({
+          history: this.value.history
+            ? { ...this.value.history, stale: true, nextCursor: null }
+            : null,
+          salesMessage:
+            "Confirmed history is unavailable or its snapshot changed. Refresh history to start again. Costs have not been assumed to be zero.",
+        });
+    } finally {
+      if (epoch === this.historyEpoch) this.publish({ historyBusy: false });
+    }
+  }
   get canTransact(): boolean {
     return this.canAct();
   }
@@ -435,7 +564,12 @@ export class LivingTownController {
     method: TownTransactionMethod,
     args: Record<string, unknown>,
   ): Promise<void> {
-    if (!this.canAct(method === "complete_production")) return;
+    if (
+      !this.canAct(
+        method === "complete_production" || method === "cancel_listing",
+      )
+    )
+      return;
     this.epoch++;
     const account = this.value.accountId!,
       epoch = this.epoch,
@@ -466,6 +600,33 @@ export class LivingTownController {
         args["shop_id"] !== quote.review.shopId ||
         args["expected_shop_revision"] !== quote.review.shopRevision ||
         args["recipe_version"] !== recipe.version
+      )
+        return;
+    }
+    if (method === "set_listing") {
+      const quote = listingQuote(
+        observation,
+        String(args["item_id"]),
+        String(args["quantity"]),
+        String(args["unit_price"]),
+      );
+      if (
+        !quote.review ||
+        quote.reason ||
+        args["shop_id"] !== quote.review.shopId ||
+        args["expected_listing_revision"] !== quote.review.revision
+      )
+        return;
+    }
+    if (method === "cancel_listing") {
+      const listing = observation.ownListings?.find(
+        (l) => l.listing_id === args["listing_id"],
+      );
+      if (
+        !listing?.active ||
+        listing.owner.kind !== "player" ||
+        listing.owner.account_id !== account ||
+        args["expected_listing_revision"] !== listing.revision
       )
         return;
     }
@@ -503,7 +664,9 @@ export class LivingTownController {
     } catch {
       this.publish({
         message:
-          "The action could not be completed. Check saved transaction details before trying again.",
+          method === "set_listing" || method === "cancel_listing"
+            ? "Listing terms may have changed. Refresh and review again. Check any saved request before retrying."
+            : "The action could not be completed. Check saved transaction details before trying again.",
       });
       try {
         this.publish({ pending: await this.port!.pending() });

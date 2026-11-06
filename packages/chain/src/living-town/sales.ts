@@ -137,6 +137,7 @@ export function livingTownCostSummary(
   return r;
 }
 export const livingTownSalesHistoryRead = object({
+  shop_id: positiveU64,
   items: array(livingTownHistoryEntry, 50),
   next_cursor: nullable(cursor),
   has_more: boolean,

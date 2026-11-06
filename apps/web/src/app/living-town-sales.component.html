@@ -1,0 +1,368 @@
+@if (mode() === "listings") {
+  <section aria-labelledby="shelves-title" class="sales-panel">
+    <p class="eyebrow">FROM YOUR WORKSHOP TO YOUR SHELVES</p>
+    <h3 id="shelves-title">Product listings</h3>
+    <p>
+      Listing stock reserves items for customers. Choose the total quantity
+      remaining on the shelf. Repricing does not add stock or guarantee a sale.
+    </p>
+    <div class="shelves">
+      @for (p of products; track p.id) {
+        <article class="shelf">
+          <h4>{{ p.name }}</h4>
+          <dl>
+            <div>
+              <dt>Held</dt>
+              <dd>{{ stock(p.id, "held") }}</dd>
+            </div>
+            <div>
+              <dt>Available</dt>
+              <dd>{{ stock(p.id, "available") }}</dd>
+            </div>
+            <div>
+              <dt>Listed / reserved</dt>
+              <dd>{{ stock(p.id, "listing_reserved") }}</dd>
+            </div>
+          </dl>
+          @if (owned(p.id); as l) {
+            <p>
+              {{
+                l.active
+                  ? l.remaining_quantity +
+                    " listed at " +
+                    l.unit_price +
+                    " gold each"
+                  : "Inactive listing. Its identity is retained."
+              }}
+            </p>
+          }
+          <div class="actions">
+            <button type="button" [disabled]="!canEdit()" (click)="edit(p.id)">
+              {{ owned(p.id)?.active ? "Edit listing" : "Set up listing" }}
+            </button>
+            @if (owned(p.id); as l) {
+              @if (l.active) {
+                <button
+                  type="button"
+                  [disabled]="!canCancel()"
+                  (click)="reviewCancellation(l)"
+                >
+                  Review cancellation
+                </button>
+              }
+            }
+          </div>
+        </article>
+      }
+    </div>
+    <form
+      (submit)="$event.preventDefault(); reviewListing()"
+      class="listing-form"
+      aria-label="Listing terms"
+    >
+      <label
+        >Product<select [value]="product()" (change)="edit(text($event))">
+          <option value="health_potion">Health potions</option>
+          <option value="iron_tool">Iron tools</option>
+        </select></label
+      >
+      <label
+        >Remaining quantity<input
+          type="text"
+          inputmode="numeric"
+          maxlength="3"
+          [value]="quantity()"
+          (input)="quantity.set(text($event)); review.set(null)"
+      /></label>
+      <label
+        >Gold per item<input
+          type="text"
+          inputmode="numeric"
+          maxlength="3"
+          [value]="price()"
+          (input)="price.set(text($event)); review.set(null)"
+      /></label>
+      <button
+        type="submit"
+        [disabled]="!canEdit() || !!quote().reason || !quote().review"
+      >
+        Review listing
+      </button>
+    </form>
+    <p class="muted">
+      Whole prices: 1–100 gold. Remaining quantity: 1–100, within your held
+      stock. Cancel a listing to release its unsold units.
+    </p>
+    @if (quote().reason) {
+      <p role="status">{{ quote().reason }}</p>
+    }
+    @if (quote().review; as q) {
+      <p class="demand-note">{{ demandText(q.itemId, q.price) }}</p>
+    }
+    @if (review(); as r) {
+      <div class="review" role="region" aria-label="Review listing change">
+        <h4>Review your shelf</h4>
+        <p>
+          Replace {{ r.previousQuantity }} remaining units with {{ r.quantity }}
+          {{ name(r.itemId).toLowerCase() }}, at {{ r.price }} gold each.
+        </p>
+        <p>
+          This reserves stock. It does not earn revenue until a funded purchase
+          confirms. Wallet fees use NEAR.
+        </p>
+        @if (!reviewCurrent()) {
+          <p role="status">
+            Your stock or listing terms changed. Refresh confirmed data and
+            review again.
+          </p>
+        }
+        <div class="actions">
+          <button
+            type="button"
+            [disabled]="!canEdit() || !reviewCurrent()"
+            (click)="saveListing()"
+          >
+            Save reviewed listing</button
+          ><button type="button" (click)="review.set(null)">
+            Close review
+          </button>
+        </div>
+      </div>
+    }
+    @if (cancellation(); as l) {
+      <div
+        class="review"
+        role="region"
+        aria-label="Review listing cancellation"
+      >
+        <h4>Release unsold stock</h4>
+        <p>
+          Cancel listing #{{ l.listing_id }} and release its
+          {{ l.remaining_quantity }} unsold units. Confirmed sales stay settled.
+        </p>
+        @if (!cancelCurrent()) {
+          <p role="status">
+            This listing changed. Refresh and review its current remaining
+            stock.
+          </p>
+        }
+        <div class="actions">
+          <button
+            type="button"
+            [disabled]="!canCancel() || !cancelCurrent()"
+            (click)="cancelListing()"
+          >
+            Cancel reviewed listing</button
+          ><button type="button" (click)="cancellation.set(null)">
+            Keep listing
+          </button>
+        </div>
+      </div>
+    }
+    @if (state().observation; as o) {
+      <p class="muted">
+        At your confirmed town snapshot, customers have
+        {{ o.town.customer_pool.gold }} gold available. Purchases this epoch:
+        {{ o.town.customer_pool.potion_units_bought }}/2 potions and
+        {{ o.town.customer_pool.tool_units_bought }}/2 tools. Worker
+        availability and competing shops can delay a sale.
+      </p>
+    }
+    <div class="heading">
+      <h4>Comparable offers</h4>
+      <button
+        type="button"
+        [disabled]="state().marketBusy"
+        (click)="controller().loadMarket()"
+      >
+        Refresh offers
+      </button>
+    </div>
+    <p class="muted">
+      Active {{ name(product()).toLowerCase() }} offers in the loaded market
+      pages. Lower prices are considered first; customer budgets and quotas
+      still apply.
+    </p>
+    @if (state().market; as market) {
+      <p class="muted">
+        Observed {{ market.receivedAt | date: "shortTime"
+        }}{{ old(market) ? " · Previous snapshot" : "" }}
+      </p>
+      <ul class="offers">
+        @for (l of comparables(); track l.listing_id) {
+          <li>
+            Shop #{{ l.shop_id }} · {{ l.unit_price }} gold each ·
+            {{ l.remaining_quantity }} remaining
+          </li>
+        } @empty {
+          <li>No matching offers in the loaded pages.</li>
+        }
+      </ul>
+      @if (market.nextCursor) {
+        <button
+          type="button"
+          [disabled]="state().marketBusy"
+          (click)="controller().loadMarket(false)"
+        >
+          Load more offers
+        </button>
+      }
+    } @else {
+      <p role="status">Comparable offers are not available yet.</p>
+    }
+  </section>
+} @else {
+  <section
+    aria-labelledby="sales-history-title"
+    class="sales-panel"
+    [attr.aria-busy]="state().historyBusy"
+  >
+    <div class="heading">
+      <div>
+        <p class="eyebrow">CONFIRMED ACTIVITY ONLY</p>
+        <h3 id="sales-history-title">Your shop history</h3>
+      </div>
+      <button
+        type="button"
+        [disabled]="state().historyBusy"
+        (click)="controller().loadHistory()"
+      >
+        Refresh history
+      </button>
+    </div>
+    <p>
+      Grants, material spending and completed sales are shown separately.
+      Pending wallet requests remain in the transaction panel.
+    </p>
+    @if (state().history; as history) {
+      <p class="muted">
+        Observed {{ history.receivedAt | date: "shortTime"
+        }}{{ old(history) ? " · Previous snapshot" : "" }} · Oldest first
+      </p>
+      <dl class="totals">
+        <div>
+          <dt>Recorded sales revenue</dt>
+          <dd>{{ history.costs.recorded_sales_revenue }} gold</dd>
+        </div>
+        <div>
+          <dt>Material spending</dt>
+          <dd>{{ history.costs.recorded_material_spending }} gold</dd>
+        </div>
+        <div>
+          <dt>Cost of goods sold</dt>
+          <dd>
+            {{
+              history.costs.recorded_cogs === null
+                ? "Unknown"
+                : history.costs.recorded_cogs + " gold"
+            }}
+          </dd>
+        </div>
+        <div>
+          <dt>Trading profit</dt>
+          <dd>
+            {{
+              history.costs.recorded_profit === null
+                ? "Unknown"
+                : history.costs.recorded_profit + " gold"
+            }}
+          </dd>
+        </div>
+      </dl>
+      <p class="muted">
+        Starter grants: {{ history.costs.recorded_grants }} gold · Upgrade
+        spending: {{ history.costs.recorded_upgrade_spending }} gold. Neither is
+        trading profit.
+      </p>
+      @if (!history.costs.cost_history_complete) {
+        <p role="status">
+          Acquisition history is incomplete. Missing item costs and profit
+          remain unknown.
+        </p>
+      }
+      @if (!history.historyComplete) {
+        <p class="muted">
+          These are recorded totals. Earlier activity may be missing from the
+          archive.
+        </p>
+      }
+      <div class="history-scroll">
+        <table>
+          <caption class="sr-only">
+            Confirmed shop activity and actual game gold amounts
+          </caption>
+          <thead>
+            <tr>
+              <th scope="col">Activity</th>
+              <th scope="col">Quantity</th>
+              <th scope="col">Gold</th>
+              <th scope="col">Item / batch cost</th>
+              <th scope="col">Profit</th>
+              <th scope="col">Transaction</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (row of history.items; track row.event_sequence) {
+              <tr>
+                <td>
+                  {{ label(row.kind) }}
+                  @if (row.item_id) {
+                    <small>{{ row.item_id.replaceAll("_", " ") }}</small>
+                  }
+                </td>
+                <td>{{ row.quantity ?? "—" }}</td>
+                <td>{{ amount(row) }}</td>
+                <td>{{ cost(row) }}</td>
+                <td>
+                  {{
+                    row.kind === "customer_sale" || row.kind === "material_sale"
+                      ? row.profit === null
+                        ? "Unknown"
+                        : row.profit + " gold"
+                      : "—"
+                  }}
+                </td>
+                <td>
+                  @if (url(row); as link) {
+                    <a [href]="link" target="_blank" rel="noopener noreferrer"
+                      >View transaction ↗</a
+                    >
+                  } @else {
+                    <span>Link unavailable</span>
+                  }
+                  @if (!row.proof_available) {
+                    <small>Original receipt archive unavailable</small>
+                  }
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="6">
+                  No confirmed activity in this page. Missing history is not
+                  proof of zero sales.
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+      @if (history.nextCursor) {
+        <button
+          type="button"
+          [disabled]="state().historyBusy"
+          (click)="controller().loadHistory(false)"
+        >
+          Load more confirmed activity
+        </button>
+      }
+    } @else {
+      <p role="status">
+        Confirmed trading history is unavailable. No sales or zero costs have
+        been assumed.
+      </p>
+    }
+  </section>
+}
+@if (state().salesMessage) {
+  <p role="status" class="read-message">{{ state().salesMessage }}</p>
+}
