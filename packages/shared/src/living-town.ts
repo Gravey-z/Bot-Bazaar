@@ -30,6 +30,8 @@ export const livingTownFoundationMethods = [
   "set_listing",
   "cancel_listing",
   "get_source_state",
+  "get_market_events",
+  "schedule_market_event",
   "allocate_raw_supply",
   "sweep_merchant_treasury",
   "fund_customer_budget",

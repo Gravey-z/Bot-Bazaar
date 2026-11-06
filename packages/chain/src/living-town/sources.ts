@@ -5,10 +5,15 @@ import {
   bounded,
   positiveU64,
   literal,
+  nullable,
   record,
   check,
 } from "../wire.js";
-import { livingTownProductionEffectBase, livingTownLedger } from "./wire.js";
+import {
+  livingTownProductionEffectBase,
+  livingTownLedger,
+  livingTownMarketEvent,
+} from "./wire.js";
 export const rawSourceItem = choice([
   "crystal",
   "wood",
@@ -31,6 +36,7 @@ const supplied = object({
   merchant_id: sourceMerchant,
   epoch: positiveU64,
   issued_quantity: bounded(0n, 8n),
+  market_event: nullable(livingTownMarketEvent),
   ledger: livingTownLedger,
 });
 const swept = object({
@@ -62,7 +68,15 @@ export function livingTownSourceEffect(value: unknown): ReturnType<
       supplier = { crystal: "rex", wood: "bolt", herb: "luna", iron: "bolt" }[
         item
       ],
-      ceiling = { crystal: 4n, wood: 4n, herb: 8n, iron: 8n }[item],
+      event = outcome.market_event,
+      active =
+        event !== null &&
+        BigInt(outcome.epoch) >= BigInt(event.start_epoch) &&
+        BigInt(outcome.epoch) < BigInt(event.end_epoch),
+      ceiling =
+        item === "herb" && active
+          ? 4n
+          : { crystal: 4n, wood: 4n, herb: 8n, iron: 8n }[item],
       target = { crystal: 10n, wood: 10n, herb: 20n, iron: 20n }[item],
       held = BigInt(outcome.ledger.inventory.held[item]),
       issued = BigInt(outcome.issued_quantity),

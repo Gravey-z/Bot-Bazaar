@@ -373,7 +373,8 @@ export class LivingTownTransactions {
       }
     }
     requireValue(
-      call.method !== "allocate_raw_supply" &&
+      call.method !== "schedule_market_event" &&
+        call.method !== "allocate_raw_supply" &&
         call.method !== "sweep_merchant_treasury" &&
         call.method !== "fund_customer_budget" &&
         call.method !== "settle_customer_purchase",

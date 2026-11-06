@@ -534,6 +534,22 @@ function journalFixture(
   };
 }
 
+test("player wallet journals reject operator market-event scheduling before saving or signing", async () => {
+  const f = journalFixture(),
+    journal = f.create();
+  await assert.rejects(() =>
+    journal.prepare(fixture.player_id, "schedule_market_event", {
+      event_id: "1",
+      definition_id: "herb_shortage_v1",
+      start_epoch: "1",
+      command: fixture.steps[0].args.command,
+    }),
+  );
+  assert.equal(await journal.read(), null);
+  assert.equal(f.signatures(), 0);
+  assert.equal(f.s.map.size, 0);
+});
+
 test("V2 journal reload, cancellation, unknown receipt and manual recovery never resend", async () => {
   const f = journalFixture(async () => {
       throw Error("wallet closed or outcome unknown");

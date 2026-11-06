@@ -35,6 +35,25 @@
         </p>
       </aside>
     </section>
+    @if (marketEvent(); as event) {
+      <aside class="session" aria-label="Market event">
+        <div>
+          <strong>Herb shortage: {{ event.status }}</strong>
+          @if (state().observation?.stale) {
+            <p>
+              Last confirmed event. Refresh the town to check current
+              conditions.
+            </p>
+          }
+          <p>{{ event.explanation }}</p>
+          <p>
+            Baseline cap: {{ event.baseline }} herbs per epoch. Current cap:
+            {{ event.current }}. Replenishment depends on stock and free
+            capacity.
+          </p>
+        </div>
+      </aside>
+    }
     <section class="session" aria-label="Player connection">
       @if (screen.setup.kind !== "ready") {
         <div>

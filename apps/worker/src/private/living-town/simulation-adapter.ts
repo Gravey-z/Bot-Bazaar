@@ -199,6 +199,12 @@ export class LivingTownSimulationAdapter {
         block: reader.block,
         codeHash: reader.identity.codeHash,
       });
+      this.store.marketEvents.observe(
+        town,
+        await reader.getMarketEvents(),
+        reader.block,
+        reader.identity.codeHash,
+      );
       const prefix: { id: string; arrival: string }[] = [];
       if (!this.store.ticks.active()) {
         const markers = (await reader.getSourceState()).data;

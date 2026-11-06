@@ -438,7 +438,7 @@ export const livingTownTotals = object({
   completed_outputs: livingTownSix(parseLivingTownU128),
   customer_consumed: livingTownSix(parseLivingTownU128),
 });
-const marketEvent = object({
+const marketEventShape = object({
   event_id: positiveU64,
   definition_id: literal("herb_shortage_v1"),
   start_epoch: positiveU64,
@@ -446,6 +446,16 @@ const marketEvent = object({
   herb_supply_ceiling: literal("4"),
   revision: positiveU64,
 });
+export function livingTownMarketEvent(
+  value: unknown,
+): ReturnType<typeof marketEventShape> {
+  const e = marketEventShape(value);
+  check(
+    BigInt(e.end_epoch) === BigInt(e.start_epoch) + 5n,
+    "invalid market event interval",
+  );
+  return e;
+}
 export const livingTownCustomerPool = object({
   pool_id: literal("town_customers"),
   gold: bounded(0n, 200n),
@@ -464,7 +474,7 @@ const townShape = object({
   npc_ledgers: array(livingTownLedger, 3),
   customer_pool: livingTownCustomerPool,
   totals: livingTownTotals,
-  market_event: nullable(marketEvent),
+  market_event: nullable(livingTownMarketEvent),
   next_shop_id: positiveU64,
   next_listing_id: positiveU64,
   next_job_id: positiveU64,
@@ -477,6 +487,13 @@ const townShape = object({
 
 export function livingTownTown(value: unknown): ReturnType<typeof townShape> {
   const result = townShape(value);
+  check(
+    result.market_event === null
+      ? result.next_market_event_id === "1"
+      : BigInt(result.market_event.event_id) + 1n ===
+          BigInt(result.next_market_event_id),
+    "market event high-water mismatch",
+  );
   const merchants = ["rex", "luna", "bolt"];
   check(
     result.npc_shops.length === 3 && result.npc_ledgers.length === 3,

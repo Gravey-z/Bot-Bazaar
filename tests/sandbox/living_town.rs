@@ -188,4 +188,5 @@ async fn isolated_v2_foundation_pins_versions_six_items_config_and_authority() -
     Ok(())
 }
 
+mod living_town_market_event;
 mod living_town_sources;

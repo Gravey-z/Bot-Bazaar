@@ -154,7 +154,13 @@ export async function adapterFixture(
         const r = config.economy.materials[a.item_id],
           held = BigInt(ledger.inventory.held[a.item_id]),
           amount = [
-            BigInt(r.supply),
+            a.item_id === "herb" &&
+            state.town.data.market_event &&
+            BigInt(a.epoch) >=
+              BigInt(state.town.data.market_event.start_epoch) &&
+            BigInt(a.epoch) < BigInt(state.town.data.market_event.end_epoch)
+              ? 4n
+              : BigInt(r.supply),
             BigInt(r.target) > held ? BigInt(r.target) - held : 0n,
             1000n -
               held -
@@ -172,6 +178,7 @@ export async function adapterFixture(
           merchant_id: name,
           epoch: a.epoch,
           issued_quantity: amount.toString(),
+          market_event: clone(state.town.data.market_event),
         };
       } else {
         const excess = BigInt(ledger.gold.available) - 200n,
@@ -354,6 +361,13 @@ export async function adapterFixture(
       },
       getTown: async () => clone(state.town),
       getSourceState: async () => pin(state.markers),
+      getMarketEvents: async () =>
+        pin({
+          items: state.town.data.market_event
+            ? [state.town.data.market_event]
+            : [],
+          pruned_through: "0",
+        }),
       getAccessKey: async () => ({
         nonce: state.nonce[lane],
         permission: {

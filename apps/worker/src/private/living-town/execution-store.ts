@@ -1,4 +1,8 @@
 import {
+  townMarketEventSchema,
+  TownMarketEventObserver,
+} from "./market-events.js";
+import {
   townProviderSchema,
   TownProviderRepository,
 } from "./provider-store.js";
@@ -67,6 +71,7 @@ export class LivingTownExecutionStore {
   private readonly journal: RuntimeJournal;
   readonly ticks: TownTickRepository;
   readonly providerAttempts: TownProviderRepository;
+  readonly marketEvents: TownMarketEventObserver;
   readonly identity: ReturnType<typeof parseLivingTownIdentity>;
   readonly path: string;
   readonly sessionId = randomUUID();
@@ -121,11 +126,12 @@ export class LivingTownExecutionStore {
             townJournalSchema +
               tickSchema +
               townProviderSchema +
+              townMarketEventSchema +
               `
             CREATE TABLE town_runtime(singleton INTEGER PRIMARY KEY CHECK(singleton=1), seed TEXT NOT NULL, epoch TEXT, next_arrival INTEGER NOT NULL DEFAULT 0 CHECK(next_arrival BETWEEN 0 AND 4)) STRICT;
             CREATE TABLE customer_actions(id TEXT PRIMARY KEY REFERENCES jobs(id), tick TEXT NOT NULL, arrival TEXT NOT NULL, decision_json TEXT NOT NULL CHECK(length(CAST(decision_json AS BLOB))<=65536), UNIQUE(tick,arrival)) STRICT;
             CREATE TRIGGER bound_customer_actions BEFORE INSERT ON customer_actions WHEN (SELECT count(*) FROM customer_actions)>=10000 BEGIN SELECT RAISE(ABORT,'customer action journal full'); END;
-            PRAGMA user_version=1005;`,
+            PRAGMA user_version=1006;`,
           );
           this.db
             .prepare(
@@ -154,7 +160,7 @@ export class LivingTownExecutionStore {
       }
       requireStorage(
         this.db.prepare("PRAGMA user_version").get()?.["user_version"] ===
-          1005 &&
+          1006 &&
           this.db.prepare("SELECT identity FROM deployment").get()?.[
             "identity"
           ] === identityJson &&
@@ -180,6 +186,14 @@ export class LivingTownExecutionStore {
       this.db,
       (fn) => this.write(fn),
       this.sessionId,
+    );
+    this.marketEvents = new TownMarketEventObserver(
+      this.db,
+      (fn) => {
+        this.gate();
+        return this.write(fn);
+      },
+      this.identity,
     );
     this.ticks = new TownTickRepository(
       this.db,

@@ -200,10 +200,12 @@ pub(crate) enum Outcome {
     CustomerFunded(Box<super::customers::Funded>),
     CustomerSale(Box<super::customers::Sale>),
     Source(Box<super::sources::Allocation>),
+    MarketEvent(super::market_events::MarketEvent),
 }
 impl Outcome {
     fn method(&self) -> &'static str {
         match self {
+            Self::MarketEvent(_) => "schedule_market_event",
             Self::Registered(_) => "register_player",
             Self::Created(_) => "create_shop",
             Self::Renamed(_) => "rename_shop",
@@ -229,6 +231,7 @@ impl Outcome {
     }
     fn view(&self) -> Value {
         match self {
+            Self::MarketEvent(e) => json!({"kind":"market_event_scheduled","event":e.view()}),
             Self::Registered(p) => json!({"kind":"player_registered","player":p.view()}),
             Self::Created(s) => json!({"kind":"shop_created","shop":s.view()}),
             Self::Renamed(s) => json!({"kind":"shop_renamed","shop":s.view()}),

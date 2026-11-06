@@ -3,6 +3,7 @@ import {
   rawSourceItem,
   sourceMerchant,
 } from "./sources.js";
+import { livingTownMarketEventEffect } from "./market-events.js";
 import { livingTownRecipeId } from "./recipes.js";
 import { livingTownProductionEffect } from "./production.js";
 import { livingTownListingEffect } from "./listings.js";
@@ -13,6 +14,7 @@ import {
   check,
   choice,
   object,
+  literal,
   positiveU64,
   nullable,
   parseU64,
@@ -41,6 +43,12 @@ const name = (v: unknown): string => {
   return v;
 };
 export const livingTownCallArguments = {
+  schedule_market_event: object({
+    event_id: positiveU64,
+    definition_id: literal("herb_shortage_v1"),
+    start_epoch: positiveU64,
+    command: livingTownCommand,
+  }),
   allocate_raw_supply: object({
     item_id: rawSourceItem,
     epoch: parseU64,
@@ -138,6 +146,7 @@ export type LivingTownResult = ReturnType<
       | ReturnType<typeof livingTownListingEffect>
       | ReturnType<typeof livingTownCustomerEffect>
       | ReturnType<typeof livingTownSourceEffect>
+      | ReturnType<typeof livingTownMarketEventEffect>
     >
   >
 >;
@@ -233,18 +242,20 @@ export function decodeLivingTownResult(
   deployment: unknown,
 ): LivingTownResult {
   return decodeLivingTownSnapshot(value, deployment, (v) =>
-    method === "allocate_raw_supply" || method === "sweep_merchant_treasury"
-      ? livingTownSourceEffect(v)
-      : method === "fund_customer_budget" ||
-          method === "settle_customer_purchase"
-        ? livingTownCustomerEffect(v)
-        : method === "set_listing" || method === "cancel_listing"
-          ? livingTownListingEffect(v)
-          : method === "start_production"
-            ? livingTownProductionEffect(v)
-            : method === "buy_from_merchant"
-              ? livingTownPurchaseEffect(v)
-              : livingTownOwnershipEffect(v),
+    method === "schedule_market_event"
+      ? livingTownMarketEventEffect(v)
+      : method === "allocate_raw_supply" || method === "sweep_merchant_treasury"
+        ? livingTownSourceEffect(v)
+        : method === "fund_customer_budget" ||
+            method === "settle_customer_purchase"
+          ? livingTownCustomerEffect(v)
+          : method === "set_listing" || method === "cancel_listing"
+            ? livingTownListingEffect(v)
+            : method === "start_production"
+              ? livingTownProductionEffect(v)
+              : method === "buy_from_merchant"
+                ? livingTownPurchaseEffect(v)
+                : livingTownOwnershipEffect(v),
   );
 }
 export async function verifyLivingTownEffect(
@@ -274,6 +285,13 @@ export async function verifyLivingTownEffect(
     "V2 command effect binding mismatch",
   );
   const outcome = effect.outcome;
+  if (call.method === "schedule_market_event")
+    check(
+      outcome.kind === "market_event_scheduled" &&
+        outcome.event.event_id === args["event_id"] &&
+        outcome.event.start_epoch === args["start_epoch"],
+      "market event reviewed terms mismatch",
+    );
   if (call.method === "allocate_raw_supply")
     check(
       outcome.kind === "raw_supplied" &&

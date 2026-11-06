@@ -5,6 +5,7 @@ use ownership::{Outcome, args, next};
 #[derive(Clone)]
 pub(crate) struct Allocation {
     pub item: Option<Item>,
+    event: Option<market_events::MarketEvent>,
     merchant: MerchantId,
     epoch: u64,
     amount: u64,
@@ -121,7 +122,7 @@ impl Allocation {
         let merchant = self.merchant as usize;
         let ledger = purchases::npc_ledger(merchant, &self.npc);
         if let Some(item) = self.item {
-            json!({"kind":"raw_supplied","item_id":item,"merchant_id":self.merchant,"epoch":self.epoch.to_string(),"issued_quantity":self.amount.to_string(),"ledger":ledger})
+            json!({"kind":"raw_supplied","item_id":item,"merchant_id":self.merchant,"epoch":self.epoch.to_string(),"issued_quantity":self.amount.to_string(),"market_event":self.event.as_ref().map(market_events::MarketEvent::view),"ledger":ledger})
         } else {
             json!({"kind":"treasury_swept","merchant_id":self.merchant,"epoch":self.epoch.to_string(),"burned_gold":self.amount.to_string(),"ledger":ledger})
         }
@@ -178,7 +179,7 @@ impl LivingTown {
         let (merchant, target, ceiling) = [
             (MerchantId::Rex, 10u64, 4u64),
             (MerchantId::Bolt, 10, 4),
-            (MerchantId::Luna, 20, 8),
+            (MerchantId::Luna, 20, self.herb_ceiling(epoch.0)),
             (MerchantId::Bolt, 20, 8),
         ][slot];
         let mut npc = self.npcs[merchant as usize].clone();
@@ -203,6 +204,7 @@ impl LivingTown {
             digest,
             Outcome::Source(Box::new(Allocation {
                 item: Some(item_id),
+                event: self.market_events.back().cloned(),
                 merchant,
                 epoch: epoch.0,
                 amount,
@@ -259,6 +261,7 @@ impl LivingTown {
             digest,
             Outcome::Source(Box::new(Allocation {
                 item: None,
+                event: None,
                 merchant: merchant_id,
                 epoch: epoch.0,
                 amount,

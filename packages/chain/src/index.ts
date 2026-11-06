@@ -177,3 +177,10 @@ export {
   livingTownSourceEffect,
   livingTownSourceState,
 } from "./living-town/sources.js";
+
+export { livingTownMarketEvent } from "./living-town/wire.js";
+export {
+  livingTownMarketEventEffect,
+  livingTownMarketEventHistory,
+  describeLivingTownMarketEvent,
+} from "./living-town/market-events.js";
