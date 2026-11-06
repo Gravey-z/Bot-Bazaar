@@ -14,6 +14,8 @@ export interface ReadCapabilities {
     town: () => unknown;
     shop: (id: string) => unknown;
     inventory: (id: string) => unknown;
+    listings?: (after: string | null, limit: number) => unknown;
+    history?: (id: string, after: string | null, limit: number) => unknown;
     production: (id: string, after: string | null, limit: number) => unknown;
   }>;
 }
@@ -84,13 +86,22 @@ export function createReadHandler(
       if (url.origin !== "http://worker.invalid" || url.hash !== "")
         throw new ReadApiError(400, "invalid_query");
       const shopRoute =
-        /^\/api\/shops\/([1-9][0-9]{0,19})(\/(?:inventory|production))?$/.exec(
+        /^\/api\/shops\/([1-9][0-9]{0,19})(\/(?:inventory|production|history))?$/.exec(
           url.pathname,
         );
       const townRoute = url.pathname === "/api/town";
       const productionRoute =
         !!read.livingTown && shopRoute?.[2] === "/production";
-      const projectionRoute = !!read.livingTown && (townRoute || !!shopRoute);
+      const historyRoute =
+        !!read.livingTown?.history && shopRoute?.[2] === "/history";
+      const marketRoute =
+        !!read.livingTown?.listings && url.pathname === "/api/market/listings";
+      const pagedRoute = productionRoute || historyRoute || marketRoute;
+      const projectionRoute =
+        !!read.livingTown &&
+        (townRoute ||
+          marketRoute ||
+          (!!shopRoute && (shopRoute[2] !== "/history" || historyRoute)));
       if (projectionRoute && raw.split("?")[0] !== url.pathname)
         throw new ReadApiError(400, "invalid_query");
       if (shopRoute) {
@@ -125,7 +136,7 @@ export function createReadHandler(
       }
       // Validate the query even for preflight, before any read callback.
       if (
-        url.pathname === "/health" || (projectionRoute && !productionRoute)
+        url.pathname === "/health" || (projectionRoute && !pagedRoute)
           ? [...url.searchParams].length !== 0
           : [...url.searchParams.keys()].some(
               (key) => key !== "after" && key !== "limit",
@@ -139,7 +150,7 @@ export function createReadHandler(
         throw new ReadApiError(400, "invalid_query");
       const productionAfter = url.searchParams.get("after");
       if (
-        productionRoute &&
+        pagedRoute &&
         productionAfter !== null &&
         !/^[A-Za-z0-9_-]{1,1024}$/.test(productionAfter)
       )
@@ -173,17 +184,25 @@ export function createReadHandler(
         value = health;
         status = health.status === "ready" ? 200 : 503;
       } else if (projectionRoute) {
-        value = townRoute
-          ? read.livingTown!.town()
-          : productionRoute
-            ? read.livingTown!.production(
+        value = marketRoute
+          ? read.livingTown!.listings!(productionAfter, Number(limitText))
+          : historyRoute
+            ? read.livingTown!.history!(
                 shopRoute![1]!,
                 productionAfter,
                 Number(limitText),
               )
-            : shopRoute![2]
-              ? read.livingTown!.inventory(shopRoute![1]!)
-              : read.livingTown!.shop(shopRoute![1]!);
+            : townRoute
+              ? read.livingTown!.town()
+              : productionRoute
+                ? read.livingTown!.production(
+                    shopRoute![1]!,
+                    productionAfter,
+                    Number(limitText),
+                  )
+                : shopRoute![2]
+                  ? read.livingTown!.inventory(shopRoute![1]!)
+                  : read.livingTown!.shop(shopRoute![1]!);
         status = 200;
       } else {
         value = read.activity(

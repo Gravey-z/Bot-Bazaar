@@ -64,7 +64,12 @@ export class LivingTownProjector {
   private async reconcile(): Promise<void> {
     const reader = await this.client.finalized(),
       town = await reader.getTown();
-    if (this.initialized && this.store.observe(town, reader.block)) return;
+    if (
+      this.initialized &&
+      this.store.marketReady() &&
+      this.store.observe(town, reader.block)
+    )
+      return;
     const count = BigInt(town.data.next_shop_id) - 4n;
     if (count < 0n || count > 1000n)
       throw new Error("invalid bounded shop count");
@@ -117,8 +122,29 @@ export class LivingTownProjector {
       shops.push(...rows.map(({ shop, ledger }) => ({ shop, ledger })));
       production.push(...rows.map((row) => row.production));
     }
+    const listings: NonNullable<ProjectionBaseline["listings"]> = [];
+    let afterListing: string | null = null;
+    for (let page = 0; page < 41; page++) {
+      const row = await reader.getListings({
+        shop_id: null,
+        item_id: null,
+        active_only: false,
+        after_id: afterListing,
+        limit: "50",
+        expected_market_revision: town.market_revision,
+      });
+      listings.push(row);
+      if (!row.data.has_more) break;
+      if (
+        page === 40 ||
+        row.data.next_after_id === null ||
+        BigInt(row.data.next_after_id) <= BigInt(afterListing ?? "0")
+      )
+        throw new Error("market pagination incomplete");
+      afterListing = row.data.next_after_id;
+    }
     this.store.baseline(
-      { block: reader.block, town, shops, production },
+      { block: reader.block, town, shops, production, listings },
       Date.now(),
       true,
     );

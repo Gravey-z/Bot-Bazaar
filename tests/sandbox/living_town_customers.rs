@@ -25,6 +25,18 @@ async fn sale(
         json!({"listing_id":id,"expected_listing_revision":revision,"epoch":e.to_string(),"max_total_price":cap,"command":command(c,seq).await?}),
     )
 }
+fn market_snapshot(url: &str, c: &Contract) -> Result<Value> {
+    let mut snapshot = snapshot(url, c)?;
+    let page = pinned(
+        url,
+        c,
+        &snapshot["block"],
+        "get_listings",
+        json!({"shop_id":null,"item_id":null,"active_only":false,"after_id":null,"limit":"50","expected_market_revision":snapshot["town"]["market_revision"]}),
+    )?;
+    snapshot["listings_pages"] = json!([page]);
+    Ok(snapshot)
+}
 #[tokio::test]
 async fn funded_customers_consume_real_products_with_global_quotas_and_capped_epoch_sources()
 -> Result<()> {
@@ -57,19 +69,28 @@ async fn funded_customers_consume_real_products_with_global_quotas_and_capped_ep
         "LT:E_UNAUTHORIZED",
     )
     .await?;
+    let mut setup_steps = Vec::new();
     for (player, name) in [(&a, "Customer Potions"), (&b, "Customer Tools")] {
-        player
-            .call(c.id(), "register_player")
-            .args_json(json!({"command":command(&c,1).await?}))
-            .transact()
-            .await?
-            .into_result()?;
-        player
-            .call(c.id(), "create_shop")
-            .args_json(json!({"name":name,"command":command(&c,2).await?}))
-            .transact()
-            .await?
-            .into_result()?;
+        setup_steps.push(
+            capture(
+                &url,
+                &c,
+                player,
+                "register_player",
+                json!({"command":command(&c,1).await?}),
+            )
+            .await?,
+        );
+        setup_steps.push(
+            capture(
+                &url,
+                &c,
+                player,
+                "create_shop",
+                json!({"name":name,"command":command(&c,2).await?}),
+            )
+            .await?,
+        );
     }
     for (player, seq, merchant, item, q, cost) in [
         (&a, 3, "rex", "crystal", "3", "12"),
@@ -77,10 +98,10 @@ async fn funded_customers_consume_real_products_with_global_quotas_and_capped_ep
         (&b, 3, "bolt", "wood", "3", "6"),
         (&b, 4, "bolt", "iron", "6", "30"),
     ] {
-        player.call(c.id(),"buy_from_merchant").args_json(json!({"merchant_id":merchant,"item_id":item,"quantity":q,"expected_listing_revision":"1","max_total_price":cost,"command":command(&c,seq).await?})).transact().await?.into_result()?;
+        setup_steps.push(capture(&url,&c,player,"buy_from_merchant",json!({"merchant_id":merchant,"item_id":item,"quantity":q,"expected_listing_revision":"1","max_total_price":cost,"command":command(&c,seq).await?})).await?);
     }
     for (player, shop, recipe) in [(&a, "4", "health_potion"), (&b, "5", "iron_tool")] {
-        capture(&url, &c, player, "start_production", json!({"shop_id":shop,"recipe_id":recipe,"recipe_version":"1","quantity":"3","expected_shop_revision":"1","command":command(&c,5).await?})).await?;
+        setup_steps.push(capture(&url, &c, player, "start_production", json!({"shop_id":shop,"recipe_id":recipe,"recipe_version":"1","quantity":"3","expected_shop_revision":"1","command":command(&c,5).await?})).await?);
     }
     let running = snapshot(&url, &c)?;
     let ready = running["shops"]
@@ -108,19 +129,22 @@ async fn funded_customers_consume_real_products_with_global_quotas_and_capped_ep
         worker.fast_forward(1000).await?;
     }
     for id in ["1", "2"] {
-        operator
-            .call(c.id(), "complete_production")
-            .args_json(json!({"job_id":id}))
-            .gas(near_workspaces::types::Gas::from_tgas(100))
-            .transact()
-            .await?
-            .into_result()?;
+        setup_steps.push(
+            capture(
+                &url,
+                &c,
+                &operator,
+                "complete_production",
+                json!({"job_id":id}),
+            )
+            .await?,
+        );
     }
     for (player, shop, item, price) in [
         (&a, "4", "health_potion", "100"),
         (&b, "5", "iron_tool", "24"),
     ] {
-        player.call(c.id(),"set_listing").args_json(json!({"shop_id":shop,"item_id":item,"quantity":"3","unit_price":price,"expected_listing_revision":null,"command":command(&c,6).await?})).gas(near_workspaces::types::Gas::from_tgas(100)).transact().await?.into_result()?;
+        setup_steps.push(capture(&url,&c,player,"set_listing",json!({"shop_id":shop,"item_id":item,"quantity":"3","unit_price":price,"expected_listing_revision":null,"command":command(&c,6).await?})).await?);
     }
     // Keep a generous margin inside one epoch for the four quota purchases.
     for _ in 0..4 {
@@ -145,7 +169,7 @@ async fn funded_customers_consume_real_products_with_global_quotas_and_capped_ep
         "LT:E_NO_DEMAND",
     )
     .await?;
-    a.call(c.id(),"set_listing").args_json(json!({"shop_id":"4","item_id":"health_potion","quantity":"3","unit_price":"18","expected_listing_revision":"1","command":command(&c,7).await?})).gas(near_workspaces::types::Gas::from_tgas(100)).transact().await?.into_result()?;
+    setup_steps.push(capture(&url,&c,&a,"set_listing",json!({"shop_id":"4","item_id":"health_potion","quantity":"3","unit_price":"18","expected_listing_revision":"1","command":command(&c,7).await?})).await?);
     reject(
         &c,
         &a,
@@ -198,7 +222,7 @@ async fn funded_customers_consume_real_products_with_global_quotas_and_capped_ep
         "LT:E_INVALID_ARGUMENT",
     )
     .await?;
-    let before = snapshot(&url, &c)?;
+    let before = market_snapshot(&url, &c)?;
     let mut steps = Vec::new();
     let first = sale(&c, "5", "2", e, 1, "18").await?;
     steps.push(
@@ -239,12 +263,12 @@ async fn funded_customers_consume_real_products_with_global_quotas_and_capped_ep
         "LT:E_CUSTOMER_QUOTA",
     )
     .await?;
-    let after_quota = snapshot(&url, &c)?;
+    let after_quota = market_snapshot(&url, &c)?;
     assert_eq!(after_quota["town"]["data"]["customer_pool"]["gold"], "16");
     worker.fast_forward(250).await?;
     let next = current(&c).await?;
     ensure!(next > e);
-    let rollover = snapshot(&url, &c)?;
+    let rollover = market_snapshot(&url, &c)?;
     assert_eq!(
         rollover["town"]["data"]["customer_pool"]["potion_units_bought"],
         "0"
@@ -288,7 +312,7 @@ async fn funded_customers_consume_real_products_with_global_quotas_and_capped_ep
         )
         .await?,
     );
-    let after_sale = snapshot(&url, &c)?;
+    let after_sale = market_snapshot(&url, &c)?;
     assert_eq!(after_sale["town"]["data"]["customer_pool"]["gold"], "98");
     reject(
         &c,
@@ -368,7 +392,7 @@ async fn funded_customers_consume_real_products_with_global_quotas_and_capped_ep
         "LT:E_STORAGE_CAPACITY",
     )
     .await?;
-    let after = snapshot(&url, &c)?;
+    let after = market_snapshot(&url, &c)?;
     let trade = pinned(
         &url,
         &c,
@@ -398,7 +422,7 @@ async fn funded_customers_consume_real_products_with_global_quotas_and_capped_ep
     assert_eq!(trade["data"]["value"]["buyer"], Value::Null);
     println!(
         "CUSTOMER_SANDBOX={}",
-        json!({"source":"actual disposable local WASM sandbox; accelerated sandbox time; synthetic declared genesis; not Testnet","contract_id":c.id(),"before":before,"after_quota":after_quota,"rollover":rollover,"after_sale":after_sale,"after":after,"trade":trade,"operator_command":operator_command,"steps":steps})
+        json!({"source":"actual disposable local WASM sandbox; accelerated sandbox time; synthetic declared genesis; not Testnet","contract_id":c.id(),"before":before,"after_quota":after_quota,"rollover":rollover,"after_sale":after_sale,"after":after,"trade":trade,"operator_command":operator_command,"steps":steps,"setup_steps":setup_steps})
     );
     Ok(())
 }

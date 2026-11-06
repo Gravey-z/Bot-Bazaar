@@ -1,3 +1,4 @@
+import { gzipSync } from "node:zlib";
 import { DatabaseSync } from "node:sqlite";
 import {
   closeSync,
@@ -25,6 +26,9 @@ import {
   livingTownProductionJob,
   livingTownProductionPage,
   livingTownProductionRead,
+  livingTownListing,
+  livingTownSalesHistoryRead,
+  livingTownMarketListingsRead,
 } from "@bot-bazaar/chain";
 import type {
   FinalizedBlock,
@@ -34,6 +38,8 @@ import type {
   LivingTownCheckpoint,
 } from "@bot-bazaar/chain";
 import { ReadApiError } from "../activity/repository.js";
+import { LivingTownAccounting } from "./accounting.js";
+import { sha256 } from "../storage/validation.js";
 import { projectionSchema } from "./schema.js";
 type Town = ReturnType<typeof livingTownTown>;
 type Shop = ReturnType<typeof livingTownShop>;
@@ -46,6 +52,13 @@ export interface ProjectionBaseline {
   block: FinalizedBlock;
   town: Snapshot<Town>;
   shops: { shop: Snapshot<Shop>; ledger: Snapshot<Ledger> }[];
+  listings?: Snapshot<{
+    items: ReturnType<typeof livingTownListing>[];
+    next_after_id: string | null;
+    has_more: boolean;
+    history_gap: boolean;
+    pruned_through: string;
+  }>[];
   production: {
     shopId: string;
     pages: Snapshot<ReturnType<typeof livingTownProductionPage>>[];
@@ -85,6 +98,7 @@ const copy = <T>(v: T): Mutable<T> =>
 // Dedicated V2 projection file. It never opens/migrates the V1 signer database.
 export class LivingTownProjectionStore {
   private readonly db: DatabaseSync;
+  private readonly accounting: LivingTownAccounting;
   readonly identity: LivingTownIdentity;
   private synchronized = false;
   private closed = false;
@@ -138,7 +152,7 @@ export class LivingTownProjectionStore {
         });
       } else
         requireValue(
-          version === 2,
+          version === 3,
           "unsupported projection schema; initialize a fresh disposable read projection",
         );
       requireValue(
@@ -154,6 +168,7 @@ export class LivingTownProjectionStore {
         "projection deployment/code/config mismatch",
       );
       this.state();
+      this.accounting = new LivingTownAccounting(this.db);
     } catch (e) {
       this.db.close();
       throw e;
@@ -393,10 +408,64 @@ export class LivingTownProjectionStore {
         jobs.filter((j) => j.status === "completed").length <= 256,
       "production global bound/identity mismatch",
     );
+    const market: ReturnType<typeof livingTownListing>[] = [];
+    if (input.listings) {
+      requireValue(
+        input.listings.length > 0 && input.listings.length <= 41,
+        "market page bound exceeded",
+      );
+      input.listings.forEach((raw, i) => {
+        requireValue(
+          json(raw.deployment) === json(this.identity.deployment) &&
+            raw.block_height === b.height &&
+            raw.block_timestamp_ns === b.timestampNs &&
+            raw.market_revision === t.market_revision &&
+            raw.event_sequence === t.event_sequence,
+          "market checkpoint mismatch",
+        );
+        const page = raw.data;
+        requireValue(
+          page.items.length <= 50 &&
+            page.has_more === i < input.listings!.length - 1 &&
+            !page.history_gap &&
+            page.pruned_through === "0",
+          "incomplete market pages",
+        );
+        for (const value of page.items) {
+          const listing = livingTownListing(value),
+            entry = all.find((row) => row.shop.shop_id === listing.shop_id);
+          requireValue(
+            listing.listing_id === String(market.length + 1) &&
+              entry &&
+              json(entry.shop.owner) === json(listing.owner) &&
+              entry.ledger.inventory.listing_reserved[listing.item_id] ===
+                listing.remaining_quantity,
+            "market identity/stock mismatch",
+          );
+          requireValue(
+            !market.some(
+              (l) =>
+                l.shop_id === listing.shop_id && l.item_id === listing.item_id,
+            ),
+            "duplicate market slot",
+          );
+          market.push(listing);
+        }
+        requireValue(
+          page.next_after_id === (market.at(-1)?.listing_id ?? null),
+          "market cursor mismatch",
+        );
+      });
+      requireValue(
+        market.length === Number(BigInt(t.data.next_listing_id) - 1n) &&
+          market.length <= 2018,
+        "incomplete market baseline",
+      );
+    }
     this.capacity();
     this.transaction(() => {
       this.db.exec(
-        "DELETE FROM production_jobs; DELETE FROM production_history; DELETE FROM projection_shops; DELETE FROM projection_ledgers;",
+        "DELETE FROM market_listings; DELETE FROM market_snapshot; DELETE FROM production_jobs; DELETE FROM production_history; DELETE FROM projection_shops; DELETE FROM projection_ledgers;",
       );
       t.data.npc_ledgers.forEach((l) => this.ledger(l));
       t.data.npc_shops.forEach((s) => this.shop(s));
@@ -404,6 +473,14 @@ export class LivingTownProjectionStore {
         this.ledger(row.ledger);
         this.shop(row.shop);
       }
+      for (const listing of market)
+        this.db
+          .prepare("INSERT INTO market_listings VALUES(?,?,?)")
+          .run(listing.listing_id, listing.shop_id, json(listing));
+      if (input.listings)
+        this.db
+          .prepare("INSERT INTO market_snapshot VALUES(1,?)")
+          .run(t.market_revision);
       for (const job of jobs) this.job(job);
       this.db
         .prepare("INSERT INTO production_history VALUES(1,?)")
@@ -474,6 +551,21 @@ export class LivingTownProjectionStore {
           status.kind,
           stamp(now),
         );
+      if (receipt.response !== undefined && receipt.response !== null) {
+        const raw = Buffer.from(JSON.stringify(receipt.response));
+        requireValue(
+          raw.length <= 1048576,
+          "receipt proof exceeds archive bound",
+        );
+        const compressed = gzipSync(raw);
+        requireValue(
+          compressed.length <= 262144,
+          "compressed receipt proof exceeds bound",
+        );
+        this.db
+          .prepare("INSERT INTO projection_proofs VALUES(?,?)")
+          .run(proof.transactionHash, compressed);
+      }
       if (receipt.event !== null) {
         requireValue(
           status.kind === "succeeded" &&
@@ -505,6 +597,8 @@ export class LivingTownProjectionStore {
           this.db
             .prepare("INSERT INTO projection_events VALUES(?,?,?,?)")
             .run(seq, status.executionReceiptId, receipt.logIndex, payload);
+        if (!existing) this.accounting.record(status.result);
+        this.accounting.advance();
         if (BigInt(seq) > BigInt(s.latestSeen)) s.latestSeen = seq;
       }
       // A cached effect is not a new transfer, but its finalized envelope can
@@ -863,6 +957,230 @@ export class LivingTownProjectionStore {
       livingTownProductionRead,
       now,
     );
+  }
+  private pageCursor(after: string | null, scope: string): string {
+    if (after === null) return "0";
+    const s = this.state()!;
+    try {
+      requireValue(/^[A-Za-z0-9_-]{1,1024}$/.test(after));
+      const c = JSON.parse(
+        Buffer.from(after, "base64url").toString("utf8"),
+      ) as {
+        scope: string;
+        afterId: string;
+        generation: string;
+        blockHash: string;
+        accounting: string;
+      };
+      requireValue(
+        Object.keys(c).sort().join() ===
+          "accounting,afterId,blockHash,generation,scope" &&
+          c.scope === scope &&
+          parseU64(c.afterId) === c.afterId &&
+          Buffer.from(json(c)).toString("base64url") === after,
+      );
+      if (
+        c.generation !== s.checkpoint.feed_generation ||
+        c.blockHash !== s.checkpoint.finalized_block_hash ||
+        c.accounting !== this.accounting.through()
+      )
+        throw new ReadApiError(409, "feed_generation_mismatch");
+      return c.afterId;
+    } catch (error) {
+      if (error instanceof ReadApiError) throw error;
+      throw new ReadApiError(400, "invalid_query");
+    }
+  }
+  private nextPage(scope: string, afterId: string): string {
+    const s = this.state()!;
+    return Buffer.from(
+      json({
+        scope,
+        afterId,
+        generation: s.checkpoint.feed_generation,
+        blockHash: s.checkpoint.finalized_block_hash,
+        accounting: this.accounting.through(),
+      }),
+    ).toString("base64url");
+  }
+  listings(
+    after: string | null = null,
+    limit = 20,
+    now = Date.now(),
+  ): ReturnType<
+    ReturnType<
+      typeof livingTownReadEnvelope<
+        ReturnType<typeof livingTownMarketListingsRead>
+      >
+    >
+  > {
+    const town = this.town(now);
+    if (
+      this.db.prepare("SELECT revision FROM market_snapshot").get()?.[
+        "revision"
+      ] !== town.snapshot.market_revision
+    )
+      throw new ReadApiError(503, "read_unavailable");
+    requireValue(
+      Number.isInteger(limit) && limit >= 1 && limit <= 50,
+      "invalid listings limit",
+    );
+    const afterId = this.pageCursor(after, "market"),
+      rows = this.db
+        .prepare(
+          "SELECT body FROM market_listings ORDER BY length(listing_id),listing_id",
+        )
+        .all()
+        .map((r) => livingTownListing(JSON.parse(String(r["body"]))))
+        .filter((l) => BigInt(l.listing_id) > BigInt(afterId));
+    const items = rows.slice(0, limit),
+      more = rows.length > items.length;
+    return this.envelope(
+      {
+        items,
+        has_more: more,
+        next_cursor: more
+          ? this.nextPage("market", items.at(-1)!.listing_id)
+          : null,
+      },
+      livingTownMarketListingsRead,
+      now,
+    );
+  }
+  marketReady(): boolean {
+    const state = this.state();
+    return (
+      !!state &&
+      this.db.prepare("SELECT revision FROM market_snapshot").get()?.[
+        "revision"
+      ] === state.town.market_revision
+    );
+  }
+  history(
+    id: string,
+    after: string | null = null,
+    limit = 20,
+    now = Date.now(),
+  ): ReturnType<
+    ReturnType<
+      typeof livingTownReadEnvelope<
+        ReturnType<typeof livingTownSalesHistoryRead>
+      >
+    >
+  > {
+    const shop = this.shopView(id, now),
+      key = owner(shop.snapshot.data),
+      scope = `history:${id}`,
+      afterId = this.pageCursor(after, scope);
+    requireValue(
+      Number.isInteger(limit) && limit >= 1 && limit <= 50,
+      "invalid history limit",
+    );
+    const through = this.state()!.checkpoint.through_event_sequence,
+      rows = this.accounting
+        .history(key, through)
+        .filter((r) => BigInt(r.event_sequence) > BigInt(afterId)),
+      items = rows.slice(0, limit),
+      more = rows.length > items.length;
+    return this.envelope(
+      {
+        items,
+        has_more: more,
+        next_cursor: more
+          ? this.nextPage(scope, items.at(-1)!.event_sequence)
+          : null,
+        costs: this.accounting.summary(key, through),
+      },
+      livingTownSalesHistoryRead,
+      now,
+    );
+  }
+  customerDemand(
+    seed: string,
+    arrivalIndex: string,
+    now = Date.now(),
+  ): import("./customers.js").CustomerDemandInput {
+    const town = this.town(now),
+      through = town.snapshot.event_sequence;
+    const complete =
+      this.db.prepare("SELECT revision FROM market_snapshot").get()?.[
+        "revision"
+      ] === town.snapshot.market_revision;
+    const historyComplete =
+      BigInt(this.accounting.through()) >= BigInt(through);
+    const candidates = complete
+      ? this.db
+          .prepare(
+            "SELECT body FROM market_listings ORDER BY length(listing_id),listing_id",
+          )
+          .all()
+          .map((r) => livingTownListing(JSON.parse(String(r["body"]))))
+          .filter((l) => l.owner.kind === "player")
+          .map((listing) => ({
+            listing,
+            shop: this.shopView(listing.shop_id, now).snapshot,
+            ledger: this.inventory(listing.shop_id, now).snapshot,
+            lastSaleEventSequence: historyComplete
+              ? this.accounting.fulfillment(
+                  owner(this.shopView(listing.shop_id, now).snapshot.data),
+                  listing.item_id,
+                  through,
+                )
+              : null,
+          }))
+      : [];
+    return {
+      town: town.snapshot,
+      seed: parseU64(seed),
+      tick: town.snapshot.data.epoch,
+      arrivalIndex: parseU64(arrivalIndex),
+      fresh: !town.stale,
+      marketComplete: complete,
+      historyComplete,
+      candidates,
+    };
+  }
+  archive(
+    after: string | null = null,
+    limit = 10,
+  ): { body: string; sha256: string; next: string | null } {
+    requireValue(
+      after === null || /^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(after),
+      "invalid archive cursor",
+    );
+    requireValue(
+      Number.isInteger(limit) && limit >= 1 && limit <= 25,
+      "invalid archive limit",
+    );
+    const rows = this.db
+      .prepare(
+        "SELECT r.request,r.tx_hash,p.body FROM projection_receipts r JOIN projection_proofs p ON p.tx_hash=r.tx_hash WHERE r.tx_hash>? ORDER BY r.tx_hash LIMIT ?",
+      )
+      .all(after ?? "", limit + 1);
+    const entries = rows.slice(0, limit).map((row) => ({
+      proof: JSON.parse(String(row["request"])),
+      response_gzip_base64: Buffer.from(row["body"] as Uint8Array).toString(
+        "base64",
+      ),
+    }));
+    const body = json({
+      schema: "living-town-receipt-archive-v1",
+      identity: this.identity,
+      checkpoint: this.cursor(),
+      missing_proof_count: String(
+        this.db
+          .prepare(
+            "SELECT count(*) AS n FROM projection_receipts r WHERE NOT EXISTS(SELECT 1 FROM projection_proofs p WHERE p.tx_hash=r.tx_hash)",
+          )
+          .get()!["n"],
+      ),
+      entries,
+    });
+    return {
+      body,
+      sha256: sha256(body),
+      next: rows.length > limit ? String(rows[limit - 1]!["tx_hash"]) : null,
+    };
   }
   cursor(): LivingTownCheckpoint | null {
     return this.state()?.checkpoint ?? null;

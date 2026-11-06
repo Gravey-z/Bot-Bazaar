@@ -554,6 +554,18 @@ export class LivingTownClient {
     await this.network();
     return this.at(await this.block());
   }
+  /** Historical receipt replay still checks finalized height, code and authority. */
+  async verifiedHistoricalBlock(hash: string): Promise<FinalizedBlock> {
+    await this.network();
+    const head = await this.block(),
+      block = await this.block(hash);
+    check(
+      BigInt(block.height) <= BigInt(head.height),
+      "historical block beyond finalized head",
+    );
+    await this.at(block);
+    return block;
+  }
   async receipt(proof: LivingTownProof): Promise<LivingTownReceiptStatus> {
     return (await this.receiptEvidence(proof)).status;
   }

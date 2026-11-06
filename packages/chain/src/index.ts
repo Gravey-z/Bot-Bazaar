@@ -140,6 +140,12 @@ export type {
 export { parseLivingTownWebProfile } from "./living-town/web-profile.js";
 export { livingTownListingEffect } from "./living-town/listings.js";
 export {
+  livingTownHistoryEntry,
+  livingTownCostSummary,
+  livingTownSalesHistoryRead,
+  livingTownMarketListingsRead,
+} from "./living-town/sales.js";
+export {
   livingTownCustomerEffect,
   livingTownCustomerTrade,
 } from "./living-town/customers.js";

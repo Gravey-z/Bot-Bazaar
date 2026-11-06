@@ -1,3 +1,4 @@
+import { controlledMarket } from "./fixtures/living-town-market.mjs";
 import assert from "node:assert/strict";
 import test from "node:test";
 import { readFileSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
@@ -274,6 +275,7 @@ test("restart rescans all bounded pages, preserves running jobs and rolls back p
     finalized: async () => ({
       block: input.block,
       getTown: async () => input.town,
+      getListings: async () => controlledMarket(input.town),
       getShop: async (id) =>
         input.shops.find((r) => r.shop.data.shop_id === id).shop,
       getShopInventory: async (id) =>

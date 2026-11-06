@@ -60,6 +60,10 @@ const server = createReadServer(
     },
     livingTown: Object.freeze({
       town: () => store.town(),
+      listings: (after: string | null, limit: number) =>
+        store.listings(after, limit),
+      history: (id: string, after: string | null, limit: number) =>
+        store.history(id, after, limit),
       shop: (id: string) => store.shopView(id),
       inventory: (id: string) => store.inventory(id),
       production: (id: string, after: string | null, limit: number) =>

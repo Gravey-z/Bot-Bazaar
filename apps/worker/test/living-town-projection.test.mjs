@@ -1,3 +1,4 @@
+import { controlledMarket } from "./fixtures/living-town-market.mjs";
 import { pathToFileURL } from "node:url";
 import { spawn } from "node:child_process";
 import { createServer } from "node:http";
@@ -160,7 +161,7 @@ test("V2 disposable projection initializes only its own schema and rejects misma
     /unsupported projection schema/,
   );
   const reset = new DatabaseSync(f.store.path);
-  reset.exec("PRAGMA user_version=2");
+  reset.exec("PRAGMA user_version=3");
   reset.close();
   f.restart();
   assert.throws(
@@ -533,6 +534,7 @@ test("projector verifies receipt evidence, deduplicates before RPC and bounds co
   const reader = () => ({
     block: snapshot.block,
     getTown: async () => snapshot.town,
+    getListings: async () => controlledMarket(snapshot.town),
     getShop: async () => snapshot.shops[0].shop,
     getShopInventory: async () => snapshot.shops[0].ledger,
     getProductionJobs: async (args) =>
@@ -549,12 +551,17 @@ test("projector verifies receipt evidence, deduplicates before RPC and bounds co
     finalized: async () => reader(),
   };
   const projector = new LivingTownProjector(client, f.store);
+  await projector.sync();
   for (const proof of proofs) await projector.ingest(proof, now);
   for (const proof of proofs)
     assert.equal(await projector.ingest(proof, now), "duplicate");
   assert.equal(rpcReads, 6);
   snapshot = final;
   await projector.sync();
+  assert.equal(
+    f.store.listings(null, 50).snapshot.data.items[0].remaining_quantity,
+    "7",
+  );
   assert.equal(
     f.store.inventory("4", Date.now()).snapshot.data.gold.held,
     "96",
@@ -731,7 +738,12 @@ test("standalone read worker restarts against the same SQLite projection without
   );
   // Complete process integration with deterministic RPC doubles. No public RPC
   // or real Testnet identity is claimed for these remapped local snapshots.
-  const input = { identity: namedIdentity, final, foundation };
+  const input = {
+    identity: namedIdentity,
+    final,
+    foundation,
+    market: controlledMarket(final.town),
+  };
   writeFileSync(
     bootstrap,
     `
@@ -746,6 +758,7 @@ globalThis.fetch=async(_url,options)=>{
   else {let s;
    if(p.method_name==='get_foundation'){s=structuredClone(input.foundation);s.data.owner_account_id=input.identity.ownerId;}
    else if(p.method_name==='get_town')s=structuredClone(input.final.town);
+   else if(p.method_name==='get_listings')s=structuredClone(input.market);
    else if(p.method_name==='get_shop')s=structuredClone(input.final.shops[0].shop);
    else if(p.method_name==='get_shop_inventory')s=structuredClone(input.final.shops[0].ledger);
    else if(p.method_name==='get_production_jobs')s=structuredClone(input.final.production[0].pages[0]);

@@ -105,6 +105,7 @@ export type ConfirmedLivingTownStatus = Extract<
   { kind: "succeeded" | "failed" }
 >;
 export interface LivingTownIndexedReceipt {
+  response?: unknown;
   proof: LivingTownProof;
   status: ConfirmedLivingTownStatus;
   event: unknown | null;
@@ -118,10 +119,17 @@ export function livingTownIndexedReceipt(
   const status = evidence.status;
   if (status.kind !== "succeeded" && status.kind !== "failed") return null;
   if (status.kind === "failed")
-    return { proof, status, event: null, logIndex: null };
+    return {
+      proof,
+      status,
+      event: null,
+      logIndex: null,
+      response: evidence.response,
+    };
   return {
     proof,
     status,
+    response: evidence.response,
     ...extractConfirmedEvent(proof, status, evidence.response),
   };
 }
@@ -226,6 +234,7 @@ function extractConfirmedEvent(
 }
 
 export interface LivingTownIndexedCompletion {
+  response?: unknown;
   proof: LivingTownCompletionProof;
   status: Extract<LivingTownCompletionStatus, { kind: "succeeded" | "failed" }>;
   event: unknown | null;
@@ -238,10 +247,17 @@ export function livingTownIndexedCompletion(
   const status = evidence.status;
   if (status.kind !== "succeeded" && status.kind !== "failed") return null;
   if (status.kind === "failed")
-    return { proof, status, event: null, logIndex: null };
+    return {
+      proof,
+      status,
+      event: null,
+      logIndex: null,
+      response: evidence.response,
+    };
   return {
     proof,
     status,
+    response: evidence.response,
     ...extractConfirmedEvent(proof, status, evidence.response),
   };
 }
