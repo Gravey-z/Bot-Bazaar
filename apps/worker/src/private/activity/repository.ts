@@ -28,8 +28,10 @@ import {
 import type { Draft, Row } from "./projection.js";
 export class ReadApiError extends Error {
   constructor(
-    readonly status: 400 | 404 | 409 | 503,
+    readonly status: 400 | 404 | 409 | 410 | 503,
     readonly code:
+      | "stream_capacity"
+      | "feed_retention_gap"
       | "invalid_query"
       | "invalid_cursor"
       | "cursor_deployment_mismatch"

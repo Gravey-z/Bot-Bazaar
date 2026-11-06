@@ -1,3 +1,4 @@
+import type { TownLiveState } from "./living-town-live";
 import { listingQuote } from "./living-town-sales-ui";
 import type { TownMarketPage, TownHistoryPage } from "./living-town-sales-ui";
 import type { LivingTownAttempt } from "./living-town-transactions";
@@ -45,6 +46,7 @@ export interface TownObservation {
   recipes?: TownRecipe[];
 }
 export interface TownPort {
+  watchActivity?: (changed: (state: TownLiveState) => void) => () => void;
   market?(cursor: string | null, signal?: AbortSignal): Promise<TownMarketPage>;
   history?(
     shopId: string,
@@ -71,6 +73,7 @@ export interface TownPort {
   discardPrepared(id: string): Promise<void>;
 }
 export interface TownState {
+  activity: TownLiveState;
   phase: "preview" | "disconnected" | "loading" | "ready" | "unavailable";
   accountId: string | null;
   accounts: readonly string[];
@@ -91,6 +94,7 @@ export interface TownState {
   salesMessage: string;
 }
 export const initialTownState: TownState = {
+  activity: { events: [], mode: "polling", gap: false },
   phase: "preview",
   accountId: null,
   accounts: [],
@@ -154,6 +158,7 @@ export class LivingTownController {
   private readAbort: AbortController | undefined;
   private browseAbort: AbortController | undefined;
   private unsubscribe?: () => void;
+  private stopActivity: (() => void) | undefined;
   constructor(
     private readonly port: TownPort | null,
     private readonly changed: (state: TownState) => void,
@@ -172,6 +177,11 @@ export class LivingTownController {
     if (!this.port || this.stopped || this.started) return;
     this.started = true;
     this.publish({ phase: "loading" });
+    this.stopActivity = this.port.watchActivity?.((activity) => {
+      const last = this.value.activity.events[0]?.event_id;
+      this.publish({ activity });
+      if (activity.events[0]?.event_id !== last) void this.refresh();
+    });
     this.unsubscribe = this.port.subscribe(() => {
       void this.syncAccounts();
     });
@@ -780,6 +790,7 @@ export class LivingTownController {
     this.accountEpoch++;
     this.invalidateReads();
     this.unsubscribe?.();
+    this.stopActivity?.();
   }
 }
 export function inventoryRows(ledger: TownLedger): {

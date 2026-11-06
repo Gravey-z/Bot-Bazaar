@@ -1,3 +1,4 @@
+import { TownActivityFeed } from "./feed.js";
 import { gzipSync } from "node:zlib";
 import { DatabaseSync } from "node:sqlite";
 import {
@@ -17,6 +18,7 @@ import {
   parseLivingTownIdentity,
   livingTownSnapshot,
   livingTownTown,
+  livingTownMarketEventHistory,
   livingTownShop,
   livingTownLedger,
   livingTownCheckpoint,
@@ -52,6 +54,7 @@ export interface ProjectionBaseline {
   block: FinalizedBlock;
   town: Snapshot<Town>;
   shops: { shop: Snapshot<Shop>; ledger: Snapshot<Ledger> }[];
+  marketEvents?: Snapshot<ReturnType<typeof livingTownMarketEventHistory>>;
   listings?: Snapshot<{
     items: ReturnType<typeof livingTownListing>[];
     next_after_id: string | null;
@@ -99,6 +102,7 @@ const copy = <T>(v: T): Mutable<T> =>
 export class LivingTownProjectionStore {
   private readonly db: DatabaseSync;
   private readonly accounting: LivingTownAccounting;
+  private readonly feed: TownActivityFeed;
   readonly identity: LivingTownIdentity;
   private synchronized = false;
   private closed = false;
@@ -152,7 +156,7 @@ export class LivingTownProjectionStore {
         });
       } else
         requireValue(
-          version === 3,
+          version === 4,
           "unsupported projection schema; initialize a fresh disposable read projection",
         );
       requireValue(
@@ -169,6 +173,7 @@ export class LivingTownProjectionStore {
       );
       this.state();
       this.accounting = new LivingTownAccounting(this.db);
+      this.feed = new TownActivityFeed(this.db, this.identity, version === 0);
     } catch (e) {
       this.db.close();
       throw e;
@@ -277,6 +282,22 @@ export class LivingTownProjectionStore {
       input.shops.length === Number(BigInt(t.data.next_shop_id) - 4n) &&
         input.shops.length <= 1000,
       "incomplete shop baseline",
+    );
+    const marketEvents = input.marketEvents
+      ? decodeLivingTownSnapshot(
+          input.marketEvents,
+          this.identity.deployment,
+          livingTownMarketEventHistory,
+        )
+      : null;
+    requireValue(
+      !marketEvents ||
+        (marketEvents.block_height === t.block_height &&
+          marketEvents.block_timestamp_ns === t.block_timestamp_ns &&
+          marketEvents.market_revision === t.market_revision &&
+          json(marketEvents.data.items.at(-1) ?? null) ===
+            json(t.data.market_event)),
+      "market activity checkpoint mismatch",
     );
     const prior = this.state();
     requireValue(
@@ -485,6 +506,7 @@ export class LivingTownProjectionStore {
       this.db
         .prepare("INSERT INTO production_history VALUES(1,?)")
         .run(pruned ?? "0");
+      if (prior && !preserveGeneration) this.feed.reset();
       const d = this.identity.deployment;
       const checkpoint: LivingTownCheckpoint = {
         network_id: d.network_id,
@@ -514,6 +536,14 @@ export class LivingTownProjectionStore {
         observedAt: String(stamp(now)),
         latestSeen: t.event_sequence,
       });
+      this.feed.observe(
+        t.data,
+        checkpoint,
+        t.block_timestamp_ns,
+        jobs,
+        marketEvents?.data.items ??
+          (t.data.market_event ? [t.data.market_event] : []),
+      );
     });
     this.synchronized = true;
   }
@@ -652,6 +682,8 @@ export class LivingTownProjectionStore {
       )
         s.observedAt = String(stamp(now));
       this.save(s);
+      this.feed.receipt(receipt);
+      this.feed.flush(s.checkpoint);
     });
     return "indexed";
   }
@@ -804,6 +836,17 @@ export class LivingTownProjectionStore {
       s.checkpoint.finalized_block_height = block.height;
       s.observedAt = String(stamp(now));
       this.save(s);
+      const jobs = this.db
+        .prepare("SELECT body FROM production_jobs")
+        .all()
+        .map((r) => livingTownProductionJob(JSON.parse(String(r["body"]))));
+      this.feed.observe(
+        t.data,
+        s.checkpoint,
+        t.block_timestamp_ns,
+        jobs,
+        t.data.market_event ? [t.data.market_event] : [],
+      );
     });
     this.synchronized = true;
     return true;
@@ -824,6 +867,27 @@ export class LivingTownProjectionStore {
         now - Number(s.observedAt) > 30000 ||
         BigInt(s.latestSeen) > BigInt(s.checkpoint.through_event_sequence),
       history_complete: s.checkpoint.history_complete,
+    });
+  }
+  events(
+    after: string | null = null,
+    limit = 50,
+  ): ReturnType<TownActivityFeed["page"]> {
+    if (!this.state()) throw new ReadApiError(503, "read_unavailable");
+    return this.feed.page(after, limit);
+  }
+  agentActivity(records: readonly unknown[]): void {
+    requireValue(records.length <= 100, "agent activity batch too large");
+    this.capacity();
+    this.transaction(() => {
+      for (const r of records) this.feed.agent(r);
+      const s = this.state();
+      if (
+        s &&
+        this.synchronized &&
+        BigInt(s.latestSeen) <= BigInt(s.checkpoint.through_event_sequence)
+      )
+        this.feed.flush(s.checkpoint);
     });
   }
   town(

@@ -144,7 +144,16 @@ export class LivingTownProjector {
       afterListing = row.data.next_after_id;
     }
     this.store.baseline(
-      { block: reader.block, town, shops, production, listings },
+      {
+        block: reader.block,
+        town,
+        shops,
+        production,
+        listings,
+        ...(town.data.market_event
+          ? { marketEvents: await reader.getMarketEvents() }
+          : {}),
+      },
       Date.now(),
       true,
     );

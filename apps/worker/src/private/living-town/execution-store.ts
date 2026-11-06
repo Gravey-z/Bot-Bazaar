@@ -23,6 +23,7 @@ import { isAbsolute, join } from "node:path";
 import { randomUUID } from "node:crypto";
 import {
   canonicalLivingTownJson,
+  townAgentInput,
   parseLivingTownIdentity,
   livingTownCustomerEffect,
   livingTownSourceEffect,
@@ -237,6 +238,86 @@ export class LivingTownExecutionStore {
   }
   invalidate(): void {
     this.ready = false;
+  }
+  publicActivity(
+    after: string | null = null,
+    limit = 100,
+  ): {
+    schema: string;
+    identity: ReturnType<typeof parseLivingTownIdentity>;
+    records: ReturnType<typeof townAgentInput>[];
+    next_after: string | null;
+  } {
+    requireStorage(
+      !this.stopped && Number.isInteger(limit) && limit >= 1 && limit <= 100,
+      "invalid activity export",
+    );
+    const cursor = after === null ? 0 : Number(parseU64(after));
+    requireStorage(
+      Number.isSafeInteger(cursor),
+      "invalid activity export cursor",
+    );
+    const rows = this.db
+      .prepare(
+        "SELECT c.rowid AS n,c.id,c.decision_json,ta.tick_id,ta.arrival,t.checkpoint_json,j.status AS job_status,i.status,i.method,i.args_digest,a.tx_hash FROM customer_actions c JOIN town_tick_actions ta ON ta.action_id=c.id JOIN town_ticks t ON t.id=ta.tick_id JOIN jobs j ON j.id=c.id LEFT JOIN intents i ON i.id=c.id LEFT JOIN attempts a ON a.intent_id=i.id WHERE c.rowid>? AND ta.arrival LIKE 'merchant:%' ORDER BY c.rowid LIMIT ?",
+      )
+      .all(cursor, limit + 1);
+    const records = rows.slice(0, limit).map((r) => {
+      const d = JSON.parse(String(r["decision_json"])) as Record<
+          string,
+          unknown
+        >,
+        original = JSON.parse(String(r["checkpoint_json"])) as {
+          block: { hash: string; height: string; timestampNs: string };
+          town: { market_revision: string; event_sequence: string };
+        },
+        p = d["proposal"] as
+          { action: { type: string }; reason: string } | undefined;
+      return townAgentInput({
+        transaction_hint: r["tx_hash"] ?? null,
+        source:
+          d["origin"] === "model_proposal"
+            ? "model_proposal"
+            : "deterministic_rule",
+        checkpoint: d["checkpoint"] ?? {
+          block_hash: original.block.hash,
+          block_height: original.block.height,
+          block_timestamp_ns: original.block.timestampNs,
+          market_revision: original.town.market_revision,
+          event_sequence: original.town.event_sequence,
+        },
+        data: {
+          action_id: r["id"],
+          tick_id: r["tick_id"],
+          merchant: String(r["arrival"]).split(":")[1],
+          proposal_type: p?.action.type ?? "wait",
+          reason: p?.reason ?? String(d["reason"] ?? "deterministic no-op"),
+          validation: d["validation"] ?? d["reason"] ?? "no_op",
+          outcome:
+            r["job_status"] === "expired"
+              ? "expired"
+              : r["job_status"] === "failed"
+                ? "rejected"
+                : r["status"] !== null
+                  ? "awaiting_confirmation"
+                  : "local_no_op",
+          command_digest:
+            r["method"] === "complete_production"
+              ? null
+              : (r["args_digest"] ?? null),
+          inference_ref: d["inferenceRef"] ?? null,
+          signals: d["signals"] ?? [],
+          transaction_hash: null,
+          receipt_id: null,
+        },
+      });
+    });
+    return {
+      schema: "living-town-agent-inbox-v1",
+      identity: this.identity,
+      records,
+      next_after: rows.length > limit ? String(rows[limit - 1]!["n"]) : null,
+    };
   }
   get(actionId: string): Row | undefined {
     return this.db

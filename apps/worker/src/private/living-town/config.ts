@@ -6,6 +6,8 @@ import {
   parseLivingTownIdentity,
   parseLivingTownJson,
   parseU64,
+  townAgentInput,
+  canonicalLivingTownJson,
 } from "@bot-bazaar/chain";
 import type {
   LivingTownIdentity,
@@ -43,6 +45,7 @@ export interface LivingTownWorkerConfig {
   public: PublicConfig;
   dataDir: string;
   inbox: string | null;
+  activityInbox: string | null;
   port: number;
   pollMs: number;
   boundary: BoundaryConfig;
@@ -59,6 +62,16 @@ export function parseLivingTownWorkerConfig(
       "port",
       "poll_ms",
       "allowed_origins",
+      ...(value !== null &&
+      typeof value === "object" &&
+      Object.hasOwn(value, "agent_activity_inbox")
+        ? ["agent_activity_inbox"]
+        : []),
+      ...(value !== null &&
+      typeof value === "object" &&
+      Object.hasOwn(value, "trusted_proxy_ips")
+        ? ["trusted_proxy_ips"]
+        : []),
     ]),
     identity = parseLivingTownIdentity(r["identity"]),
     pub = parsePublicConfig(r["public"]);
@@ -66,6 +79,10 @@ export function parseLivingTownWorkerConfig(
     r["schema"] !== "bot-bazaar-living-town-reader-v1" ||
     pub.contractId !== identity.deployment.contract_id ||
     pub.networkId !== identity.deployment.network_id ||
+    (r["agent_activity_inbox"] !== undefined &&
+      r["agent_activity_inbox"] !== null &&
+      (typeof r["agent_activity_inbox"] !== "string" ||
+        !isAbsolute(r["agent_activity_inbox"]))) ||
     typeof r["data_dir"] !== "string" ||
     !isAbsolute(r["data_dir"]) ||
     (r["receipt_inbox"] !== null &&
@@ -74,8 +91,12 @@ export function parseLivingTownWorkerConfig(
   )
     throw new Error("V2 read-worker identity/path mismatch");
   const port = Number(parseU64(r["port"])),
-    pollMs = Number(parseU64(r["poll_ms"]));
+    pollMs = Number(parseU64(r["poll_ms"])),
+    proxies = r["trusted_proxy_ips"] ?? [];
   if (
+    !Array.isArray(proxies) ||
+    proxies.length > 16 ||
+    proxies.some((v) => typeof v !== "string" || v.includes(",")) ||
     port < 1024 ||
     port > 65535 ||
     pollMs < 1000 ||
@@ -90,10 +111,12 @@ export function parseLivingTownWorkerConfig(
     public: pub,
     dataDir: resolve(r["data_dir"]),
     inbox: r["receipt_inbox"] as string | null,
+    activityInbox: (r["agent_activity_inbox"] ?? null) as string | null,
     port,
     pollMs,
     boundary: parseBoundaryConfig({
       WORKER_ALLOWED_ORIGINS: r["allowed_origins"].join(","),
+      WORKER_TRUSTED_PROXY_IPS: proxies.join(","),
     }),
   };
 }
@@ -137,4 +160,26 @@ export function readReceiptInbox(
           ),
         };
   });
+}
+
+export function readAgentActivityInbox(
+  path: string,
+  identity: LivingTownIdentity,
+): ReturnType<typeof townAgentInput>[] {
+  const v = exact(readBoundedFile(path, 262144), [
+    "schema",
+    "identity",
+    "records",
+    "next_after",
+  ]);
+  if (
+    v["schema"] !== "living-town-agent-inbox-v1" ||
+    canonicalLivingTownJson(parseLivingTownIdentity(v["identity"])) !==
+      canonicalLivingTownJson(identity) ||
+    !Array.isArray(v["records"]) ||
+    v["records"].length > 100
+  )
+    throw new Error("invalid agent activity inbox");
+  if (v["next_after"] !== null) parseU64(v["next_after"]);
+  return v["records"].map(townAgentInput);
 }

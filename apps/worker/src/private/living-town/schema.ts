@@ -1,4 +1,7 @@
-export const projectionSchema = `
+import { townFeedSchema } from "./feed.js";
+export const projectionSchema =
+  townFeedSchema +
+  `
 CREATE TABLE projection_identity(singleton INTEGER PRIMARY KEY CHECK(singleton=1),identity TEXT NOT NULL) STRICT;
 CREATE TABLE projection_state(singleton INTEGER PRIMARY KEY CHECK(singleton=1),body TEXT NOT NULL CHECK(length(CAST(body AS BLOB))<=32768)) STRICT;
 CREATE TABLE projection_ledgers(actor TEXT PRIMARY KEY,body TEXT NOT NULL CHECK(length(CAST(body AS BLOB))<=8192)) STRICT;
@@ -23,5 +26,5 @@ CREATE TABLE cost_job_inputs(job_id TEXT NOT NULL REFERENCES cost_jobs(job_id),i
 CREATE TABLE sales_history(event_sequence TEXT NOT NULL REFERENCES projection_events(event_sequence),actor TEXT NOT NULL,body TEXT NOT NULL CHECK(length(CAST(body AS BLOB))<=4096),PRIMARY KEY(event_sequence,actor)) STRICT;
 CREATE INDEX sales_by_actor ON sales_history(actor);
 CREATE TABLE customer_fulfillment(actor TEXT NOT NULL,item TEXT NOT NULL,event_sequence TEXT NOT NULL,PRIMARY KEY(actor,item)) STRICT;
-PRAGMA user_version=3;
+PRAGMA user_version=4;
 `;

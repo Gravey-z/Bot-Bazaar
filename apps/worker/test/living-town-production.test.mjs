@@ -141,6 +141,12 @@ test("finalized clock advances only readiness hints; restart and local clocks ca
     f.store.production("4", null, 20, now + 1),
   );
   assert.deepEqual(ready.snapshot.data.ready_job_ids, ["1"]);
+  const activity = f.store
+    .events()
+    .events.filter((r) => r.event.type === "production_ready");
+  assert.equal(activity.length, 1);
+  assert.equal(activity[0].event.source, "production_ready_hint");
+  assert.equal(activity[0].event.data.transaction_hash, undefined);
   assert.equal(ready.snapshot.data.page.items[0].status, "running");
   assert.equal(ready.snapshot.data.settlement, "wallet_claim");
   assert.equal(

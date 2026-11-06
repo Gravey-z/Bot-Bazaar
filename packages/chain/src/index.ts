@@ -184,3 +184,13 @@ export {
   livingTownMarketEventHistory,
   describeLivingTownMarketEvent,
 } from "./living-town/market-events.js";
+export {
+  livingTownActivity,
+  livingTownActivityPage,
+  townActivityPosition,
+  townActivityCursor,
+  townActivityCheckpoint,
+  townAgentData,
+  townAgentInput,
+} from "./living-town/activity.js";
+export type { TownActivity } from "./living-town/activity.js";

@@ -8,7 +8,7 @@ interface Bucket {
   at: number;
 }
 export type Admission =
-  | { ok: true; release: () => void }
+  | { ok: true; address: string; release: () => void }
   | { ok: false; status: 400 | 429; code: string; retryAfter: number };
 
 // Both rate and active-response state are process-local, bounded and monotonic.
@@ -104,6 +104,7 @@ export class ReadLimits {
     let released = false;
     return {
       ok: true,
+      address,
       release: () => {
         if (!released) {
           released = true;

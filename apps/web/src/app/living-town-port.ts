@@ -1,3 +1,5 @@
+import { LivingTownLiveFeed, TownActivityReset } from "./living-town-live";
+import type { TownLiveState } from "./living-town-live";
 import {
   LivingTownClient,
   FinalizedLivingTownReader,
@@ -218,6 +220,30 @@ export function createLivingTownPort(
     | undefined;
   let directoryEpoch = 0;
   return {
+    ...(profile.public.workerUrl
+      ? {
+          watchActivity: (publish: (state: TownLiveState) => void) => {
+            const stream = new LivingTownLiveFeed(
+              profile.identity,
+              new URL("/api/events/stream", profile.public.workerUrl).href,
+              async (cursor, signal) => {
+                const url = new URL("/api/events", profile.public.workerUrl);
+                url.searchParams.set("limit", "50");
+                if (cursor) url.searchParams.set("after", cursor);
+                return readProjection(url, async (input, init) => {
+                  const r = await scopedFetch(signal)(input, init);
+                  if (r.status === 409 || r.status === 410)
+                    throw new TownActivityReset();
+                  return r;
+                });
+              },
+              publish,
+            );
+            stream.start();
+            return () => stream.stop();
+          },
+        }
+      : {}),
     async market(cursor, signal) {
       const r = await salesPage(
         "/api/market/listings",

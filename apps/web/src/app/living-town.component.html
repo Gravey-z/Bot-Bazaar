@@ -991,6 +991,32 @@
         </div>
       </section>
     }
+    @if (screen.setup.kind === "ready") {
+      <section class="session" aria-labelledby="town-activity-title">
+        <div>
+          <h2 id="town-activity-title">Around the bazaar</h2>
+          <p>
+            {{
+              state().activity.mode === "live"
+                ? "Live town updates"
+                : "Updates refresh periodically while the live connection is unavailable."
+            }}
+          </p>
+          @if (state().activity.gap) {
+            <p>
+              Some earlier updates are unavailable. Showing retained activity.
+            </p>
+          }
+          <ol aria-live="polite" aria-relevant="additions">
+            @for (entry of state().activity.events; track entry.event_id) {
+              <li>{{ activityText(entry) }}</li>
+            } @empty {
+              <li>No retained town activity is available yet.</li>
+            }
+          </ol>
+        </div>
+      </section>
+    }
   </main>
   <footer>
     <span>Bot Bazaar · Living Town</span

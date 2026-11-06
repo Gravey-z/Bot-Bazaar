@@ -35,6 +35,21 @@ type Decision =
       origin: "rules" | "model_proposal";
       validation: string;
       inferenceRef?: string;
+      signals?: {
+        item_id: string;
+        held: string;
+        reserved: string;
+        scarcity_bps: string;
+        confirmed_demand: string | null;
+        suggested_price: string | null;
+      }[];
+      checkpoint?: {
+        block_hash: string;
+        block_height: string;
+        block_timestamp_ns: string;
+        market_revision: string;
+        event_sequence: string;
+      };
     };
 export type SimulationPoll = {
   kind: "advanced" | "blocked" | "idle" | "deferred";
@@ -320,6 +335,24 @@ export class LivingTownSimulationAdapter {
               delivery?.origin ?? (this.propose ? "model_proposal" : "rules"),
             ...(delivery ? { inferenceRef: delivery.inferenceRef } : {}),
             validation: resolution.reason,
+            checkpoint: {
+              block_hash: reader.block.hash,
+              block_height: town.block_height,
+              block_timestamp_ns: town.block_timestamp_ns,
+              market_revision: town.market_revision,
+              event_sequence: town.event_sequence,
+            },
+            signals: this.policy
+              .evaluate(input)
+              .scarcity.filter((s) => s.supplier === lane)
+              .map((s) => ({
+                item_id: s.item,
+                held: s.held,
+                reserved: s.reserved,
+                scarcity_bps: s.scarcityBps,
+                confirmed_demand: s.confirmedDemand,
+                suggested_price: s.suggestedPrice,
+              })),
           };
         } catch {
           decision = {

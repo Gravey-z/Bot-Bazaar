@@ -29,6 +29,8 @@
   },
   "data_dir": "/absolute/path/to/dedicated-v2-projection",
   "receipt_inbox": null,
+  "agent_activity_inbox": null,
+  "trusted_proxy_ips": [],
   "port": "3011",
   "poll_ms": "3000",
   "allowed_origins": ["http://127.0.0.1:4201"]

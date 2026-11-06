@@ -8,6 +8,7 @@ export function createReadServer(
   read: ReadCapabilities,
   config: BoundaryConfig,
 ): Server {
+  const handler = createReadHandler(read, config);
   const server = createServer(
     {
       maxHeaderSize: 8192,
@@ -16,8 +17,13 @@ export function createReadServer(
       keepAliveTimeout: 5000,
       connectionsCheckingInterval: 1000,
     },
-    createReadHandler(read, config),
+    handler,
   );
+  const close = server.close;
+  server.close = function (callback) {
+    handler.closeStreams();
+    return close.call(this, callback);
+  };
   server.maxHeadersCount = 32;
   server.maxConnections = 64;
   server.maxRequestsPerSocket = 100;

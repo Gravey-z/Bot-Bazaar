@@ -4,6 +4,7 @@ import {
   readBoundedFile,
   parseLivingTownWorkerConfig,
   readReceiptInbox,
+  readAgentActivityInbox,
 } from "./private/living-town/config.js";
 import { LivingTownProjectionStore } from "./private/living-town/store.js";
 import { LivingTownProjector } from "./private/living-town/projector.js";
@@ -41,6 +42,10 @@ const cycle = (): Promise<void> => {
         for (const proof of readReceiptInbox(config.inbox, config.identity))
           await projector.ingest(proof);
       await projector.sync();
+      if (config.activityInbox)
+        store.agentActivity(
+          readAgentActivityInbox(config.activityInbox, config.identity),
+        );
     } catch {
       store.invalidate();
       console.error(
@@ -59,6 +64,8 @@ const server = createReadServer(
       throw new ReadApiError(503, "read_unavailable");
     },
     livingTown: Object.freeze({
+      events: (after: string | null, limit: number) =>
+        store.events(after, limit),
       town: () => store.town(),
       listings: (after: string | null, limit: number) =>
         store.listings(after, limit),

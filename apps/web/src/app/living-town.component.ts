@@ -1,3 +1,4 @@
+import { townActivityText } from "./living-town-live";
 import { describeLivingTownMarketEvent } from "@bot-bazaar/chain";
 import { LivingTownSalesComponent } from "./living-town-sales.component";
 import {
@@ -66,6 +67,7 @@ export class LivingTownComponent implements OnInit, OnDestroy {
         }
       : null;
   });
+  protected readonly activityText = townActivityText;
   protected readonly productionPolicy =
     "Inputs are consumed when production starts. Batches cannot be cancelled or refunded. The full batch becomes claimable together when its production time has elapsed on the network. A town pause blocks new starts; ready batches can still be claimed.";
   protected readonly screen = inject(LivingTownScreen);
