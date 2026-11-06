@@ -26,6 +26,7 @@ import {
 import { id, json, requireStorage, sha256 } from "../storage/validation.js";
 import { readCustomerPrepared, customerCall } from "./customer-chain.js";
 import type { PreparedCustomerCall, CustomerCall } from "./customer-chain.js";
+import { tickSchema, TownTickRepository } from "./ticks.js";
 
 export const townLanes = ["rex", "luna", "bolt", "operator"] as const;
 export type TownLane = (typeof townLanes)[number];
@@ -53,6 +54,7 @@ const townJournalSchema = schema
 export class LivingTownExecutionStore {
   private readonly db: DatabaseSync;
   private readonly journal: RuntimeJournal;
+  readonly ticks: TownTickRepository;
   readonly identity: ReturnType<typeof parseLivingTownIdentity>;
   readonly path: string;
   readonly sessionId = randomUUID();
@@ -105,11 +107,12 @@ export class LivingTownExecutionStore {
         try {
           this.db.exec(
             townJournalSchema +
+              tickSchema +
               `
             CREATE TABLE town_runtime(singleton INTEGER PRIMARY KEY CHECK(singleton=1), seed TEXT NOT NULL, epoch TEXT, next_arrival INTEGER NOT NULL DEFAULT 0 CHECK(next_arrival BETWEEN 0 AND 4)) STRICT;
             CREATE TABLE customer_actions(id TEXT PRIMARY KEY REFERENCES jobs(id), tick TEXT NOT NULL, arrival TEXT NOT NULL, decision_json TEXT NOT NULL CHECK(length(CAST(decision_json AS BLOB))<=65536), UNIQUE(tick,arrival)) STRICT;
             CREATE TRIGGER bound_customer_actions BEFORE INSERT ON customer_actions WHEN (SELECT count(*) FROM customer_actions)>=10000 BEGIN SELECT RAISE(ABORT,'customer action journal full'); END;
-            PRAGMA user_version=1001;`,
+            PRAGMA user_version=1002;`,
           );
           this.db
             .prepare(
@@ -138,7 +141,7 @@ export class LivingTownExecutionStore {
       }
       requireStorage(
         this.db.prepare("PRAGMA user_version").get()?.["user_version"] ===
-          1001 &&
+          1002 &&
           this.db.prepare("SELECT identity FROM deployment").get()?.[
             "identity"
           ] === identityJson &&
@@ -160,6 +163,13 @@ export class LivingTownExecutionStore {
       throw error;
     }
     this.journal = new RuntimeJournal(this.db);
+    this.ticks = new TownTickRepository(
+      this.db,
+      (fn) => this.write(fn),
+      () => this.gate(),
+      this.identity,
+      this.seed,
+    );
   }
   private write<T>(fn: () => T): T {
     requireStorage(!this.stopped, "execution journal unavailable");
@@ -250,6 +260,10 @@ export class LivingTownExecutionStore {
     this.gate();
     id(jobId);
     requireStorage(
+      !this.ticks.active(),
+      "unresolved tick retains scheduler admission",
+    );
+    requireStorage(
       lanes.length > 0 &&
         lanes.length <= 4 &&
         new Set(lanes).size === lanes.length &&
@@ -290,6 +304,7 @@ export class LivingTownExecutionStore {
       "invalid customer arrival",
     );
     this.write(() => {
+      this.ticks.bind(action);
       const runtime = this.db.prepare("SELECT * FROM town_runtime").get()!;
       requireStorage(
         runtime["epoch"] === null ||
@@ -452,6 +467,7 @@ export class LivingTownExecutionStore {
     this.db
       .prepare("UPDATE jobs SET status=?,updated_at=? WHERE id=?")
       .run(status, Date.now(), jobId);
+    this.ticks.settled(jobId, status);
   }
   completeRuntimeJob(jobId: string): void {
     this.gate();
