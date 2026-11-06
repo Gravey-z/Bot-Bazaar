@@ -68,7 +68,13 @@ async fn sale(c: &Contract, operator: &Account, listing: &Value, e: Value) -> Re
     )
 }
 // Capture both winning and losing finalized receipts; a failed execution is not a transport error.
-async fn call(url: &str, c: &Contract, a: &Account, method: &str, args: Value) -> Result<Value> {
+pub(super) async fn call(
+    url: &str,
+    c: &Contract,
+    a: &Account,
+    method: &str,
+    args: Value,
+) -> Result<Value> {
     let reference = view(c, "get_town", json!({})).await?;
     let result = a
         .call(c.id(), method)

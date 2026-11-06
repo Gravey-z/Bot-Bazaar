@@ -677,6 +677,8 @@ export class LivingTownProjectionStore {
       o.kind === "production_completed" ||
       o.kind === "listing_set" ||
       o.kind === "listing_cancelled" ||
+      o.kind === "raw_supplied" ||
+      o.kind === "treasury_swept" ||
       o.kind === "customer_funded" ||
       o.kind === "customer_sale"
     )

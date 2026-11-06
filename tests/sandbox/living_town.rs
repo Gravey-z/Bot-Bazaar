@@ -187,3 +187,5 @@ async fn isolated_v2_foundation_pins_versions_six_items_config_and_authority() -
     println!("LIVING_TOWN_FOUNDATION={foundation}");
     Ok(())
 }
+
+mod living_town_sources;

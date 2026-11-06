@@ -172,3 +172,8 @@ export type {
 
 export { livingTownIndexedCompletion } from "./living-town/projection.js";
 export type { LivingTownIndexedCompletion } from "./living-town/projection.js";
+
+export {
+  livingTownSourceEffect,
+  livingTownSourceState,
+} from "./living-town/sources.js";

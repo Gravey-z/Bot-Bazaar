@@ -1,3 +1,4 @@
+import { livingTownSourceEffect, livingTownSourceState } from "./sources.js";
 import {
   livingTownCustomerEffect,
   livingTownCustomerTrade,
@@ -98,19 +99,23 @@ const listingsArgs = object({
   },
 });
 const effect = (v: unknown) =>
-  ["customer_funded", "customer_sale"].includes(
+  ["raw_supplied", "treasury_swept"].includes(
     String(record(record(v)["outcome"])["kind"]),
   )
-    ? livingTownCustomerEffect(v)
-    : ["listing_set", "listing_cancelled"].includes(
+    ? livingTownSourceEffect(v)
+    : ["customer_funded", "customer_sale"].includes(
           String(record(record(v)["outcome"])["kind"]),
         )
-      ? livingTownListingEffect(v)
-      : record(record(v)["outcome"])["kind"] === "production_started"
-        ? livingTownProductionEffect(v)
-        : record(record(v)["outcome"])["kind"] === "raw_purchased"
-          ? livingTownPurchaseEffect(v)
-          : livingTownOwnershipEffect(v);
+      ? livingTownCustomerEffect(v)
+      : ["listing_set", "listing_cancelled"].includes(
+            String(record(record(v)["outcome"])["kind"]),
+          )
+        ? livingTownListingEffect(v)
+        : record(record(v)["outcome"])["kind"] === "production_started"
+          ? livingTownProductionEffect(v)
+          : record(record(v)["outcome"])["kind"] === "raw_purchased"
+            ? livingTownPurchaseEffect(v)
+            : livingTownOwnershipEffect(v);
 const commandLookup = (v: unknown) => {
   const kind = record(v)["kind"];
   if (kind === "found")
@@ -118,6 +123,8 @@ const commandLookup = (v: unknown) => {
       kind: choice(["found"] as const),
       high_water: positiveU64,
       method: choice([
+        "allocate_raw_supply",
+        "sweep_merchant_treasury",
         "fund_customer_budget",
         "settle_customer_purchase",
         "set_listing",
@@ -247,6 +254,11 @@ export class FinalizedLivingTownReader {
       "V2 snapshot block mismatch",
     );
     return result;
+  }
+  getSourceState(): Promise<
+    Snapshot<ReturnType<typeof livingTownSourceState>>
+  > {
+    return this.view("get_source_state", {}, livingTownSourceState);
   }
   getTown(): Promise<Snapshot<ReturnType<typeof livingTownTown>>> {
     return this.view("get_town", {}, livingTownTown);
@@ -423,6 +435,8 @@ export class FinalizedLivingTownReader {
                 raw_purchased: "buy_from_merchant",
                 production_started: "start_production",
                 listing_set: "set_listing",
+                raw_supplied: "allocate_raw_supply",
+                treasury_swept: "sweep_merchant_treasury",
                 customer_funded: "fund_customer_budget",
                 customer_sale: "settle_customer_purchase",
                 listing_cancelled: "cancel_listing",

@@ -29,6 +29,9 @@ export const livingTownFoundationMethods = [
   "complete_production",
   "set_listing",
   "cancel_listing",
+  "get_source_state",
+  "allocate_raw_supply",
+  "sweep_merchant_treasury",
   "fund_customer_budget",
   "settle_customer_purchase",
 ] as const;

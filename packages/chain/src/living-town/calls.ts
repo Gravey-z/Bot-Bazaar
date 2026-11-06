@@ -1,3 +1,8 @@
+import {
+  livingTownSourceEffect,
+  rawSourceItem,
+  sourceMerchant,
+} from "./sources.js";
 import { livingTownRecipeId } from "./recipes.js";
 import { livingTownProductionEffect } from "./production.js";
 import { livingTownListingEffect } from "./listings.js";
@@ -36,6 +41,16 @@ const name = (v: unknown): string => {
   return v;
 };
 export const livingTownCallArguments = {
+  allocate_raw_supply: object({
+    item_id: rawSourceItem,
+    epoch: parseU64,
+    command: livingTownCommand,
+  }),
+  sweep_merchant_treasury: object({
+    merchant_id: sourceMerchant,
+    epoch: parseU64,
+    command: livingTownCommand,
+  }),
   fund_customer_budget: object({ epoch: parseU64, command: livingTownCommand }),
   settle_customer_purchase: object({
     listing_id: positiveU64,
@@ -122,6 +137,7 @@ export type LivingTownResult = ReturnType<
       | ReturnType<typeof livingTownProductionEffect>
       | ReturnType<typeof livingTownListingEffect>
       | ReturnType<typeof livingTownCustomerEffect>
+      | ReturnType<typeof livingTownSourceEffect>
     >
   >
 >;
@@ -217,15 +233,18 @@ export function decodeLivingTownResult(
   deployment: unknown,
 ): LivingTownResult {
   return decodeLivingTownSnapshot(value, deployment, (v) =>
-    method === "fund_customer_budget" || method === "settle_customer_purchase"
-      ? livingTownCustomerEffect(v)
-      : method === "set_listing" || method === "cancel_listing"
-        ? livingTownListingEffect(v)
-        : method === "start_production"
-          ? livingTownProductionEffect(v)
-          : method === "buy_from_merchant"
-            ? livingTownPurchaseEffect(v)
-            : livingTownOwnershipEffect(v),
+    method === "allocate_raw_supply" || method === "sweep_merchant_treasury"
+      ? livingTownSourceEffect(v)
+      : method === "fund_customer_budget" ||
+          method === "settle_customer_purchase"
+        ? livingTownCustomerEffect(v)
+        : method === "set_listing" || method === "cancel_listing"
+          ? livingTownListingEffect(v)
+          : method === "start_production"
+            ? livingTownProductionEffect(v)
+            : method === "buy_from_merchant"
+              ? livingTownPurchaseEffect(v)
+              : livingTownOwnershipEffect(v),
   );
 }
 export async function verifyLivingTownEffect(
@@ -255,6 +274,20 @@ export async function verifyLivingTownEffect(
     "V2 command effect binding mismatch",
   );
   const outcome = effect.outcome;
+  if (call.method === "allocate_raw_supply")
+    check(
+      outcome.kind === "raw_supplied" &&
+        outcome.item_id === args["item_id"] &&
+        outcome.epoch === args["epoch"],
+      "raw supply reviewed terms mismatch",
+    );
+  if (call.method === "sweep_merchant_treasury")
+    check(
+      outcome.kind === "treasury_swept" &&
+        outcome.merchant_id === args["merchant_id"] &&
+        outcome.epoch === args["epoch"],
+      "treasury reviewed terms mismatch",
+    );
   if (call.method === "fund_customer_budget")
     check(
       outcome.kind === "customer_funded" && outcome.epoch === args["epoch"],

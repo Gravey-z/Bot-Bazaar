@@ -9,6 +9,7 @@ mod ownership;
 mod production;
 mod purchases;
 mod recipes;
+mod sources;
 pub use ownership::{Command, Decimal};
 use ownership::{CommandRecord, Player, Shop};
 pub use purchases::MerchantId;
@@ -203,6 +204,10 @@ pub struct LivingTown {
     customer_pool: customers::Pool,
     customer_topups: u128,
     customer_consumed: [u128; 6],
+    raw_epochs: [u64; 4],
+    treasury_epochs: [u64; 3],
+    supplied_items: [u128; 6],
+    treasury_burns: u128,
 }
 impl LivingTown {
     fn assert_versions(&self) {
@@ -226,8 +231,7 @@ impl LivingTown {
             shops.push(json!({"shop_id":(index+1).to_string(),"owner":owner,"name":(["Rex","Luna","Bolt"][index]),"revision":npc.production_revision.to_string(),"production_slots":"1","policy_revision":"1","created_at_ns":self.genesis_time_ns.to_string(),"ownership_command_sequence":null}));
             ledgers.push(purchases::npc_ledger(index, npc));
         }
-        let zero = Inventory::default().view();
-        json!({"paused":self.paused,"registered_player_count":self.registered_player_count.to_string(),"epoch":((env::block_timestamp()-self.genesis_time_ns)/60_000_000_000).to_string(),"genesis_time_ns":self.genesis_time_ns.to_string(),"npc_shops":shops,"npc_ledgers":ledgers,"customer_pool":self.customer_pool.view(self.customer_epoch()),"totals":{"initial_gold":"700","player_grants":self.issued_grants.to_string(),"customer_topups":self.customer_topups.to_string(),"upgrade_burns":"0","treasury_burns":"0","seed_items":Inventory::new([10,10,20,20,0,0]).view(),"supplied_items":zero,"recipe_inputs_consumed":Value::Object(ITEM_IDS.iter().zip(self.recipe_inputs_consumed).map(|(k,v)|((*k).to_owned(),json!(v.to_string()))).collect()),"completed_outputs":Value::Object(ITEM_IDS.iter().zip(self.completed_outputs).map(|(k,v)|((*k).to_owned(),json!(v.to_string()))).collect()),"customer_consumed":Value::Object(ITEM_IDS.iter().zip(self.customer_consumed).map(|(k,v)|((*k).to_owned(),json!(v.to_string()))).collect())},"market_event":null,"next_shop_id":self.next_shop_id.to_string(),"next_listing_id":self.next_listing_id.to_string(),"next_job_id":self.next_job_id.to_string(),"next_offer_id":"1","next_trade_id":self.next_trade_id.to_string(),"next_market_event_id":"1","retained_events_from":"1","limits":config()["limits"]})
+        json!({"paused":self.paused,"registered_player_count":self.registered_player_count.to_string(),"epoch":((env::block_timestamp()-self.genesis_time_ns)/60_000_000_000).to_string(),"genesis_time_ns":self.genesis_time_ns.to_string(),"npc_shops":shops,"npc_ledgers":ledgers,"customer_pool":self.customer_pool.view(self.customer_epoch()),"totals":{"initial_gold":"700","player_grants":self.issued_grants.to_string(),"customer_topups":self.customer_topups.to_string(),"upgrade_burns":"0","treasury_burns":self.treasury_burns.to_string(),"seed_items":Inventory::new([10,10,20,20,0,0]).view(),"supplied_items":Value::Object(ITEM_IDS.iter().zip(self.supplied_items).map(|(k,v)|((*k).to_owned(),json!(v.to_string()))).collect()),"recipe_inputs_consumed":Value::Object(ITEM_IDS.iter().zip(self.recipe_inputs_consumed).map(|(k,v)|((*k).to_owned(),json!(v.to_string()))).collect()),"completed_outputs":Value::Object(ITEM_IDS.iter().zip(self.completed_outputs).map(|(k,v)|((*k).to_owned(),json!(v.to_string()))).collect()),"customer_consumed":Value::Object(ITEM_IDS.iter().zip(self.customer_consumed).map(|(k,v)|((*k).to_owned(),json!(v.to_string()))).collect())},"market_event":null,"next_shop_id":self.next_shop_id.to_string(),"next_listing_id":self.next_listing_id.to_string(),"next_job_id":self.next_job_id.to_string(),"next_offer_id":"1","next_trade_id":self.next_trade_id.to_string(),"next_market_event_id":"1","retained_events_from":"1","limits":config()["limits"]})
     }
 }
 #[near]
@@ -341,6 +345,10 @@ impl LivingTown {
             trades: LookupMap::new(b"lt:v2:trades:".to_vec()),
             customer_pool: customers::Pool::initial(),
             customer_topups: 0,
+            raw_epochs: [0; 4],
+            treasury_epochs: [0; 3],
+            supplied_items: [0; 6],
+            treasury_burns: 0,
             customer_consumed: [0; 6],
             next_listing_id: 5,
             listing_slots: LookupMap::new(b"lt:v2:listing-slots:".to_vec()),
@@ -371,7 +379,7 @@ impl LivingTown {
     pub fn get_foundation(&self) -> Value {
         let _: EmptyArgs = input();
         self.assert_versions();
-        self.snapshot(json!({"owner_account_id":self.owner,"operator_account_id":self.operator,"merchant_controllers":{"rex":self.controllers[0],"luna":self.controllers[1],"bolt":self.controllers[2]},"item_ids":ITEM_IDS,"supported_methods":["initialize_town","get_foundation","get_town","register_player","create_shop","rename_shop","get_player","get_shop","get_player_shops","get_command","buy_from_merchant","get_listings","get_trade","get_shop_inventory","get_recipes","start_production","get_production_jobs","complete_production","set_listing","cancel_listing","fund_customer_budget","settle_customer_purchase"]}))
+        self.snapshot(json!({"owner_account_id":self.owner,"operator_account_id":self.operator,"merchant_controllers":{"rex":self.controllers[0],"luna":self.controllers[1],"bolt":self.controllers[2]},"item_ids":ITEM_IDS,"supported_methods":["initialize_town","get_foundation","get_town","register_player","create_shop","rename_shop","get_player","get_shop","get_player_shops","get_command","buy_from_merchant","get_listings","get_trade","get_shop_inventory","get_recipes","start_production","get_production_jobs","complete_production","set_listing","cancel_listing","get_source_state","allocate_raw_supply","sweep_merchant_treasury","fund_customer_budget","settle_customer_purchase"]}))
     }
 }
 

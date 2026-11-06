@@ -200,16 +200,41 @@ test("Bolt waits for floors, reserved inputs, gold/capacity and bounded product 
   assert.notEqual(action(i, "bolt").kind, "start_production");
 });
 
-test("the actual captured NPC job occupies its slot, and confirmed readiness compiles permissionless completion", () => {
-  const i = input(
-      capture.stages.find((s) => s.name === "craft_versus_reserve").after.town,
-    ),
-    job = structuredClone(
-      capture.stages
-        .find((s) => s.name === "craft_versus_reserve")
-        .calls.find((c) => c.method === "start_production").effect.data.outcome
-        .job,
-    );
+test("running NPC jobs occupy their slot and known readiness compiles permissionless completion", () => {
+  const stage = capture.stages.find((s) => s.name === "craft_versus_reserve");
+  const i = input(stage.after.town);
+  const actual = stage.calls.find((c) => c.method === "start_production").effect
+    ?.data.outcome.job;
+  // Race winners vary. If reserve won, use an explicit controlled job rather than claiming another receipt.
+  const job = structuredClone(
+    actual ?? {
+      recipe_id: "iron_tool",
+      recipe_version: "1",
+      config_version: "1",
+      quantity: "3",
+      inputs_consumed: {
+        crystal: "0",
+        wood: "3",
+        herb: "0",
+        iron: "6",
+        health_potion: "0",
+        iron_tool: "0",
+      },
+      output_item: "iron_tool",
+      output_quantity: "3",
+      start_at_ns: i.town.block_timestamp_ns,
+      ready_at_ns: (
+        BigInt(i.town.block_timestamp_ns) + 540000000000n
+      ).toString(),
+      job_id: "1",
+      shop_id: "3",
+      owner: { kind: "merchant", merchant_id: "bolt" },
+      completed_at_ns: null,
+      status: "running",
+      start_command_sequence: "3",
+      revision: "1",
+    },
+  );
   i.merchants[2].job = job;
   const inv = ledger(i, "bolt").inventory;
   inv.production_output_reserved.iron_tool = job.output_quantity;
