@@ -139,6 +139,10 @@ export type {
 
 export { parseLivingTownWebProfile } from "./living-town/web-profile.js";
 export { livingTownListingEffect } from "./living-town/listings.js";
+export {
+  livingTownCustomerEffect,
+  livingTownCustomerTrade,
+} from "./living-town/customers.js";
 export type { LivingTownWebProfile } from "./living-town/web-profile.js";
 
 export {

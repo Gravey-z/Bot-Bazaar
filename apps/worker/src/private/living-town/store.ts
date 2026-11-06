@@ -582,7 +582,9 @@ export class LivingTownProjectionStore {
       o.kind === "production_started" ||
       o.kind === "production_completed" ||
       o.kind === "listing_set" ||
-      o.kind === "listing_cancelled"
+      o.kind === "listing_cancelled" ||
+      o.kind === "customer_funded" ||
+      o.kind === "customer_sale"
     )
       return false;
     if (o.kind === "player_registered") {
@@ -663,6 +665,10 @@ export class LivingTownProjectionStore {
       (BigInt(result.block_timestamp_ns) - BigInt(t.genesis_time_ns)) /
       60_000_000_000n
     ).toString();
+    if (t.customer_pool.epoch !== epoch) {
+      t.customer_pool.potion_units_bought = parseU64("0");
+      t.customer_pool.tool_units_bought = parseU64("0");
+    }
     t.epoch = parseU64(epoch);
     t.customer_pool.epoch = parseU64(epoch);
     livingTownTown(t);
@@ -682,6 +688,10 @@ export class LivingTownProjectionStore {
     );
     if (t.market_revision !== s.town.market_revision) return false;
     const expected = copy(s.town.data);
+    if (expected.customer_pool.epoch !== t.data.customer_pool.epoch) {
+      expected.customer_pool.potion_units_bought = parseU64("0");
+      expected.customer_pool.tool_units_bought = parseU64("0");
+    }
     expected.epoch = t.data.epoch;
     expected.customer_pool.epoch = t.data.customer_pool.epoch;
     requireValue(

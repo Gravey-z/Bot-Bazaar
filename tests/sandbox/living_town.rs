@@ -4,6 +4,7 @@ use std::path::Path;
 mod living_town_adapter;
 mod living_town_adversarial;
 mod living_town_completion;
+mod living_town_customers;
 mod living_town_listings;
 mod living_town_ownership;
 mod living_town_production;

@@ -197,6 +197,8 @@ pub(crate) enum Outcome {
     Purchased(Box<super::purchases::Purchase>),
     Started(Box<super::production::Started>),
     Listing(Box<super::listings::Change>),
+    CustomerFunded(Box<super::customers::Funded>),
+    CustomerSale(Box<super::customers::Sale>),
 }
 impl Outcome {
     fn method(&self) -> &'static str {
@@ -206,6 +208,8 @@ impl Outcome {
             Self::Renamed(_) => "rename_shop",
             Self::Purchased(_) => "buy_from_merchant",
             Self::Started(_) => "start_production",
+            Self::CustomerFunded(_) => "fund_customer_budget",
+            Self::CustomerSale(_) => "settle_customer_purchase",
             Self::Listing(change) => {
                 if change.cancelled {
                     "cancel_listing"
@@ -222,6 +226,8 @@ impl Outcome {
             Self::Renamed(s) => json!({"kind":"shop_renamed","shop":s.view()}),
             Self::Purchased(p) => p.view(),
             Self::Started(p) => p.view(),
+            Self::CustomerFunded(p) => p.view(),
+            Self::CustomerSale(p) => p.view(),
             Self::Listing(p) => p.view(),
         }
     }

@@ -446,6 +446,15 @@ const marketEvent = object({
   herb_supply_ceiling: literal("4"),
   revision: positiveU64,
 });
+export const livingTownCustomerPool = object({
+  pool_id: literal("town_customers"),
+  gold: bounded(0n, 200n),
+  epoch: parseU64,
+  last_funded_epoch: parseU64,
+  potion_units_bought: bounded(0n, 2n),
+  tool_units_bought: bounded(0n, 2n),
+  revision: positiveU64,
+});
 const townShape = object({
   paused: boolean,
   registered_player_count: bounded(0n, 1000n),
@@ -453,15 +462,7 @@ const townShape = object({
   genesis_time_ns: parseU64,
   npc_shops: array(livingTownShop, 3),
   npc_ledgers: array(livingTownLedger, 3),
-  customer_pool: object({
-    pool_id: literal("town_customers"),
-    gold: bounded(0n, 200n),
-    epoch: parseU64,
-    last_funded_epoch: parseU64,
-    potion_units_bought: bounded(0n, 2n),
-    tool_units_bought: bounded(0n, 2n),
-    revision: positiveU64,
-  }),
+  customer_pool: livingTownCustomerPool,
   totals: livingTownTotals,
   market_event: nullable(marketEvent),
   next_shop_id: positiveU64,

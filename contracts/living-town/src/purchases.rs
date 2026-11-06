@@ -58,9 +58,23 @@ pub(crate) fn npc_ledger(index: usize, npc: &Npc) -> Value {
 fn listing_view(index: usize, item: Item, listing: &Listing) -> Value {
     json!({"listing_id":listing.id.to_string(),"shop_id":(index+1).to_string(),"owner":{"kind":"merchant","merchant_id":MERCHANTS[index]},"item_id":item,"remaining_quantity":listing.quantity.to_string(),"unit_price":listing.unit_price.to_string(),"revision":listing.revision.to_string(),"active":listing.quantity>0})
 }
+#[near(serializers=[borsh])]
+#[derive(Clone)]
+pub(crate) enum Trade {
+    Raw(RawTrade),
+    Customer(super::customers::SaleTrade),
+}
+impl Trade {
+    fn view(&self) -> Value {
+        match self {
+            Self::Raw(t) => t.view(),
+            Self::Customer(t) => t.view(),
+        }
+    }
+}
 #[near(serializers = [borsh])]
 #[derive(Clone)]
-pub(crate) struct Trade {
+pub(crate) struct RawTrade {
     id: u64,
     buyer: AccountId,
     merchant: MerchantId,
@@ -73,7 +87,7 @@ pub(crate) struct Trade {
     command_sequence: u64,
     event_sequence: u64,
 }
-impl Trade {
+impl RawTrade {
     fn view(&self) -> Value {
         json!({"trade_id":self.id.to_string(),"kind":"raw_purchase","buyer":{"kind":"player","account_id":self.buyer},"customer_pool_id":null,"seller":{"kind":"merchant","merchant_id":self.merchant},"item_id":self.item,"quantity":self.quantity.to_string(),"unit_price":self.unit_price.to_string(),"total_price":self.total.to_string(),"listing_id":self.listing_id.to_string(),"offer_id":null,"consumed_quantity":"0","settled_at_ns":self.settled_at_ns.to_string(),"command_principal":format!("account:{}",self.buyer),"command_sequence":self.command_sequence.to_string(),"event_sequence":self.event_sequence.to_string()})
     }
@@ -81,7 +95,7 @@ impl Trade {
 #[near(serializers = [borsh])]
 #[derive(Clone)]
 pub(crate) struct Purchase {
-    trade: Trade,
+    trade: RawTrade,
     listing: Listing,
     buyer: Player,
     seller: Npc,
@@ -246,7 +260,7 @@ impl LivingTown {
             expected_listing_revision.0,
             max_total_price.0,
         );
-        let trade = Trade {
+        let trade = RawTrade {
             id: self.next_trade_id,
             buyer: actor.clone(),
             merchant: merchant_id,
@@ -263,7 +277,7 @@ impl LivingTown {
             event_sequence: next(self.market_revision),
         };
         self.next_trade_id = next(trade.id);
-        self.trades.insert(trade.id, trade.clone());
+        self.trades.insert(trade.id, Trade::Raw(trade.clone()));
         if trade.id > 256 {
             self.trades.remove(&(trade.id - 256));
         }

@@ -1,3 +1,7 @@
+import {
+  livingTownCustomerEffect,
+  livingTownCustomerTrade,
+} from "./customers.js";
 import { livingTownListingEffect } from "./listings.js";
 import {
   livingTownProductionEffect,
@@ -93,15 +97,19 @@ const listingsArgs = object({
   },
 });
 const effect = (v: unknown) =>
-  ["listing_set", "listing_cancelled"].includes(
+  ["customer_funded", "customer_sale"].includes(
     String(record(record(v)["outcome"])["kind"]),
   )
-    ? livingTownListingEffect(v)
-    : record(record(v)["outcome"])["kind"] === "production_started"
-      ? livingTownProductionEffect(v)
-      : record(record(v)["outcome"])["kind"] === "raw_purchased"
-        ? livingTownPurchaseEffect(v)
-        : livingTownOwnershipEffect(v);
+    ? livingTownCustomerEffect(v)
+    : ["listing_set", "listing_cancelled"].includes(
+          String(record(record(v)["outcome"])["kind"]),
+        )
+      ? livingTownListingEffect(v)
+      : record(record(v)["outcome"])["kind"] === "production_started"
+        ? livingTownProductionEffect(v)
+        : record(record(v)["outcome"])["kind"] === "raw_purchased"
+          ? livingTownPurchaseEffect(v)
+          : livingTownOwnershipEffect(v);
 const commandLookup = (v: unknown) => {
   const kind = record(v)["kind"];
   if (kind === "found")
@@ -109,6 +117,8 @@ const commandLookup = (v: unknown) => {
       kind: choice(["found"] as const),
       high_water: positiveU64,
       method: choice([
+        "fund_customer_budget",
+        "settle_customer_purchase",
         "set_listing",
         "cancel_listing",
         "start_production",
@@ -148,7 +158,13 @@ type Page<T> = {
 };
 const tradeLookup = (v: unknown) =>
   record(v)["kind"] === "found"
-    ? object({ kind: choice(["found"] as const), value: livingTownRawTrade })(v)
+    ? object({
+        kind: choice(["found"] as const),
+        value: (v: unknown) =>
+          record(v)["kind"] === "customer_sale"
+            ? livingTownCustomerTrade(v)
+            : livingTownRawTrade(v),
+      })(v)
     : object({
         kind: choice(["pruned", "not_found"] as const),
         id: positiveU64,
@@ -376,6 +392,8 @@ export class FinalizedLivingTownReader {
                 raw_purchased: "buy_from_merchant",
                 production_started: "start_production",
                 listing_set: "set_listing",
+                customer_funded: "fund_customer_budget",
+                customer_sale: "settle_customer_purchase",
                 listing_cancelled: "cancel_listing",
               } as const
             )[d.effect.outcome.kind],
