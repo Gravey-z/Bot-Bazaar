@@ -217,6 +217,15 @@ export class BudgetRepository {
         .run(this.session(), now, proof.evidenceRef);
     });
   }
+  /** Stop new shared-ledger admissions without releasing outstanding reservations. */
+  invalidate(evidenceRef: string): void {
+    id(evidenceRef);
+    this.write(() =>
+      this.db
+        .prepare("UPDATE usage_state SET verified_session=NULL,evidence_ref=?")
+        .run(evidenceRef),
+    );
+  }
   missingHistory(fencedAt: number, evidenceRef: string): void {
     timestamp(fencedAt);
     id(evidenceRef);

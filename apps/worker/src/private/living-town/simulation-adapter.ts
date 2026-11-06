@@ -16,7 +16,11 @@ import type { TownSubmission } from "./town-executor.js";
 import type { TownChainAdapter, TownCall } from "./town-chain.js";
 import { LivingTownMerchantPolicy } from "./merchant-policy.js";
 import type { MerchantPolicyInput } from "./merchant-policy.js";
-import { parseTownProposal, resolveTownProposal } from "./proposals.js";
+import {
+  parseTownProposal,
+  resolveTownProposal,
+  isTownProposalDelivery,
+} from "./proposals.js";
 import type { TownProposal, ProposalMerchant } from "./proposals.js";
 
 type Decision =
@@ -30,6 +34,7 @@ type Decision =
       proposal: TownProposal;
       origin: "rules" | "model_proposal";
       validation: string;
+      inferenceRef?: string;
     };
 export type SimulationPoll = {
   kind: "advanced" | "blocked" | "idle" | "deferred";
@@ -287,7 +292,10 @@ export class LivingTownSimulationAdapter {
                           step.kind === "set_listing" ? step.item : "iron_tool",
                       },
               };
-          const proposal = parseTownProposal(value),
+          const delivery = isTownProposalDelivery(value) ? value : null;
+          const proposal = parseTownProposal(
+              delivery ? delivery.proposal : value,
+            ),
             resolution = resolveTownProposal(
               proposal,
               input,
@@ -302,7 +310,9 @@ export class LivingTownSimulationAdapter {
             merchant: lane as ProposalMerchant,
             tickId,
             proposal,
-            origin: this.propose ? "model_proposal" : "rules",
+            origin:
+              delivery?.origin ?? (this.propose ? "model_proposal" : "rules"),
+            ...(delivery ? { inferenceRef: delivery.inferenceRef } : {}),
             validation: resolution.reason,
           };
         } catch {

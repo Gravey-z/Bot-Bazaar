@@ -11,6 +11,16 @@ import { InferenceUnavailableError } from "../inference/availability.js";
 import type { AiCode } from "../inference/availability.js";
 export class DefinitiveProviderFailure extends Error {}
 export type ProviderResponse = Decision;
+export interface ProviderInvocationContext {
+  signal: AbortSignal;
+  requestId: string;
+  payload: string;
+  maxOutputTokens: 512;
+  reportIdentity: (identity: { provider: string; model: string }) => void;
+}
+export type ProviderInvocation = (
+  context: ProviderInvocationContext,
+) => Promise<unknown>;
 export class ProviderRunner {
   constructor(
     private readonly store: WorkerStore,
@@ -33,13 +43,7 @@ export class ProviderRunner {
   }
   async run(
     request: ProviderRequest,
-    invoke: (context: {
-      signal: AbortSignal;
-      requestId: string;
-      payload: string;
-      maxOutputTokens: 512;
-      reportIdentity: (identity: { provider: string; model: string }) => void;
-    }) => Promise<unknown>,
+    invoke: ProviderInvocation,
     options: { timeoutMs?: number; signal?: AbortSignal } = {},
   ): Promise<{
     requestId: string;

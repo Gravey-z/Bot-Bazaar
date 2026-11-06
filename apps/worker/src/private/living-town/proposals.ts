@@ -329,3 +329,59 @@ export function resolveTownProposal(
     call,
   };
 }
+
+export interface TownProposalContext {
+  tickId: string;
+  merchant: ProposalMerchant;
+  facts: MerchantPolicyInput;
+  schemaVersion: "living-town-proposal-v1";
+}
+const deliveries = new WeakSet<object>();
+/** Trusted adapter wrapper; raw model JSON cannot attach its own origin/accounting identity. */
+export class TownProposalDelivery {
+  readonly proposal: TownProposal;
+  constructor(
+    proposal: unknown,
+    readonly origin: "rules" | "model_proposal",
+    readonly inferenceRef: string,
+  ) {
+    this.proposal = parseTownProposal(proposal);
+    requireStorage(
+      ["rules", "model_proposal"].includes(origin) &&
+        /^[a-zA-Z0-9:_.-]{1,128}$/.test(inferenceRef),
+      "invalid proposal delivery",
+    );
+    deliveries.add(this);
+    Object.freeze(this);
+  }
+}
+export function isTownProposalDelivery(
+  value: unknown,
+): value is TownProposalDelivery {
+  return !!value && typeof value === "object" && deliveries.has(value);
+}
+export function rulesTownProposal(
+  context: TownProposalContext,
+  policy: LivingTownMerchantPolicy,
+  reason = "deterministic merchant policy",
+  wait = false,
+): TownProposal {
+  const town = livingTownSnapshot(livingTownTown)(context.facts.town),
+    step = policy
+      .evaluate(context.facts)
+      .decisions.find((d) => d.merchant === context.merchant)!.action;
+  return parseTownProposal({
+    schema: "living-town-proposal-v1",
+    tick_id: context.tickId,
+    market_revision: town.market_revision,
+    merchant_id: context.merchant,
+    reason,
+    action:
+      wait || step.kind === "wait"
+        ? { type: "wait" }
+        : {
+            type: "restock",
+            item_id: step.kind === "set_listing" ? step.item : "iron_tool",
+          },
+  });
+}
