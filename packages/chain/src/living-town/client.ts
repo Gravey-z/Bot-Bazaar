@@ -25,6 +25,7 @@ import {
   positiveU64,
   record,
   rpcU64,
+  publicKey,
 } from "../wire.js";
 import {
   decodeLivingTownSnapshot,
@@ -175,6 +176,36 @@ export class FinalizedLivingTownReader {
     readonly identity: LivingTownIdentity,
     readonly block: FinalizedBlock,
   ) {}
+  async getAccessKey(
+    account: string,
+    key: string,
+  ): Promise<{
+    nonce: string;
+    permission: unknown;
+    block_hash: string;
+    block_height: string;
+  }> {
+    // query() pins contract views; access-key queries deliberately target the signer.
+    const r = record(
+      await this.rpc("query", {
+        request_type: "view_access_key",
+        account_id: accountId(account),
+        public_key: publicKey(key),
+        block_id: this.block.hash,
+      }),
+    );
+    check(
+      r["block_hash"] === this.block.hash &&
+        rpcU64(r["block_height"]) === this.block.height,
+      "V2 access-key block mismatch",
+    );
+    return {
+      nonce: rpcU64(r["nonce"]),
+      permission: r["permission"],
+      block_hash: this.block.hash,
+      block_height: this.block.height,
+    };
+  }
   async query(
     requestType: string,
     extra: Record<string, unknown> = {},

@@ -14,11 +14,18 @@ export const runtimeMethods = [
 ] as const;
 
 export const maximumRuntimeAllowance = 100_000_000_000_000_000_000_000n;
+export const customerRuntimeMethods = [
+  "fund_customer_budget",
+  "settle_customer_purchase",
+] as const;
 
 export function assertRuntimePermission(
   permission: unknown,
   contractId: string,
+  scope: "merchant" | "customer" = "merchant",
 ): void {
+  const permitted =
+    scope === "customer" ? customerRuntimeMethods : runtimeMethods;
   if (
     !permission ||
     typeof permission !== "object" ||
@@ -53,19 +60,22 @@ export function assertRuntimePermission(
   if (
     !("method_names" in call) ||
     !Array.isArray(call.method_names) ||
-    call.method_names.length !== runtimeMethods.length ||
-    new Set(call.method_names).size !== runtimeMethods.length ||
+    call.method_names.length !== permitted.length ||
+    new Set(call.method_names).size !== permitted.length ||
     !call.method_names.every((method: unknown) =>
-      runtimeMethods.some((allowed) => allowed === method),
+      permitted.some((allowed) => allowed === method),
     )
   ) {
     throw new Error(
-      "Runtime key must allow exactly the five merchant runtime methods",
+      scope === "customer"
+        ? "Runtime key must allow exactly the two customer runtime methods"
+        : "Runtime key must allow exactly the five merchant runtime methods",
     );
   }
 }
 
 interface RestrictedSigningInput {
+  scope?: "merchant" | "customer";
   networkId: "testnet";
   controllerId: string;
   contractId: string;
@@ -87,7 +97,7 @@ export async function signRestrictedTransaction(
     throw new Error("Merchant signing is restricted to Testnet");
   if (!controllerId || !contractId)
     throw new Error("Controller and contract IDs are required");
-  assertRuntimePermission(accessKey.permission, contractId);
+  assertRuntimePermission(accessKey.permission, contractId, input.scope);
 
   const transaction = Transaction.decode(input.transaction.encode());
   if (
@@ -115,7 +125,9 @@ export async function signRestrictedTransaction(
     );
   }
   const call = action.functionCall;
-  if (!runtimeMethods.some((method) => method === call.methodName)) {
+  const permitted =
+    input.scope === "customer" ? customerRuntimeMethods : runtimeMethods;
+  if (!permitted.some((method) => method === call.methodName)) {
     throw new Error("Method is outside the merchant runtime allowlist");
   }
   if (call.deposit !== 0n)

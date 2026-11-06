@@ -66,6 +66,7 @@ import {
   timestamp,
 } from "./validation.js";
 import { createBackup } from "./backup.js";
+import { configureJournal, RuntimeJournal } from "./journal.js";
 
 type Row = Record<string, string | number | bigint | Uint8Array | null>;
 export interface StoreOptions {
@@ -142,25 +143,7 @@ export class WorkerStore {
       allowExtension: false,
     });
     try {
-      // Held by SQLite's OS locks until close/crash, with no heartbeat takeover.
-      this.db.exec("PRAGMA locking_mode=EXCLUSIVE; PRAGMA busy_timeout=1000;");
-      if (fresh) this.db.exec("PRAGMA auto_vacuum=INCREMENTAL");
-      this.db.exec("BEGIN EXCLUSIVE; COMMIT;");
-      this.db.exec(
-        "PRAGMA journal_mode=WAL; PRAGMA synchronous=FULL; PRAGMA foreign_keys=ON; PRAGMA trusted_schema=OFF;",
-      );
-      for (const [setting, expectedValue] of [
-        ["locking_mode", "exclusive"],
-        ["journal_mode", "wal"],
-        ["synchronous", 2],
-        ["foreign_keys", 1],
-        ["auto_vacuum", 2],
-      ] as const)
-        requireStorage(
-          Object.values(this.db.prepare(`PRAGMA ${setting}`).get()!)[0] ===
-            expectedValue,
-          "durability setting did not take effect",
-        );
+      configureJournal(this.db, fresh);
       const version = Number(
         this.db.prepare("PRAGMA user_version").get()!["user_version"],
       );
@@ -883,18 +866,18 @@ export class WorkerStore {
             fields["proposer"] === snapshot.merchantId,
           "proposal actor mismatch",
         );
-        this.run(
-          "INSERT INTO intents VALUES(?,?,?,?,?,?,?,?,?,'prepared',?,?)",
-          snapshot.id,
-          snapshot.jobId,
-          snapshot.decisionId ?? null,
-          snapshot.merchantId,
-          snapshot.method,
-          actionId,
-          argsJson,
-          argsDigest,
-          offerId,
-          now,
+        new RuntimeJournal(this.db).insert(
+          {
+            id: snapshot.id,
+            jobId: snapshot.jobId,
+            ...(snapshot.decisionId ? { decisionId: snapshot.decisionId } : {}),
+            lane: snapshot.merchantId,
+            method: snapshot.method,
+            actionId,
+            argsJson,
+            digest: argsDigest,
+            offerId,
+          },
           now,
         );
       },
@@ -908,9 +891,7 @@ export class WorkerStore {
     return this.one("SELECT * FROM attempts WHERE intent_id=?", id(intentId));
   }
   unresolvedIntents(): Row[] {
-    return this.all(
-      `SELECT intents.*,attempts.tx_hash,attempts.signed_json FROM intents LEFT JOIN attempts ON attempts.intent_id=intents.id WHERE status IN ${unresolved} ORDER BY created_at,id LIMIT 3`,
-    );
+    return new RuntimeJournal(this.db).unresolved();
   }
   unprovenOfferDependencies(): Row[] {
     return this.all(
@@ -977,18 +958,14 @@ export class WorkerStore {
           row["args_json"] === json(args),
         "signed intent mismatch",
       );
-      this.run(
-        "INSERT INTO attempts(intent_id,tx_hash,nonce,signed_json,updated_at) VALUES(?,?,?,?,?)",
+      new RuntimeJournal(this.db).signed(
         intentId,
-        prepared.transactionHash,
-        prepared.nonce,
-        signedJson,
+        {
+          hash: prepared.transactionHash,
+          nonce: prepared.nonce,
+          json: signedJson,
+        },
         now,
-      );
-      this.run(
-        "UPDATE intents SET status='signed',updated_at=? WHERE id=?",
-        now,
-        intentId,
       );
     });
   }
@@ -1004,20 +981,10 @@ export class WorkerStore {
       "invalid broadcast state",
     );
     this.write(() => {
-      requireStorage(
-        ["signed", "submitted", "unknown"].includes(
-          String(this.getIntent(intentId)?.["status"]),
-        ),
-        "signed attempt required",
-      );
-      this.run(
-        "UPDATE intents SET status=?,updated_at=? WHERE id=?",
-        status,
-        now,
-        intentId,
-      );
+      new RuntimeJournal(this.db).broadcast(intentId, status, now);
     });
   }
+
   finishAttempt(
     intentId: string,
     evidence: ReceiptStatus,

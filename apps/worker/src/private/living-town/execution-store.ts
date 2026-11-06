@@ -1,0 +1,466 @@
+import { DatabaseSync } from "node:sqlite";
+import {
+  chmodSync,
+  closeSync,
+  existsSync,
+  lstatSync,
+  openSync,
+  realpathSync,
+  statfsSync,
+  statSync,
+} from "node:fs";
+import { isAbsolute, join } from "node:path";
+import { randomUUID } from "node:crypto";
+import {
+  canonicalLivingTownJson,
+  parseLivingTownIdentity,
+  livingTownCustomerEffect,
+  parseU64,
+} from "@bot-bazaar/chain";
+import { schema } from "../storage/schema.js";
+import {
+  configureJournal,
+  RuntimeJournal,
+  unresolvedStatuses,
+} from "../storage/journal.js";
+import { id, json, requireStorage, sha256 } from "../storage/validation.js";
+import { readCustomerPrepared, customerCall } from "./customer-chain.js";
+import type { PreparedCustomerCall, CustomerCall } from "./customer-chain.js";
+
+export const townLanes = ["rex", "luna", "bolt", "operator"] as const;
+export type TownLane = (typeof townLanes)[number];
+type Row = Record<string, string | number | bigint | Uint8Array | null>;
+export interface CustomerAction {
+  id: string;
+  tick: string;
+  arrival: string;
+  decision: unknown;
+  call: CustomerCall | null;
+  digest: string | null;
+}
+// The same journal schema/indexes as V1, with V2's fourth actor and customer methods.
+const townJournalSchema = schema
+  .replace(
+    "merchant_id IN ('rex','luna','bolt')",
+    "merchant_id IN ('rex','luna','bolt','operator')",
+  )
+  .replace(
+    "'cancel_trade','expire_offers'))",
+    "'cancel_trade','expire_offers','fund_customer_budget','settle_customer_purchase'))",
+  );
+
+/** One exclusive execution database for all V2 actors; never a customer-only side journal. */
+export class LivingTownExecutionStore {
+  private readonly db: DatabaseSync;
+  private readonly journal: RuntimeJournal;
+  readonly identity: ReturnType<typeof parseLivingTownIdentity>;
+  readonly path: string;
+  readonly sessionId = randomUUID();
+  readonly identityHash: string;
+  private stopped = false;
+  private ready = false;
+  constructor(
+    readonly dataDir: string,
+    identity: unknown,
+    readonly seed: string,
+    create = false,
+  ) {
+    const parsedIdentity = parseLivingTownIdentity(identity);
+    this.identity = Object.freeze({
+      ...parsedIdentity,
+      deployment: Object.freeze(parsedIdentity.deployment),
+      controllers: Object.freeze(parsedIdentity.controllers),
+    });
+    parseU64(seed);
+    const identityJson = canonicalLivingTownJson(this.identity);
+    this.identityHash = sha256(identityJson);
+    requireStorage(
+      isAbsolute(dataDir) &&
+        lstatSync(dataDir).isDirectory() &&
+        !lstatSync(dataDir).isSymbolicLink(),
+      "absolute local journal directory required",
+    );
+    this.path = join(realpathSync(dataDir), "worker.sqlite");
+    const fresh = !existsSync(this.path);
+    requireStorage(
+      !fresh || create,
+      "explicit V2 execution journal initialization required",
+    );
+    if (fresh) closeSync(openSync(this.path, "wx", 0o600));
+    requireStorage(
+      lstatSync(this.path).isFile() && !lstatSync(this.path).isSymbolicLink(),
+      "regular execution database required",
+    );
+    chmodSync(this.path, 0o600);
+    this.db = new DatabaseSync(this.path, {
+      timeout: 1000,
+      enableForeignKeyConstraints: true,
+      enableDoubleQuotedStringLiterals: false,
+      allowExtension: false,
+    });
+    try {
+      configureJournal(this.db, fresh);
+      if (fresh) {
+        this.db.exec("BEGIN IMMEDIATE");
+        try {
+          this.db.exec(
+            townJournalSchema +
+              `
+            CREATE TABLE town_runtime(singleton INTEGER PRIMARY KEY CHECK(singleton=1), seed TEXT NOT NULL, epoch TEXT, next_arrival INTEGER NOT NULL DEFAULT 0 CHECK(next_arrival BETWEEN 0 AND 4)) STRICT;
+            CREATE TABLE customer_actions(id TEXT PRIMARY KEY REFERENCES jobs(id), tick TEXT NOT NULL, arrival TEXT NOT NULL, decision_json TEXT NOT NULL CHECK(length(CAST(decision_json AS BLOB))<=65536), UNIQUE(tick,arrival)) STRICT;
+            CREATE TRIGGER bound_customer_actions BEFORE INSERT ON customer_actions WHEN (SELECT count(*) FROM customer_actions)>=10000 BEGIN SELECT RAISE(ABORT,'customer action journal full'); END;
+            PRAGMA user_version=1001;`,
+          );
+          this.db
+            .prepare(
+              "INSERT INTO deployment(singleton,identity,policy_version,feed_generation,created_at) VALUES(1,?,'living-town-demand-v1',?,?)",
+            )
+            .run(identityJson, this.sessionId, Date.now());
+          this.db
+            .prepare("INSERT INTO town_runtime(singleton,seed) VALUES(1,?)")
+            .run(seed);
+          for (const lane of townLanes)
+            this.db
+              .prepare(
+                "INSERT INTO merchants(merchant_id,controller_id) VALUES(?,?)",
+              )
+              .run(
+                lane,
+                lane === "operator"
+                  ? this.identity.operatorId
+                  : this.identity.controllers[lane],
+              );
+          this.db.exec("COMMIT");
+        } catch (error) {
+          this.db.exec("ROLLBACK");
+          throw error;
+        }
+      }
+      requireStorage(
+        this.db.prepare("PRAGMA user_version").get()?.["user_version"] ===
+          1001 &&
+          this.db.prepare("SELECT identity FROM deployment").get()?.[
+            "identity"
+          ] === identityJson &&
+          this.db.prepare("SELECT seed FROM town_runtime").get()?.["seed"] ===
+            seed,
+        "execution identity/schema/seed mismatch; do not recreate journal",
+      );
+      requireStorage(
+        Object.values(this.db.prepare("PRAGMA quick_check").get()!)[0] ===
+          "ok" &&
+          this.db.prepare("PRAGMA foreign_key_check").all().length === 0,
+        "execution journal integrity failure",
+      );
+      this.db
+        .prepare("UPDATE deployment SET feed_generation=?,recovery_required=1")
+        .run(this.sessionId);
+    } catch (error) {
+      this.db.close();
+      throw error;
+    }
+    this.journal = new RuntimeJournal(this.db);
+  }
+  private write<T>(fn: () => T): T {
+    requireStorage(!this.stopped, "execution journal unavailable");
+    const disk = statfsSync(this.dataDir);
+    let bytes = 0;
+    for (const suffix of ["", "-wal", "-shm"])
+      if (existsSync(this.path + suffix))
+        bytes += statSync(this.path + suffix).size;
+    requireStorage(
+      disk.bavail * disk.bsize >= 16 * 1024 * 1024 && bytes < 0.9 * 2 ** 31,
+      "execution storage headroom exhausted",
+    );
+    this.db.exec("BEGIN IMMEDIATE");
+    try {
+      const result = fn();
+      this.db.exec("COMMIT");
+      return result;
+    } catch (error) {
+      try {
+        this.db.exec("ROLLBACK");
+      } catch {
+        /* fail closed */
+      }
+      this.ready = false;
+      throw error;
+    }
+  }
+  gate(): void {
+    requireStorage(
+      this.ready && !this.stopped,
+      "verified V2 recovery required",
+    );
+  }
+  invalidate(): void {
+    this.ready = false;
+  }
+  get(actionId: string): Row | undefined {
+    return this.db
+      .prepare(
+        "SELECT j.status AS job_status,c.*,i.method,i.args_json,i.args_digest,i.status,i.action_id,a.tx_hash,a.signed_json FROM customer_actions c JOIN jobs j ON j.id=c.id LEFT JOIN intents i ON i.id=c.id LEFT JOIN attempts a ON a.intent_id=i.id WHERE c.id=?",
+      )
+      .get(id(actionId));
+  }
+  unresolved(): Row[] {
+    return this.journal.unresolved();
+  }
+  checkpoint(lane: TownLane): Row {
+    requireStorage(townLanes.includes(lane), "unknown runtime lane");
+    return this.db
+      .prepare("SELECT * FROM merchants WHERE merchant_id=?")
+      .get(lane)!;
+  }
+  recovered(
+    checkpoints: Record<TownLane, { sequence: string; digest: string | null }>,
+  ): void {
+    this.write(() => {
+      requireStorage(
+        this.unresolved().length === 0,
+        "unresolved journal work blocks recovery",
+      );
+      for (const lane of townLanes) {
+        const current = checkpoints[lane],
+          old = this.checkpoint(lane);
+        parseU64(current.sequence);
+        requireStorage(
+          old["last_action_id"] === null
+            ? current.sequence === "0"
+            : current.sequence === old["last_action_id"] &&
+                current.digest === old["last_action_digest"],
+          "unexplained runtime command high-water",
+        );
+        this.db
+          .prepare(
+            "UPDATE merchants SET last_action_id=?,last_action_digest=? WHERE merchant_id=?",
+          )
+          .run(current.sequence, current.digest, lane);
+      }
+      this.db.exec("UPDATE deployment SET recovery_required=0");
+    });
+    this.ready = true;
+  }
+  /** Shared admission seam for merchant turns and operator actions. */
+  claimRuntimeJob(
+    jobId: string,
+    lanes: readonly TownLane[],
+    deadline: number,
+  ): void {
+    this.gate();
+    id(jobId);
+    requireStorage(
+      lanes.length > 0 &&
+        lanes.length <= 4 &&
+        new Set(lanes).size === lanes.length &&
+        lanes.every((l) => townLanes.includes(l)) &&
+        Number.isSafeInteger(deadline) &&
+        deadline > Date.now(),
+      "invalid runtime admission",
+    );
+    this.write(() => this.claim(jobId, lanes, deadline));
+  }
+  private claim(
+    jobId: string,
+    lanes: readonly TownLane[],
+    deadline: number,
+  ): void {
+    requireStorage(
+      this.unresolved().length === 0 &&
+        !this.db.prepare("SELECT id FROM jobs WHERE status='active'").get() &&
+        !this.db.prepare("SELECT job_id FROM merchant_locks LIMIT 1").get(),
+      "runtime work retains shared admission/locks",
+    );
+    this.db
+      .prepare(
+        "INSERT INTO jobs(id,trigger_key,trigger_ref,status,created_at,updated_at,deadline) VALUES(?,?,?,'active',?,?,?)",
+      )
+      .run(jobId, jobId, jobId, Date.now(), Date.now(), deadline);
+    for (const lane of lanes)
+      this.db
+        .prepare("INSERT INTO merchant_locks VALUES(?,'controller',?,?)")
+        .run(lane, jobId, Date.now());
+  }
+  prepare(action: CustomerAction, deadline: number): void {
+    this.gate();
+    id(action.id);
+    parseU64(action.tick);
+    requireStorage(
+      action.arrival === "fund" || /^[0-3]$/.test(action.arrival),
+      "invalid customer arrival",
+    );
+    this.write(() => {
+      const runtime = this.db.prepare("SELECT * FROM town_runtime").get()!;
+      requireStorage(
+        runtime["epoch"] === null ||
+          BigInt(action.tick) >= BigInt(String(runtime["epoch"])),
+        "old customer epoch cannot be replayed",
+      );
+      if (runtime["epoch"] !== action.tick) {
+        this.db
+          .prepare("UPDATE town_runtime SET epoch=?,next_arrival=0")
+          .run(action.tick);
+        runtime["next_arrival"] = 0;
+      }
+      requireStorage(
+        action.arrival === "fund" ||
+          Number(action.arrival) === runtime["next_arrival"],
+        "customer arrivals must execute in order",
+      );
+      this.claim(action.id, ["operator"], deadline);
+      this.db
+        .prepare("INSERT INTO customer_actions VALUES(?,?,?,?)")
+        .run(action.id, action.tick, action.arrival, json(action.decision));
+      if (action.call) {
+        const call = customerCall(action.call.method, action.call.args);
+        const command = call.args.command;
+        requireStorage(
+          command.sequence ===
+            (
+              BigInt(String(this.checkpoint("operator")["last_action_id"])) + 1n
+            ).toString() &&
+            action.digest &&
+            /^[a-f0-9]{64}$/.test(action.digest),
+          "next operator command required",
+        );
+        this.journal.insert(
+          {
+            id: action.id,
+            jobId: action.id,
+            lane: "operator",
+            method: call.method,
+            actionId: command.sequence,
+            argsJson: canonicalLivingTownJson(call.args),
+            digest: action.digest,
+            offerId: null,
+          },
+          Date.now(),
+        );
+      } else this.terminal(action.id, "completed");
+    });
+  }
+  saveSigned(actionId: string, value: PreparedCustomerCall): void {
+    this.gate();
+    const p = readCustomerPrepared(json(value), this.identity),
+      row = this.get(actionId);
+    requireStorage(
+      row?.["status"] === "prepared" &&
+        row["method"] === p.call.method &&
+        row["args_json"] === canonicalLivingTownJson(p.call.args),
+      "signed customer intent mismatch",
+    );
+    this.write(() =>
+      this.journal.signed(
+        actionId,
+        { hash: p.transactionHash, nonce: p.nonce, json: json(p) },
+        Date.now(),
+      ),
+    );
+  }
+  markBroadcast(actionId: string, state: "submitted" | "unknown"): void {
+    this.write(() => this.journal.broadcast(actionId, state, Date.now()));
+  }
+  resolve(actionId: string, evidence: unknown, applied: boolean): void {
+    this.write(() => {
+      const row = this.get(actionId);
+      requireStorage(
+        row &&
+          ["signed", "submitted", "unknown"].includes(String(row["status"])),
+        "signed customer work required",
+      );
+      const result = evidence as {
+        kind: string;
+        transactionHash?: string;
+        code?: string;
+        result?: { data: unknown };
+        command?: { data: { effect: unknown } };
+      };
+      if (applied) {
+        requireStorage(
+          result.kind === "succeeded"
+            ? result.transactionHash === row["tx_hash"]
+            : result.kind === "command_checkpoint",
+          "customer proof kind/hash mismatch",
+        );
+        const effect = livingTownCustomerEffect(
+          result.kind === "succeeded"
+            ? result.result?.data
+            : result.command?.data.effect,
+        );
+        requireStorage(
+          effect.principal === `account:${this.identity.operatorId}` &&
+            effect.command_sequence === row["action_id"] &&
+            effect.payload_sha256 === row["args_digest"],
+          "customer proof terms mismatch",
+        );
+      } else
+        requireStorage(
+          result.kind === "failed" &&
+            result.code === "EXECUTION_FAILED" &&
+            result.transactionHash === row["tx_hash"],
+          "customer failure proof mismatch",
+        );
+      this.db
+        .prepare(
+          "UPDATE attempts SET evidence_json=?,updated_at=? WHERE intent_id=?",
+        )
+        .run(json(evidence), Date.now(), actionId);
+      if (applied)
+        this.db
+          .prepare(
+            "UPDATE merchants SET last_action_id=?,last_action_digest=? WHERE merchant_id='operator'",
+          )
+          .run(row["action_id"]!, row["args_digest"]!);
+      this.db
+        .prepare("UPDATE intents SET status=?,updated_at=? WHERE id=?")
+        .run(applied ? "confirmed" : "failed", Date.now(), actionId);
+      this.terminal(actionId, applied ? "completed" : "failed");
+    });
+  }
+  abandon(actionId: string): void {
+    this.write(() => {
+      const row = this.get(actionId);
+      requireStorage(
+        row && ["prepared", "signed"].includes(String(row["status"])),
+        "broadcast work cannot be abandoned",
+      );
+      this.db
+        .prepare(
+          "UPDATE intents SET status='abandoned',updated_at=? WHERE id=?",
+        )
+        .run(Date.now(), actionId);
+      this.terminal(actionId, "expired");
+    });
+  }
+  private terminal(jobId: string, status: string): void {
+    requireStorage(
+      !this.db
+        .prepare(
+          `SELECT id FROM intents WHERE job_id=? AND status IN ${unresolvedStatuses}`,
+        )
+        .get(jobId),
+      "unknown work retains controller lock",
+    );
+    const action = this.db
+      .prepare("SELECT tick,arrival FROM customer_actions WHERE id=?")
+      .get(jobId);
+    if (action && action["arrival"] !== "fund")
+      this.db
+        .prepare("UPDATE town_runtime SET next_arrival=? WHERE epoch=?")
+        .run(Number(action["arrival"]) + 1, action["tick"]!);
+    this.db.prepare("DELETE FROM merchant_locks WHERE job_id=?").run(jobId);
+    this.db
+      .prepare("UPDATE jobs SET status=?,updated_at=? WHERE id=?")
+      .run(status, Date.now(), jobId);
+  }
+  completeRuntimeJob(jobId: string): void {
+    this.gate();
+    this.write(() => this.terminal(id(jobId), "completed"));
+  }
+  close(): void {
+    if (this.stopped) return;
+    this.ready = false;
+    this.stopped = true;
+    this.db.close();
+  }
+}
