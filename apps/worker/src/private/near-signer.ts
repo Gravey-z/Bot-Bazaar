@@ -13,6 +13,25 @@ export const runtimeMethods = [
   "expire_offers",
 ] as const;
 
+export const townMerchantMethods = [
+  "set_listing",
+  "start_production",
+  "complete_production",
+] as const;
+export const townSourceMethods = [
+  "allocate_raw_supply",
+  "sweep_merchant_treasury",
+] as const;
+type RuntimeScope = "merchant" | "customer" | "town_merchant" | "town_source";
+function methods(scope: RuntimeScope = "merchant"): readonly string[] {
+  return scope === "town_merchant"
+    ? townMerchantMethods
+    : scope === "town_source"
+      ? townSourceMethods
+      : scope === "customer"
+        ? customerRuntimeMethods
+        : runtimeMethods;
+}
 export const maximumRuntimeAllowance = 100_000_000_000_000_000_000_000n;
 export const customerRuntimeMethods = [
   "fund_customer_budget",
@@ -22,10 +41,9 @@ export const customerRuntimeMethods = [
 export function assertRuntimePermission(
   permission: unknown,
   contractId: string,
-  scope: "merchant" | "customer" = "merchant",
+  scope: RuntimeScope = "merchant",
 ): void {
-  const permitted =
-    scope === "customer" ? customerRuntimeMethods : runtimeMethods;
+  const permitted = methods(scope);
   if (
     !permission ||
     typeof permission !== "object" ||
@@ -67,15 +85,17 @@ export function assertRuntimePermission(
     )
   ) {
     throw new Error(
-      scope === "customer"
-        ? "Runtime key must allow exactly the two customer runtime methods"
-        : "Runtime key must allow exactly the five merchant runtime methods",
+      scope === "town_source" || scope === "town_merchant"
+        ? "Runtime key must allow exactly the selected V2 runtime methods"
+        : scope === "customer"
+          ? "Runtime key must allow exactly the two customer runtime methods"
+          : "Runtime key must allow exactly the five merchant runtime methods",
     );
   }
 }
 
 interface RestrictedSigningInput {
-  scope?: "merchant" | "customer";
+  scope?: RuntimeScope;
   networkId: "testnet";
   controllerId: string;
   contractId: string;
@@ -125,8 +145,7 @@ export async function signRestrictedTransaction(
     );
   }
   const call = action.functionCall;
-  const permitted =
-    input.scope === "customer" ? customerRuntimeMethods : runtimeMethods;
+  const permitted = methods(input.scope);
   if (!permitted.some((method) => method === call.methodName)) {
     throw new Error("Method is outside the merchant runtime allowlist");
   }

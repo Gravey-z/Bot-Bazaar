@@ -196,16 +196,39 @@ export class TownTickRepository {
     const tickId = sha256(
       canonicalLivingTownJson([this.identity, this.seed, config, slot]),
     );
+    const rank = (arrival: string): number =>
+      arrival.startsWith("raw:")
+        ? ["crystal", "wood", "herb", "iron"].indexOf(arrival.slice(4))
+        : arrival.startsWith("sweep:")
+          ? 4 + ["rex", "luna", "bolt"].indexOf(arrival.slice(6))
+          : arrival.startsWith("merchant:")
+            ? 7 + ["rex", "luna", "bolt"].indexOf(arrival.split(":")[1]!)
+            : arrival === "fund"
+              ? 10
+              : 11 + Number(arrival);
     requireStorage(
-      actions.length <= 5 &&
+      actions.length <= 15 &&
         new Set(actions.map((a) => a.id)).size === actions.length &&
+        new Set(actions.map((a) => a.arrival)).size === actions.length &&
         actions.every(
-          (a, i) =>
+          (a) =>
+            !a.arrival.startsWith("merchant:") ||
+            a.arrival.endsWith(`:${slot}`),
+        ) &&
+        actions.every(
+          (a, i) => i === 0 || rank(a.arrival) > rank(actions[i - 1]!.arrival),
+        ) &&
+        actions.every(
+          (a) =>
             /^[a-f0-9]{64}$/.test(a.id) &&
-            (a.arrival === "fund" ? i === 0 : /^[0-3]$/.test(a.arrival)),
+            (a.arrival === "fund" ||
+              /^[0-3]$/.test(a.arrival) ||
+              /^(raw:(crystal|wood|herb|iron)|sweep:(rex|luna|bolt)|merchant:(rex|luna|bolt):[0-9]+)$/.test(
+                a.arrival,
+              )),
         ) &&
         actions
-          .filter((a) => a.arrival !== "fund")
+          .filter((a) => /^[0-3]$/.test(a.arrival))
           .every(
             (a, i, arr) =>
               i === 0 || Number(a.arrival) === Number(arr[i - 1]!.arrival) + 1,
@@ -348,7 +371,10 @@ export class LivingTownTickScheduler {
     private readonly demand: LivingTownCustomerDemand,
     readonly cadenceMs = 60000,
   ) {}
-  async prepare(reader: FinalizedLivingTownReader): Promise<Row> {
+  async prepare(
+    reader: FinalizedLivingTownReader,
+    prefix: readonly TickAction[] = [],
+  ): Promise<Row> {
     requireStorage(!this.busy, "tick observation already in progress");
     this.busy = true;
     try {
@@ -359,7 +385,7 @@ export class LivingTownTickScheduler {
         "tick reader identity mismatch",
       );
       const town = await reader.getTown();
-      const actions: TickAction[] = [];
+      const actions: TickAction[] = [...prefix];
       if (!town.data.paused) {
         const fundingId = sha256(
           canonicalLivingTownJson([
