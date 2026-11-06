@@ -1,0 +1,413 @@
+{
+  "schema": "living-town-recorded-replay-v1",
+  "source": "Recorded provider-free proposal fixture from controlled worker state/receipt boundaries; not actual model inference or new chain receipts",
+  "seed": "42",
+  "config_sha256": "a932efb48c70a73ce46472cd754288649541b34604e2ea49a4093961e71a2d10",
+  "source_capture_sha256": "c0e538f66417cddef1c9886f13d2f13717819a5dd737adaa7656b608079971ce",
+  "cadence_ms": "30000",
+  "epochs": [1, 2, 3, 4, 7, 8, 10008],
+  "event": {
+    "event_id": "1",
+    "definition_id": "herb_shortage_v1",
+    "start_epoch": "2",
+    "end_epoch": "7",
+    "herb_supply_ceiling": "4",
+    "revision": "7"
+  },
+  "outputs": [
+    {
+      "reference": {
+        "tick": "274d292ce88dbffed4a9f3b499ad4d8484752f5499c06fcf51530a160a636902",
+        "merchant": "rex",
+        "facts": "579276dd7a3312a63514d2258d45e46e6862fa5fa3ed30fa0849ef062bc2854c"
+      },
+      "output": {
+        "schema": "living-town-proposal-v1",
+        "tick_id": "274d292ce88dbffed4a9f3b499ad4d8484752f5499c06fcf51530a160a636902",
+        "market_revision": "14",
+        "merchant_id": "rex",
+        "reason": "Recorded provider-free replay response.",
+        "action": {
+          "type": "restock",
+          "item_id": "crystal"
+        }
+      }
+    },
+    {
+      "reference": {
+        "tick": "274d292ce88dbffed4a9f3b499ad4d8484752f5499c06fcf51530a160a636902",
+        "merchant": "luna",
+        "facts": "e2d12a2224de5e03190c008de89dedf13ee76906e8abc42794292a692e7e560e"
+      },
+      "output": {
+        "schema": "living-town-proposal-v1",
+        "tick_id": "274d292ce88dbffed4a9f3b499ad4d8484752f5499c06fcf51530a160a636902",
+        "market_revision": "15",
+        "merchant_id": "luna",
+        "reason": "Recorded provider-free replay response.",
+        "action": {
+          "type": "restock",
+          "item_id": "herb"
+        }
+      }
+    },
+    {
+      "reference": {
+        "tick": "274d292ce88dbffed4a9f3b499ad4d8484752f5499c06fcf51530a160a636902",
+        "merchant": "bolt",
+        "facts": "a953617abb1eff909f885ffe2dda0634c18e6231dd3a414717435b14d48c35a1"
+      },
+      "output": {
+        "schema": "living-town-proposal-v1",
+        "tick_id": "274d292ce88dbffed4a9f3b499ad4d8484752f5499c06fcf51530a160a636902",
+        "market_revision": "16",
+        "merchant_id": "bolt",
+        "reason": "Recorded provider-free replay response.",
+        "action": {
+          "type": "restock",
+          "item_id": "iron_tool"
+        }
+      }
+    },
+    {
+      "reference": {
+        "tick": "5259bd372427b318b2b2f5eb6b15f1aaa775a328a10772c2b028bb80dc08d617",
+        "merchant": "rex",
+        "facts": "c4764192257d6d97d9d4950a209e28decc76b85b6d7fd17e55b99f6922913c3c"
+      },
+      "output": {
+        "schema": "living-town-proposal-v1",
+        "tick_id": "5259bd372427b318b2b2f5eb6b15f1aaa775a328a10772c2b028bb80dc08d617",
+        "market_revision": "24",
+        "merchant_id": "rex",
+        "reason": "Recorded provider-free replay response.",
+        "action": {
+          "type": "adjust_price",
+          "item_id": "crystal",
+          "unit_price": "5"
+        }
+      }
+    },
+    {
+      "reference": {
+        "tick": "5259bd372427b318b2b2f5eb6b15f1aaa775a328a10772c2b028bb80dc08d617",
+        "merchant": "luna",
+        "facts": "d2456acb9a3a0c78846015ede9991ad9e6d3d61cdcf8bf492e2b35cf4b9bb1e7"
+      },
+      "output": {
+        "schema": "living-town-proposal-v1",
+        "tick_id": "5259bd372427b318b2b2f5eb6b15f1aaa775a328a10772c2b028bb80dc08d617",
+        "market_revision": "25",
+        "merchant_id": "luna",
+        "reason": "Recorded provider-free replay response.",
+        "action": {
+          "type": "propose_trade",
+          "counterparty": "rex",
+          "side": "buy",
+          "item_id": "crystal",
+          "quantity": "1",
+          "unit_price": "4"
+        }
+      }
+    },
+    {
+      "reference": {
+        "tick": "5259bd372427b318b2b2f5eb6b15f1aaa775a328a10772c2b028bb80dc08d617",
+        "merchant": "bolt",
+        "facts": "d2456acb9a3a0c78846015ede9991ad9e6d3d61cdcf8bf492e2b35cf4b9bb1e7"
+      },
+      "output": {
+        "schema": "living-town-proposal-v1",
+        "tick_id": "5259bd372427b318b2b2f5eb6b15f1aaa775a328a10772c2b028bb80dc08d617",
+        "market_revision": "25",
+        "merchant_id": "bolt",
+        "reason": "Recorded provider-free replay response.",
+        "action": {
+          "type": "restock",
+          "item_id": "iron_tool"
+        }
+      }
+    },
+    {
+      "reference": {
+        "tick": "8ad9cec7241368d936e5a43b463081ffa8d732864d27dce9009930af38f647fe",
+        "merchant": "rex",
+        "facts": "6cf5b3dfd79e492cedc76e851c72f7a08b05de43f736c2a5c0e5b54f00eecdfb"
+      },
+      "output": {
+        "schema": "living-town-proposal-v1",
+        "tick_id": "8ad9cec7241368d936e5a43b463081ffa8d732864d27dce9009930af38f647fe",
+        "market_revision": "32",
+        "merchant_id": "rex",
+        "reason": "Recorded provider-free replay response.",
+        "action": {
+          "type": "reject_trade",
+          "offer_id": "1"
+        }
+      }
+    },
+    {
+      "reference": {
+        "tick": "8ad9cec7241368d936e5a43b463081ffa8d732864d27dce9009930af38f647fe",
+        "merchant": "luna",
+        "facts": "6cf5b3dfd79e492cedc76e851c72f7a08b05de43f736c2a5c0e5b54f00eecdfb"
+      },
+      "output": {
+        "schema": "living-town-proposal-v1",
+        "tick_id": "8ad9cec7241368d936e5a43b463081ffa8d732864d27dce9009930af38f647fe",
+        "market_revision": "32",
+        "merchant_id": "luna",
+        "reason": "Recorded provider-free replay response.",
+        "action": {
+          "type": "accept_trade",
+          "offer_id": "1",
+          "expected_offer_revision": "1"
+        }
+      }
+    },
+    {
+      "reference": {
+        "tick": "8ad9cec7241368d936e5a43b463081ffa8d732864d27dce9009930af38f647fe",
+        "merchant": "bolt",
+        "facts": "6cf5b3dfd79e492cedc76e851c72f7a08b05de43f736c2a5c0e5b54f00eecdfb"
+      },
+      "output": {
+        "schema": "living-town-proposal-v1",
+        "tick_id": "8ad9cec7241368d936e5a43b463081ffa8d732864d27dce9009930af38f647fe",
+        "market_revision": "32",
+        "merchant_id": "bolt",
+        "reason": "Recorded provider-free replay response.",
+        "action": {
+          "type": "wait"
+        }
+      }
+    },
+    {
+      "reference": {
+        "tick": "5f5d77d6acb6b380d08405eb4df58b6d2002a9f52924bc68f2af530d7898be94",
+        "merchant": "rex",
+        "facts": "ad5aa624ae7675934d3ddb83857b49d429513f5d7c3d821dc1f0a04f6cd67522"
+      },
+      "output": {
+        "schema": "living-town-proposal-v1",
+        "tick_id": "5f5d77d6acb6b380d08405eb4df58b6d2002a9f52924bc68f2af530d7898be94",
+        "market_revision": "39",
+        "merchant_id": "rex",
+        "reason": "Recorded provider-free replay response.",
+        "action": {
+          "type": "restock",
+          "item_id": "crystal"
+        }
+      }
+    },
+    {
+      "reference": {
+        "tick": "5f5d77d6acb6b380d08405eb4df58b6d2002a9f52924bc68f2af530d7898be94",
+        "merchant": "luna",
+        "facts": "79e49f30afc487b5d875a9fa22c75d0ec4b021bf231252c5530de9078e6525d4"
+      },
+      "output": {
+        "schema": "living-town-proposal-v1",
+        "tick_id": "5f5d77d6acb6b380d08405eb4df58b6d2002a9f52924bc68f2af530d7898be94",
+        "market_revision": "40",
+        "merchant_id": "luna",
+        "reason": "Recorded provider-free replay response.",
+        "action": {
+          "type": "restock",
+          "item_id": "herb"
+        }
+      }
+    },
+    {
+      "reference": {
+        "tick": "5f5d77d6acb6b380d08405eb4df58b6d2002a9f52924bc68f2af530d7898be94",
+        "merchant": "bolt",
+        "facts": "79e49f30afc487b5d875a9fa22c75d0ec4b021bf231252c5530de9078e6525d4"
+      },
+      "output": {
+        "schema": "living-town-proposal-v1",
+        "tick_id": "5f5d77d6acb6b380d08405eb4df58b6d2002a9f52924bc68f2af530d7898be94",
+        "market_revision": "40",
+        "merchant_id": "bolt",
+        "reason": "Recorded provider-free replay response.",
+        "action": {
+          "type": "restock",
+          "item_id": "iron_tool"
+        }
+      }
+    },
+    {
+      "reference": {
+        "tick": "bf94f4b933e55405a6459e1b4d879d7b6e6396cbd0ebb6e050e02f3ddad3482d",
+        "merchant": "rex",
+        "facts": "88154014b48f5d698bd060037e5c23b6b3d089a3262e759734f7c8c870c19262"
+      },
+      "output": {
+        "schema": "living-town-proposal-v1",
+        "tick_id": "bf94f4b933e55405a6459e1b4d879d7b6e6396cbd0ebb6e050e02f3ddad3482d",
+        "market_revision": "48",
+        "merchant_id": "rex",
+        "reason": "Recorded provider-free replay response.",
+        "action": {
+          "type": "restock",
+          "item_id": "crystal"
+        }
+      }
+    },
+    {
+      "reference": {
+        "tick": "bf94f4b933e55405a6459e1b4d879d7b6e6396cbd0ebb6e050e02f3ddad3482d",
+        "merchant": "luna",
+        "facts": "88154014b48f5d698bd060037e5c23b6b3d089a3262e759734f7c8c870c19262"
+      },
+      "output": {
+        "schema": "living-town-proposal-v1",
+        "tick_id": "bf94f4b933e55405a6459e1b4d879d7b6e6396cbd0ebb6e050e02f3ddad3482d",
+        "market_revision": "48",
+        "merchant_id": "luna",
+        "reason": "Recorded provider-free replay response.",
+        "action": {
+          "type": "restock",
+          "item_id": "herb"
+        }
+      }
+    },
+    {
+      "reference": {
+        "tick": "bf94f4b933e55405a6459e1b4d879d7b6e6396cbd0ebb6e050e02f3ddad3482d",
+        "merchant": "bolt",
+        "facts": "88154014b48f5d698bd060037e5c23b6b3d089a3262e759734f7c8c870c19262"
+      },
+      "output": {
+        "schema": "living-town-proposal-v1",
+        "tick_id": "bf94f4b933e55405a6459e1b4d879d7b6e6396cbd0ebb6e050e02f3ddad3482d",
+        "market_revision": "48",
+        "merchant_id": "bolt",
+        "reason": "Recorded provider-free replay response.",
+        "action": {
+          "type": "restock",
+          "item_id": "iron_tool"
+        }
+      }
+    },
+    {
+      "reference": {
+        "tick": "68305c641c779850eb4578055417cd5e5de0e43ee9638ec46da63cd4bb11b000",
+        "merchant": "rex",
+        "facts": "0108c2b4658dc0b417243ea1c7e39b4c65e5fb0d673bace57afb4f4e11501511"
+      },
+      "output": {
+        "schema": "living-town-proposal-v1",
+        "tick_id": "68305c641c779850eb4578055417cd5e5de0e43ee9638ec46da63cd4bb11b000",
+        "market_revision": "55",
+        "merchant_id": "rex",
+        "reason": "Recorded provider-free replay response.",
+        "action": {
+          "type": "restock",
+          "item_id": "crystal"
+        }
+      }
+    },
+    {
+      "reference": {
+        "tick": "68305c641c779850eb4578055417cd5e5de0e43ee9638ec46da63cd4bb11b000",
+        "merchant": "luna",
+        "facts": "0108c2b4658dc0b417243ea1c7e39b4c65e5fb0d673bace57afb4f4e11501511"
+      },
+      "output": {
+        "schema": "living-town-proposal-v1",
+        "tick_id": "68305c641c779850eb4578055417cd5e5de0e43ee9638ec46da63cd4bb11b000",
+        "market_revision": "55",
+        "merchant_id": "luna",
+        "reason": "Recorded provider-free replay response.",
+        "action": {
+          "type": "restock",
+          "item_id": "herb"
+        }
+      }
+    },
+    {
+      "reference": {
+        "tick": "68305c641c779850eb4578055417cd5e5de0e43ee9638ec46da63cd4bb11b000",
+        "merchant": "bolt",
+        "facts": "0108c2b4658dc0b417243ea1c7e39b4c65e5fb0d673bace57afb4f4e11501511"
+      },
+      "output": {
+        "schema": "living-town-proposal-v1",
+        "tick_id": "68305c641c779850eb4578055417cd5e5de0e43ee9638ec46da63cd4bb11b000",
+        "market_revision": "55",
+        "merchant_id": "bolt",
+        "reason": "Recorded provider-free replay response.",
+        "action": {
+          "type": "restock",
+          "item_id": "iron_tool"
+        }
+      }
+    },
+    {
+      "reference": {
+        "tick": "8000e33a46f7e24aab0e3751273b5decce225a79b1d819c9d2a1fee2a6785d8d",
+        "merchant": "rex",
+        "facts": "f026b47489ec6f60ab8f12798e3fab7f4195b523f2e3d1d9d37c8621130b9391"
+      },
+      "output": {
+        "schema": "living-town-proposal-v1",
+        "tick_id": "8000e33a46f7e24aab0e3751273b5decce225a79b1d819c9d2a1fee2a6785d8d",
+        "market_revision": "62",
+        "merchant_id": "rex",
+        "reason": "Recorded provider-free replay response.",
+        "action": {
+          "type": "restock",
+          "item_id": "crystal"
+        }
+      }
+    },
+    {
+      "reference": {
+        "tick": "8000e33a46f7e24aab0e3751273b5decce225a79b1d819c9d2a1fee2a6785d8d",
+        "merchant": "luna",
+        "facts": "f026b47489ec6f60ab8f12798e3fab7f4195b523f2e3d1d9d37c8621130b9391"
+      },
+      "output": {
+        "schema": "living-town-proposal-v1",
+        "tick_id": "8000e33a46f7e24aab0e3751273b5decce225a79b1d819c9d2a1fee2a6785d8d",
+        "market_revision": "62",
+        "merchant_id": "luna",
+        "reason": "Recorded provider-free replay response.",
+        "action": {
+          "type": "restock",
+          "item_id": "herb"
+        }
+      }
+    },
+    {
+      "reference": {
+        "tick": "8000e33a46f7e24aab0e3751273b5decce225a79b1d819c9d2a1fee2a6785d8d",
+        "merchant": "bolt",
+        "facts": "f026b47489ec6f60ab8f12798e3fab7f4195b523f2e3d1d9d37c8621130b9391"
+      },
+      "output": {
+        "schema": "living-town-proposal-v1",
+        "tick_id": "8000e33a46f7e24aab0e3751273b5decce225a79b1d819c9d2a1fee2a6785d8d",
+        "market_revision": "62",
+        "merchant_id": "bolt",
+        "reason": "Recorded provider-free replay response.",
+        "action": {
+          "type": "restock",
+          "item_id": "iron_tool"
+        }
+      }
+    }
+  ],
+  "expected": {
+    "mode": "controlled_worker_replay",
+    "providerCalls": 0,
+    "chainEvidence": false,
+    "epochs": [1, 2, 3, 4, 7, 8, 10008],
+    "recordedResponses": 21,
+    "signatures": 55,
+    "dispatches": 55,
+    "missedEpochs": "9999",
+    "digest": "4a0559348199fdfb50f40990be2b1c494eb029eded2d3573bc474dde8af2eb1d"
+  }
+}

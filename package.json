@@ -33,7 +33,8 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "check:boundaries": "eslint apps/web/src packages/shared/src packages/chain/src --max-warnings 0",
-    "test:boundaries": "node --test tests/boundaries/*.test.mjs"
+    "test:boundaries": "node --test tests/boundaries/*.test.mjs",
+    "test:simulation": "corepack pnpm build:packages && corepack pnpm --filter @bot-bazaar/worker build && node --test apps/worker/test/living-town-replay.test.mjs apps/worker/test/living-town-catchup.test.mjs apps/worker/test/living-town-adapter.test.mjs apps/worker/test/living-town-provider.test.mjs apps/worker/test/living-town-ticks.test.mjs apps/worker/test/living-town-market-event.test.mjs apps/worker/test/living-town-feed.test.mjs apps/worker/test/living-town-stream.test.mjs tests/configuration/living-town-live.test.mjs tests/scenarios/living-town-soak.test.mjs"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",

@@ -22,7 +22,12 @@ const encode = (value) =>
 export const decimalReport = (value) => JSON.parse(encode(value));
 
 export class EconomyModel {
-  constructor({ capacity = config.itemCap } = {}) {
+  constructor({
+    capacity = config.itemCap,
+    supplyCeiling = (...terms) => terms[2],
+  } = {}) {
+    check(typeof supplyCeiling === "function", "invalid supply policy");
+    this.supplyCeiling = supplyCeiling;
     // A smaller capacity supports explicitly labelled boundary stress cases.
     this.capacity = integer(capacity);
     check(
@@ -300,8 +305,15 @@ export class EconomyModel {
         const row = config.materials[item];
         check(row, "invalid supplier item");
         const stock = this.state.stock[item];
+        const ceiling = integer(
+          this.supplyCeiling(item, epoch, integer(row.supply)),
+        );
+        check(
+          ceiling <= integer(row.supply),
+          "supply modifier exceeds baseline",
+        );
         amount = min(
-          integer(row.supply),
+          ceiling,
           integer(row.target) > stock.held
             ? integer(row.target) - stock.held
             : 0n,

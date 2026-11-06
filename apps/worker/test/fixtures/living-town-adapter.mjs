@@ -46,7 +46,7 @@ export function closeAdapterFixturesAt(dir) {
 }
 export async function adapterFixture(
   dir,
-  { propose, crashAt, realCustomers = false } = {},
+  { propose, crashAt, realCustomers = false, seed = "42" } = {},
 ) {
   const path = join(dir, "model.json");
   const state = existsSync(path)
@@ -92,7 +92,7 @@ export async function adapterFixture(
   const store = new LivingTownExecutionStore(
     dir,
     identity,
-    "42",
+    seed,
     !existsSync(join(dir, "worker.sqlite")),
   );
   if (!openStores.has(dir)) openStores.set(dir, []);
