@@ -14,6 +14,24 @@ import type { LivingTownRecipeId } from "@bot-bazaar/shared";
 const policy = "living-town-demand-v1" as const;
 const hash = (value: unknown): string =>
   createHash("sha256").update(canonicalLivingTownJson(value)).digest("hex");
+/** A newer finalized block may reuse collected facts only when every economic field is unchanged. */
+export function sameCustomerCheckpointState(
+  previous: unknown,
+  current: unknown,
+): boolean {
+  const decode = livingTownSnapshot(livingTownTown),
+    a = decode(previous),
+    b = decode(current);
+  return (
+    BigInt(b.block_height) >= BigInt(a.block_height) &&
+    BigInt(b.block_timestamp_ns) >= BigInt(a.block_timestamp_ns) &&
+    canonicalLivingTownJson(a.deployment) ===
+      canonicalLivingTownJson(b.deployment) &&
+    a.market_revision === b.market_revision &&
+    a.event_sequence === b.event_sequence &&
+    canonicalLivingTownJson(a.data) === canonicalLivingTownJson(b.data)
+  );
+}
 function requireDemand(ok: unknown, message: string): asserts ok {
   if (!ok) throw new Error(`Customer demand: ${message}`);
 }

@@ -5,7 +5,10 @@ import {
 } from "@bot-bazaar/chain";
 import type { ContinuityVerifier, RecoveryReport } from "../recovery/types.js";
 import { requireStorage, sha256 } from "../storage/validation.js";
-import { LivingTownCustomerDemand } from "./customers.js";
+import {
+  LivingTownCustomerDemand,
+  sameCustomerCheckpointState,
+} from "./customers.js";
 import type { CustomerDemandInput } from "./customers.js";
 import {
   CustomerChainAdapter,
@@ -21,6 +24,10 @@ type Town = Awaited<
     Awaited<ReturnType<CustomerChainAdapter["client"]["finalized"]>>["getTown"]
   >
 >;
+class StaleCustomerQuote extends Error {}
+function requireFresh(value: unknown, message: string): asserts value {
+  if (!value) throw new StaleCustomerQuote(message);
+}
 export type CustomerExecutionResult = {
   kind:
     "duplicate" | "no_purchase" | "already_allocated" | "submitted" | "unknown";
@@ -61,7 +68,9 @@ export class DurableCustomerExecutor {
     requireStorage(this.authorized, "customer continuity/fencing required");
     this.store.gate();
   }
-  async recover(): Promise<RecoveryReport> {
+  async recover(
+    options: { preservePrepared?: boolean } = {},
+  ): Promise<RecoveryReport> {
     return this.exclusive(async () => {
       this.authorized = false;
       this.store.invalidate();
@@ -96,7 +105,9 @@ export class DurableCustomerExecutor {
           continue;
         }
         if (row["status"] === "prepared") {
-          this.store.abandon(actionId);
+          if (options.preservePrepared)
+            reasons.push("prepared_customer_action");
+          else this.store.abandon(actionId);
           continue;
         }
         const p = readCustomerPrepared(
@@ -216,7 +227,7 @@ export class DurableCustomerExecutor {
       const reader = await this.adapter.client.finalized(),
         town = await reader.getTown();
       requireStorage(
-        canonicalLivingTownJson(town) === canonicalLivingTownJson(input.town),
+        sameCustomerCheckpointState(input.town, town),
         "customer decision checkpoint changed",
       );
       const decision = this.demand.select(input),
@@ -327,7 +338,7 @@ export class DurableCustomerExecutor {
       town = await reader.getTown();
     const args = call.args as Record<string, unknown>,
       epoch = String(args["epoch"]);
-    requireStorage(
+    requireFresh(
       !town.data.paused &&
         town.data.epoch === epoch &&
         BigInt(town.block_timestamp_ns) <
@@ -344,7 +355,7 @@ export class DurableCustomerExecutor {
       "operator command changed; reconcile before signing/submission",
     );
     if (call.method === "fund_customer_budget")
-      requireStorage(
+      requireFresh(
         BigInt(town.data.customer_pool.last_funded_epoch) < BigInt(epoch),
         "customer funding already allocated",
       );
@@ -365,7 +376,7 @@ export class DurableCustomerExecutor {
       const listing = page.data.items.find(
         (l) => l.listing_id === args["listing_id"],
       );
-      requireStorage(
+      requireFresh(
         listing &&
           listing.owner.kind === "player" &&
           listing.active &&
@@ -378,7 +389,7 @@ export class DurableCustomerExecutor {
       const ledger = await reader.getShopInventory(listing.shop_id);
       const pool = town.data.customer_pool,
         price = BigInt(listing.unit_price);
-      requireStorage(
+      requireFresh(
         ledger.data.inventory.listing_reserved[listing.item_id] ===
           listing.remaining_quantity &&
           BigInt(pool.gold) >= price &&
@@ -429,6 +440,62 @@ export class DurableCustomerExecutor {
         actionId,
         readCustomerPrepared(String(row["signed_json"]), this.store.identity),
       );
+    });
+  }
+  /** Resume exactly one provably unbroadcast intent after verified continuity recovery. */
+  async resumePending(
+    actionId: string,
+  ): Promise<CustomerExecutionResult | { kind: "skipped"; actionId: string }> {
+    return this.exclusive(async () => {
+      requireStorage(
+        this.authorized,
+        "verified recovery required before resuming customer work",
+      );
+      const row = this.store.get(actionId);
+      requireStorage(
+        row &&
+          ["prepared", "signed"].includes(String(row["status"])) &&
+          this.store.unresolved().length === 1,
+        "only original unsent work may resume",
+      );
+      const call = customerCall(
+        String(row["method"]),
+        JSON.parse(String(row["args_json"])),
+      );
+      requireStorage(
+        (await livingTownCommandDigest(
+          this.store.identity.deployment,
+          this.store.identity.operatorId,
+          call,
+        )) === row["args_digest"],
+        "prepared recovery digest mismatch",
+      );
+      try {
+        await this.assertLive(actionId, call);
+        if (row["status"] === "signed")
+          return await this.submitSigned(
+            actionId,
+            readCustomerPrepared(
+              String(row["signed_json"]),
+              this.store.identity,
+            ),
+          );
+        const signed = await this.adapter.prepare(call, async () => {
+          requireStorage(
+            this.authorized,
+            "customer recovery continuity required",
+          );
+          await this.assertLive(actionId, call);
+        });
+        this.store.saveSigned(actionId, signed, true);
+        return await this.submitSigned(actionId, signed);
+      } catch (error) {
+        // A verified stale quote can discard only bytes that have never crossed the broadcast marker.
+        // Transport errors, digest/command conflicts and unknown sends retain the original work.
+        if (!(error instanceof StaleCustomerQuote)) throw error;
+        this.store.abandon(actionId);
+        return { kind: "skipped", actionId };
+      }
     });
   }
 }

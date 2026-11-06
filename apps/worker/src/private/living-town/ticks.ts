@@ -18,12 +18,12 @@ CREATE TABLE town_ticks(sequence INTEGER PRIMARY KEY, id TEXT NOT NULL UNIQUE,
   slot TEXT NOT NULL UNIQUE, epoch TEXT NOT NULL, seed TEXT NOT NULL,
   config_json TEXT NOT NULL, checkpoint_json TEXT NOT NULL,
   state TEXT NOT NULL CHECK(state IN ('prepared','running','completed')),
-  created_at INTEGER NOT NULL) STRICT;
+  skipped_slots TEXT NOT NULL, missed_epochs TEXT NOT NULL, created_at INTEGER NOT NULL) STRICT;
 CREATE UNIQUE INDEX one_unresolved_tick ON town_ticks((1)) WHERE state!='completed';
 CREATE TABLE town_tick_actions(tick_id TEXT NOT NULL REFERENCES town_ticks(id),
   ordinal INTEGER NOT NULL, action_id TEXT NOT NULL UNIQUE,
   arrival TEXT NOT NULL, state TEXT NOT NULL CHECK(state IN ('planned','active','completed','failed','expired')),
-  PRIMARY KEY(tick_id,ordinal)) STRICT;
+  resolution_json TEXT, PRIMARY KEY(tick_id,ordinal)) STRICT;
 CREATE TRIGGER bound_town_ticks BEFORE INSERT ON town_ticks
   WHEN (SELECT count(*) FROM town_ticks)>=10000
   BEGIN SELECT RAISE(ABORT,'tick journal full'); END;
@@ -63,16 +63,7 @@ export class TownTickRepository {
       )
       .all(tickId);
   }
-  prepare(
-    checkpoint: TickCheckpoint,
-    cadenceMs: number,
-    actions: readonly TickAction[],
-  ): Row {
-    this.gate();
-    requireStorage(
-      Number.isInteger(cadenceMs) && cadenceMs >= 30000 && cadenceMs <= 60000,
-      "tick cadence must be 30000-60000 milliseconds",
-    );
+  private checkpoint(checkpoint: TickCheckpoint) {
     const town = livingTownSnapshot(livingTownTown)(checkpoint.town);
     requireStorage(
       canonicalLivingTownJson(town.deployment) ===
@@ -92,6 +83,110 @@ export class TownTickRepository {
         town.data.customer_pool.epoch === town.data.epoch,
       "tick checkpoint epoch is inconsistent",
     );
+    return town;
+  }
+  /** Skip only never-started old-epoch opportunities after all actual intents reconcile. */
+  reconcile(checkpoint: TickCheckpoint): void {
+    this.gate();
+    const town = this.checkpoint(checkpoint);
+    this.write(() => {
+      const active = this.active();
+      if (!active || BigInt(String(active["epoch"])) >= BigInt(town.data.epoch))
+        return;
+      const original = JSON.parse(
+        String(active["checkpoint_json"]),
+      ) as TickCheckpoint;
+      requireStorage(
+        BigInt(town.block_height) >= BigInt(original.block.height) &&
+          !this.db.prepare("SELECT id FROM jobs WHERE status='active'").get() &&
+          !this.db.prepare("SELECT job_id FROM merchant_locks LIMIT 1").get() &&
+          !this.db
+            .prepare(
+              "SELECT id FROM intents WHERE status IN ('prepared','signed','submitted','unknown') LIMIT 1",
+            )
+            .get() &&
+          !this.actions(String(active["id"])).some(
+            (a) => a["state"] === "active",
+          ),
+        "unresolved economic work prevents old-tick expiry",
+      );
+      this.db
+        .prepare(
+          "UPDATE town_tick_actions SET state='expired',resolution_json=? WHERE tick_id=? AND state='planned'",
+        )
+        .run(
+          json({
+            kind: "missed_epoch",
+            checkpoint: checkpoint.block,
+            epoch: town.data.epoch,
+          }),
+          active["id"]!,
+        );
+      this.db
+        .prepare("UPDATE town_ticks SET state='completed' WHERE id=?")
+        .run(active["id"]!);
+    });
+  }
+  skipFunding(checkpoint: TickCheckpoint): boolean {
+    this.gate();
+    const town = this.checkpoint(checkpoint);
+    return this.write(() => {
+      const active = this.active();
+      if (!active || active["epoch"] !== town.data.epoch) return false;
+      const next = this.actions(String(active["id"])).find((a) =>
+        ["planned", "active"].includes(String(a["state"])),
+      );
+      if (
+        next?.["arrival"] !== "fund" ||
+        (!town.data.paused &&
+          town.data.customer_pool.last_funded_epoch !== town.data.epoch)
+      )
+        return false;
+      requireStorage(
+        next["state"] === "planned" &&
+          BigInt(town.block_height) >=
+            BigInt(
+              (JSON.parse(String(active["checkpoint_json"])) as TickCheckpoint)
+                .block.height,
+            ) &&
+          !this.db.prepare("SELECT id FROM jobs WHERE status='active'").get(),
+        "started funding must reconcile through its journal",
+      );
+      this.db
+        .prepare(
+          "UPDATE town_tick_actions SET state='completed',resolution_json=? WHERE action_id=?",
+        )
+        .run(
+          json({
+            kind: town.data.paused ? "paused" : "already_allocated",
+            checkpoint: checkpoint.block,
+          }),
+          next["action_id"]!,
+        );
+      if (
+        !this.actions(String(active["id"])).some((a) =>
+          ["planned", "active"].includes(String(a["state"])),
+        )
+      )
+        this.db
+          .prepare("UPDATE town_ticks SET state='completed' WHERE id=?")
+          .run(active["id"]!);
+      return true;
+    });
+  }
+  prepare(
+    checkpoint: TickCheckpoint,
+    cadenceMs: number,
+    actions: readonly TickAction[],
+  ): Row {
+    this.gate();
+    requireStorage(
+      Number.isInteger(cadenceMs) && cadenceMs >= 30000 && cadenceMs <= 60000,
+      "tick cadence must be 30000-60000 milliseconds",
+    );
+    const town = this.checkpoint(checkpoint);
+    const elapsed =
+      BigInt(town.block_timestamp_ns) - BigInt(town.data.genesis_time_ns);
     const slot = (elapsed / (BigInt(cadenceMs) * 1000000n)).toString();
     const config = canonicalLivingTownJson({
       policy: "living-town-tick-v1",
@@ -152,7 +247,7 @@ export class TownTickRepository {
       const sequence = Number(last?.["sequence"] ?? 0) + 1;
       requireStorage(Number.isSafeInteger(sequence), "tick sequence overflow");
       this.db
-        .prepare("INSERT INTO town_ticks VALUES(?,?,?,?,?,?,?,?,?)")
+        .prepare("INSERT INTO town_ticks VALUES(?,?,?,?,?,?,?,?,?,?,?)")
         .run(
           sequence,
           tickId,
@@ -162,6 +257,16 @@ export class TownTickRepository {
           config,
           json(checkpoint),
           actions.length ? "prepared" : "completed",
+          last
+            ? (BigInt(slot) - BigInt(String(last["slot"])) - 1n).toString()
+            : "0",
+          last && BigInt(town.data.epoch) > BigInt(String(last["epoch"]))
+            ? (
+                BigInt(town.data.epoch) -
+                BigInt(String(last["epoch"])) -
+                1n
+              ).toString()
+            : "0",
           Date.now(),
         );
       for (const [i, a] of actions.entries()) {
@@ -172,7 +277,9 @@ export class TownTickRepository {
           .get(a.id);
         requireStorage(!old, "customer opportunity already scheduled/executed");
         this.db
-          .prepare("INSERT INTO town_tick_actions VALUES(?,?,?,?,'planned')")
+          .prepare(
+            "INSERT INTO town_tick_actions VALUES(?,?,?,?,'planned',NULL)",
+          )
           .run(tickId, i, a.id, a.arrival);
       }
       return this.get(tickId)!;
