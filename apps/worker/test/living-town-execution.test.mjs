@@ -104,6 +104,31 @@ test("unknown receipts retain shared locks through restart and epoch expiry; no 
   assert.equal(reopened.counts.send, 0);
 });
 
+test("a pruned command cannot turn an unknown broadcast into permission to sign or fund again", async (t) => {
+  const f = await fixture(t);
+  await f.processor.recover();
+  f.mode("timeout_before_execution");
+  const pending = await f.processor.executeCustomer(f.input());
+  assert.equal(pending.kind, "unknown");
+  const original = f.store.get(pending.actionId).signed_json;
+  // Controlled missing-history/high-water input, not an additional chain execution.
+  f.state.sequence = "9";
+  f.state.effect = null;
+  const report = await f.processor.recover();
+  assert.equal(report.kind, "blocked");
+  assert(report.reasons.includes("unknown_customer_receipt"));
+  assert.equal(f.store.get(pending.actionId).signed_json, original);
+  assert.throws(() => f.store.abandon(pending.actionId), /broadcast/);
+  await assert.rejects(f.processor.fundCurrentEpoch(), /recovery/);
+  await assert.rejects(
+    f.processor.executeCustomer(f.input()),
+    /recovery|continuity/,
+  );
+  assert.equal(f.counts.sign, 1);
+  assert.equal(f.counts.send, 1);
+  assert.equal(f.state.town.data.customer_pool.gold, "100");
+});
+
 test("matching command checkpoint recovers a timed-out executed purchase without fabricating its receipt", async (t) => {
   const f = await fixture(t);
   await f.processor.recover();

@@ -254,3 +254,86 @@ fn pause_and_epoch_markers_cannot_be_bypassed_with_another_command_sequence() {
     buy(&mut t, ("operator.testnet", 5), 1, e, 18, 2);
     assert_eq!(t.customer_pool.gold, 182);
 }
+
+#[test]
+fn sale_cancel_and_reprice_conflicts_are_safe_in_both_execution_orders() {
+    // Deterministic order coverage complements the independently submitted WASM races.
+    for cancel in [true, false] {
+        for owner_first in [true, false] {
+            near_sdk::mock::with_mocked_blockchain(|b| {
+                b.take_storage();
+            });
+            let mut t = stocked();
+            let e = t.customer_epoch();
+            let time = env::block_timestamp();
+            let edit = |t: &mut LivingTown, revision: u64| {
+                let c = command(6);
+                if cancel {
+                    context(
+                        "player.testnet",
+                        json!({"listing_id":"5","expected_listing_revision":revision.to_string(),"command":c}),
+                        time,
+                    );
+                    t.cancel_listing(Decimal(5), Decimal(revision), c)
+                } else {
+                    context(
+                        "player.testnet",
+                        json!({"shop_id":"4","item_id":"health_potion","quantity":"3","unit_price":"17","expected_listing_revision":revision.to_string(),"command":c}),
+                        time,
+                    );
+                    t.set_listing(
+                        Decimal(4),
+                        Item::HealthPotion,
+                        Decimal(3),
+                        Decimal(17),
+                        Some(Decimal(revision)),
+                        c,
+                    )
+                }
+            };
+            if owner_first {
+                edit(&mut t, 1);
+                let before = state(&t);
+                assert!(
+                    std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| buy(
+                        &mut t,
+                        ("operator.testnet", 5),
+                        1,
+                        e,
+                        18,
+                        1
+                    )))
+                    .is_err()
+                );
+                assert_eq!(state(&t), before);
+                assert_eq!(t.customer_pool.gold, 100);
+                assert_eq!(t.customer_consumed[4], 0);
+                if !cancel {
+                    buy(&mut t, ("operator.testnet", 5), 2, e, 18, 1);
+                    assert_eq!(t.customer_pool.gold, 83);
+                    assert_eq!(t.customer_consumed[4], 1);
+                }
+            } else {
+                buy(&mut t, ("operator.testnet", 5), 1, e, 18, 1);
+                let before = state(&t);
+                assert!(
+                    std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| edit(&mut t, 1)))
+                        .is_err()
+                );
+                assert_eq!(state(&t), before);
+                assert_eq!(t.customer_pool.gold, 82);
+                assert_eq!(t.customer_consumed[4], 1);
+                if cancel {
+                    edit(&mut t, 2);
+                }
+            }
+            let p = t
+                .players
+                .get(&"player.testnet".parse::<AccountId>().unwrap())
+                .unwrap();
+            let l = t.listing_row(5).unwrap().2;
+            assert_eq!(p.reservations.listing.quantities[4], l.quantity);
+            assert_eq!(p.inventory.quantities[4] + t.customer_consumed[4] as u64, 3);
+        }
+    }
+}
