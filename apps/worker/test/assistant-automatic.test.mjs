@@ -10,6 +10,7 @@ import {
 } from "./fixtures/living-town-adapter.mjs";
 import { AssistantPipeline } from "../dist/private/assistant/pipeline.js";
 import { AssistantStore } from "../dist/private/assistant/store.js";
+import { AssistantAudit } from "../dist/private/assistant/audit.js";
 import {
   automaticAssistant,
   resolveAssistantReprice,
@@ -267,6 +268,58 @@ test("out-of-band proposal records a durable no-op without an operator transacti
   assert.equal(row.method, null);
   assert.equal(row.job_status, "completed");
   assert.equal(h.f.state.assistantListing.unit_price, "10");
+});
+
+test("private automatic audit exposes receipt-backed outcomes and excludes other shops and public activity", async (t) => {
+  const h = await harness(t);
+  await untilAssistant(h);
+  const pendingAudit = new AssistantAudit(
+    h.assistantStore,
+    h.f.adapters.operator.client,
+    h.f.store,
+  );
+  assert.equal(
+    pendingAudit.automatic("alice.testnet", "4")[0].outcome,
+    "submitted",
+  );
+  assert.equal(
+    pendingAudit.automatic("alice.testnet", "4")[0].receipt_id,
+    null,
+  );
+  await h.restart();
+  for (let i = 0; i < 7; i++) await h.f.simulation.poll();
+  // The scheduler fixture uses controlled chain responses; this checks journal
+  // plumbing. The separate WASM fixture tests verify real receipt contents.
+  const audit = new AssistantAudit(
+    h.assistantStore,
+    h.f.adapters.operator.client,
+    h.f.store,
+  );
+  const rows = audit.automatic("alice.testnet", "4");
+  assert.equal(rows.length, 1);
+  assert.equal(rows[0].outcome, "confirmed");
+  assert.equal(rows[0].acceptance, "onchain_policy");
+  assert.equal(rows[0].policy_revision, "2");
+  assert.ok(rows[0].transaction_hash);
+  assert.deepEqual(audit.automatic("alice.testnet", "5"), []);
+  assert.throws(() => audit.automatic("mallory.testnet", "4"));
+  const publicRows = h.f.store.publicActivity(null, 100);
+  assert.ok(!JSON.stringify(publicRows).includes(rows[0].reason));
+});
+
+test("private audit labels invalid automatic proposals rejected without inventing a receipt", async (t) => {
+  const h = await harness(t, { invalid: true });
+  await untilAssistant(h);
+  const audit = new AssistantAudit(
+    h.assistantStore,
+    h.f.adapters.operator.client,
+    h.f.store,
+  );
+  const [row] = audit.automatic("alice.testnet", "4");
+  assert.equal(row.validation, "rejected");
+  assert.equal(row.outcome, "not_submitted");
+  assert.equal(row.receipt_id, null);
+  assert.equal(row.transaction_hash, null);
 });
 test("revocation during signing expires the original intent before broadcast", async (t) => {
   const h = await harness(t),

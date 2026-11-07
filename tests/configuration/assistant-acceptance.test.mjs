@@ -9,6 +9,8 @@ import {
   assistantCallMatches,
   assistantReviewReference,
   defaultAssistantRestockLimits,
+  assistantAuditEntry,
+  assistantAuditReceiptUrl,
 } from "../../packages/chain/dist/index.js";
 const built = await build({
   stdin: {
@@ -28,6 +30,91 @@ const { LivingTownTransactions, AssistantPanel, LivingTownController } =
 const capture = JSON.parse(
   readFileSync("tests/fixtures/chain/living-town-sandbox.json", "utf8"),
 );
+const auditRow = () => ({
+  id: "controlled-private-audit",
+  shop_id: "4",
+  owner_account_id: capture.player_id,
+  source: "manual",
+  action: "suggest_price",
+  terms: "health_potion listing 5: 10 -> 11 gold/unit",
+  reason: "Private owner reason",
+  validation: "validated",
+  acceptance: "accepted",
+  outcome: "unknown",
+  policy_revision: "2",
+  created_at_ms: "1000",
+  updated_at_ms: "2000",
+  reviewed_at_ms: "1100",
+  accepted_at_ms: "1200",
+  transaction_hash: "11111111111111111111111111111111",
+  receipt_id: null,
+});
+test("audit decoder bounds receipt links and never accepts caller-supplied URLs", () => {
+  const row = assistantAuditEntry(auditRow());
+  assert.equal(assistantAuditReceiptUrl(row), null);
+  assert.equal(
+    assistantAuditReceiptUrl({
+      ...row,
+      outcome: "submitted",
+      receipt_id: row.transaction_hash,
+    }),
+    null,
+  );
+  assert.match(
+    assistantAuditReceiptUrl({
+      ...row,
+      outcome: "confirmed",
+      receipt_id: row.transaction_hash,
+    }),
+    /^https:\/\/testnet.nearblocks.io\/txns\//,
+  );
+  assert.throws(() =>
+    assistantAuditEntry({ ...row, receipt_url: "javascript:alert(1)" }),
+  );
+  assert.throws(() =>
+    assistantAuditEntry({ ...row, created_at_ms: "18446744073709551615" }),
+  );
+  assert.throws(() =>
+    assistantAuditEntry({ ...row, transaction_hash: "javascript:alert(1)" }),
+  );
+});
+test("private audit clears on account switch and rejects mismatched owner rows and late replies", async () => {
+  let history = {
+    stale: false,
+    configuration: { mode: "recommendations" },
+    history: [],
+    audit: [auditRow()],
+  };
+  let resolve;
+  const port = {
+    logout() {},
+    async authenticate() {},
+    async recommendations() {
+      return history;
+    },
+  };
+  const panel = new AssistantPanel(
+    () => port,
+    async () => {},
+    () => {},
+  );
+  panel.setScope(capture.player_id, "4");
+  await panel.signIn();
+  assert.equal(panel.state.audit.length, 1);
+  port.recommendations = () =>
+    new Promise((r) => {
+      resolve = r;
+    });
+  const pending = panel.refresh();
+  panel.setScope("other.testnet", "5");
+  resolve(history);
+  await pending;
+  assert.deepEqual(panel.state.audit, []);
+  port.recommendations = async () => history;
+  await panel.signIn();
+  assert.equal(panel.state.signedIn, false);
+  assert.deepEqual(panel.state.audit, []);
+});
 const outcome = (i) =>
   JSON.parse(
     Buffer.from(capture.steps[i].receipt.status.SuccessValue, "base64"),

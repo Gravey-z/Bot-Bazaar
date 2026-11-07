@@ -87,13 +87,14 @@ export class AssistantStore {
           CREATE INDEX request_scope ON requests(account,shop,started);
           CREATE TABLE decisions(proposal_id TEXT PRIMARY KEY,review_id TEXT UNIQUE,account TEXT NOT NULL,shop TEXT NOT NULL,status TEXT NOT NULL CHECK(status IN ('reviewed','accepted','dismissed')),review_json TEXT,attempt_id TEXT,call_hash TEXT) STRICT;
           CREATE UNIQUE INDEX decision_attempt ON decisions(attempt_id) WHERE attempt_id IS NOT NULL;
-          PRAGMA user_version=5004;
+          CREATE TABLE audit_decisions(proposal_id TEXT PRIMARY KEY REFERENCES decisions(proposal_id),reviewed_at INTEGER,accepted_at INTEGER,dismissed_at INTEGER,call_json TEXT,outcome_json TEXT,updated_at INTEGER NOT NULL) STRICT;
+          PRAGMA user_version=5005;
         `);
           this.db.prepare("INSERT INTO metadata VALUES(1,?,0)").run(identity);
         });
       requireStorage(
         this.db.prepare("PRAGMA user_version").get()?.["user_version"] ===
-          5004 &&
+          5005 &&
           this.db.prepare("SELECT identity FROM metadata").get()?.[
             "identity"
           ] === identity &&
@@ -104,9 +105,9 @@ export class AssistantStore {
       this.write(() =>
         this.db
           .prepare(
-            "UPDATE requests SET status='expired',code='restart_unknown' WHERE status='pending'",
+            "UPDATE requests SET status='expired',code='restart_unknown',updated=? WHERE status='pending'",
           )
-          .run(),
+          .run(Date.now()),
       );
     } catch (error) {
       this.db.close();
@@ -189,9 +190,9 @@ export class AssistantStore {
         .run(shop, account, revision, mode, JSON.stringify(old.restock));
       this.db
         .prepare(
-          "UPDATE requests SET status='expired',code='settings_changed' WHERE shop=? AND status IN ('pending','proposed')",
+          "UPDATE requests SET status='expired',code='settings_changed',updated=? WHERE shop=? AND status IN ('pending','proposed')",
         )
-        .run(shop);
+        .run(Date.now(), shop);
       return { ...old, mode, revision };
     });
   }
@@ -228,9 +229,9 @@ export class AssistantStore {
         .run(shop, account, revision, old.mode, JSON.stringify(restock));
       this.db
         .prepare(
-          "UPDATE requests SET status='expired',code='settings_changed' WHERE shop=? AND status IN ('pending','proposed')",
+          "UPDATE requests SET status='expired',code='settings_changed',updated=? WHERE shop=? AND status IN ('pending','proposed')",
         )
-        .run(shop);
+        .run(Date.now(), shop);
       return { ...old, revision, restock };
     });
   }
@@ -266,9 +267,9 @@ export class AssistantStore {
         );
       this.db
         .prepare(
-          "UPDATE requests SET status='expired',code='assistant_paused' WHERE shop=? AND status IN ('pending','proposed')",
+          "UPDATE requests SET status='expired',code='assistant_paused',updated=? WHERE shop=? AND status IN ('pending','proposed')",
         )
-        .run(shop);
+        .run(Date.now(), shop);
       return {
         ...old,
         revision,
@@ -451,9 +452,9 @@ export class AssistantStore {
     this.write(() =>
       this.db
         .prepare(
-          "UPDATE requests SET model_status=?,code=?,payload_hash=coalesce(payload_hash,?) WHERE id=? AND status='pending'",
+          "UPDATE requests SET model_status=?,code=?,payload_hash=coalesce(payload_hash,?),updated=? WHERE id=? AND status='pending'",
         )
-        .run(status, code, payloadHash, id),
+        .run(status, code, payloadHash, Date.now(), id),
     );
   }
   expire(shop: string, chainNs: string, context: string | null = null): void {
@@ -469,9 +470,9 @@ export class AssistantStore {
         )
           this.db
             .prepare(
-              "UPDATE requests SET status='expired',code='expired_or_stale' WHERE id=?",
+              "UPDATE requests SET status='expired',code='expired_or_stale',updated=? WHERE id=?",
             )
-            .run(r.id);
+            .run(Date.now(), r.id);
       }
     });
   }
@@ -571,6 +572,11 @@ export class AssistantStore {
           shop,
           canonicalLivingTownJson(review),
         );
+      this.db
+        .prepare(
+          "INSERT INTO audit_decisions(proposal_id,reviewed_at,updated_at) VALUES(?,?,?)",
+        )
+        .run(review.proposal.proposal_id, Date.now(), Date.now());
     });
   }
   claimReview(
@@ -579,6 +585,7 @@ export class AssistantStore {
     proposalId: string,
     attemptId: string,
     callHash: string,
+    call?: unknown,
   ): void {
     this.write(() => {
       const d = this.decision(account, shop, proposalId);
@@ -602,6 +609,16 @@ export class AssistantStore {
           "UPDATE decisions SET status='accepted',attempt_id=?,call_hash=? WHERE proposal_id=?",
         )
         .run(attemptId, callHash, proposalId);
+      this.db
+        .prepare(
+          "INSERT INTO audit_decisions(proposal_id,accepted_at,call_json,updated_at) VALUES(?,?,?,?) ON CONFLICT(proposal_id) DO UPDATE SET accepted_at=coalesce(accepted_at,excluded.accepted_at),call_json=coalesce(call_json,excluded.call_json),updated_at=excluded.updated_at",
+        )
+        .run(
+          proposalId,
+          Date.now(),
+          call ? canonicalLivingTownJson(call) : null,
+          Date.now(),
+        );
     });
   }
   dismiss(account: string, shop: string, proposalId: string): void {
@@ -624,6 +641,62 @@ export class AssistantStore {
           "INSERT INTO decisions(proposal_id,account,shop,status) VALUES(?,?,?,'dismissed') ON CONFLICT(proposal_id) DO UPDATE SET status='dismissed'",
         )
         .run(proposalId, account, shop);
+      this.db
+        .prepare(
+          "INSERT INTO audit_decisions(proposal_id,dismissed_at,updated_at) VALUES(?,?,?) ON CONFLICT(proposal_id) DO UPDATE SET dismissed_at=coalesce(dismissed_at,excluded.dismissed_at),updated_at=excluded.updated_at",
+        )
+        .run(proposalId, Date.now(), Date.now());
+    });
+  }
+  /** Owner-scoped retained audit, independent of the four actionable requests. */
+  auditRecords(account: string, shop: string): AssistantRecord[] {
+    this.settings(account, shop);
+    return this.db
+      .prepare(
+        "SELECT id FROM requests WHERE account=? AND shop=? ORDER BY started DESC,id DESC LIMIT 32",
+      )
+      .all(account, shop)
+      .map((r) => this.get(String(r["id"]))!);
+  }
+  auditDecision(
+    account: string,
+    shop: string,
+    proposal: string,
+  ):
+    | (NonNullable<ReturnType<AssistantStore["decision"]>> &
+        Record<string, unknown>)
+    | null {
+    const decision = this.decision(account, shop, proposal);
+    if (!decision) return null;
+    return {
+      ...decision,
+      ...this.db
+        .prepare("SELECT * FROM audit_decisions WHERE proposal_id=?")
+        .get(proposal),
+    };
+  }
+  saveOutcome(
+    account: string,
+    shop: string,
+    proposal: string,
+    attempt: string,
+    outcome: unknown,
+  ): void {
+    this.write(() => {
+      const d = this.auditDecision(account, shop, proposal);
+      requireStorage(
+        d?.status === "accepted" && d.attempt_id === attempt,
+        "audit acceptance mismatch",
+      );
+      const old = d["outcome_json"]
+        ? (JSON.parse(String(d["outcome_json"])) as { status: string })
+        : null;
+      if (old && ["confirmed", "rejected"].includes(old.status)) return;
+      this.db
+        .prepare(
+          "UPDATE audit_decisions SET outcome_json=?,updated_at=? WHERE proposal_id=?",
+        )
+        .run(JSON.stringify(outcome), Date.now(), proposal);
     });
   }
   close(): void {

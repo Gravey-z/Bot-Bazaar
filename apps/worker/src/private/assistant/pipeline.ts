@@ -13,6 +13,8 @@ import type { BudgetRepository, PreparedInference } from "../policy/budget.js";
 import type { ProviderInvocation } from "../retries/provider.js";
 import type { AssistantFactSource } from "./facts.js";
 import { AssistantStore } from "./store.js";
+import { manualAssistantAudit } from "./audit.js";
+import type { AssistantAudit } from "./audit.js";
 import type { AssistantRecord } from "./store.js";
 import {
   assistantPromptVersion,
@@ -88,6 +90,7 @@ export class AssistantPipeline {
     private readonly provider: AssistantProvider | null = null,
     private readonly timeoutMs = 5000,
     clock?: SafetyClock,
+    private readonly audit?: AssistantAudit,
   ) {
     requireStorage(
       Number.isInteger(timeoutMs) && timeoutMs >= 1 && timeoutMs <= 5000,
@@ -222,6 +225,11 @@ export class AssistantPipeline {
       stale,
       inferenceConfigured: this.provider !== null && this.budget !== null,
       history: this.store.history(account, shop),
+      audit: [
+        ...manualAssistantAudit(this.store, account, shop),
+        ...(this.audit?.automatic(account, shop) ?? []),
+      ],
+      automaticAuditAvailable: this.audit?.automaticAvailable ?? false,
     };
   }
   async review(
@@ -345,12 +353,25 @@ export class AssistantPipeline {
       review.proposal.proposal_id,
       attemptId,
       sha256(canonicalLivingTownJson(call)),
+      call,
     );
     return {
       accepted: true,
       review_id: review.review_id,
       attempt_id: attemptId,
     };
+  }
+  async outcome(
+    account: string,
+    shop: string,
+    proposal: string,
+    attempt: string,
+    hash: string,
+    reference: string,
+  ): Promise<unknown> {
+    requireStorage(this.audit, "assistant receipt audit unavailable");
+    await this.audit.outcome(account, shop, proposal, attempt, hash, reference);
+    return this.view(account, shop, true);
   }
   private checkOwner(f: AssistantFacts, account: string, shop: string): void {
     factKey(f);

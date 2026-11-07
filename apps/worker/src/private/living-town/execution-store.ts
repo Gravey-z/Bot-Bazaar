@@ -337,7 +337,7 @@ export class LivingTownExecutionStore {
     );
     return this.db
       .prepare(
-        "SELECT c.*,j.status AS job_status,i.method,i.status,a.tx_hash FROM customer_actions c JOIN jobs j ON j.id=c.id LEFT JOIN intents i ON i.id=c.id LEFT JOIN attempts a ON a.intent_id=i.id WHERE c.arrival=? ORDER BY c.rowid DESC LIMIT 32",
+        "SELECT c.*,j.status AS job_status,j.created_at,max(j.updated_at,coalesce(i.updated_at,0),coalesce(a.updated_at,0)) AS updated_at,i.method,i.status,a.tx_hash,a.evidence_json FROM customer_actions c JOIN jobs j ON j.id=c.id LEFT JOIN intents i ON i.id=c.id LEFT JOIN attempts a ON a.intent_id=i.id WHERE c.arrival=? ORDER BY c.rowid DESC LIMIT 32",
       )
       .all(`assistant:${shop}`);
   }

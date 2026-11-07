@@ -7,6 +7,7 @@ import type {
   AssistantManualReview,
   AssistantPublicProposal,
   AssistantRestockLimits,
+  AssistantAuditEntry,
 } from "@bot-bazaar/chain";
 import type { TownPort } from "./living-town-controller";
 type Port = NonNullable<TownPort["assistant"]>;
@@ -24,6 +25,8 @@ export interface AssistantPanelState {
   pausePolicyRevision: string | null;
   pausePending: boolean;
   pauseConfirmed: boolean;
+  audit: AssistantAuditEntry[];
+  automaticAuditAvailable: boolean;
 }
 const initial: AssistantPanelState = {
   signedIn: false,
@@ -39,6 +42,8 @@ const initial: AssistantPanelState = {
   pausePolicyRevision: null,
   pausePending: false,
   pauseConfirmed: false,
+  audit: [],
+  automaticAuditAvailable: false,
 };
 export class AssistantPanel {
   private scope: { account: string; shop: string } | null = null;
@@ -80,13 +85,15 @@ export class AssistantPanel {
         .map((d) => d.proposal_id),
     );
     if (
-      h.proposals.some(
+      [...h.proposals, ...h.audit].some(
         (p) => p.owner_account_id !== scope.account || p.shop_id !== scope.shop,
       )
     )
       throw new Error("Assistant scope mismatch");
     this.publish({
       mode: h.mode,
+      audit: h.audit,
+      automaticAuditAvailable: h.automaticAuditAvailable,
       stale: h.stale,
       proposals:
         h.paused || this.locallyPaused
@@ -115,6 +122,7 @@ export class AssistantPanel {
         this.publish({
           signedIn: false,
           proposals: [],
+          audit: [],
           review: null,
           message:
             "Assistant session or recommendation is unavailable. Sign in or refresh and review the current terms.",

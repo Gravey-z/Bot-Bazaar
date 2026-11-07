@@ -8,6 +8,7 @@ import {
 } from "@angular/core";
 import type { OnDestroy } from "@angular/core";
 import { AssistantPanel } from "./assistant-panel";
+import { assistantAuditReceiptUrl } from "@bot-bazaar/chain";
 import type { AssistantPanelState } from "./assistant-panel";
 import type { TownState, LivingTownController } from "./living-town-controller";
 @Component({
@@ -16,6 +17,10 @@ import type { TownState, LivingTownController } from "./living-town-controller";
   styleUrl: "./living-town-assistant.component.css",
 })
 export class LivingTownAssistantComponent implements OnDestroy {
+  protected readonly receiptUrl = assistantAuditReceiptUrl;
+  protected auditTime(value: string | null): string {
+    return value === null ? "—" : new Date(Number(value)).toISOString();
+  }
   readonly state = input.required<TownState>();
   readonly controller = input.required<LivingTownController>();
   readonly elapsedMs = input(0);
@@ -33,6 +38,8 @@ export class LivingTownAssistantComponent implements OnDestroy {
     pausePolicyRevision: null,
     pausePending: false,
     pauseConfirmed: false,
+    audit: [],
+    automaticAuditAvailable: false,
   });
   private readonly scopeOwner = signal<string | null>(null);
   protected readonly panel = new AssistantPanel(

@@ -1,3 +1,4 @@
+import { AssistantAudit } from "./private/assistant/audit.js";
 import {
   LivingTownClient,
   canonicalLivingTownJson,
@@ -52,6 +53,11 @@ const store = new AssistantStore(
 const pipeline = new AssistantPipeline(
   store,
   assistantFactSource(client, config.public.workerUrl),
+  null,
+  null,
+  5000,
+  undefined,
+  new AssistantAudit(store, client),
 );
 const server = createAssistantServer(auth, pipeline);
 // Loopback listener behind an origin-preserving HTTPS proxy; never trust XFF.

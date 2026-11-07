@@ -158,6 +158,32 @@ export function createLivingTownPort(
     },
   );
   const prefix = `bot-bazaar:living-town:ownership:1:${profile.identity.deployment.genesis_hash}:${profile.identity.deployment.contract_id}:`;
+  async function syncAssistantAudit(): Promise<void> {
+    const session = privateSession,
+      account = privateAccount;
+    if (!session || !account) return;
+    for (const a of [await journal.read(), await journal.last()]) {
+      if (
+        !a?.assistant_review ||
+        !a.transactionHash ||
+        a.accountId !== account ||
+        session !== privateSession ||
+        account !== privateAccount
+      )
+        continue;
+      try {
+        await session.outcome(
+          a.assistant_review.shop_id,
+          a.assistant_review.proposal_id,
+          a.id,
+          a.transactionHash,
+          a.referenceBlockHeight,
+        );
+      } catch {
+        /* Retain the original wallet journal; a later owner refresh retries proof lookup. */
+      }
+    }
+  }
   const sessionProofs = new Map<string, LivingTownProof>(),
     verified = new Map<string, string>();
   const key = (account: string, shop: TownShop): string =>
@@ -327,6 +353,7 @@ export function createLivingTownPort(
       },
       async recommendations(shopId) {
         await this.scope(shopId);
+        await syncAssistantAudit();
         return privateSession!.recommendations(shopId);
       },
       async generate(shopId) {
@@ -712,7 +739,10 @@ export function createLivingTownPort(
         assistantReview,
       );
     },
-    submit: (id) => journal.submit(id),
+    async submit(id) {
+      await journal.submit(id);
+      await syncAssistantAudit();
+    },
     pending: () => journal.read(),
     restore: () => journal.restore(),
     last: () => journal.last(),
@@ -721,6 +751,7 @@ export function createLivingTownPort(
     async reconcile() {
       const attempt = await journal.read();
       const status = await journal.refresh();
+      await syncAssistantAudit();
       if (
         attempt &&
         attempt.call.method !== "complete_production" &&

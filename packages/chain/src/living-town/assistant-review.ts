@@ -18,6 +18,8 @@ import { createLivingTownCall } from "./calls.js";
 import type { LivingTownCall } from "./calls.js";
 import { assistantRestockLimits } from "./assistant-restock.js";
 import type { AssistantRestockLimits } from "./assistant-restock.js";
+import { assistantAuditEntries } from "./assistant-audit.js";
+import type { AssistantAuditEntry } from "./assistant-audit.js";
 
 const reason = (v: unknown): string => {
   check(
@@ -216,6 +218,8 @@ export function assistantHistory(value: unknown): {
   revision: string | null;
   paused: boolean | null;
   pausePolicyRevision: string | null;
+  audit: AssistantAuditEntry[];
+  automaticAuditAvailable: boolean;
 } {
   const r = record(value),
     config = record(r["configuration"]);
@@ -236,6 +240,11 @@ export function assistantHistory(value: unknown): {
   }
   return {
     stale: r["stale"],
+    audit: assistantAuditEntries(r["audit"] ?? []),
+    automaticAuditAvailable:
+      r["automaticAuditAvailable"] === undefined
+        ? false
+        : boolean(r["automaticAuditAvailable"]),
     mode: String(config["mode"]),
     proposals,
     decisions,

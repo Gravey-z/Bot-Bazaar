@@ -213,6 +213,20 @@ export class AssistantSession {
   async recommendations(shopId: string): Promise<unknown> {
     return this.operation(shopId, "recommendations");
   }
+  async outcome(
+    shopId: string,
+    proposalId: string,
+    attemptId: string,
+    transactionHash: string,
+    referenceBlockHeight: string,
+  ): Promise<unknown> {
+    return this.operation(shopId, "outcome", {
+      proposalId,
+      attemptId,
+      transactionHash,
+      referenceBlockHeight,
+    });
+  }
   async review(shopId: string, proposalId: string): Promise<unknown> {
     return this.operation(shopId, "review", { proposalId });
   }

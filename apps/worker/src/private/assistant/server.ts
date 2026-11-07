@@ -74,7 +74,7 @@ export function createAssistantServer(
             authorization,
           )?.[1];
           const scope =
-            /^\/private\/assistant\/shops\/([1-9][0-9]{0,19})\/(scope|recommendations|generate|configuration|restock|pause|resume|review|dismiss|accept)$/.exec(
+            /^\/private\/assistant\/shops\/([1-9][0-9]{0,19})\/(scope|recommendations|generate|configuration|restock|pause|resume|review|dismiss|accept|outcome)$/.exec(
               route,
             );
           if (
@@ -103,17 +103,24 @@ export function createAssistantServer(
             ? ["accountId", "shopId"]
             : route.endsWith("/verify")
               ? ["id", "accountId", "publicKey", "signature"]
-              : scope?.[2] === "accept"
-                ? ["review", "attemptId", "call"]
-                : scope?.[2] === "restock"
-                  ? ["expectedRevision", "limits"]
-                  : scope?.[2] === "resume"
-                    ? ["expectedRevision", "policyRevision", "mode"]
-                    : ["review", "dismiss"].includes(scope?.[2] ?? "")
-                      ? ["proposalId"]
-                      : route.endsWith("/configuration")
-                        ? ["mode"]
-                        : [];
+              : scope?.[2] === "outcome"
+                ? [
+                    "proposalId",
+                    "attemptId",
+                    "transactionHash",
+                    "referenceBlockHeight",
+                  ]
+                : scope?.[2] === "accept"
+                  ? ["review", "attemptId", "call"]
+                  : scope?.[2] === "restock"
+                    ? ["expectedRevision", "limits"]
+                    : scope?.[2] === "resume"
+                      ? ["expectedRevision", "policyRevision", "mode"]
+                      : ["review", "dismiss"].includes(scope?.[2] ?? "")
+                        ? ["proposalId"]
+                        : route.endsWith("/configuration")
+                          ? ["mode"]
+                          : [];
           if (
             !body ||
             typeof body !== "object" ||
@@ -138,7 +145,16 @@ export function createAssistantServer(
             const controller = new AbortController();
             res.once("close", () => controller.abort());
             let result: unknown;
-            if (scope[2] === "pause")
+            if (scope[2] === "outcome")
+              result = await pipeline.outcome(
+                owner.accountId,
+                owner.shopId,
+                b["proposalId"]!,
+                b["attemptId"]!,
+                b["transactionHash"]!,
+                b["referenceBlockHeight"]!,
+              );
+            else if (scope[2] === "pause")
               result = await pipeline.pause(owner.accountId, owner.shopId);
             else if (scope[2] === "resume") {
               if (

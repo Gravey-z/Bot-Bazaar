@@ -435,6 +435,47 @@
         </div>
       }
     }
+    @if (view().signedIn) {
+      <h3>Private assistant history</h3>
+      <p>
+        Acceptance records owner consent. Confirmation requires verified chain
+        evidence. Unknown transactions need reconciliation; do not resend.
+      </p>
+      @if (!view().automaticAuditAvailable) {
+        <p>
+          Automatic execution history is unavailable from this private host.
+        </p>
+      }
+      @for (entry of view().audit; track entry.source + entry.id) {
+        <article class="review">
+          <h4>{{ entry.source }} · {{ entry.action }}</h4>
+          <p>{{ entry.terms }}</p>
+          <p>{{ entry.reason }}</p>
+          <p>
+            Validation: {{ entry.validation }} · Acceptance:
+            {{ entry.acceptance }} · Outcome: {{ entry.outcome }}
+          </p>
+          <p>
+            Policy revision: {{ entry.policy_revision ?? "unavailable" }} ·
+            Created: {{ auditTime(entry.created_at_ms) }} · Updated:
+            {{ auditTime(entry.updated_at_ms) }}
+          </p>
+          @if (entry.reviewed_at_ms) {
+            <p>Reviewed: {{ auditTime(entry.reviewed_at_ms) }}</p>
+          }
+          @if (entry.accepted_at_ms) {
+            <p>Owner accepted: {{ auditTime(entry.accepted_at_ms) }}</p>
+          }
+          @if (receiptUrl(entry); as url) {
+            <a [href]="url" target="_blank" rel="noopener noreferrer"
+              >Verified execution receipt</a
+            >
+          }
+        </article>
+      } @empty {
+        <p>No retained assistant activity for this shop.</p>
+      }
+    }
     @if (view().message) {
       <p role="status">{{ view().message }}</p>
     }

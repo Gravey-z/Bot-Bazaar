@@ -32,6 +32,12 @@ export type {
   OfferLookup,
 } from "./wire.js";
 export {
+  assistantAuditEntry,
+  assistantAuditEntries,
+  assistantAuditReceiptUrl,
+} from "./living-town/assistant-audit.js";
+export type { AssistantAuditEntry } from "./living-town/assistant-audit.js";
+export {
   canonicalListingAction,
   listingActionDigest,
 } from "./listing-action.js";
