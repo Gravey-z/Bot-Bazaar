@@ -66,6 +66,11 @@ export interface TownPort {
       shopId: string,
       mode: "off" | "recommendations",
     ): Promise<unknown>;
+    configureRestock?(
+      shopId: string,
+      expectedRevision: string,
+      limits: import("@bot-bazaar/chain").AssistantRestockLimits,
+    ): Promise<unknown>;
     logout(): void;
     review?(shopId: string, proposalId: string): Promise<AssistantManualReview>;
     dismiss?(shopId: string, proposalId: string): Promise<unknown>;

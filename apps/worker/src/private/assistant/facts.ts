@@ -11,6 +11,28 @@ import type { AssistantFacts } from "./proposals.js";
 export interface AssistantFactSource {
   load(account: string, shop: string): Promise<AssistantFacts>;
 }
+export function confirmedRestockSpending(
+  history: ReturnType<typeof livingTownSalesHistoryRead>["items"],
+  now: string,
+  genesis: string,
+): { tick: string; day: string } {
+  const timestamp = BigInt(now),
+    origin = BigInt(genesis);
+  requireStorage(timestamp >= origin, "assistant clock precedes town genesis");
+  const tickStart = timestamp - ((timestamp - origin) % 60_000_000_000n);
+  const dayStart = timestamp - (timestamp % 86_400_000_000_000n);
+  const purchases = history.filter((h) => h.kind === "material_purchase");
+  const spentSince = (start: bigint) =>
+    purchases
+      .filter(
+        (h) =>
+          BigInt(h.block_timestamp_ns) >= start &&
+          BigInt(h.block_timestamp_ns) <= timestamp,
+      )
+      .reduce((sum, h) => sum + BigInt(h.gold_amount), 0n)
+      .toString();
+  return { tick: spentSince(tickStart), day: spentSince(dayStart) };
+}
 /** RPC facts are pinned; receipt-projected history must cover the same economic checkpoint. */
 export function assistantFactSource(
   client: LivingTownClient,
@@ -181,6 +203,11 @@ export function assistantFactSource(
           .toString();
       }
       return {
+        restockSpending: confirmedRestockSpending(
+          history,
+          town.block_timestamp_ns,
+          town.data.genesis_time_ns,
+        ),
         ...(assistantPolicy ? { assistantPolicy } : {}),
         snapshot: {
           deployment: town.deployment,

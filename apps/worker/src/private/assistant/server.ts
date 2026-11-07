@@ -74,7 +74,7 @@ export function createAssistantServer(
             authorization,
           )?.[1];
           const scope =
-            /^\/private\/assistant\/shops\/([1-9][0-9]{0,19})\/(scope|recommendations|generate|configuration|review|dismiss|accept)$/.exec(
+            /^\/private\/assistant\/shops\/([1-9][0-9]{0,19})\/(scope|recommendations|generate|configuration|restock|review|dismiss|accept)$/.exec(
               route,
             );
           if (
@@ -105,17 +105,19 @@ export function createAssistantServer(
               ? ["id", "accountId", "publicKey", "signature"]
               : scope?.[2] === "accept"
                 ? ["review", "attemptId", "call"]
-                : ["review", "dismiss"].includes(scope?.[2] ?? "")
-                  ? ["proposalId"]
-                  : route.endsWith("/configuration")
-                    ? ["mode"]
-                    : [];
+                : scope?.[2] === "restock"
+                  ? ["expectedRevision", "limits"]
+                  : ["review", "dismiss"].includes(scope?.[2] ?? "")
+                    ? ["proposalId"]
+                    : route.endsWith("/configuration")
+                      ? ["mode"]
+                      : [];
           if (
             !body ||
             typeof body !== "object" ||
             Array.isArray(body) ||
             Object.keys(body).sort().join() !== [...keys].sort().join() ||
-            (scope?.[2] !== "accept" &&
+            (!["accept", "restock"].includes(scope?.[2] ?? "") &&
               Object.values(body).some(
                 (v) => typeof v !== "string" || v.length > 512,
               ))
@@ -141,6 +143,16 @@ export function createAssistantServer(
                 owner.accountId,
                 owner.shopId,
                 b["mode"],
+              );
+            } else if (scope[2] === "restock") {
+              const payload = body as Record<string, unknown>;
+              if (typeof payload["expectedRevision"] !== "string")
+                throw new AssistantAuthError(400);
+              result = pipeline.configureRestock(
+                owner.accountId,
+                owner.shopId,
+                payload["expectedRevision"],
+                payload["limits"],
               );
             } else if (scope[2] === "review")
               result = await pipeline.review(

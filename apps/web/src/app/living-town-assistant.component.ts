@@ -27,6 +27,8 @@ export class LivingTownAssistantComponent implements OnDestroy {
     message: "",
     proposals: [],
     review: null,
+    restock: null,
+    revision: null,
   });
   private readonly scopeOwner = signal<string | null>(null);
   protected readonly panel = new AssistantPanel(
@@ -94,6 +96,29 @@ export class LivingTownAssistantComponent implements OnDestroy {
   }
   protected name(item: string): string {
     return item.replaceAll("_", " ");
+  }
+  protected saveRestock(
+    budget: string,
+    reserve: string,
+    tick: string,
+    day: string,
+    crystal: boolean,
+    wood: boolean,
+    herb: boolean,
+    iron: boolean,
+  ): Promise<void> {
+    return this.panel.configureRestock({
+      recommendation_budget: budget,
+      min_cash_reserve: reserve,
+      per_tick_limit: tick,
+      per_day_limit: day,
+      allowed_items: [
+        crystal ? "crystal" : null,
+        wood ? "wood" : null,
+        herb ? "herb" : null,
+        iron ? "iron" : null,
+      ].filter((v) => v !== null),
+    });
   }
   ngOnDestroy(): void {
     this.panel.close();

@@ -1,7 +1,12 @@
-import { assistantHistory, verifyAssistantReview } from "@bot-bazaar/chain";
+import {
+  assistantHistory,
+  verifyAssistantReview,
+  assistantRestockLimits,
+} from "@bot-bazaar/chain";
 import type {
   AssistantManualReview,
   AssistantPublicProposal,
+  AssistantRestockLimits,
 } from "@bot-bazaar/chain";
 import type { TownPort } from "./living-town-controller";
 type Port = NonNullable<TownPort["assistant"]>;
@@ -13,6 +18,8 @@ export interface AssistantPanelState {
   message: string;
   proposals: AssistantPublicProposal[];
   review: AssistantManualReview | null;
+  restock: AssistantRestockLimits | null;
+  revision: string | null;
 }
 const initial: AssistantPanelState = {
   signedIn: false,
@@ -22,6 +29,8 @@ const initial: AssistantPanelState = {
   message: "",
   proposals: [],
   review: null,
+  restock: null,
+  revision: null,
 };
 export class AssistantPanel {
   private scope: { account: string; shop: string } | null = null;
@@ -69,6 +78,8 @@ export class AssistantPanel {
       mode: h.mode,
       stale: h.stale,
       proposals: h.proposals.filter((p) => !closed.has(p.proposal_id)),
+      restock: h.restock,
+      revision: h.revision,
     });
   }
   private async work(
@@ -129,6 +140,34 @@ export class AssistantPanel {
       if (v === this.version) {
         this.history(h);
         this.publish({ review: null });
+      }
+    });
+  }
+  async configureRestock(value: unknown): Promise<void> {
+    let limits: AssistantRestockLimits;
+    try {
+      limits = assistantRestockLimits(value);
+    } catch {
+      this.publish({
+        message:
+          "Use whole game-gold amounts within the displayed ranges and select permitted materials.",
+      });
+      return;
+    }
+    return this.work(async (p, s) => {
+      const revision = this.value.revision;
+      if (!revision || !this.value.signedIn) throw new Error("Sign in first");
+      const v = this.version;
+      await p.configureRestock!(s.shop, revision, limits);
+      if (v !== this.version) return;
+      const h = await p.recommendations!(s.shop);
+      if (v === this.version) {
+        this.history(h);
+        this.publish({
+          review: null,
+          message:
+            "Advisory restock limits saved. Purchases still require your wallet approval.",
+        });
       }
     });
   }

@@ -58,8 +58,8 @@ export function assistantPrompt(facts: AssistantFacts): string {
       price_min: "1",
       price_max: "100",
       restock_target: "4",
-      restock_max_total: "100",
-      cash_reserve: "20",
+      restock_limits: facts.restockLimits ?? null,
+      confirmed_restock_spending: facts.restockSpending ?? null,
       max_suggestions_per_kind: 1,
     },
   });
@@ -104,10 +104,27 @@ export class AssistantPipeline {
   ): unknown {
     return this.store.configure(account, shop, mode);
   }
+  configureRestock(
+    account: string,
+    shop: string,
+    expectedRevision: string,
+    limits: unknown,
+  ): unknown {
+    return this.store.configureRestock(account, shop, expectedRevision, limits);
+  }
+  private async loadFacts(
+    account: string,
+    shop: string,
+  ): Promise<AssistantFacts> {
+    return {
+      ...(await this.facts.load(account, shop)),
+      restockLimits: this.store.settings(account, shop).restock,
+    };
+  }
   async read(account: string, shop: string): Promise<unknown> {
     let stale = true;
     try {
-      const f = await this.facts.load(account, shop);
+      const f = await this.loadFacts(account, shop);
       this.checkOwner(f, account, shop);
       stale = !f.fresh || !f.historyComplete || f.paused;
       this.store.expire(shop, f.snapshot.block_timestamp_ns, economicKey(f));
@@ -145,7 +162,7 @@ export class AssistantPipeline {
         (allowAccepted && decision.status === "accepted"),
       "assistant proposal dismissed or already accepted",
     );
-    const f = await this.facts.load(account, shop);
+    const f = await this.loadFacts(account, shop);
     this.checkOwner(f, account, shop);
     requireStorage(
       f.snapshot.market_revision === proposal.snapshot.market_revision &&
@@ -304,7 +321,7 @@ export class AssistantPipeline {
     authorized: () => Promise<unknown>,
   ): Promise<AssistantProposal[]> {
     await authorized();
-    const f = await this.facts.load(account, shop);
+    const f = await this.loadFacts(account, shop);
     this.checkOwner(f, account, shop);
     requireStorage(
       this.automaticAllowed(f),
@@ -341,7 +358,7 @@ export class AssistantPipeline {
     const started = this.clock.now();
     let f: AssistantFacts;
     try {
-      f = structuredClone(await this.facts.load(account, shop));
+      f = structuredClone(await this.loadFacts(account, shop));
       this.checkOwner(f, account, shop);
       requireStorage(
         !automatic || this.automaticAllowed(f),
@@ -416,7 +433,7 @@ export class AssistantPipeline {
     const fresh = async (): Promise<boolean> => {
       try {
         await authorized();
-        const current = await this.facts.load(account, shop);
+        const current = await this.loadFacts(account, shop);
         this.checkOwner(current, account, shop);
         const config = this.store.settings(account, shop);
         return (

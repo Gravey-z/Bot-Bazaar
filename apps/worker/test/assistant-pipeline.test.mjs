@@ -70,6 +70,7 @@ function fixture(t, options = {}) {
     ],
     fresh: true,
     historyComplete: true,
+    restockSpending: { tick: "0", day: "0" },
     paused: false,
     productionCost: { health_potion: "6", iron_tool: null },
     demand: { health_potion: "2", iron_tool: "0" },

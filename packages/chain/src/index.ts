@@ -180,6 +180,11 @@ export {
 
 export { livingTownMarketEvent } from "./living-town/wire.js";
 export {
+  assistantRestockLimits,
+  defaultAssistantRestockLimits,
+} from "./living-town/assistant-restock.js";
+export type { AssistantRestockLimits } from "./living-town/assistant-restock.js";
+export {
   livingTownAssistantPolicy,
   livingTownAssistantPolicyInput,
   livingTownAssistantPolicyEffect,

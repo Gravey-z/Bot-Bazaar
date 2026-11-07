@@ -8,6 +8,7 @@ import {
   verifyAssistantReview,
   assistantCallMatches,
   assistantReviewReference,
+  defaultAssistantRestockLimits,
 } from "../../packages/chain/dist/index.js";
 const built = await build({
   stdin: {
@@ -418,4 +419,100 @@ test("UI uses text rendering, explicit review/sign controls and no automatic res
   assert.match(html, /Cancel review/);
   assert.match(html, /Dismiss suggestion/);
   assert.doesNotMatch(html, /\[innerHTML\]|bypassSecurity|auto_restock/);
+});
+
+test("advisory settings save through owner session without generation or wallet signing", async () => {
+  let configuration = {
+      mode: "recommendations",
+      revision: "2",
+      restock: defaultAssistantRestockLimits(),
+    },
+    saves = 0,
+    generated = 0,
+    signed = 0;
+  const port = {
+    logout() {},
+    authenticate: async () => {},
+    recommendations: async () => ({ configuration, stale: false, history: [] }),
+    generate: async () => {
+      generated++;
+    },
+    configureRestock: async (shop, revision, limits) => {
+      assert.equal(shop, "4");
+      assert.equal(revision, "2");
+      saves++;
+      configuration = { ...configuration, revision: "3", restock: limits };
+    },
+  };
+  const panel = new AssistantPanel(
+    () => port,
+    async () => {
+      signed++;
+    },
+    () => {},
+  );
+  panel.setScope("alice.testnet", "4");
+  await panel.signIn();
+  await panel.configureRestock({
+    ...defaultAssistantRestockLimits(),
+    recommendation_budget: "8",
+    allowed_items: ["herb"],
+  });
+  assert.equal(saves, 1);
+  assert.equal(panel.state.restock.recommendation_budget, "8");
+  assert.equal(panel.state.revision, "3");
+  assert.equal(panel.state.review, null);
+  assert.equal(generated, 0);
+  assert.equal(signed, 0);
+  await panel.configureRestock({
+    ...defaultAssistantRestockLimits(),
+    recommendation_budget: "-1",
+  });
+  assert.equal(saves, 1);
+  assert.equal(panel.state.signedIn, true);
+  assert.match(panel.state.message, /whole game-gold/);
+});
+test("late advisory configuration refresh cannot populate a different account", async () => {
+  let reads = 0,
+    release,
+    notify;
+  const ready = new Promise((resolve) => {
+    notify = resolve;
+  });
+  const response = {
+    configuration: {
+      mode: "recommendations",
+      revision: "2",
+      restock: defaultAssistantRestockLimits(),
+    },
+    stale: false,
+    history: [],
+  };
+  const port = {
+    logout() {},
+    authenticate: async () => {},
+    configureRestock: async () => {},
+    recommendations: async () => {
+      if (++reads === 1) return response;
+      notify();
+      return new Promise((resolve) => {
+        release = resolve;
+      });
+    },
+  };
+  const panel = new AssistantPanel(
+    () => port,
+    async () => {},
+    () => {},
+  );
+  panel.setScope("alice.testnet", "4");
+  await panel.signIn();
+  const pending = panel.configureRestock(defaultAssistantRestockLimits());
+  await ready;
+  panel.setScope("bob.testnet", "5");
+  release(response);
+  await pending;
+  assert.equal(panel.state.restock, null);
+  assert.equal(panel.state.revision, null);
+  assert.equal(panel.state.signedIn, false);
 });

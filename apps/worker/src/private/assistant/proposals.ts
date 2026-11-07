@@ -4,6 +4,7 @@ import {
   livingTownShop,
   livingTownLedger,
   livingTownListing,
+  defaultAssistantRestockLimits,
 } from "@bot-bazaar/chain";
 import { livingTownItemIds } from "@bot-bazaar/shared";
 import { requireStorage, sha256 } from "../storage/validation.js";
@@ -108,6 +109,8 @@ export interface Candidate {
   reason: string;
 }
 export interface AssistantFacts {
+  restockLimits?: import("@bot-bazaar/chain").AssistantRestockLimits;
+  restockSpending?: { tick: string; day: string };
   assistantPolicy?: import("@bot-bazaar/chain").LivingTownAssistantPolicy;
   snapshot: {
     deployment: unknown;
@@ -300,8 +303,18 @@ export function validateCandidate(
           BigInt(f.ledger.inventory.trade_inbound_reserved[index]!) +
           BigInt(a.quantity) <=
           4n &&
-        BigInt(a.total_price) <= 100n &&
-        BigInt(f.ledger.gold.available) >= BigInt(a.total_price) + 20n &&
+        (
+          f.restockLimits ?? defaultAssistantRestockLimits()
+        ).allowed_items.includes(
+          a.item_id as "crystal" | "wood" | "herb" | "iron",
+        ) &&
+        BigInt(a.total_price) <= restockAllowance(f) &&
+        BigInt(f.ledger.gold.available) >=
+          BigInt(a.total_price) +
+            BigInt(
+              (f.restockLimits ?? defaultAssistantRestockLimits())
+                .min_cash_reserve,
+            ) &&
         BigInt(f.ledger.inventory.held[index]!) +
           BigInt(f.ledger.inventory.production_output_reserved[index]!) +
           BigInt(f.ledger.inventory.trade_inbound_reserved[index]!) +
@@ -310,6 +323,18 @@ export function validateCandidate(
       "invalid restock budget/stock/capacity",
     );
   }
+}
+export function restockAllowance(f: AssistantFacts): bigint {
+  const p = f.restockLimits ?? defaultAssistantRestockLimits();
+  if (!f.restockSpending) return 0n;
+  const spent = f.restockSpending;
+  const remaining = [
+    BigInt(p.recommendation_budget),
+    BigInt(p.per_tick_limit) - BigInt(parseU64(spent.tick)),
+    BigInt(p.per_day_limit) - BigInt(parseU64(spent.day)),
+  ];
+  const available = remaining.reduce((a, b) => (a < b ? a : b), 10000n);
+  return available > 0n ? available : 0n;
 }
 export function rulesCandidates(f: AssistantFacts): Candidate[] {
   if (!f.fresh || !f.historyComplete || f.paused) return [];
@@ -349,6 +374,8 @@ export function rulesCandidates(f: AssistantFacts): Candidate[] {
     break;
   }
   for (const item of ["crystal", "wood", "herb", "iron"] as const) {
+    const limits = f.restockLimits ?? defaultAssistantRestockLimits();
+    if (!limits.allowed_items.includes(item)) continue;
     const i = item;
     const held =
       BigInt(f.ledger.inventory.held[i]!) +
@@ -371,8 +398,9 @@ export function rulesCandidates(f: AssistantFacts): Candidate[] {
     const quantity = [
       4n - held,
       BigInt(l.remaining_quantity),
-      (BigInt(f.ledger.gold.available) - 20n) / BigInt(l.unit_price),
-      100n / BigInt(l.unit_price),
+      (BigInt(f.ledger.gold.available) - BigInt(limits.min_cash_reserve)) /
+        BigInt(l.unit_price),
+      restockAllowance(f) / BigInt(l.unit_price),
     ].reduce((a, b) => (a < b ? a : b));
     if (quantity < 1n) continue;
     const p: Candidate = {
@@ -387,7 +415,7 @@ export function rulesCandidates(f: AssistantFacts): Candidate[] {
         total_price: (quantity * BigInt(l.unit_price)).toString(),
       },
       reason:
-        "Rules fallback: replenish toward four units while preserving 20 game gold; owner purchase approval required.",
+        "Rules fallback: replenish toward four units within advisory item/budget/reserve limits; owner purchase approval required.",
     };
     try {
       validateCandidate(p, f);

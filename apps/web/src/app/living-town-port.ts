@@ -337,6 +337,14 @@ export function createLivingTownPort(
         await this.scope(shopId);
         return privateSession!.configure(shopId, mode);
       },
+      async configureRestock(shopId, expectedRevision, limits) {
+        await this.scope(shopId);
+        return privateSession!.configureRestock(
+          shopId,
+          expectedRevision,
+          limits,
+        );
+      },
     },
     ...(profile.public.workerUrl
       ? {

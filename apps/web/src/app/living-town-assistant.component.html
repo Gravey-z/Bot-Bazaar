@@ -111,6 +111,111 @@
       </p>
     } @else {
       <div class="actions">
+        @if (view().restock; as limits) {
+          <fieldset [disabled]="view().busy">
+            <legend>Advisory restock limits</legend>
+            <p>
+              These limits guide suggestions only. Every purchase requires your
+              review and wallet signature. They do not reserve funds or
+              authorize automatic restocking.
+            </p>
+            <label
+              >Budget per recommendation (game gold)
+              <input
+                #budget
+                type="number"
+                min="0"
+                max="10000"
+                step="1"
+                [value]="limits.recommendation_budget"
+            /></label>
+            <label
+              >Minimum cash reserve (game gold)
+              <input
+                #reserve
+                type="number"
+                min="0"
+                max="1000000"
+                step="1"
+                [value]="limits.min_cash_reserve"
+            /></label>
+            <label
+              >Per market tick limit (60 seconds, game gold)
+              <input
+                #tickLimit
+                type="number"
+                min="0"
+                max="1000000"
+                step="1"
+                [value]="limits.per_tick_limit"
+            /></label>
+            <label
+              >Per UTC day limit (game gold)
+              <input
+                #dayLimit
+                type="number"
+                min="0"
+                max="1000000"
+                step="1"
+                [value]="limits.per_day_limit"
+            /></label>
+            <label
+              ><input
+                #crystal
+                type="checkbox"
+                [checked]="limits.allowed_items.includes('crystal')"
+              />
+              Crystal</label
+            >
+            <label
+              ><input
+                #wood
+                type="checkbox"
+                [checked]="limits.allowed_items.includes('wood')"
+              />
+              Wood</label
+            >
+            <label
+              ><input
+                #herb
+                type="checkbox"
+                [checked]="limits.allowed_items.includes('herb')"
+              />
+              Herb</label
+            >
+            <label
+              ><input
+                #iron
+                type="checkbox"
+                [checked]="limits.allowed_items.includes('iron')"
+              />
+              Iron</label
+            >
+            <p>
+              Guidance counts confirmed material purchases in the current tick
+              and UTC day. Pending purchases are not reserved. Direct owner
+              purchases remain available. Zero budgets or no permitted items
+              stop restock suggestions.
+            </p>
+            <button
+              type="button"
+              (click)="
+                saveRestock(
+                  budget.value,
+                  reserve.value,
+                  tickLimit.value,
+                  dayLimit.value,
+                  crystal.checked,
+                  wood.checked,
+                  herb.checked,
+                  iron.checked
+                )
+              "
+            >
+              Save advisory limits
+            </button>
+          </fieldset>
+        }
         @if (view().mode === "off") {
           <button
             type="button"

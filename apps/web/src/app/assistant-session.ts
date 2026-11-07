@@ -236,6 +236,13 @@ export class AssistantSession {
   ): Promise<unknown> {
     return this.operation(shopId, "configuration", { mode });
   }
+  async configureRestock(
+    shopId: string,
+    expectedRevision: string,
+    limits: import("@bot-bazaar/chain").AssistantRestockLimits,
+  ): Promise<unknown> {
+    return this.operation(shopId, "restock", { expectedRevision, limits });
+  }
   private async operation(
     shopId: string,
     action: string,

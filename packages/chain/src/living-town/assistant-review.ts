@@ -15,6 +15,8 @@ import { livingTownDigest, parseLivingTownDeployment } from "./wire.js";
 import { canonicalLivingTownJson, livingTownJsonDigest } from "./json.js";
 import { createLivingTownCall } from "./calls.js";
 import type { LivingTownCall } from "./calls.js";
+import { assistantRestockLimits } from "./assistant-restock.js";
+import type { AssistantRestockLimits } from "./assistant-restock.js";
 
 const reason = (v: unknown): string => {
   check(
@@ -209,6 +211,8 @@ export function assistantHistory(value: unknown): {
   mode: string;
   proposals: AssistantPublicProposal[];
   decisions: ReturnType<typeof assistantDecision>[];
+  restock: AssistantRestockLimits | null;
+  revision: string | null;
 } {
   const r = record(value),
     config = record(r["configuration"]);
@@ -232,5 +236,11 @@ export function assistantHistory(value: unknown): {
     mode: String(config["mode"]),
     proposals,
     decisions,
+    restock:
+      config["restock"] === undefined
+        ? null
+        : assistantRestockLimits(config["restock"]),
+    revision:
+      config["revision"] === undefined ? null : positiveU64(config["revision"]),
   };
 }
