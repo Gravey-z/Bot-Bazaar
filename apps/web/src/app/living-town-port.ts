@@ -18,6 +18,7 @@ import type {
   LivingTownProof,
   LivingTownIdentity,
   LivingTownCall,
+  LivingTownAssistantPolicy,
   livingTownProductionJob,
 } from "@bot-bazaar/chain";
 import type { LivingTownProfile } from "./living-town-profile";
@@ -502,6 +503,7 @@ export function createLivingTownPort(
         ReturnType<typeof livingTownMarketListingsRead>["items"] | undefined;
       let shop: TownShop | null = null,
         ledger = player?.data?.ledger ?? null;
+      let assistantPolicy: LivingTownAssistantPolicy | undefined;
       const production: {
         items: ReturnType<typeof livingTownProductionJob>[];
         historyGap: boolean;
@@ -516,6 +518,14 @@ export function createLivingTownPort(
         )
           throw new Error("Shop owner mismatch");
         shop = s.data;
+        if (
+          (await reader.getFoundation()).data.supported_methods.includes(
+            "get_assistant_policy",
+          )
+        ) {
+          assistantPolicy = (await reader.getAssistantPolicy(shop.shop_id))
+            .data;
+        }
         const owned = await reader.getListings({
           shop_id: shop.shop_id,
           item_id: null,
@@ -565,6 +575,7 @@ export function createLivingTownPort(
         town: town.data,
         player: player?.data ?? null,
         shop,
+        ...(assistantPolicy ? { assistantPolicy } : {}),
         ledger,
         listings: listings.data.items,
         ...(ownListings ? { ownListings } : {}),

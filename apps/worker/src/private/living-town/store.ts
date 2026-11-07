@@ -705,6 +705,7 @@ export class LivingTownProjectionStore {
     // Settlement/retention reads are rebuilt at one finalized block. Preserve a
     // visible gap until jobs, shop revisions and ledgers can advance together.
     if (
+      o.kind === "assistant_policy_set" ||
       o.kind === "market_event_scheduled" ||
       o.kind === "production_started" ||
       o.kind === "production_completed" ||

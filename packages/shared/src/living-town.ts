@@ -36,6 +36,8 @@ export const livingTownFoundationMethods = [
   "sweep_merchant_treasury",
   "fund_customer_budget",
   "settle_customer_purchase",
+  "get_assistant_policy",
+  "set_assistant_permissions",
 ] as const;
 export const livingTownRecipeIds = ["health_potion", "iron_tool"] as const;
 export type LivingTownRecipeId = (typeof livingTownRecipeIds)[number];

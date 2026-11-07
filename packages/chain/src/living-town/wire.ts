@@ -392,9 +392,13 @@ export function livingTownFoundation(
   value: unknown,
 ): ReturnType<typeof foundationShape> {
   const result = foundationShape(value);
+  // Closed historical profile preserves actual pre-policy receipt fixtures.
+  // Live readers still pin the reviewed artifact hash; partial profiles reject.
   check(
     result.item_ids.join() === livingTownItemIds.join() &&
-      result.supported_methods.join() === livingTownFoundationMethods.join(),
+      (result.supported_methods.join() === livingTownFoundationMethods.join() ||
+        result.supported_methods.join() ===
+          livingTownFoundationMethods.slice(0, -2).join()),
     "V2 foundation capabilities/items mismatch",
   );
   const roles = [

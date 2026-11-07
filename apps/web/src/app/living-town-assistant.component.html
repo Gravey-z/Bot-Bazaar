@@ -9,6 +9,54 @@
       Connect and load your confirmed shop to view private recommendations.
     </p>
   } @else {
+    @if (state().observation?.assistantPolicy; as policy) {
+      <div class="policy" aria-label="Public onchain permission">
+        <h4>Public onchain permission</h4>
+        <p>
+          Confirmed mode: {{ policy.mode }}. Policy revision
+          {{ policy.revision }}.
+        </p>
+        <p>
+          These settings are public. Automatic execution is not available yet.
+          Private recommendation activation below does not grant signing or
+          spending authority.
+        </p>
+        @if (policy.mode !== "recommendations") {
+          <p>
+            Recommendations-only records both products with a price range of
+            1–100 gold, no operator and no expiry.
+          </p>
+          <button
+            type="button"
+            [disabled]="!controller().canTransact || view().busy"
+            (click)="controller().setAssistantPermissionMode('recommendations')"
+          >
+            Sign recommendations-only permission
+          </button>
+        }
+        @if (policy.mode !== "off") {
+          <p>
+            Allowed products: {{ policy.allowed_items.join(", ") }}. Price
+            range: {{ policy.min_price }}–{{ policy.max_price }} gold. Operator:
+            {{ policy.operator_account_id ?? "none" }}. Expiry (chain
+            nanoseconds): {{ policy.expires_at_ns ?? "none" }}.
+          </p>
+          <button
+            type="button"
+            [disabled]="!controller().canClaim || view().busy"
+            (click)="controller().setAssistantPermissionMode('off')"
+          >
+            Sign disable onchain permission
+          </button>
+        }
+        @if (state().pending?.call?.method === "set_assistant_permissions") {
+          <p role="status">
+            Permission change pending. The confirmed mode above remains
+            authoritative until the original transaction is finalized.
+          </p>
+        }
+      </div>
+    }
     @if (!view().signedIn) {
       <button type="button" [disabled]="view().busy" (click)="panel.signIn()">
         Sign in with wallet

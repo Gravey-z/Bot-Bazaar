@@ -182,10 +182,11 @@ pub(crate) struct Shop {
     pub revision: u64,
     pub created_at_ns: u64,
     pub creation_sequence: u64,
+    pub assistant: super::assistant::Policy,
 }
 impl Shop {
-    fn view(&self) -> Value {
-        json!({"shop_id":self.id.to_string(),"owner":{"kind":"player","account_id":self.owner},"name":self.name,"revision":self.revision.to_string(),"production_slots":"1","policy_revision":"1","created_at_ns":self.created_at_ns.to_string(),"ownership_command_sequence":self.creation_sequence.to_string()})
+    pub(super) fn view(&self) -> Value {
+        json!({"shop_id":self.id.to_string(),"owner":{"kind":"player","account_id":self.owner},"name":self.name,"revision":self.revision.to_string(),"production_slots":"1","policy_revision":self.assistant.revision.to_string(),"created_at_ns":self.created_at_ns.to_string(),"ownership_command_sequence":self.creation_sequence.to_string()})
     }
 }
 #[near(serializers = [borsh])]
@@ -201,10 +202,12 @@ pub(crate) enum Outcome {
     CustomerSale(Box<super::customers::Sale>),
     Source(Box<super::sources::Allocation>),
     MarketEvent(super::market_events::MarketEvent),
+    AssistantPolicy(Shop),
 }
 impl Outcome {
     fn method(&self) -> &'static str {
         match self {
+            Self::AssistantPolicy(_) => "set_assistant_permissions",
             Self::MarketEvent(_) => "schedule_market_event",
             Self::Registered(_) => "register_player",
             Self::Created(_) => "create_shop",
@@ -231,6 +234,9 @@ impl Outcome {
     }
     fn view(&self) -> Value {
         match self {
+            Self::AssistantPolicy(s) => {
+                json!({"kind":"assistant_policy_set","policy":s.assistant.view(s.id),"shop":s.view()})
+            }
             Self::MarketEvent(e) => json!({"kind":"market_event_scheduled","event":e.view()}),
             Self::Registered(p) => json!({"kind":"player_registered","player":p.view()}),
             Self::Created(s) => json!({"kind":"shop_created","shop":s.view()}),
@@ -399,7 +405,9 @@ impl LivingTown {
             "LT:E_COMMAND_EXPIRED"
         );
         require!(
-            !self.paused || method == "cancel_listing",
+            !self.paused
+                || method == "cancel_listing"
+                || (method == "set_assistant_permissions" && normalized["policy"]["mode"] == "off"),
             "LT:E_MARKET_PAUSED"
         );
         (digest, None)
@@ -454,7 +462,11 @@ impl LivingTown {
         self.commands.insert(principal.clone(), record.clone());
         // Force all buffered collection writes and the root into this receipt before
         // checking measured storage/funding. A failed requirement reverts the receipt.
-        self.persist_economic_state(!matches!(&record.outcome,Outcome::Listing(c) if c.cancelled));
+        let revocation =
+            matches!(&record.outcome, Outcome::AssistantPolicy(s) if s.assistant.is_off());
+        self.persist_economic_state(
+            !revocation && !matches!(&record.outcome,Outcome::Listing(c) if c.cancelled),
+        );
         let event = json!({"standard":"bot_bazaar_living_town","version":"2.0.0","event":record.outcome.method(),"data":[{"contract_id":env::current_account_id(),"config_version":self.config_version.to_string(),"event_sequence":self.market_revision.to_string(),"market_revision":self.market_revision.to_string(),"block_height":env::block_height().to_string(),"block_timestamp_ns":env::block_timestamp().to_string(),"predecessor_account_id":actor,"principal":principal,"command_sequence":record.sequence.to_string(),"payload_sha256":hex(&digest),"outcome":record.outcome.view()}]});
         let encoded = serde_json::to_string(&event).expect("event");
         require!(encoded.len() <= 32768, "LT:E_STORAGE_CAPACITY");
@@ -535,6 +547,7 @@ impl LivingTown {
             revision: 1,
             created_at_ns: env::block_timestamp(),
             creation_sequence: command.sequence.0,
+            assistant: super::assistant::Policy::default(),
         };
         self.players.get_mut(&actor).expect("player").shop_id = Some(id);
         self.shops.insert(id, shop.clone());

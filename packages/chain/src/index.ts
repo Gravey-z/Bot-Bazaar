@@ -180,6 +180,12 @@ export {
 
 export { livingTownMarketEvent } from "./living-town/wire.js";
 export {
+  livingTownAssistantPolicy,
+  livingTownAssistantPolicyInput,
+  livingTownAssistantPolicyEffect,
+} from "./living-town/assistant-policy.js";
+export type { LivingTownAssistantPolicy } from "./living-town/assistant-policy.js";
+export {
   livingTownMarketEventEffect,
   livingTownMarketEventHistory,
   describeLivingTownMarketEvent,

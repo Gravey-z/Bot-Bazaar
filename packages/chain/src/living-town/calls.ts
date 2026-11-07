@@ -4,6 +4,10 @@ import {
   sourceMerchant,
 } from "./sources.js";
 import { livingTownMarketEventEffect } from "./market-events.js";
+import {
+  livingTownAssistantPolicyEffect,
+  livingTownAssistantPolicyInput,
+} from "./assistant-policy.js";
 import { livingTownRecipeId } from "./recipes.js";
 import { livingTownProductionEffect } from "./production.js";
 import { livingTownListingEffect } from "./listings.js";
@@ -43,6 +47,12 @@ const name = (v: unknown): string => {
   return v;
 };
 export const livingTownCallArguments = {
+  set_assistant_permissions: object({
+    shop_id: bounded(4n, 1003n),
+    expected_policy_revision: positiveU64,
+    policy: livingTownAssistantPolicyInput,
+    command: livingTownCommand,
+  }),
   schedule_market_event: object({
     event_id: positiveU64,
     definition_id: literal("herb_shortage_v1"),
@@ -147,6 +157,7 @@ export type LivingTownResult = ReturnType<
       | ReturnType<typeof livingTownCustomerEffect>
       | ReturnType<typeof livingTownSourceEffect>
       | ReturnType<typeof livingTownMarketEventEffect>
+      | ReturnType<typeof livingTownAssistantPolicyEffect>
     >
   >
 >;
@@ -242,20 +253,23 @@ export function decodeLivingTownResult(
   deployment: unknown,
 ): LivingTownResult {
   return decodeLivingTownSnapshot(value, deployment, (v) =>
-    method === "schedule_market_event"
-      ? livingTownMarketEventEffect(v)
-      : method === "allocate_raw_supply" || method === "sweep_merchant_treasury"
-        ? livingTownSourceEffect(v)
-        : method === "fund_customer_budget" ||
-            method === "settle_customer_purchase"
-          ? livingTownCustomerEffect(v)
-          : method === "set_listing" || method === "cancel_listing"
-            ? livingTownListingEffect(v)
-            : method === "start_production"
-              ? livingTownProductionEffect(v)
-              : method === "buy_from_merchant"
-                ? livingTownPurchaseEffect(v)
-                : livingTownOwnershipEffect(v),
+    method === "set_assistant_permissions"
+      ? livingTownAssistantPolicyEffect(v)
+      : method === "schedule_market_event"
+        ? livingTownMarketEventEffect(v)
+        : method === "allocate_raw_supply" ||
+            method === "sweep_merchant_treasury"
+          ? livingTownSourceEffect(v)
+          : method === "fund_customer_budget" ||
+              method === "settle_customer_purchase"
+            ? livingTownCustomerEffect(v)
+            : method === "set_listing" || method === "cancel_listing"
+              ? livingTownListingEffect(v)
+              : method === "start_production"
+                ? livingTownProductionEffect(v)
+                : method === "buy_from_merchant"
+                  ? livingTownPurchaseEffect(v)
+                  : livingTownOwnershipEffect(v),
   );
 }
 export async function verifyLivingTownEffect(
@@ -285,6 +299,32 @@ export async function verifyLivingTownEffect(
     "V2 command effect binding mismatch",
   );
   const outcome = effect.outcome;
+  if (call.method === "set_assistant_permissions") {
+    check(
+      outcome.kind === "assistant_policy_set",
+      "assistant policy effect required",
+    );
+    const policy = livingTownAssistantPolicyInput(args["policy"]);
+    check(
+      outcome.shop.owner.kind === "player" &&
+        outcome.shop.owner.account_id === signer &&
+        outcome.policy.shop_id === args["shop_id"] &&
+        BigInt(outcome.policy.revision) ===
+          BigInt(String(args["expected_policy_revision"])) + 1n &&
+        canonicalLivingTownJson({
+          ...policy,
+          allowed_items: [...policy.allowed_items].sort(),
+          shop_id: args["shop_id"],
+          revision: outcome.policy.revision,
+        }) === canonicalLivingTownJson(outcome.policy),
+      "assistant policy reviewed terms mismatch",
+    );
+    if (!effect.replayed && policy.expires_at_ns !== null)
+      check(
+        BigInt(policy.expires_at_ns) > BigInt(result.block_timestamp_ns),
+        "assistant policy expiry mismatch",
+      );
+  }
   if (call.method === "schedule_market_event")
     check(
       outcome.kind === "market_event_scheduled" &&

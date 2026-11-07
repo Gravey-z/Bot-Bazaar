@@ -6,8 +6,14 @@ import type {
   TownTransactionMethod,
   TownTransactionStatus,
 } from "./living-town-transactions";
-import { verifyAssistantReview } from "@bot-bazaar/chain";
-import type { AssistantManualReview } from "@bot-bazaar/chain";
+import {
+  verifyAssistantReview,
+  livingTownAssistantPolicyInput,
+} from "@bot-bazaar/chain";
+import type {
+  AssistantManualReview,
+  LivingTownAssistantPolicy,
+} from "@bot-bazaar/chain";
 import { LivingTownIdentityError } from "@bot-bazaar/chain";
 import { productionQuote } from "./living-town-production-ui";
 import type { TownRecipe } from "./living-town-production-ui";
@@ -46,6 +52,7 @@ export interface TownObservation {
   };
   chainTimestampNs?: string;
   recipes?: TownRecipe[];
+  assistantPolicy?: LivingTownAssistantPolicy;
 }
 export interface TownPort {
   assistant?: {
@@ -150,6 +157,8 @@ export function describeTownAttempt(a: LivingTownAttempt): string {
     return `Set ${args.item_id} remaining stock to ${args.quantity} at ${args.unit_price} gold each.`;
   if (a.call.method === "cancel_listing" && "listing_id" in args)
     return `Cancel listing #${args.listing_id} and release its remaining stock.`;
+  if (a.call.method === "set_assistant_permissions" && "policy" in args)
+    return `Public assistant permission: ${args.policy.mode}; expected policy revision ${args.expected_policy_revision}. Changes no stock or balances.`;
   if ("item_id" in args && "max_total_price" in args)
     return `Buy ${args.quantity} ${args.item_id.replaceAll("_", " ")}: maximum ${args.max_total_price} game gold.`;
   return "Review the original saved request.";
@@ -603,6 +612,32 @@ export class LivingTownController {
   get canClaim(): boolean {
     return this.canAct(true);
   }
+  async setAssistantPermissionMode(
+    mode: "off" | "recommendations",
+  ): Promise<void> {
+    const shop = this.value.observation?.shop,
+      current = this.value.observation?.assistantPolicy;
+    if (
+      !shop ||
+      !current ||
+      current.mode === mode ||
+      shop.owner.kind !== "player" ||
+      shop.owner.account_id !== this.value.accountId
+    )
+      return;
+    await this.act("set_assistant_permissions", {
+      shop_id: shop.shop_id,
+      expected_policy_revision: current.revision,
+      policy: {
+        mode,
+        operator_account_id: null,
+        allowed_items: mode === "off" ? [] : ["health_potion", "iron_tool"],
+        min_price: "1",
+        max_price: mode === "off" ? "1" : "100",
+        expires_at_ns: null,
+      },
+    });
+  }
   private canAct(claim = false): boolean {
     return (
       !this.stopped &&
@@ -626,7 +661,10 @@ export class LivingTownController {
   ): Promise<void> {
     if (
       !this.canAct(
-        method === "complete_production" || method === "cancel_listing",
+        method === "complete_production" ||
+          method === "cancel_listing" ||
+          (method === "set_assistant_permissions" &&
+            (args["policy"] as { mode?: unknown } | undefined)?.mode === "off"),
       )
     )
       return;
@@ -634,6 +672,25 @@ export class LivingTownController {
     const account = this.value.accountId!,
       epoch = this.epoch,
       observation = this.value.observation!;
+    if (method === "set_assistant_permissions") {
+      try {
+        const policy = livingTownAssistantPolicyInput(args["policy"]),
+          shop = observation.shop,
+          current = observation.assistantPolicy;
+        if (
+          !shop ||
+          !current ||
+          shop.owner.kind !== "player" ||
+          shop.owner.account_id !== account ||
+          args["shop_id"] !== shop.shop_id ||
+          args["expected_policy_revision"] !== current.revision ||
+          (observation.town.paused && policy.mode !== "off")
+        )
+          return;
+      } catch {
+        return;
+      }
+    }
     if (method === "complete_production") {
       const job = observation.production?.items.find(
         (j) => j.job_id === args["job_id"],

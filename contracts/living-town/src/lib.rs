@@ -3,6 +3,7 @@ use near_sdk::serde_json::{self, Value, json};
 use near_sdk::store::LookupMap;
 use near_sdk::{AccountId, PanicOnDefault, env, near, require};
 
+mod assistant;
 mod customers;
 mod listings;
 mod market_events;
@@ -384,7 +385,7 @@ impl LivingTown {
     pub fn get_foundation(&self) -> Value {
         let _: EmptyArgs = input();
         self.assert_versions();
-        self.snapshot(json!({"owner_account_id":self.owner,"operator_account_id":self.operator,"merchant_controllers":{"rex":self.controllers[0],"luna":self.controllers[1],"bolt":self.controllers[2]},"item_ids":ITEM_IDS,"supported_methods":["initialize_town","get_foundation","get_town","register_player","create_shop","rename_shop","get_player","get_shop","get_player_shops","get_command","buy_from_merchant","get_listings","get_trade","get_shop_inventory","get_recipes","start_production","get_production_jobs","complete_production","set_listing","cancel_listing","get_source_state","get_market_events","schedule_market_event","allocate_raw_supply","sweep_merchant_treasury","fund_customer_budget","settle_customer_purchase"]}))
+        self.snapshot(json!({"owner_account_id":self.owner,"operator_account_id":self.operator,"merchant_controllers":{"rex":self.controllers[0],"luna":self.controllers[1],"bolt":self.controllers[2]},"item_ids":ITEM_IDS,"supported_methods":["initialize_town","get_foundation","get_town","register_player","create_shop","rename_shop","get_player","get_shop","get_player_shops","get_command","buy_from_merchant","get_listings","get_trade","get_shop_inventory","get_recipes","start_production","get_production_jobs","complete_production","set_listing","cancel_listing","get_source_state","get_market_events","schedule_market_event","allocate_raw_supply","sweep_merchant_treasury","fund_customer_budget","settle_customer_purchase","get_assistant_policy","set_assistant_permissions"]}))
     }
 }
 

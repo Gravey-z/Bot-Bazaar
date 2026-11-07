@@ -3,6 +3,7 @@ use near_sdk::serde_json::{self, Value, json};
 use std::path::Path;
 mod living_town_adapter;
 mod living_town_adversarial;
+mod living_town_assistant;
 mod living_town_completion;
 mod living_town_customers;
 mod living_town_listings;

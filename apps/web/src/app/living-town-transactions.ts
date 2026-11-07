@@ -299,6 +299,38 @@ export class LivingTownTransactions {
         expiry > now &&
         expiry <= now + 600_000_000_000n,
     );
+    if (call.method === "set_assistant_permissions") {
+      const a = call.args;
+      requireValue(
+        "policy" in a && "shop_id" in a && "expected_policy_revision" in a,
+      );
+      const town = await reader.getTown(),
+        shop = await reader.getShop(a.shop_id),
+        current = await reader.getAssistantPolicy(a.shop_id);
+      requireValue(
+        shop.data?.owner.kind === "player" &&
+          shop.data.owner.account_id === account &&
+          current.data.revision === a.expected_policy_revision &&
+          (!town.data.paused || a.policy.mode === "off"),
+      );
+      requireValue(
+        a.policy.expires_at_ns === null ||
+          BigInt(a.policy.expires_at_ns) > BigInt(reader.block.timestampNs),
+      );
+      requireValue(
+        a.policy.mode !== "auto_reprice" ||
+          a.policy.operator_account_id === d.operatorId,
+      );
+      requireValue(
+        canonicalLivingTownJson(current.data) !==
+          canonicalLivingTownJson({
+            ...a.policy,
+            allowed_items: [...a.policy.allowed_items].sort(),
+            shop_id: a.shop_id,
+            revision: current.data.revision,
+          }),
+      );
+    }
     if (call.method === "start_production") {
       const a = call.args;
       requireValue(

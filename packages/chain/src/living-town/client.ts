@@ -2,6 +2,10 @@ import {
   livingTownMarketEventEffect,
   livingTownMarketEventHistory,
 } from "./market-events.js";
+import {
+  livingTownAssistantPolicy,
+  livingTownAssistantPolicyEffect,
+} from "./assistant-policy.js";
 import { livingTownSourceEffect, livingTownSourceState } from "./sources.js";
 import {
   livingTownCustomerEffect,
@@ -103,25 +107,27 @@ const listingsArgs = object({
   },
 });
 const effect = (v: unknown) =>
-  record(record(v)["outcome"])["kind"] === "market_event_scheduled"
-    ? livingTownMarketEventEffect(v)
-    : ["raw_supplied", "treasury_swept"].includes(
-          String(record(record(v)["outcome"])["kind"]),
-        )
-      ? livingTownSourceEffect(v)
-      : ["customer_funded", "customer_sale"].includes(
+  record(record(v)["outcome"])["kind"] === "assistant_policy_set"
+    ? livingTownAssistantPolicyEffect(v)
+    : record(record(v)["outcome"])["kind"] === "market_event_scheduled"
+      ? livingTownMarketEventEffect(v)
+      : ["raw_supplied", "treasury_swept"].includes(
             String(record(record(v)["outcome"])["kind"]),
           )
-        ? livingTownCustomerEffect(v)
-        : ["listing_set", "listing_cancelled"].includes(
+        ? livingTownSourceEffect(v)
+        : ["customer_funded", "customer_sale"].includes(
               String(record(record(v)["outcome"])["kind"]),
             )
-          ? livingTownListingEffect(v)
-          : record(record(v)["outcome"])["kind"] === "production_started"
-            ? livingTownProductionEffect(v)
-            : record(record(v)["outcome"])["kind"] === "raw_purchased"
-              ? livingTownPurchaseEffect(v)
-              : livingTownOwnershipEffect(v);
+          ? livingTownCustomerEffect(v)
+          : ["listing_set", "listing_cancelled"].includes(
+                String(record(record(v)["outcome"])["kind"]),
+              )
+            ? livingTownListingEffect(v)
+            : record(record(v)["outcome"])["kind"] === "production_started"
+              ? livingTownProductionEffect(v)
+              : record(record(v)["outcome"])["kind"] === "raw_purchased"
+                ? livingTownPurchaseEffect(v)
+                : livingTownOwnershipEffect(v);
 const commandLookup = (v: unknown) => {
   const kind = record(v)["kind"];
   if (kind === "found")
@@ -129,6 +135,7 @@ const commandLookup = (v: unknown) => {
       kind: choice(["found"] as const),
       high_water: positiveU64,
       method: choice([
+        "set_assistant_permissions",
         "schedule_market_event",
         "allocate_raw_supply",
         "sweep_merchant_treasury",
@@ -277,6 +284,32 @@ export class FinalizedLivingTownReader {
   }
   getFoundation(): Promise<Snapshot<ReturnType<typeof livingTownFoundation>>> {
     return this.view("get_foundation", {}, livingTownFoundation);
+  }
+  async getAssistantPolicy(
+    id: string,
+  ): Promise<Snapshot<ReturnType<typeof livingTownAssistantPolicy>>> {
+    const shopId = positiveU64(id),
+      foundation = await this.getFoundation();
+    check(
+      foundation.data.supported_methods.includes("get_assistant_policy"),
+      "assistant policy unsupported by this artifact",
+    );
+    const shop = await this.getShop(shopId),
+      policy = await this.view(
+        "get_assistant_policy",
+        { shop_id: shopId },
+        livingTownAssistantPolicy,
+      );
+    check(
+      shop.data?.owner.kind === "player" &&
+        policy.data.shop_id === shopId &&
+        policy.data.revision === shop.data.policy_revision &&
+        (policy.data.mode !== "auto_reprice" ||
+          policy.data.operator_account_id ===
+            foundation.data.operator_account_id),
+      "assistant policy finalized identity/revision mismatch",
+    );
+    return policy;
   }
   async getPlayer(
     id: string,
@@ -442,6 +475,7 @@ export class FinalizedLivingTownReader {
             (
               {
                 player_registered: "register_player",
+                assistant_policy_set: "set_assistant_permissions",
                 shop_created: "create_shop",
                 shop_renamed: "rename_shop",
                 raw_purchased: "buy_from_merchant",
