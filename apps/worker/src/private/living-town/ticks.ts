@@ -203,11 +203,13 @@ export class TownTickRepository {
           ? 4 + ["rex", "luna", "bolt"].indexOf(arrival.slice(6))
           : arrival.startsWith("merchant:")
             ? 7 + ["rex", "luna", "bolt"].indexOf(arrival.split(":")[1]!)
-            : arrival === "fund"
+            : arrival.startsWith("assistant:")
               ? 10
-              : 11 + Number(arrival);
+              : arrival === "fund"
+                ? 11
+                : 12 + Number(arrival);
     requireStorage(
-      actions.length <= 15 &&
+      actions.length <= 16 &&
         new Set(actions.map((a) => a.id)).size === actions.length &&
         new Set(actions.map((a) => a.arrival)).size === actions.length &&
         actions.every(
@@ -223,7 +225,7 @@ export class TownTickRepository {
             /^[a-f0-9]{64}$/.test(a.id) &&
             (a.arrival === "fund" ||
               /^[0-3]$/.test(a.arrival) ||
-              /^(raw:(crystal|wood|herb|iron)|sweep:(rex|luna|bolt)|merchant:(rex|luna|bolt):[0-9]+)$/.test(
+              /^(raw:(crystal|wood|herb|iron)|sweep:(rex|luna|bolt)|merchant:(rex|luna|bolt):[0-9]+|assistant:[1-9][0-9]{0,3})$/.test(
                 a.arrival,
               )),
         ) &&

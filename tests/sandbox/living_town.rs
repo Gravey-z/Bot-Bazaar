@@ -11,6 +11,7 @@ mod living_town_ownership;
 mod living_town_production;
 mod living_town_purchases;
 mod living_town_recipes;
+mod living_town_reprice;
 mod living_town_sales_races;
 mod living_town_settlement;
 

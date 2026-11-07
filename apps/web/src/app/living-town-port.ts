@@ -576,6 +576,14 @@ export function createLivingTownPort(
         player: player?.data ?? null,
         shop,
         ...(assistantPolicy ? { assistantPolicy } : {}),
+        ...(assistantPolicy
+          ? {
+              assistantOperatorId: profile.identity.operatorId,
+              assistantRepriceAvailable: (
+                await reader.getFoundation()
+              ).data.supported_methods.includes("assistant_reprice"),
+            }
+          : {}),
         ledger,
         listings: listings.data.items,
         ...(ownListings ? { ownListings } : {}),

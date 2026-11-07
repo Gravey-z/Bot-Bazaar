@@ -398,7 +398,9 @@ export function livingTownFoundation(
     result.item_ids.join() === livingTownItemIds.join() &&
       (result.supported_methods.join() === livingTownFoundationMethods.join() ||
         result.supported_methods.join() ===
-          livingTownFoundationMethods.slice(0, -2).join()),
+          livingTownFoundationMethods.slice(0, -1).join() ||
+        result.supported_methods.join() ===
+          livingTownFoundationMethods.slice(0, -3).join()),
     "V2 foundation capabilities/items mismatch",
   );
   const roles = [

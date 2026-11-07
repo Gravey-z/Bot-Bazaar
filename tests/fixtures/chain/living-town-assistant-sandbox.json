@@ -44,10 +44,7 @@
     "data": {
       "mode": "auto_reprice",
       "operator_account_id": "dev-20261107092410-74122169561085.test.near",
-      "allowed_items": [
-        "health_potion",
-        "iron_tool"
-      ],
+      "allowed_items": ["health_potion", "iron_tool"],
       "min_price": "5",
       "max_price": "25",
       "expires_at_ns": "1794043654509450164",
@@ -438,9 +435,7 @@
                 ],
                 "version": 4
               },
-              "receipt_ids": [
-                "7BwUx5Lzdy9SUqaxv3BHZqpgszYEJAHZZNu1u196B9hD"
-              ],
+              "receipt_ids": ["7BwUx5Lzdy9SUqaxv3BHZqpgszYEJAHZZNu1u196B9hD"],
               "status": {
                 "SuccessValue": "eyJkZXBsb3ltZW50Ijp7Im5ldHdvcmtfaWQiOiJ0ZXN0bmV0IiwiZ2VuZXNpc19oYXNoIjoiMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTEiLCJjb250cmFjdF9pZCI6ImRldi0yMDI2MTEwNzA5MjQwOS0zNDQ0ODc2MjAwNzQ5My50ZXN0Lm5lYXIiLCJhcGlfdmVyc2lvbiI6IjIuMC4wIiwic3RhdGVfc2NoZW1hIjoiMSIsImNvbW1hbmRfc2NoZW1hIjoiMSIsImNvbmZpZ192ZXJzaW9uIjoiMSIsImNvbmZpZ19zaGEyNTYiOiJhOTMyZWZiNDhjNzBhNzNjZTQ2NDcyY2Q3NTQyODg2NDk1NDFiMzQ2MDRlMmVhNDlhNDA5Mzk2MWU3MWEyZDEwIn0sIm1hcmtldF9yZXZpc2lvbiI6IjIiLCJldmVudF9zZXF1ZW5jZSI6IjIiLCJibG9ja19oZWlnaHQiOiIyOSIsImJsb2NrX3RpbWVzdGFtcF9ucyI6IjE3OTQwNDM0NTMxMTU5MjU2MTYiLCJkYXRhIjp7InByaW5jaXBhbCI6ImFjY291bnQ6ZGV2LTIwMjYxMTA3MDkyNDExLTI3NDAxODY4Mzc3MTI2LnRlc3QubmVhciIsImNvbW1hbmRfc2VxdWVuY2UiOiIxIiwicGF5bG9hZF9zaGEyNTYiOiJiYjk3NGVjMjhkY2I2NDI0ZjQ2MmVjZmI1MmIwNjk2ZjZlNmYxMjZlZGVkZTg1MWJkYTVkZDFhYzRjMmMxNzFlIiwicmVwbGF5ZWQiOmZhbHNlLCJlZmZlY3RfcmV2aXNpb24iOiIyIiwiZWZmZWN0X2V2ZW50X3NlcXVlbmNlIjoiMiIsIm91dGNvbWUiOnsia2luZCI6InBsYXllcl9yZWdpc3RlcmVkIiwicGxheWVyIjp7ImFjY291bnRfaWQiOiJkZXYtMjAyNjExMDcwOTI0MTEtMjc0MDE4NjgzNzcxMjYudGVzdC5uZWFyIiwibGVkZ2VyIjp7ImFjdG9yIjp7ImtpbmQiOiJwbGF5ZXIiLCJhY2NvdW50X2lkIjoiZGV2LTIwMjYxMTA3MDkyNDExLTI3NDAxODY4Mzc3MTI2LnRlc3QubmVhciJ9LCJyZXZpc2lvbiI6IjEiLCJnb2xkIjp7ImhlbGQiOiIxMDAiLCJhdmFpbGFibGUiOiIxMDAiLCJ0cmFkZV9yZXNlcnZlZCI6IjAiLCJ0cmFkZV9pbmJvdW5kX3Jlc2VydmVkIjoiMCJ9LCJpbnZlbnRvcnkiOnsiaGVsZCI6eyJjcnlzdGFsIjoiMCIsIndvb2QiOiIwIiwiaGVyYiI6IjAiLCJpcm9uIjoiMCIsImhlYWx0aF9wb3Rpb24iOiIwIiwiaXJvbl90b29sIjoiMCJ9LCJhdmFpbGFibGUiOnsiY3J5c3RhbCI6IjAiLCJ3b29kIjoiMCIsImhlcmIiOiIwIiwiaXJvbiI6IjAiLCJoZWFsdGhfcG90aW9uIjoiMCIsImlyb25fdG9vbCI6IjAifSwibGlzdGluZ19yZXNlcnZlZCI6eyJjcnlzdGFsIjoiMCIsIndvb2QiOiIwIiwiaGVyYiI6IjAiLCJpcm9uIjoiMCIsImhlYWx0aF9wb3Rpb24iOiIwIiwiaXJvbl90b29sIjoiMCJ9LCJ0cmFkZV9yZXNlcnZlZCI6eyJjcnlzdGFsIjoiMCIsIndvb2QiOiIwIiwiaGVyYiI6IjAiLCJpcm9uIjoiMCIsImhlYWx0aF9wb3Rpb24iOiIwIiwiaXJvbl90b29sIjoiMCJ9LCJwcm9kdWN0aW9uX291dHB1dF9yZXNlcnZlZCI6eyJjcnlzdGFsIjoiMCIsIndvb2QiOiIwIiwiaGVyYiI6IjAiLCJpcm9uIjoiMCIsImhlYWx0aF9wb3Rpb24iOiIwIiwiaXJvbl90b29sIjoiMCJ9LCJ0cmFkZV9pbmJvdW5kX3Jlc2VydmVkIjp7ImNyeXN0YWwiOiIwIiwid29vZCI6IjAiLCJoZXJiIjoiMCIsImlyb24iOiIwIiwiaGVhbHRoX3BvdGlvbiI6IjAiLCJpcm9uX3Rvb2wiOiIwIn19fSwic2hvcF9pZCI6bnVsbCwiZ3JhbnRfaXNzdWVkIjp0cnVlLCJncmFudF9jb21tYW5kX3NlcXVlbmNlIjoiMSJ9fX19"
               },
@@ -456,9 +451,7 @@
               "gas_burnt": 223182562500,
               "logs": [],
               "metadata": {
-                "contracts": [
-                  null
-                ],
+                "contracts": [null],
                 "gas_profile": [],
                 "version": 4
               },
@@ -504,9 +497,7 @@
               "gas_profile": null,
               "version": 1
             },
-            "receipt_ids": [
-              "9RMbzd7gmKH1wiVg9jTVz2A8Qv3xHMjXng8fLm9nVXh"
-            ],
+            "receipt_ids": ["9RMbzd7gmKH1wiVg9jTVz2A8Qv3xHMjXng8fLm9nVXh"],
             "status": {
               "SuccessReceiptId": "9RMbzd7gmKH1wiVg9jTVz2A8Qv3xHMjXng8fLm9nVXh"
             },
@@ -560,15 +551,9 @@
           "block_ordinal": 30,
           "challenges_result": [],
           "challenges_root": "11111111111111111111111111111111",
-          "chunk_endorsements": [
-            [
-              1
-            ]
-          ],
+          "chunk_endorsements": [[1]],
           "chunk_headers_root": "6Y5HxDcAqQeAv6xhcL9prUS1nZjuJLpUCuzZT5w9Cp2T",
-          "chunk_mask": [
-            true
-          ],
+          "chunk_mask": [true],
           "chunk_receipts_root": "5S9PNV28qwD8ELYuc8TCVVUatGAWHerUN9MBH6jwaCiX",
           "chunk_tx_root": "7tkzFg8RHBmMw1ncRJZCCZAizgq4rwCftTKYLce8RU8t",
           "chunks_included": 1,
@@ -893,9 +878,7 @@
                 ],
                 "version": 4
               },
-              "receipt_ids": [
-                "4tR73xFgHQekeWnErg2iBovCgg2CbMJnqAPeu8kRCDXa"
-              ],
+              "receipt_ids": ["4tR73xFgHQekeWnErg2iBovCgg2CbMJnqAPeu8kRCDXa"],
               "status": {
                 "SuccessValue": "eyJkZXBsb3ltZW50Ijp7Im5ldHdvcmtfaWQiOiJ0ZXN0bmV0IiwiZ2VuZXNpc19oYXNoIjoiMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTEiLCJjb250cmFjdF9pZCI6ImRldi0yMDI2MTEwNzA5MjQwOS0zNDQ0ODc2MjAwNzQ5My50ZXN0Lm5lYXIiLCJhcGlfdmVyc2lvbiI6IjIuMC4wIiwic3RhdGVfc2NoZW1hIjoiMSIsImNvbW1hbmRfc2NoZW1hIjoiMSIsImNvbmZpZ192ZXJzaW9uIjoiMSIsImNvbmZpZ19zaGEyNTYiOiJhOTMyZWZiNDhjNzBhNzNjZTQ2NDcyY2Q3NTQyODg2NDk1NDFiMzQ2MDRlMmVhNDlhNDA5Mzk2MWU3MWEyZDEwIn0sIm1hcmtldF9yZXZpc2lvbiI6IjMiLCJldmVudF9zZXF1ZW5jZSI6IjMiLCJibG9ja19oZWlnaHQiOiIzNiIsImJsb2NrX3RpbWVzdGFtcF9ucyI6IjE3OTQwNDM0NTQwMjEzMjkxMzIiLCJkYXRhIjp7InByaW5jaXBhbCI6ImFjY291bnQ6ZGV2LTIwMjYxMTA3MDkyNDExLTI3NDAxODY4Mzc3MTI2LnRlc3QubmVhciIsImNvbW1hbmRfc2VxdWVuY2UiOiIyIiwicGF5bG9hZF9zaGEyNTYiOiIwOWQ1OGU0YmI3ZmJhNjdiMzdkZjNjM2Q1NmUzYzNmMjdkMzY0YTg4ZTg1YWU3OTZlODg1MDhkZTZiZjg2ZmUyIiwicmVwbGF5ZWQiOmZhbHNlLCJlZmZlY3RfcmV2aXNpb24iOiIzIiwiZWZmZWN0X2V2ZW50X3NlcXVlbmNlIjoiMyIsIm91dGNvbWUiOnsia2luZCI6InNob3BfY3JlYXRlZCIsInNob3AiOnsic2hvcF9pZCI6IjQiLCJvd25lciI6eyJraW5kIjoicGxheWVyIiwiYWNjb3VudF9pZCI6ImRldi0yMDI2MTEwNzA5MjQxMS0yNzQwMTg2ODM3NzEyNi50ZXN0Lm5lYXIifSwibmFtZSI6IlNjb3BlZCBhc3Npc3RhbnQiLCJyZXZpc2lvbiI6IjEiLCJwcm9kdWN0aW9uX3Nsb3RzIjoiMSIsInBvbGljeV9yZXZpc2lvbiI6IjEiLCJjcmVhdGVkX2F0X25zIjoiMTc5NDA0MzQ1NDAyMTMyOTEzMiIsIm93bmVyc2hpcF9jb21tYW5kX3NlcXVlbmNlIjoiMiJ9fX19"
               },
@@ -911,9 +894,7 @@
               "gas_burnt": 223182562500,
               "logs": [],
               "metadata": {
-                "contracts": [
-                  null
-                ],
+                "contracts": [null],
                 "gas_profile": [],
                 "version": 4
               },
@@ -959,9 +940,7 @@
               "gas_profile": null,
               "version": 1
             },
-            "receipt_ids": [
-              "FqxFR46hNogyjodYh8KXq16h5Z417H67XuEEc1WLxzuG"
-            ],
+            "receipt_ids": ["FqxFR46hNogyjodYh8KXq16h5Z417H67XuEEc1WLxzuG"],
             "status": {
               "SuccessReceiptId": "FqxFR46hNogyjodYh8KXq16h5Z417H67XuEEc1WLxzuG"
             },
@@ -1015,15 +994,9 @@
           "block_ordinal": 37,
           "challenges_result": [],
           "challenges_root": "11111111111111111111111111111111",
-          "chunk_endorsements": [
-            [
-              1
-            ]
-          ],
+          "chunk_endorsements": [[1]],
           "chunk_headers_root": "5AnT8cafawV728geHCcKjf2Aq8tvawnomC1X5Ey7MkBL",
-          "chunk_mask": [
-            true
-          ],
+          "chunk_mask": [true],
           "chunk_receipts_root": "56tdB5LgsA69ym1uYPHkjiMbgx4ijTFd5jSzmwFeJVgL",
           "chunk_tx_root": "7tkzFg8RHBmMw1ncRJZCCZAizgq4rwCftTKYLce8RU8t",
           "chunks_included": 1,
@@ -1134,10 +1107,7 @@
         "policy": {
           "mode": "auto_reprice",
           "operator_account_id": "dev-20261107092410-74122169561085.test.near",
-          "allowed_items": [
-            "iron_tool",
-            "health_potion"
-          ],
+          "allowed_items": ["iron_tool", "health_potion"],
           "min_price": "5",
           "max_price": "25",
           "expires_at_ns": "1794043654509450164"
@@ -1179,10 +1149,7 @@
             "policy": {
               "mode": "auto_reprice",
               "operator_account_id": "dev-20261107092410-74122169561085.test.near",
-              "allowed_items": [
-                "health_potion",
-                "iron_tool"
-              ],
+              "allowed_items": ["health_potion", "iron_tool"],
               "min_price": "5",
               "max_price": "25",
               "expires_at_ns": "1794043654509450164",
@@ -1363,9 +1330,7 @@
                 ],
                 "version": 4
               },
-              "receipt_ids": [
-                "PUBqkWkEdjbVvsuqK1JHAeZZU9PiuEnMe4txWoqpNv7"
-              ],
+              "receipt_ids": ["PUBqkWkEdjbVvsuqK1JHAeZZU9PiuEnMe4txWoqpNv7"],
               "status": {
                 "SuccessValue": "eyJkZXBsb3ltZW50Ijp7Im5ldHdvcmtfaWQiOiJ0ZXN0bmV0IiwiZ2VuZXNpc19oYXNoIjoiMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTEiLCJjb250cmFjdF9pZCI6ImRldi0yMDI2MTEwNzA5MjQwOS0zNDQ0ODc2MjAwNzQ5My50ZXN0Lm5lYXIiLCJhcGlfdmVyc2lvbiI6IjIuMC4wIiwic3RhdGVfc2NoZW1hIjoiMSIsImNvbW1hbmRfc2NoZW1hIjoiMSIsImNvbmZpZ192ZXJzaW9uIjoiMSIsImNvbmZpZ19zaGEyNTYiOiJhOTMyZWZiNDhjNzBhNzNjZTQ2NDcyY2Q3NTQyODg2NDk1NDFiMzQ2MDRlMmVhNDlhNDA5Mzk2MWU3MWEyZDEwIn0sIm1hcmtldF9yZXZpc2lvbiI6IjQiLCJldmVudF9zZXF1ZW5jZSI6IjQiLCJibG9ja19oZWlnaHQiOiIxNzMiLCJibG9ja190aW1lc3RhbXBfbnMiOiIxNzk0MDQzNDcxNDQzMDc0MTgyIiwiZGF0YSI6eyJwcmluY2lwYWwiOiJhY2NvdW50OmRldi0yMDI2MTEwNzA5MjQxMS0yNzQwMTg2ODM3NzEyNi50ZXN0Lm5lYXIiLCJjb21tYW5kX3NlcXVlbmNlIjoiMyIsInBheWxvYWRfc2hhMjU2IjoiMTI1ZDU3NGU5MGExZmJiOGFjNjA1ZDc0ZTNlYmNlMDc1NjczZDU2MTM5YTA5NzU4ZGMxMWM1MjMwYTM0Mzg1YiIsInJlcGxheWVkIjpmYWxzZSwiZWZmZWN0X3JldmlzaW9uIjoiNCIsImVmZmVjdF9ldmVudF9zZXF1ZW5jZSI6IjQiLCJvdXRjb21lIjp7ImtpbmQiOiJhc3Npc3RhbnRfcG9saWN5X3NldCIsInBvbGljeSI6eyJtb2RlIjoiYXV0b19yZXByaWNlIiwib3BlcmF0b3JfYWNjb3VudF9pZCI6ImRldi0yMDI2MTEwNzA5MjQxMC03NDEyMjE2OTU2MTA4NS50ZXN0Lm5lYXIiLCJhbGxvd2VkX2l0ZW1zIjpbImhlYWx0aF9wb3Rpb24iLCJpcm9uX3Rvb2wiXSwibWluX3ByaWNlIjoiNSIsIm1heF9wcmljZSI6IjI1IiwiZXhwaXJlc19hdF9ucyI6IjE3OTQwNDM2NTQ1MDk0NTAxNjQiLCJzaG9wX2lkIjoiNCIsInJldmlzaW9uIjoiMiJ9LCJzaG9wIjp7InNob3BfaWQiOiI0Iiwib3duZXIiOnsia2luZCI6InBsYXllciIsImFjY291bnRfaWQiOiJkZXYtMjAyNjExMDcwOTI0MTEtMjc0MDE4NjgzNzcxMjYudGVzdC5uZWFyIn0sIm5hbWUiOiJTY29wZWQgYXNzaXN0YW50IiwicmV2aXNpb24iOiIyIiwicHJvZHVjdGlvbl9zbG90cyI6IjEiLCJwb2xpY3lfcmV2aXNpb24iOiIyIiwiY3JlYXRlZF9hdF9ucyI6IjE3OTQwNDM0NTQwMjEzMjkxMzIiLCJvd25lcnNoaXBfY29tbWFuZF9zZXF1ZW5jZSI6IjIifX19fQ=="
               },
@@ -1381,9 +1346,7 @@
               "gas_burnt": 223182562500,
               "logs": [],
               "metadata": {
-                "contracts": [
-                  null
-                ],
+                "contracts": [null],
                 "gas_profile": [],
                 "version": 4
               },
@@ -1429,9 +1392,7 @@
               "gas_profile": null,
               "version": 1
             },
-            "receipt_ids": [
-              "FJeGaiZqGZ4KSJWE7jUFXcDYQKNqQm6Lh4FCfQzz6XPN"
-            ],
+            "receipt_ids": ["FJeGaiZqGZ4KSJWE7jUFXcDYQKNqQm6Lh4FCfQzz6XPN"],
             "status": {
               "SuccessReceiptId": "FJeGaiZqGZ4KSJWE7jUFXcDYQKNqQm6Lh4FCfQzz6XPN"
             },
@@ -1485,15 +1446,9 @@
           "block_ordinal": 174,
           "challenges_result": [],
           "challenges_root": "11111111111111111111111111111111",
-          "chunk_endorsements": [
-            [
-              1
-            ]
-          ],
+          "chunk_endorsements": [[1]],
           "chunk_headers_root": "AsRn8E6D6biZw26HffjSQWUZJpjg444xnwosok99Yqtb",
-          "chunk_mask": [
-            true
-          ],
+          "chunk_mask": [true],
           "chunk_receipts_root": "GjYJHx9QZ9JmheanvfJorJMUJCwCy8jUKhWfN1PDwaoK",
           "chunk_tx_root": "7tkzFg8RHBmMw1ncRJZCCZAizgq4rwCftTKYLce8RU8t",
           "chunks_included": 1,
@@ -1604,10 +1559,7 @@
         "policy": {
           "mode": "auto_reprice",
           "operator_account_id": "dev-20261107092410-74122169561085.test.near",
-          "allowed_items": [
-            "iron_tool",
-            "health_potion"
-          ],
+          "allowed_items": ["iron_tool", "health_potion"],
           "min_price": "5",
           "max_price": "25",
           "expires_at_ns": "1794043654509450164"
@@ -1649,10 +1601,7 @@
             "policy": {
               "mode": "auto_reprice",
               "operator_account_id": "dev-20261107092410-74122169561085.test.near",
-              "allowed_items": [
-                "health_potion",
-                "iron_tool"
-              ],
+              "allowed_items": ["health_potion", "iron_tool"],
               "min_price": "5",
               "max_price": "25",
               "expires_at_ns": "1794043654509450164",
@@ -1811,9 +1760,7 @@
                 ],
                 "version": 4
               },
-              "receipt_ids": [
-                "F2gMTD2P57kPtA44oEZyMKd8WGxvRpVoBD4ZmybsduUC"
-              ],
+              "receipt_ids": ["F2gMTD2P57kPtA44oEZyMKd8WGxvRpVoBD4ZmybsduUC"],
               "status": {
                 "SuccessValue": "eyJkZXBsb3ltZW50Ijp7Im5ldHdvcmtfaWQiOiJ0ZXN0bmV0IiwiZ2VuZXNpc19oYXNoIjoiMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTEiLCJjb250cmFjdF9pZCI6ImRldi0yMDI2MTEwNzA5MjQwOS0zNDQ0ODc2MjAwNzQ5My50ZXN0Lm5lYXIiLCJhcGlfdmVyc2lvbiI6IjIuMC4wIiwic3RhdGVfc2NoZW1hIjoiMSIsImNvbW1hbmRfc2NoZW1hIjoiMSIsImNvbmZpZ192ZXJzaW9uIjoiMSIsImNvbmZpZ19zaGEyNTYiOiJhOTMyZWZiNDhjNzBhNzNjZTQ2NDcyY2Q3NTQyODg2NDk1NDFiMzQ2MDRlMmVhNDlhNDA5Mzk2MWU3MWEyZDEwIn0sIm1hcmtldF9yZXZpc2lvbiI6IjQiLCJldmVudF9zZXF1ZW5jZSI6IjQiLCJibG9ja19oZWlnaHQiOiIxMzgzIiwiYmxvY2tfdGltZXN0YW1wX25zIjoiMTc5NDA0MzgzMDA0MTcwNDU1MiIsImRhdGEiOnsicHJpbmNpcGFsIjoiYWNjb3VudDpkZXYtMjAyNjExMDcwOTI0MTEtMjc0MDE4NjgzNzcxMjYudGVzdC5uZWFyIiwiY29tbWFuZF9zZXF1ZW5jZSI6IjMiLCJwYXlsb2FkX3NoYTI1NiI6IjEyNWQ1NzRlOTBhMWZiYjhhYzYwNWQ3NGUzZWJjZTA3NTY3M2Q1NjEzOWEwOTc1OGRjMTFjNTIzMGEzNDM4NWIiLCJyZXBsYXllZCI6dHJ1ZSwiZWZmZWN0X3JldmlzaW9uIjoiNCIsImVmZmVjdF9ldmVudF9zZXF1ZW5jZSI6IjQiLCJvdXRjb21lIjp7ImtpbmQiOiJhc3Npc3RhbnRfcG9saWN5X3NldCIsInBvbGljeSI6eyJtb2RlIjoiYXV0b19yZXByaWNlIiwib3BlcmF0b3JfYWNjb3VudF9pZCI6ImRldi0yMDI2MTEwNzA5MjQxMC03NDEyMjE2OTU2MTA4NS50ZXN0Lm5lYXIiLCJhbGxvd2VkX2l0ZW1zIjpbImhlYWx0aF9wb3Rpb24iLCJpcm9uX3Rvb2wiXSwibWluX3ByaWNlIjoiNSIsIm1heF9wcmljZSI6IjI1IiwiZXhwaXJlc19hdF9ucyI6IjE3OTQwNDM2NTQ1MDk0NTAxNjQiLCJzaG9wX2lkIjoiNCIsInJldmlzaW9uIjoiMiJ9LCJzaG9wIjp7InNob3BfaWQiOiI0Iiwib3duZXIiOnsia2luZCI6InBsYXllciIsImFjY291bnRfaWQiOiJkZXYtMjAyNjExMDcwOTI0MTEtMjc0MDE4NjgzNzcxMjYudGVzdC5uZWFyIn0sIm5hbWUiOiJTY29wZWQgYXNzaXN0YW50IiwicmV2aXNpb24iOiIyIiwicHJvZHVjdGlvbl9zbG90cyI6IjEiLCJwb2xpY3lfcmV2aXNpb24iOiIyIiwiY3JlYXRlZF9hdF9ucyI6IjE3OTQwNDM0NTQwMjEzMjkxMzIiLCJvd25lcnNoaXBfY29tbWFuZF9zZXF1ZW5jZSI6IjIifX19fQ=="
               },
@@ -1829,9 +1776,7 @@
               "gas_burnt": 223182562500,
               "logs": [],
               "metadata": {
-                "contracts": [
-                  null
-                ],
+                "contracts": [null],
                 "gas_profile": [],
                 "version": 4
               },
@@ -1877,9 +1822,7 @@
               "gas_profile": null,
               "version": 1
             },
-            "receipt_ids": [
-              "9ssnBKKD8Qe3xL9rrd91yStU96CrSiPEoxYzV1mUUj1E"
-            ],
+            "receipt_ids": ["9ssnBKKD8Qe3xL9rrd91yStU96CrSiPEoxYzV1mUUj1E"],
             "status": {
               "SuccessReceiptId": "9ssnBKKD8Qe3xL9rrd91yStU96CrSiPEoxYzV1mUUj1E"
             },
@@ -1933,15 +1876,9 @@
           "block_ordinal": 264,
           "challenges_result": [],
           "challenges_root": "11111111111111111111111111111111",
-          "chunk_endorsements": [
-            [
-              1
-            ]
-          ],
+          "chunk_endorsements": [[1]],
           "chunk_headers_root": "DWqXCEAq9C1CxXrSaaiMXA8CEGnPvtWTR2c1kwLe5GqD",
-          "chunk_mask": [
-            true
-          ],
+          "chunk_mask": [true],
           "chunk_receipts_root": "9HWxJYhZE7ZGkmLQWx8tdmcYyhNaTAhsRWSTnUhu6E88",
           "chunk_tx_root": "7tkzFg8RHBmMw1ncRJZCCZAizgq4rwCftTKYLce8RU8t",
           "chunks_included": 1,
@@ -2275,9 +2212,7 @@
                 ],
                 "version": 4
               },
-              "receipt_ids": [
-                "9j3c4LS7ktzTwU2RQkJQsEq1wcfU7za5Hd1D1VsGTG2C"
-              ],
+              "receipt_ids": ["9j3c4LS7ktzTwU2RQkJQsEq1wcfU7za5Hd1D1VsGTG2C"],
               "status": {
                 "SuccessValue": "eyJkZXBsb3ltZW50Ijp7Im5ldHdvcmtfaWQiOiJ0ZXN0bmV0IiwiZ2VuZXNpc19oYXNoIjoiMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTEiLCJjb250cmFjdF9pZCI6ImRldi0yMDI2MTEwNzA5MjQwOS0zNDQ0ODc2MjAwNzQ5My50ZXN0Lm5lYXIiLCJhcGlfdmVyc2lvbiI6IjIuMC4wIiwic3RhdGVfc2NoZW1hIjoiMSIsImNvbW1hbmRfc2NoZW1hIjoiMSIsImNvbmZpZ192ZXJzaW9uIjoiMSIsImNvbmZpZ19zaGEyNTYiOiJhOTMyZWZiNDhjNzBhNzNjZTQ2NDcyY2Q3NTQyODg2NDk1NDFiMzQ2MDRlMmVhNDlhNDA5Mzk2MWU3MWEyZDEwIn0sIm1hcmtldF9yZXZpc2lvbiI6IjUiLCJldmVudF9zZXF1ZW5jZSI6IjUiLCJibG9ja19oZWlnaHQiOiIxMzk3IiwiYmxvY2tfdGltZXN0YW1wX25zIjoiMTc5NDA0MzgzMTg0MzIwNDQ5OSIsImRhdGEiOnsicHJpbmNpcGFsIjoiYWNjb3VudDpkZXYtMjAyNjExMDcwOTI0MTEtMjc0MDE4NjgzNzcxMjYudGVzdC5uZWFyIiwiY29tbWFuZF9zZXF1ZW5jZSI6IjQiLCJwYXlsb2FkX3NoYTI1NiI6IjYzMjVjNzI3ODA1NDNmOWM0MDQyZWI1NzEyYmI4MDI0OTI1MDI5MTczOGY0ZDE3ZDczODI4ZTU3YzczNzNiMTkiLCJyZXBsYXllZCI6ZmFsc2UsImVmZmVjdF9yZXZpc2lvbiI6IjUiLCJlZmZlY3RfZXZlbnRfc2VxdWVuY2UiOiI1Iiwib3V0Y29tZSI6eyJraW5kIjoiYXNzaXN0YW50X3BvbGljeV9zZXQiLCJwb2xpY3kiOnsibW9kZSI6Im9mZiIsIm9wZXJhdG9yX2FjY291bnRfaWQiOm51bGwsImFsbG93ZWRfaXRlbXMiOltdLCJtaW5fcHJpY2UiOiIxIiwibWF4X3ByaWNlIjoiMSIsImV4cGlyZXNfYXRfbnMiOm51bGwsInNob3BfaWQiOiI0IiwicmV2aXNpb24iOiIzIn0sInNob3AiOnsic2hvcF9pZCI6IjQiLCJvd25lciI6eyJraW5kIjoicGxheWVyIiwiYWNjb3VudF9pZCI6ImRldi0yMDI2MTEwNzA5MjQxMS0yNzQwMTg2ODM3NzEyNi50ZXN0Lm5lYXIifSwibmFtZSI6IlNjb3BlZCBhc3Npc3RhbnQiLCJyZXZpc2lvbiI6IjMiLCJwcm9kdWN0aW9uX3Nsb3RzIjoiMSIsInBvbGljeV9yZXZpc2lvbiI6IjMiLCJjcmVhdGVkX2F0X25zIjoiMTc5NDA0MzQ1NDAyMTMyOTEzMiIsIm93bmVyc2hpcF9jb21tYW5kX3NlcXVlbmNlIjoiMiJ9fX19"
               },
@@ -2293,9 +2228,7 @@
               "gas_burnt": 223182562500,
               "logs": [],
               "metadata": {
-                "contracts": [
-                  null
-                ],
+                "contracts": [null],
                 "gas_profile": [],
                 "version": 4
               },
@@ -2341,9 +2274,7 @@
               "gas_profile": null,
               "version": 1
             },
-            "receipt_ids": [
-              "FsJhUg7CXapbkTEtzSXifJnqHtfVVZZVKeFCrt2FhEws"
-            ],
+            "receipt_ids": ["FsJhUg7CXapbkTEtzSXifJnqHtfVVZZVKeFCrt2FhEws"],
             "status": {
               "SuccessReceiptId": "FsJhUg7CXapbkTEtzSXifJnqHtfVVZZVKeFCrt2FhEws"
             },
@@ -2397,15 +2328,9 @@
           "block_ordinal": 278,
           "challenges_result": [],
           "challenges_root": "11111111111111111111111111111111",
-          "chunk_endorsements": [
-            [
-              1
-            ]
-          ],
+          "chunk_endorsements": [[1]],
           "chunk_headers_root": "BfSgTSPT9KCBcRpPJfx5Z8UuYLBBAKTauxusDxiizbA9",
-          "chunk_mask": [
-            true
-          ],
+          "chunk_mask": [true],
           "chunk_receipts_root": "D4oGKhuxwb2FdzZV5uJhiGMmRwTbVPNhnpEySoguQA3T",
           "chunk_tx_root": "7tkzFg8RHBmMw1ncRJZCCZAizgq4rwCftTKYLce8RU8t",
           "chunks_included": 1,
@@ -2717,9 +2642,7 @@
                 ],
                 "version": 4
               },
-              "receipt_ids": [
-                "3hdbYAHEpNMDpW8pJXRBfppZjTJ9dQdDMkp78tvEjSx6"
-              ],
+              "receipt_ids": ["3hdbYAHEpNMDpW8pJXRBfppZjTJ9dQdDMkp78tvEjSx6"],
               "status": {
                 "SuccessValue": "eyJkZXBsb3ltZW50Ijp7Im5ldHdvcmtfaWQiOiJ0ZXN0bmV0IiwiZ2VuZXNpc19oYXNoIjoiMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTEiLCJjb250cmFjdF9pZCI6ImRldi0yMDI2MTEwNzA5MjQwOS0zNDQ0ODc2MjAwNzQ5My50ZXN0Lm5lYXIiLCJhcGlfdmVyc2lvbiI6IjIuMC4wIiwic3RhdGVfc2NoZW1hIjoiMSIsImNvbW1hbmRfc2NoZW1hIjoiMSIsImNvbmZpZ192ZXJzaW9uIjoiMSIsImNvbmZpZ19zaGEyNTYiOiJhOTMyZWZiNDhjNzBhNzNjZTQ2NDcyY2Q3NTQyODg2NDk1NDFiMzQ2MDRlMmVhNDlhNDA5Mzk2MWU3MWEyZDEwIn0sIm1hcmtldF9yZXZpc2lvbiI6IjUiLCJldmVudF9zZXF1ZW5jZSI6IjUiLCJibG9ja19oZWlnaHQiOiIxNDAzIiwiYmxvY2tfdGltZXN0YW1wX25zIjoiMTc5NDA0MzgzMjYwNDEwMjA3MSIsImRhdGEiOnsicHJpbmNpcGFsIjoiYWNjb3VudDpkZXYtMjAyNjExMDcwOTI0MTEtMjc0MDE4NjgzNzcxMjYudGVzdC5uZWFyIiwiY29tbWFuZF9zZXF1ZW5jZSI6IjQiLCJwYXlsb2FkX3NoYTI1NiI6IjYzMjVjNzI3ODA1NDNmOWM0MDQyZWI1NzEyYmI4MDI0OTI1MDI5MTczOGY0ZDE3ZDczODI4ZTU3YzczNzNiMTkiLCJyZXBsYXllZCI6dHJ1ZSwiZWZmZWN0X3JldmlzaW9uIjoiNSIsImVmZmVjdF9ldmVudF9zZXF1ZW5jZSI6IjUiLCJvdXRjb21lIjp7ImtpbmQiOiJhc3Npc3RhbnRfcG9saWN5X3NldCIsInBvbGljeSI6eyJtb2RlIjoib2ZmIiwib3BlcmF0b3JfYWNjb3VudF9pZCI6bnVsbCwiYWxsb3dlZF9pdGVtcyI6W10sIm1pbl9wcmljZSI6IjEiLCJtYXhfcHJpY2UiOiIxIiwiZXhwaXJlc19hdF9ucyI6bnVsbCwic2hvcF9pZCI6IjQiLCJyZXZpc2lvbiI6IjMifSwic2hvcCI6eyJzaG9wX2lkIjoiNCIsIm93bmVyIjp7ImtpbmQiOiJwbGF5ZXIiLCJhY2NvdW50X2lkIjoiZGV2LTIwMjYxMTA3MDkyNDExLTI3NDAxODY4Mzc3MTI2LnRlc3QubmVhciJ9LCJuYW1lIjoiU2NvcGVkIGFzc2lzdGFudCIsInJldmlzaW9uIjoiMyIsInByb2R1Y3Rpb25fc2xvdHMiOiIxIiwicG9saWN5X3JldmlzaW9uIjoiMyIsImNyZWF0ZWRfYXRfbnMiOiIxNzk0MDQzNDU0MDIxMzI5MTMyIiwib3duZXJzaGlwX2NvbW1hbmRfc2VxdWVuY2UiOiIyIn19fX0="
               },
@@ -2735,9 +2658,7 @@
               "gas_burnt": 223182562500,
               "logs": [],
               "metadata": {
-                "contracts": [
-                  null
-                ],
+                "contracts": [null],
                 "gas_profile": [],
                 "version": 4
               },
@@ -2783,9 +2704,7 @@
               "gas_profile": null,
               "version": 1
             },
-            "receipt_ids": [
-              "Fv8RyJAitBNZhPd7nS75PmGAWCCanBDAdVo4w9EXhMUC"
-            ],
+            "receipt_ids": ["Fv8RyJAitBNZhPd7nS75PmGAWCCanBDAdVo4w9EXhMUC"],
             "status": {
               "SuccessReceiptId": "Fv8RyJAitBNZhPd7nS75PmGAWCCanBDAdVo4w9EXhMUC"
             },
@@ -2839,15 +2758,9 @@
           "block_ordinal": 284,
           "challenges_result": [],
           "challenges_root": "11111111111111111111111111111111",
-          "chunk_endorsements": [
-            [
-              1
-            ]
-          ],
+          "chunk_endorsements": [[1]],
           "chunk_headers_root": "A7r8mGKqUBgMcBsK5ZoXtnH4K7CiBYgJiJRmhxBTAxeq",
-          "chunk_mask": [
-            true
-          ],
+          "chunk_mask": [true],
           "chunk_receipts_root": "BgwijdbDEd1BEkqx135d9YWjraqCP5iPDAtzLqv9dV1T",
           "chunk_tx_root": "7tkzFg8RHBmMw1ncRJZCCZAizgq4rwCftTKYLce8RU8t",
           "chunks_included": 1,
@@ -2958,9 +2871,7 @@
         "policy": {
           "mode": "recommendations",
           "operator_account_id": null,
-          "allowed_items": [
-            "iron_tool"
-          ],
+          "allowed_items": ["iron_tool"],
           "min_price": "5",
           "max_price": "25",
           "expires_at_ns": null
@@ -3002,9 +2913,7 @@
             "policy": {
               "mode": "recommendations",
               "operator_account_id": null,
-              "allowed_items": [
-                "iron_tool"
-              ],
+              "allowed_items": ["iron_tool"],
               "min_price": "5",
               "max_price": "25",
               "expires_at_ns": null,
@@ -3185,9 +3094,7 @@
                 ],
                 "version": 4
               },
-              "receipt_ids": [
-                "8Z9BEb66gtV7UqUPrfCgv9XvtQpq1M72vLbXSTjAtHfv"
-              ],
+              "receipt_ids": ["8Z9BEb66gtV7UqUPrfCgv9XvtQpq1M72vLbXSTjAtHfv"],
               "status": {
                 "SuccessValue": "eyJkZXBsb3ltZW50Ijp7Im5ldHdvcmtfaWQiOiJ0ZXN0bmV0IiwiZ2VuZXNpc19oYXNoIjoiMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTEiLCJjb250cmFjdF9pZCI6ImRldi0yMDI2MTEwNzA5MjQwOS0zNDQ0ODc2MjAwNzQ5My50ZXN0Lm5lYXIiLCJhcGlfdmVyc2lvbiI6IjIuMC4wIiwic3RhdGVfc2NoZW1hIjoiMSIsImNvbW1hbmRfc2NoZW1hIjoiMSIsImNvbmZpZ192ZXJzaW9uIjoiMSIsImNvbmZpZ19zaGEyNTYiOiJhOTMyZWZiNDhjNzBhNzNjZTQ2NDcyY2Q3NTQyODg2NDk1NDFiMzQ2MDRlMmVhNDlhNDA5Mzk2MWU3MWEyZDEwIn0sIm1hcmtldF9yZXZpc2lvbiI6IjYiLCJldmVudF9zZXF1ZW5jZSI6IjYiLCJibG9ja19oZWlnaHQiOiIxNDE1IiwiYmxvY2tfdGltZXN0YW1wX25zIjoiMTc5NDA0MzgzNDExNjUyMDk2OCIsImRhdGEiOnsicHJpbmNpcGFsIjoiYWNjb3VudDpkZXYtMjAyNjExMDcwOTI0MTEtMjc0MDE4NjgzNzcxMjYudGVzdC5uZWFyIiwiY29tbWFuZF9zZXF1ZW5jZSI6IjUiLCJwYXlsb2FkX3NoYTI1NiI6IjVjMWE2N2Y3MmM0MWJmNTc4MTYzNTczNjViOWM3ZmIyMzQzNWYxOTQxZDdiMjZkNGM4ODc5MDU4M2JjNzdjN2YiLCJyZXBsYXllZCI6ZmFsc2UsImVmZmVjdF9yZXZpc2lvbiI6IjYiLCJlZmZlY3RfZXZlbnRfc2VxdWVuY2UiOiI2Iiwib3V0Y29tZSI6eyJraW5kIjoiYXNzaXN0YW50X3BvbGljeV9zZXQiLCJwb2xpY3kiOnsibW9kZSI6InJlY29tbWVuZGF0aW9ucyIsIm9wZXJhdG9yX2FjY291bnRfaWQiOm51bGwsImFsbG93ZWRfaXRlbXMiOlsiaXJvbl90b29sIl0sIm1pbl9wcmljZSI6IjUiLCJtYXhfcHJpY2UiOiIyNSIsImV4cGlyZXNfYXRfbnMiOm51bGwsInNob3BfaWQiOiI0IiwicmV2aXNpb24iOiI0In0sInNob3AiOnsic2hvcF9pZCI6IjQiLCJvd25lciI6eyJraW5kIjoicGxheWVyIiwiYWNjb3VudF9pZCI6ImRldi0yMDI2MTEwNzA5MjQxMS0yNzQwMTg2ODM3NzEyNi50ZXN0Lm5lYXIifSwibmFtZSI6IlNjb3BlZCBhc3Npc3RhbnQiLCJyZXZpc2lvbiI6IjQiLCJwcm9kdWN0aW9uX3Nsb3RzIjoiMSIsInBvbGljeV9yZXZpc2lvbiI6IjQiLCJjcmVhdGVkX2F0X25zIjoiMTc5NDA0MzQ1NDAyMTMyOTEzMiIsIm93bmVyc2hpcF9jb21tYW5kX3NlcXVlbmNlIjoiMiJ9fX19"
               },
@@ -3203,9 +3110,7 @@
               "gas_burnt": 223182562500,
               "logs": [],
               "metadata": {
-                "contracts": [
-                  null
-                ],
+                "contracts": [null],
                 "gas_profile": [],
                 "version": 4
               },
@@ -3251,9 +3156,7 @@
               "gas_profile": null,
               "version": 1
             },
-            "receipt_ids": [
-              "GmcoCMdTLRcXURtEeAv8F7rxTw6DwDN22ukTJQghtM63"
-            ],
+            "receipt_ids": ["GmcoCMdTLRcXURtEeAv8F7rxTw6DwDN22ukTJQghtM63"],
             "status": {
               "SuccessReceiptId": "GmcoCMdTLRcXURtEeAv8F7rxTw6DwDN22ukTJQghtM63"
             },
@@ -3307,15 +3210,9 @@
           "block_ordinal": 296,
           "challenges_result": [],
           "challenges_root": "11111111111111111111111111111111",
-          "chunk_endorsements": [
-            [
-              1
-            ]
-          ],
+          "chunk_endorsements": [[1]],
           "chunk_headers_root": "6XdK5GbbVirdgoRU7BqZFkLZbbVtiWGFzioJEKWdKRoq",
-          "chunk_mask": [
-            true
-          ],
+          "chunk_mask": [true],
           "chunk_receipts_root": "G8JYhWBoMuMxrpvC8eRtfU926j3AxrAXM9597BxW3Hbe",
           "chunk_tx_root": "7tkzFg8RHBmMw1ncRJZCCZAizgq4rwCftTKYLce8RU8t",
           "chunks_included": 1,
@@ -3649,9 +3546,7 @@
                 ],
                 "version": 4
               },
-              "receipt_ids": [
-                "wyPKuPpGpvMMVx19TCuRnEGjojDUvQ4Ly3DoC8PsgMN"
-              ],
+              "receipt_ids": ["wyPKuPpGpvMMVx19TCuRnEGjojDUvQ4Ly3DoC8PsgMN"],
               "status": {
                 "SuccessValue": "eyJkZXBsb3ltZW50Ijp7Im5ldHdvcmtfaWQiOiJ0ZXN0bmV0IiwiZ2VuZXNpc19oYXNoIjoiMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTEiLCJjb250cmFjdF9pZCI6ImRldi0yMDI2MTEwNzA5MjQwOS0zNDQ0ODc2MjAwNzQ5My50ZXN0Lm5lYXIiLCJhcGlfdmVyc2lvbiI6IjIuMC4wIiwic3RhdGVfc2NoZW1hIjoiMSIsImNvbW1hbmRfc2NoZW1hIjoiMSIsImNvbmZpZ192ZXJzaW9uIjoiMSIsImNvbmZpZ19zaGEyNTYiOiJhOTMyZWZiNDhjNzBhNzNjZTQ2NDcyY2Q3NTQyODg2NDk1NDFiMzQ2MDRlMmVhNDlhNDA5Mzk2MWU3MWEyZDEwIn0sIm1hcmtldF9yZXZpc2lvbiI6IjciLCJldmVudF9zZXF1ZW5jZSI6IjciLCJibG9ja19oZWlnaHQiOiIxNDIyIiwiYmxvY2tfdGltZXN0YW1wX25zIjoiMTc5NDA0MzgzNTAwNTM0ODk0MSIsImRhdGEiOnsicHJpbmNpcGFsIjoiYWNjb3VudDpkZXYtMjAyNjExMDcwOTI0MTEtMjc0MDE4NjgzNzcxMjYudGVzdC5uZWFyIiwiY29tbWFuZF9zZXF1ZW5jZSI6IjYiLCJwYXlsb2FkX3NoYTI1NiI6IjY4MTQwMDMyM2FjMTU5NTc3MWM2NjA5ODZjM2JmN2I2ZDg2YWNlM2Y5YmUzYzhhNmViYTM4MWJjOGIyYTU1OGYiLCJyZXBsYXllZCI6ZmFsc2UsImVmZmVjdF9yZXZpc2lvbiI6IjciLCJlZmZlY3RfZXZlbnRfc2VxdWVuY2UiOiI3Iiwib3V0Y29tZSI6eyJraW5kIjoiYXNzaXN0YW50X3BvbGljeV9zZXQiLCJwb2xpY3kiOnsibW9kZSI6Im9mZiIsIm9wZXJhdG9yX2FjY291bnRfaWQiOm51bGwsImFsbG93ZWRfaXRlbXMiOltdLCJtaW5fcHJpY2UiOiIxIiwibWF4X3ByaWNlIjoiMSIsImV4cGlyZXNfYXRfbnMiOm51bGwsInNob3BfaWQiOiI0IiwicmV2aXNpb24iOiI1In0sInNob3AiOnsic2hvcF9pZCI6IjQiLCJvd25lciI6eyJraW5kIjoicGxheWVyIiwiYWNjb3VudF9pZCI6ImRldi0yMDI2MTEwNzA5MjQxMS0yNzQwMTg2ODM3NzEyNi50ZXN0Lm5lYXIifSwibmFtZSI6IlNjb3BlZCBhc3Npc3RhbnQiLCJyZXZpc2lvbiI6IjUiLCJwcm9kdWN0aW9uX3Nsb3RzIjoiMSIsInBvbGljeV9yZXZpc2lvbiI6IjUiLCJjcmVhdGVkX2F0X25zIjoiMTc5NDA0MzQ1NDAyMTMyOTEzMiIsIm93bmVyc2hpcF9jb21tYW5kX3NlcXVlbmNlIjoiMiJ9fX19"
               },
@@ -3667,9 +3562,7 @@
               "gas_burnt": 223182562500,
               "logs": [],
               "metadata": {
-                "contracts": [
-                  null
-                ],
+                "contracts": [null],
                 "gas_profile": [],
                 "version": 4
               },
@@ -3715,9 +3608,7 @@
               "gas_profile": null,
               "version": 1
             },
-            "receipt_ids": [
-              "8MerLzwdK9W5BzNK6BXENsKi2R5ky8ACbWjQXi1cdc4G"
-            ],
+            "receipt_ids": ["8MerLzwdK9W5BzNK6BXENsKi2R5ky8ACbWjQXi1cdc4G"],
             "status": {
               "SuccessReceiptId": "8MerLzwdK9W5BzNK6BXENsKi2R5ky8ACbWjQXi1cdc4G"
             },
@@ -3771,15 +3662,9 @@
           "block_ordinal": 303,
           "challenges_result": [],
           "challenges_root": "11111111111111111111111111111111",
-          "chunk_endorsements": [
-            [
-              1
-            ]
-          ],
+          "chunk_endorsements": [[1]],
           "chunk_headers_root": "7NVGKKo3wUTmFAeuRVShmnhpxKqowsiHjrmDakBBhnmG",
-          "chunk_mask": [
-            true
-          ],
+          "chunk_mask": [true],
           "chunk_receipts_root": "A7zM5H885mnwkBdWTmvzPkyBxSEYzghvq6fRUoxWpoSN",
           "chunk_tx_root": "7tkzFg8RHBmMw1ncRJZCCZAizgq4rwCftTKYLce8RU8t",
           "chunks_included": 1,
@@ -3892,10 +3777,7 @@
         "policy": {
           "mode": "auto_reprice",
           "operator_account_id": "dev-20261107092410-74122169561085.test.near",
-          "allowed_items": [
-            "iron_tool",
-            "health_potion"
-          ],
+          "allowed_items": ["iron_tool", "health_potion"],
           "min_price": "5",
           "max_price": "25",
           "expires_at_ns": "1794043654509450164"
@@ -4017,9 +3899,7 @@
                 ],
                 "version": 4
               },
-              "receipt_ids": [
-                "CwYbyvUiLib1A4bkbm6NmagSqhcgpZ4UZpMqgTxXbrrj"
-              ],
+              "receipt_ids": ["CwYbyvUiLib1A4bkbm6NmagSqhcgpZ4UZpMqgTxXbrrj"],
               "status": {
                 "Failure": {
                   "ActionError": {
@@ -4044,9 +3924,7 @@
               "gas_burnt": 223182562500,
               "logs": [],
               "metadata": {
-                "contracts": [
-                  null
-                ],
+                "contracts": [null],
                 "gas_profile": [],
                 "version": 4
               },
@@ -4101,9 +3979,7 @@
               "gas_profile": null,
               "version": 1
             },
-            "receipt_ids": [
-              "EjJkRK9pQrRr8Ksm74XfP29p71N6Cu4WXgiVtPRYVyvT"
-            ],
+            "receipt_ids": ["EjJkRK9pQrRr8Ksm74XfP29p71N6Cu4WXgiVtPRYVyvT"],
             "status": {
               "SuccessReceiptId": "EjJkRK9pQrRr8Ksm74XfP29p71N6Cu4WXgiVtPRYVyvT"
             },
@@ -4157,15 +4033,9 @@
           "block_ordinal": 45,
           "challenges_result": [],
           "challenges_root": "11111111111111111111111111111111",
-          "chunk_endorsements": [
-            [
-              1
-            ]
-          ],
+          "chunk_endorsements": [[1]],
           "chunk_headers_root": "ENPrFvcjNZzFAZnYbqiXXV7oQo3YpaCSiDu1N4QA7TRi",
-          "chunk_mask": [
-            true
-          ],
+          "chunk_mask": [true],
           "chunk_receipts_root": "3FZSM2iMqputkDaw6Ha14dhREuq4zTMDTt52coPy6EaB",
           "chunk_tx_root": "7tkzFg8RHBmMw1ncRJZCCZAizgq4rwCftTKYLce8RU8t",
           "chunks_included": 1,
@@ -4276,10 +4146,7 @@
         "policy": {
           "mode": "auto_reprice",
           "operator_account_id": "dev-20261107092410-74122169561085.test.near",
-          "allowed_items": [
-            "iron_tool",
-            "health_potion"
-          ],
+          "allowed_items": ["iron_tool", "health_potion"],
           "min_price": "5",
           "max_price": "25",
           "expires_at_ns": "1794043654509450164"
@@ -4401,9 +4268,7 @@
                 ],
                 "version": 4
               },
-              "receipt_ids": [
-                "9FDdgk9THKPF5RWaYaGKs9jbYRnAHd2ddB2kBgbSftmY"
-              ],
+              "receipt_ids": ["9FDdgk9THKPF5RWaYaGKs9jbYRnAHd2ddB2kBgbSftmY"],
               "status": {
                 "Failure": {
                   "ActionError": {
@@ -4428,9 +4293,7 @@
               "gas_burnt": 223182562500,
               "logs": [],
               "metadata": {
-                "contracts": [
-                  null
-                ],
+                "contracts": [null],
                 "gas_profile": [],
                 "version": 4
               },
@@ -4485,9 +4348,7 @@
               "gas_profile": null,
               "version": 1
             },
-            "receipt_ids": [
-              "DAiZTGGscQokumty7CgSKPqu7iH7VuczTYeFDt5DtAjU"
-            ],
+            "receipt_ids": ["DAiZTGGscQokumty7CgSKPqu7iH7VuczTYeFDt5DtAjU"],
             "status": {
               "SuccessReceiptId": "DAiZTGGscQokumty7CgSKPqu7iH7VuczTYeFDt5DtAjU"
             },
@@ -4541,15 +4402,9 @@
           "block_ordinal": 52,
           "challenges_result": [],
           "challenges_root": "11111111111111111111111111111111",
-          "chunk_endorsements": [
-            [
-              1
-            ]
-          ],
+          "chunk_endorsements": [[1]],
           "chunk_headers_root": "9EAvDL1Goyt5WFpmsNiTixg4W8XAmEAKso9rNQYgxJpz",
-          "chunk_mask": [
-            true
-          ],
+          "chunk_mask": [true],
           "chunk_receipts_root": "4YPmC8S3vWuceJwQH3gF6DZ85PxAw5JzpPT19vpdkjoT",
           "chunk_tx_root": "7tkzFg8RHBmMw1ncRJZCCZAizgq4rwCftTKYLce8RU8t",
           "chunks_included": 1,
@@ -4660,10 +4515,7 @@
         "policy": {
           "mode": "auto_reprice",
           "operator_account_id": "dev-20261107092410-74122169561085.test.near",
-          "allowed_items": [
-            "iron_tool",
-            "health_potion"
-          ],
+          "allowed_items": ["iron_tool", "health_potion"],
           "min_price": "5",
           "max_price": "25",
           "expires_at_ns": "1794043654509450164"
@@ -4785,9 +4637,7 @@
                 ],
                 "version": 4
               },
-              "receipt_ids": [
-                "2pj6jR5ebDWhFmoec6qwKu3fWF8GGj4zqmdcYr7msJiq"
-              ],
+              "receipt_ids": ["2pj6jR5ebDWhFmoec6qwKu3fWF8GGj4zqmdcYr7msJiq"],
               "status": {
                 "Failure": {
                   "ActionError": {
@@ -4812,9 +4662,7 @@
               "gas_burnt": 223182562500,
               "logs": [],
               "metadata": {
-                "contracts": [
-                  null
-                ],
+                "contracts": [null],
                 "gas_profile": [],
                 "version": 4
               },
@@ -4869,9 +4717,7 @@
               "gas_profile": null,
               "version": 1
             },
-            "receipt_ids": [
-              "7sBxTRUd28L8PcbCk2XnonTWFCaaHC15FJMXQRMfXagR"
-            ],
+            "receipt_ids": ["7sBxTRUd28L8PcbCk2XnonTWFCaaHC15FJMXQRMfXagR"],
             "status": {
               "SuccessReceiptId": "7sBxTRUd28L8PcbCk2XnonTWFCaaHC15FJMXQRMfXagR"
             },
@@ -4925,15 +4771,9 @@
           "block_ordinal": 59,
           "challenges_result": [],
           "challenges_root": "11111111111111111111111111111111",
-          "chunk_endorsements": [
-            [
-              1
-            ]
-          ],
+          "chunk_endorsements": [[1]],
           "chunk_headers_root": "EMrBDpQX4V3Xcf8m2r27BT21mNP65qLj475CgFHWw4xy",
-          "chunk_mask": [
-            true
-          ],
+          "chunk_mask": [true],
           "chunk_receipts_root": "FxU2fhVyab6aSNyKjDc6nXcjA3diWyjAvWbU33hsGDc1",
           "chunk_tx_root": "7tkzFg8RHBmMw1ncRJZCCZAizgq4rwCftTKYLce8RU8t",
           "chunks_included": 1,
@@ -5044,10 +4884,7 @@
         "policy": {
           "mode": "auto_reprice",
           "operator_account_id": "dev-20261107092412-47978175689950.test.near",
-          "allowed_items": [
-            "iron_tool",
-            "health_potion"
-          ],
+          "allowed_items": ["iron_tool", "health_potion"],
           "min_price": "5",
           "max_price": "25",
           "expires_at_ns": "1794043654509450164"
@@ -5179,9 +5016,7 @@
                 ],
                 "version": 4
               },
-              "receipt_ids": [
-                "4zaRsMfA5hGBQmZ4Hi3o5iYNEkiUWFqbwQ5zvMUd5YjP"
-              ],
+              "receipt_ids": ["4zaRsMfA5hGBQmZ4Hi3o5iYNEkiUWFqbwQ5zvMUd5YjP"],
               "status": {
                 "Failure": {
                   "ActionError": {
@@ -5206,9 +5041,7 @@
               "gas_burnt": 223182562500,
               "logs": [],
               "metadata": {
-                "contracts": [
-                  null
-                ],
+                "contracts": [null],
                 "gas_profile": [],
                 "version": 4
               },
@@ -5263,9 +5096,7 @@
               "gas_profile": null,
               "version": 1
             },
-            "receipt_ids": [
-              "5PQU1wKq3GsKJmxcqokBCESncagCz1SHkWavyy5QKu8Q"
-            ],
+            "receipt_ids": ["5PQU1wKq3GsKJmxcqokBCESncagCz1SHkWavyy5QKu8Q"],
             "status": {
               "SuccessReceiptId": "5PQU1wKq3GsKJmxcqokBCESncagCz1SHkWavyy5QKu8Q"
             },
@@ -5319,15 +5150,9 @@
           "block_ordinal": 66,
           "challenges_result": [],
           "challenges_root": "11111111111111111111111111111111",
-          "chunk_endorsements": [
-            [
-              1
-            ]
-          ],
+          "chunk_endorsements": [[1]],
           "chunk_headers_root": "FmYrEswCyTXcF3dnHFgSvqGEy7QK7NASmcNRfYyrUpLY",
-          "chunk_mask": [
-            true
-          ],
+          "chunk_mask": [true],
           "chunk_receipts_root": "8hPACgy6Qv7qN1D6d7H1wgb6gXdSSXxsTcscPyWaM7B6",
           "chunk_tx_root": "7tkzFg8RHBmMw1ncRJZCCZAizgq4rwCftTKYLce8RU8t",
           "chunks_included": 1,
@@ -5438,10 +5263,7 @@
         "policy": {
           "mode": "auto_reprice",
           "operator_account_id": "dev-20261107092410-74122169561085.test.near",
-          "allowed_items": [
-            "iron_tool",
-            "health_potion"
-          ],
+          "allowed_items": ["iron_tool", "health_potion"],
           "min_price": "5",
           "max_price": "25",
           "expires_at_ns": null
@@ -5573,9 +5395,7 @@
                 ],
                 "version": 4
               },
-              "receipt_ids": [
-                "GF2eoCtQ3tkhUPuw46cSywriKinzYBxHdb2CbnKZTyXZ"
-              ],
+              "receipt_ids": ["GF2eoCtQ3tkhUPuw46cSywriKinzYBxHdb2CbnKZTyXZ"],
               "status": {
                 "Failure": {
                   "ActionError": {
@@ -5600,9 +5420,7 @@
               "gas_burnt": 223182562500,
               "logs": [],
               "metadata": {
-                "contracts": [
-                  null
-                ],
+                "contracts": [null],
                 "gas_profile": [],
                 "version": 4
               },
@@ -5657,9 +5475,7 @@
               "gas_profile": null,
               "version": 1
             },
-            "receipt_ids": [
-              "CBTjUV35NomQZJBwP43i7kLPWUgZHdsRWf8MgvswK1vg"
-            ],
+            "receipt_ids": ["CBTjUV35NomQZJBwP43i7kLPWUgZHdsRWf8MgvswK1vg"],
             "status": {
               "SuccessReceiptId": "CBTjUV35NomQZJBwP43i7kLPWUgZHdsRWf8MgvswK1vg"
             },
@@ -5713,15 +5529,9 @@
           "block_ordinal": 72,
           "challenges_result": [],
           "challenges_root": "11111111111111111111111111111111",
-          "chunk_endorsements": [
-            [
-              1
-            ]
-          ],
+          "chunk_endorsements": [[1]],
           "chunk_headers_root": "CescupBHjemZM5FKGEbqfev98YHFbSMyvQykz7tBrS3M",
-          "chunk_mask": [
-            true
-          ],
+          "chunk_mask": [true],
           "chunk_receipts_root": "GQpFFrithjqjo9yPjCnVnap3YgW25mPdmeAKRNtCLuNu",
           "chunk_tx_root": "7tkzFg8RHBmMw1ncRJZCCZAizgq4rwCftTKYLce8RU8t",
           "chunks_included": 1,
@@ -5832,10 +5642,7 @@
         "policy": {
           "mode": "auto_reprice",
           "operator_account_id": "dev-20261107092410-74122169561085.test.near",
-          "allowed_items": [
-            "iron_tool",
-            "health_potion"
-          ],
+          "allowed_items": ["iron_tool", "health_potion"],
           "min_price": "5",
           "max_price": "25",
           "expires_at_ns": "1794043454509450164"
@@ -5967,9 +5774,7 @@
                 ],
                 "version": 4
               },
-              "receipt_ids": [
-                "39gofZXrrQKVPTimPWf6MZhJttjbxTVTSKibVBzDKydg"
-              ],
+              "receipt_ids": ["39gofZXrrQKVPTimPWf6MZhJttjbxTVTSKibVBzDKydg"],
               "status": {
                 "Failure": {
                   "ActionError": {
@@ -5994,9 +5799,7 @@
               "gas_burnt": 223182562500,
               "logs": [],
               "metadata": {
-                "contracts": [
-                  null
-                ],
+                "contracts": [null],
                 "gas_profile": [],
                 "version": 4
               },
@@ -6051,9 +5854,7 @@
               "gas_profile": null,
               "version": 1
             },
-            "receipt_ids": [
-              "7QZv7niNasbQMqnnkdQJiS5Xkin6EAaEEbD2irRHtbgM"
-            ],
+            "receipt_ids": ["7QZv7niNasbQMqnnkdQJiS5Xkin6EAaEEbD2irRHtbgM"],
             "status": {
               "SuccessReceiptId": "7QZv7niNasbQMqnnkdQJiS5Xkin6EAaEEbD2irRHtbgM"
             },
@@ -6107,15 +5908,9 @@
           "block_ordinal": 79,
           "challenges_result": [],
           "challenges_root": "11111111111111111111111111111111",
-          "chunk_endorsements": [
-            [
-              1
-            ]
-          ],
+          "chunk_endorsements": [[1]],
           "chunk_headers_root": "135QN8iqS3mDB5H2pkFxJPFbkjVaw6EmS4SL47Xx94MW",
-          "chunk_mask": [
-            true
-          ],
+          "chunk_mask": [true],
           "chunk_receipts_root": "JAbjMLfCZpE6fGrMfpz3jxHhdwCxLnQ8SeZgDpnejsmX",
           "chunk_tx_root": "7tkzFg8RHBmMw1ncRJZCCZAizgq4rwCftTKYLce8RU8t",
           "chunks_included": 1,
@@ -6226,9 +6021,7 @@
         "policy": {
           "mode": "auto_reprice",
           "operator_account_id": "dev-20261107092410-74122169561085.test.near",
-          "allowed_items": [
-            "herb"
-          ],
+          "allowed_items": ["herb"],
           "min_price": "5",
           "max_price": "25",
           "expires_at_ns": "1794043654509450164"
@@ -6360,9 +6153,7 @@
                 ],
                 "version": 4
               },
-              "receipt_ids": [
-                "6LXdFMrPTygGUh8QryHZms4Ydc6vKc11yTWFQHRsm3DN"
-              ],
+              "receipt_ids": ["6LXdFMrPTygGUh8QryHZms4Ydc6vKc11yTWFQHRsm3DN"],
               "status": {
                 "Failure": {
                   "ActionError": {
@@ -6387,9 +6178,7 @@
               "gas_burnt": 223182562500,
               "logs": [],
               "metadata": {
-                "contracts": [
-                  null
-                ],
+                "contracts": [null],
                 "gas_profile": [],
                 "version": 4
               },
@@ -6444,9 +6233,7 @@
               "gas_profile": null,
               "version": 1
             },
-            "receipt_ids": [
-              "DNFAPHW7eJFzRUHJc2o3BmEW2xfmE1LUvCoLfebxD2yE"
-            ],
+            "receipt_ids": ["DNFAPHW7eJFzRUHJc2o3BmEW2xfmE1LUvCoLfebxD2yE"],
             "status": {
               "SuccessReceiptId": "DNFAPHW7eJFzRUHJc2o3BmEW2xfmE1LUvCoLfebxD2yE"
             },
@@ -6500,15 +6287,9 @@
           "block_ordinal": 86,
           "challenges_result": [],
           "challenges_root": "11111111111111111111111111111111",
-          "chunk_endorsements": [
-            [
-              1
-            ]
-          ],
+          "chunk_endorsements": [[1]],
           "chunk_headers_root": "4YtTyS1g2dKMRcqwEJHYZU3vUbiHAZPQwbhk3Dpha6rr",
-          "chunk_mask": [
-            true
-          ],
+          "chunk_mask": [true],
           "chunk_receipts_root": "29TDstDj8MTiXH3JpJFAz22ViVGiYhhBFWYkKi5Qkpki",
           "chunk_tx_root": "7tkzFg8RHBmMw1ncRJZCCZAizgq4rwCftTKYLce8RU8t",
           "chunks_included": 1,
@@ -6619,10 +6400,7 @@
         "policy": {
           "mode": "auto_reprice",
           "operator_account_id": "dev-20261107092410-74122169561085.test.near",
-          "allowed_items": [
-            "iron_tool",
-            "iron_tool"
-          ],
+          "allowed_items": ["iron_tool", "iron_tool"],
           "min_price": "5",
           "max_price": "25",
           "expires_at_ns": "1794043654509450164"
@@ -6754,9 +6532,7 @@
                 ],
                 "version": 4
               },
-              "receipt_ids": [
-                "5tigstirYANZ9bDTR87mCjboLVxdaLfvSebdYBd5B6kq"
-              ],
+              "receipt_ids": ["5tigstirYANZ9bDTR87mCjboLVxdaLfvSebdYBd5B6kq"],
               "status": {
                 "Failure": {
                   "ActionError": {
@@ -6781,9 +6557,7 @@
               "gas_burnt": 223182562500,
               "logs": [],
               "metadata": {
-                "contracts": [
-                  null
-                ],
+                "contracts": [null],
                 "gas_profile": [],
                 "version": 4
               },
@@ -6838,9 +6612,7 @@
               "gas_profile": null,
               "version": 1
             },
-            "receipt_ids": [
-              "GriQUMDut46Q6yWY2koETyKRuQ9Sq3KiFhon6T4yZQfL"
-            ],
+            "receipt_ids": ["GriQUMDut46Q6yWY2koETyKRuQ9Sq3KiFhon6T4yZQfL"],
             "status": {
               "SuccessReceiptId": "GriQUMDut46Q6yWY2koETyKRuQ9Sq3KiFhon6T4yZQfL"
             },
@@ -6894,15 +6666,9 @@
           "block_ordinal": 93,
           "challenges_result": [],
           "challenges_root": "11111111111111111111111111111111",
-          "chunk_endorsements": [
-            [
-              1
-            ]
-          ],
+          "chunk_endorsements": [[1]],
           "chunk_headers_root": "HXY8D3pUzPPC3Tyg2iyx1go6HFKW2AaW697pS4Nm5fhy",
-          "chunk_mask": [
-            true
-          ],
+          "chunk_mask": [true],
           "chunk_receipts_root": "9NwXyy937C3Fz61qN334zmGxdqERRhcnEwihsuMKXchd",
           "chunk_tx_root": "7tkzFg8RHBmMw1ncRJZCCZAizgq4rwCftTKYLce8RU8t",
           "chunks_included": 1,
@@ -7145,9 +6911,7 @@
                 ],
                 "version": 4
               },
-              "receipt_ids": [
-                "8LR9hvHr83xgW6gn8Z21qJRn2v4dPVZ2E7GsYxhVLrdY"
-              ],
+              "receipt_ids": ["8LR9hvHr83xgW6gn8Z21qJRn2v4dPVZ2E7GsYxhVLrdY"],
               "status": {
                 "Failure": {
                   "ActionError": {
@@ -7172,9 +6936,7 @@
               "gas_burnt": 223182562500,
               "logs": [],
               "metadata": {
-                "contracts": [
-                  null
-                ],
+                "contracts": [null],
                 "gas_profile": [],
                 "version": 4
               },
@@ -7229,9 +6991,7 @@
               "gas_profile": null,
               "version": 1
             },
-            "receipt_ids": [
-              "D8rUFMW2tCnV9s9yyMbMoNEhSQnzPraX31r3tCvY9QXo"
-            ],
+            "receipt_ids": ["D8rUFMW2tCnV9s9yyMbMoNEhSQnzPraX31r3tCvY9QXo"],
             "status": {
               "SuccessReceiptId": "D8rUFMW2tCnV9s9yyMbMoNEhSQnzPraX31r3tCvY9QXo"
             },
@@ -7285,15 +7045,9 @@
           "block_ordinal": 99,
           "challenges_result": [],
           "challenges_root": "11111111111111111111111111111111",
-          "chunk_endorsements": [
-            [
-              1
-            ]
-          ],
+          "chunk_endorsements": [[1]],
           "chunk_headers_root": "T3vpyFF9fZi5wqQkhtjoUNmpeDe2oYHLRNaAepZFwTv",
-          "chunk_mask": [
-            true
-          ],
+          "chunk_mask": [true],
           "chunk_receipts_root": "Az9QHVcQHkC7rLiADVpqnseB7zrDe7P3nDjBfrTdfJKU",
           "chunk_tx_root": "7tkzFg8RHBmMw1ncRJZCCZAizgq4rwCftTKYLce8RU8t",
           "chunks_included": 1,
@@ -7404,10 +7158,7 @@
         "policy": {
           "mode": "auto_reprice",
           "operator_account_id": "dev-20261107092410-74122169561085.test.near",
-          "allowed_items": [
-            "iron_tool",
-            "health_potion"
-          ],
+          "allowed_items": ["iron_tool", "health_potion"],
           "min_price": "0",
           "max_price": "25",
           "expires_at_ns": "1794043654509450164"
@@ -7539,9 +7290,7 @@
                 ],
                 "version": 4
               },
-              "receipt_ids": [
-                "DT5b2H5DQPhCYy28niJv5Dc1UnWWioHRhGxy2khZNKr"
-              ],
+              "receipt_ids": ["DT5b2H5DQPhCYy28niJv5Dc1UnWWioHRhGxy2khZNKr"],
               "status": {
                 "Failure": {
                   "ActionError": {
@@ -7566,9 +7315,7 @@
               "gas_burnt": 223182562500,
               "logs": [],
               "metadata": {
-                "contracts": [
-                  null
-                ],
+                "contracts": [null],
                 "gas_profile": [],
                 "version": 4
               },
@@ -7623,9 +7370,7 @@
               "gas_profile": null,
               "version": 1
             },
-            "receipt_ids": [
-              "AxHYrzBC9nqAgjXjQhgXPMQ4LqaWuC6cqZtjgJ4Y3x5J"
-            ],
+            "receipt_ids": ["AxHYrzBC9nqAgjXjQhgXPMQ4LqaWuC6cqZtjgJ4Y3x5J"],
             "status": {
               "SuccessReceiptId": "AxHYrzBC9nqAgjXjQhgXPMQ4LqaWuC6cqZtjgJ4Y3x5J"
             },
@@ -7679,15 +7424,9 @@
           "block_ordinal": 105,
           "challenges_result": [],
           "challenges_root": "11111111111111111111111111111111",
-          "chunk_endorsements": [
-            [
-              1
-            ]
-          ],
+          "chunk_endorsements": [[1]],
           "chunk_headers_root": "DxYUWjJYixGdU53mqGTbUr2eUEEcGtw3KDBReU5vpudk",
-          "chunk_mask": [
-            true
-          ],
+          "chunk_mask": [true],
           "chunk_receipts_root": "3dW4RZ3nrkeAdiGHDG44gciSePhBrYiBP6M9mgoGmD3K",
           "chunk_tx_root": "7tkzFg8RHBmMw1ncRJZCCZAizgq4rwCftTKYLce8RU8t",
           "chunks_included": 1,
@@ -7798,10 +7537,7 @@
         "policy": {
           "mode": "auto_reprice",
           "operator_account_id": "dev-20261107092410-74122169561085.test.near",
-          "allowed_items": [
-            "iron_tool",
-            "health_potion"
-          ],
+          "allowed_items": ["iron_tool", "health_potion"],
           "min_price": "5",
           "max_price": "101",
           "expires_at_ns": "1794043654509450164"
@@ -7933,9 +7669,7 @@
                 ],
                 "version": 4
               },
-              "receipt_ids": [
-                "Bxkaybz2psETAotFwd1p7j73hBgLaNJPn75pccc5TLou"
-              ],
+              "receipt_ids": ["Bxkaybz2psETAotFwd1p7j73hBgLaNJPn75pccc5TLou"],
               "status": {
                 "Failure": {
                   "ActionError": {
@@ -7960,9 +7694,7 @@
               "gas_burnt": 223182562500,
               "logs": [],
               "metadata": {
-                "contracts": [
-                  null
-                ],
+                "contracts": [null],
                 "gas_profile": [],
                 "version": 4
               },
@@ -8017,9 +7749,7 @@
               "gas_profile": null,
               "version": 1
             },
-            "receipt_ids": [
-              "FUJaLkWa3d9PwuCgwujEvnygaANQ5iawiXuV9Y8SE6HA"
-            ],
+            "receipt_ids": ["FUJaLkWa3d9PwuCgwujEvnygaANQ5iawiXuV9Y8SE6HA"],
             "status": {
               "SuccessReceiptId": "FUJaLkWa3d9PwuCgwujEvnygaANQ5iawiXuV9Y8SE6HA"
             },
@@ -8073,15 +7803,9 @@
           "block_ordinal": 112,
           "challenges_result": [],
           "challenges_root": "11111111111111111111111111111111",
-          "chunk_endorsements": [
-            [
-              1
-            ]
-          ],
+          "chunk_endorsements": [[1]],
           "chunk_headers_root": "HhtG2xSQVzbmrnf8qx7J2q4K9HjRhsVcLe3wzjDAtsdL",
-          "chunk_mask": [
-            true
-          ],
+          "chunk_mask": [true],
           "chunk_receipts_root": "8awTm2j32hfXTRbLwQRd9bLNihptR1PKXGxphAFZ7nPz",
           "chunk_tx_root": "7tkzFg8RHBmMw1ncRJZCCZAizgq4rwCftTKYLce8RU8t",
           "chunks_included": 1,
@@ -8192,10 +7916,7 @@
         "policy": {
           "mode": "auto_reprice",
           "operator_account_id": "dev-20261107092410-74122169561085.test.near",
-          "allowed_items": [
-            "iron_tool",
-            "health_potion"
-          ],
+          "allowed_items": ["iron_tool", "health_potion"],
           "min_price": "26",
           "max_price": "25",
           "expires_at_ns": "1794043654509450164"
@@ -8327,9 +8048,7 @@
                 ],
                 "version": 4
               },
-              "receipt_ids": [
-                "HCEyD3DeZgWSVMfw9ereRehsUmmuGJr52XsDKX1PLPCA"
-              ],
+              "receipt_ids": ["HCEyD3DeZgWSVMfw9ereRehsUmmuGJr52XsDKX1PLPCA"],
               "status": {
                 "Failure": {
                   "ActionError": {
@@ -8354,9 +8073,7 @@
               "gas_burnt": 223182562500,
               "logs": [],
               "metadata": {
-                "contracts": [
-                  null
-                ],
+                "contracts": [null],
                 "gas_profile": [],
                 "version": 4
               },
@@ -8411,9 +8128,7 @@
               "gas_profile": null,
               "version": 1
             },
-            "receipt_ids": [
-              "LHDe7Bc6RD4JbvaMTCSw2yvp8q5nE8VJM87NfAdEDkj"
-            ],
+            "receipt_ids": ["LHDe7Bc6RD4JbvaMTCSw2yvp8q5nE8VJM87NfAdEDkj"],
             "status": {
               "SuccessReceiptId": "LHDe7Bc6RD4JbvaMTCSw2yvp8q5nE8VJM87NfAdEDkj"
             },
@@ -8467,15 +8182,9 @@
           "block_ordinal": 119,
           "challenges_result": [],
           "challenges_root": "11111111111111111111111111111111",
-          "chunk_endorsements": [
-            [
-              1
-            ]
-          ],
+          "chunk_endorsements": [[1]],
           "chunk_headers_root": "HAPcJGoGv9bDXG6SthzJVc8udViT4xdaSi6APXoRH69k",
-          "chunk_mask": [
-            true
-          ],
+          "chunk_mask": [true],
           "chunk_receipts_root": "6LST3YDczDNzzrqDn5ckYnxKZzAVgP5S21E2XdWjM52z",
           "chunk_tx_root": "7tkzFg8RHBmMw1ncRJZCCZAizgq4rwCftTKYLce8RU8t",
           "chunks_included": 1,
@@ -8586,10 +8295,7 @@
         "policy": {
           "mode": "recommendations",
           "operator_account_id": "dev-20261107092410-74122169561085.test.near",
-          "allowed_items": [
-            "iron_tool",
-            "health_potion"
-          ],
+          "allowed_items": ["iron_tool", "health_potion"],
           "min_price": "5",
           "max_price": "25",
           "expires_at_ns": "1794043654509450164"
@@ -8721,9 +8427,7 @@
                 ],
                 "version": 4
               },
-              "receipt_ids": [
-                "9LiC44tD3WXT2ReohRgf8QDTkt5QQD9QnzHNZGsjq8kK"
-              ],
+              "receipt_ids": ["9LiC44tD3WXT2ReohRgf8QDTkt5QQD9QnzHNZGsjq8kK"],
               "status": {
                 "Failure": {
                   "ActionError": {
@@ -8748,9 +8452,7 @@
               "gas_burnt": 223182562500,
               "logs": [],
               "metadata": {
-                "contracts": [
-                  null
-                ],
+                "contracts": [null],
                 "gas_profile": [],
                 "version": 4
               },
@@ -8805,9 +8507,7 @@
               "gas_profile": null,
               "version": 1
             },
-            "receipt_ids": [
-              "8PK8QAzNYQQkLHLRqA3b98saiogA96E44cZidmUQ6Xa"
-            ],
+            "receipt_ids": ["8PK8QAzNYQQkLHLRqA3b98saiogA96E44cZidmUQ6Xa"],
             "status": {
               "SuccessReceiptId": "8PK8QAzNYQQkLHLRqA3b98saiogA96E44cZidmUQ6Xa"
             },
@@ -8861,15 +8561,9 @@
           "block_ordinal": 126,
           "challenges_result": [],
           "challenges_root": "11111111111111111111111111111111",
-          "chunk_endorsements": [
-            [
-              1
-            ]
-          ],
+          "chunk_endorsements": [[1]],
           "chunk_headers_root": "5VnKxT6NBQC6eykHZXjUUyyK49ovap6VHh9fyJYoHQug",
-          "chunk_mask": [
-            true
-          ],
+          "chunk_mask": [true],
           "chunk_receipts_root": "7H3cxe4o87o98k94X8RecUwmTtbNM2eo91PkKQZsopR2",
           "chunk_tx_root": "7tkzFg8RHBmMw1ncRJZCCZAizgq4rwCftTKYLce8RU8t",
           "chunks_included": 1,
@@ -8980,10 +8674,7 @@
         "policy": {
           "mode": "off",
           "operator_account_id": "dev-20261107092410-74122169561085.test.near",
-          "allowed_items": [
-            "iron_tool",
-            "health_potion"
-          ],
+          "allowed_items": ["iron_tool", "health_potion"],
           "min_price": "5",
           "max_price": "25",
           "expires_at_ns": "1794043654509450164"
@@ -9115,9 +8806,7 @@
                 ],
                 "version": 4
               },
-              "receipt_ids": [
-                "Dz3JAbEXcdKqGEhJtg4WqN5nfrfbpu7u877b7Joud1w4"
-              ],
+              "receipt_ids": ["Dz3JAbEXcdKqGEhJtg4WqN5nfrfbpu7u877b7Joud1w4"],
               "status": {
                 "Failure": {
                   "ActionError": {
@@ -9142,9 +8831,7 @@
               "gas_burnt": 223182562500,
               "logs": [],
               "metadata": {
-                "contracts": [
-                  null
-                ],
+                "contracts": [null],
                 "gas_profile": [],
                 "version": 4
               },
@@ -9199,9 +8886,7 @@
               "gas_profile": null,
               "version": 1
             },
-            "receipt_ids": [
-              "GQdW1wYXb4Udc4gB3bqQDeDC4VoYpha52BzX2YZw2oqt"
-            ],
+            "receipt_ids": ["GQdW1wYXb4Udc4gB3bqQDeDC4VoYpha52BzX2YZw2oqt"],
             "status": {
               "SuccessReceiptId": "GQdW1wYXb4Udc4gB3bqQDeDC4VoYpha52BzX2YZw2oqt"
             },
@@ -9255,15 +8940,9 @@
           "block_ordinal": 133,
           "challenges_result": [],
           "challenges_root": "11111111111111111111111111111111",
-          "chunk_endorsements": [
-            [
-              1
-            ]
-          ],
+          "chunk_endorsements": [[1]],
           "chunk_headers_root": "9EiS29eoTvcNQ9PBM4oUWfrgPLqBqbC1Ch35HpqEz78b",
-          "chunk_mask": [
-            true
-          ],
+          "chunk_mask": [true],
           "chunk_receipts_root": "7erRrLMJTQx8vc7gTMm8J7jcMEY91p6iubeEbWoiViqy",
           "chunk_tx_root": "7tkzFg8RHBmMw1ncRJZCCZAizgq4rwCftTKYLce8RU8t",
           "chunks_included": 1,
@@ -9374,10 +9053,7 @@
         "policy": {
           "mode": "auto_reprice",
           "operator_account_id": "dev-20261107092410-74122169561085.test.near",
-          "allowed_items": [
-            "iron_tool",
-            "health_potion"
-          ],
+          "allowed_items": ["iron_tool", "health_potion"],
           "min_price": "5",
           "max_price": "25",
           "expires_at_ns": "1794043654509450164",
@@ -9480,9 +9156,7 @@
                 ],
                 "version": 4
               },
-              "receipt_ids": [
-                "C1DxNNG4nnR6zMUuU8pV9qMChJsMRetGGQ7Bj94UiPen"
-              ],
+              "receipt_ids": ["C1DxNNG4nnR6zMUuU8pV9qMChJsMRetGGQ7Bj94UiPen"],
               "status": {
                 "Failure": {
                   "ActionError": {
@@ -9507,9 +9181,7 @@
               "gas_burnt": 223182562500,
               "logs": [],
               "metadata": {
-                "contracts": [
-                  null
-                ],
+                "contracts": [null],
                 "gas_profile": [],
                 "version": 4
               },
@@ -9564,9 +9236,7 @@
               "gas_profile": null,
               "version": 1
             },
-            "receipt_ids": [
-              "FyGq8bvmsV4jmEhpJxijss8HpNADie3xB8wFdD4kH16L"
-            ],
+            "receipt_ids": ["FyGq8bvmsV4jmEhpJxijss8HpNADie3xB8wFdD4kH16L"],
             "status": {
               "SuccessReceiptId": "FyGq8bvmsV4jmEhpJxijss8HpNADie3xB8wFdD4kH16L"
             },
@@ -9620,15 +9290,9 @@
           "block_ordinal": 140,
           "challenges_result": [],
           "challenges_root": "11111111111111111111111111111111",
-          "chunk_endorsements": [
-            [
-              1
-            ]
-          ],
+          "chunk_endorsements": [[1]],
           "chunk_headers_root": "CxX2p1d8aeLf8bvVL8eSEP6gJTwYZG3e6uDj9NgYSVFz",
-          "chunk_mask": [
-            true
-          ],
+          "chunk_mask": [true],
           "chunk_receipts_root": "62FkCepWucWB3jhUvPxYYbJj9o9E8R1qa654rcX18tZK",
           "chunk_tx_root": "7tkzFg8RHBmMw1ncRJZCCZAizgq4rwCftTKYLce8RU8t",
           "chunks_included": 1,
@@ -9739,10 +9403,7 @@
         "policy": {
           "mode": "auto_reprice",
           "operator_account_id": "dev-20261107092410-74122169561085.test.near",
-          "allowed_items": [
-            "iron_tool",
-            "health_potion"
-          ],
+          "allowed_items": ["iron_tool", "health_potion"],
           "min_price": "5",
           "max_price": "25",
           "expires_at_ns": "1794043654509450164",
@@ -9845,9 +9506,7 @@
                 ],
                 "version": 4
               },
-              "receipt_ids": [
-                "35j55rxffYbmzdf7stfSsoQng4GnmjXpAGK2GxJoGLzM"
-              ],
+              "receipt_ids": ["35j55rxffYbmzdf7stfSsoQng4GnmjXpAGK2GxJoGLzM"],
               "status": {
                 "Failure": {
                   "ActionError": {
@@ -9872,9 +9531,7 @@
               "gas_burnt": 223182562500,
               "logs": [],
               "metadata": {
-                "contracts": [
-                  null
-                ],
+                "contracts": [null],
                 "gas_profile": [],
                 "version": 4
               },
@@ -9929,9 +9586,7 @@
               "gas_profile": null,
               "version": 1
             },
-            "receipt_ids": [
-              "9z3XrcZCbAccvnUkiyCV4gNpKrWK7fvn5pxCBunAfDSo"
-            ],
+            "receipt_ids": ["9z3XrcZCbAccvnUkiyCV4gNpKrWK7fvn5pxCBunAfDSo"],
             "status": {
               "SuccessReceiptId": "9z3XrcZCbAccvnUkiyCV4gNpKrWK7fvn5pxCBunAfDSo"
             },
@@ -9985,15 +9640,9 @@
           "block_ordinal": 146,
           "challenges_result": [],
           "challenges_root": "11111111111111111111111111111111",
-          "chunk_endorsements": [
-            [
-              1
-            ]
-          ],
+          "chunk_endorsements": [[1]],
           "chunk_headers_root": "HHBy2pvA7XU313aS3AE4uKtFMyYsPkbfugwKpfPnqXFD",
-          "chunk_mask": [
-            true
-          ],
+          "chunk_mask": [true],
           "chunk_receipts_root": "4S17xnkF3SZcRDwwgiw4ctPPRf7PftVgXGTjiqDNu43L",
           "chunk_tx_root": "7tkzFg8RHBmMw1ncRJZCCZAizgq4rwCftTKYLce8RU8t",
           "chunks_included": 1,
@@ -10104,16 +9753,11 @@
         "policy": {
           "mode": "auto_reprice",
           "operator_account_id": "dev-20261107092410-74122169561085.test.near",
-          "allowed_items": [
-            "iron_tool",
-            "health_potion"
-          ],
+          "allowed_items": ["iron_tool", "health_potion"],
           "min_price": "5",
           "max_price": "25",
           "expires_at_ns": "1794043654509450164",
-          "allowed_actions": [
-            "buy_from_merchant"
-          ]
+          "allowed_actions": ["buy_from_merchant"]
         },
         "command": {
           "sequence": "3",
@@ -10212,9 +9856,7 @@
                 ],
                 "version": 4
               },
-              "receipt_ids": [
-                "2fZvk1Jbqiezo2SecpxrsxCaMcbUEGSFmTVmpCbLGmGh"
-              ],
+              "receipt_ids": ["2fZvk1Jbqiezo2SecpxrsxCaMcbUEGSFmTVmpCbLGmGh"],
               "status": {
                 "Failure": {
                   "ActionError": {
@@ -10239,9 +9881,7 @@
               "gas_burnt": 223182562500,
               "logs": [],
               "metadata": {
-                "contracts": [
-                  null
-                ],
+                "contracts": [null],
                 "gas_profile": [],
                 "version": 4
               },
@@ -10296,9 +9936,7 @@
               "gas_profile": null,
               "version": 1
             },
-            "receipt_ids": [
-              "3dEVHcQeWV8VchEh42Z1YZATy2VMezFw2qEWTjSisHoR"
-            ],
+            "receipt_ids": ["3dEVHcQeWV8VchEh42Z1YZATy2VMezFw2qEWTjSisHoR"],
             "status": {
               "SuccessReceiptId": "3dEVHcQeWV8VchEh42Z1YZATy2VMezFw2qEWTjSisHoR"
             },
@@ -10352,15 +9990,9 @@
           "block_ordinal": 153,
           "challenges_result": [],
           "challenges_root": "11111111111111111111111111111111",
-          "chunk_endorsements": [
-            [
-              1
-            ]
-          ],
+          "chunk_endorsements": [[1]],
           "chunk_headers_root": "95M3iHeDQ61DPmJz4R1UyfGorKSZAfVYnTMsb3PtoHbU",
-          "chunk_mask": [
-            true
-          ],
+          "chunk_mask": [true],
           "chunk_receipts_root": "8sHF6MRLrESqx3mxd1Xg3QNdhzF3GHp2oKCzUMiGwcis",
           "chunk_tx_root": "7tkzFg8RHBmMw1ncRJZCCZAizgq4rwCftTKYLce8RU8t",
           "chunks_included": 1,
@@ -10471,10 +10103,7 @@
         "policy": {
           "mode": "auto_reprice",
           "operator_account_id": "dev-20261107092410-74122169561085.test.near",
-          "allowed_items": [
-            "iron_tool",
-            "health_potion"
-          ],
+          "allowed_items": ["iron_tool", "health_potion"],
           "min_price": 5,
           "max_price": "25",
           "expires_at_ns": "1794043654509450164"
@@ -10576,9 +10205,7 @@
                 ],
                 "version": 4
               },
-              "receipt_ids": [
-                "DpEKV2w2tDcvwn2GWuF9hhcEvwaCJug6CzUW1tvkE663"
-              ],
+              "receipt_ids": ["DpEKV2w2tDcvwn2GWuF9hhcEvwaCJug6CzUW1tvkE663"],
               "status": {
                 "Failure": {
                   "ActionError": {
@@ -10603,9 +10230,7 @@
               "gas_burnt": 223182562500,
               "logs": [],
               "metadata": {
-                "contracts": [
-                  null
-                ],
+                "contracts": [null],
                 "gas_profile": [],
                 "version": 4
               },
@@ -10660,9 +10285,7 @@
               "gas_profile": null,
               "version": 1
             },
-            "receipt_ids": [
-              "5QVyV8b1m33rULNwCypGwwPgTXLLuRxMYNSf3NZFKFM7"
-            ],
+            "receipt_ids": ["5QVyV8b1m33rULNwCypGwwPgTXLLuRxMYNSf3NZFKFM7"],
             "status": {
               "SuccessReceiptId": "5QVyV8b1m33rULNwCypGwwPgTXLLuRxMYNSf3NZFKFM7"
             },
@@ -10716,15 +10339,9 @@
           "block_ordinal": 160,
           "challenges_result": [],
           "challenges_root": "11111111111111111111111111111111",
-          "chunk_endorsements": [
-            [
-              1
-            ]
-          ],
+          "chunk_endorsements": [[1]],
           "chunk_headers_root": "5tTQ2jCU9GshhLy1dg4eLqtyibMNZUe2MMQ8D8yT93gW",
-          "chunk_mask": [
-            true
-          ],
+          "chunk_mask": [true],
           "chunk_receipts_root": "Bq6PAzE5RxGVi3YrfLKsNnJB6MtaU2rQCGNirYxSLhM2",
           "chunk_tx_root": "7tkzFg8RHBmMw1ncRJZCCZAizgq4rwCftTKYLce8RU8t",
           "chunks_included": 1,
@@ -10835,10 +10452,7 @@
         "policy": {
           "mode": "recommendations",
           "expires_at_ns": "1794043654509450164",
-          "allowed_items": [
-            "iron_tool",
-            "health_potion"
-          ],
+          "allowed_items": ["iron_tool", "health_potion"],
           "min_price": "5",
           "max_price": "25"
         },
@@ -10959,9 +10573,7 @@
                 ],
                 "version": 4
               },
-              "receipt_ids": [
-                "5LyDXZ6yy6wd3TfPH4kxnrj72Z4Qd3JKXJvXkmDSwFc6"
-              ],
+              "receipt_ids": ["5LyDXZ6yy6wd3TfPH4kxnrj72Z4Qd3JKXJvXkmDSwFc6"],
               "status": {
                 "Failure": {
                   "ActionError": {
@@ -10986,9 +10598,7 @@
               "gas_burnt": 223182562500,
               "logs": [],
               "metadata": {
-                "contracts": [
-                  null
-                ],
+                "contracts": [null],
                 "gas_profile": [],
                 "version": 4
               },
@@ -11043,9 +10653,7 @@
               "gas_profile": null,
               "version": 1
             },
-            "receipt_ids": [
-              "G18mpYJkUi3LLbVtVKUvpmA1Gd8m7bRQoC5q6E62FJ2v"
-            ],
+            "receipt_ids": ["G18mpYJkUi3LLbVtVKUvpmA1Gd8m7bRQoC5q6E62FJ2v"],
             "status": {
               "SuccessReceiptId": "G18mpYJkUi3LLbVtVKUvpmA1Gd8m7bRQoC5q6E62FJ2v"
             },
@@ -11099,15 +10707,9 @@
           "block_ordinal": 167,
           "challenges_result": [],
           "challenges_root": "11111111111111111111111111111111",
-          "chunk_endorsements": [
-            [
-              1
-            ]
-          ],
+          "chunk_endorsements": [[1]],
           "chunk_headers_root": "8pLDyYthzEEF5y95iVviQekUwHXAWqaGfJ4Mk256ovEG",
-          "chunk_mask": [
-            true
-          ],
+          "chunk_mask": [true],
           "chunk_receipts_root": "793VJxsFWXEfktimWPMnFzL9HviHFQQsUgZL6Crt7vLL",
           "chunk_tx_root": "7tkzFg8RHBmMw1ncRJZCCZAizgq4rwCftTKYLce8RU8t",
           "chunks_included": 1,
@@ -11350,9 +10952,7 @@
                 ],
                 "version": 4
               },
-              "receipt_ids": [
-                "DWyLn3yLycmJ7AEbA3Mtpuj27k1AhvYCT6qA9Kg1FvSX"
-              ],
+              "receipt_ids": ["DWyLn3yLycmJ7AEbA3Mtpuj27k1AhvYCT6qA9Kg1FvSX"],
               "status": {
                 "Failure": {
                   "ActionError": {
@@ -11377,9 +10977,7 @@
               "gas_burnt": 223182562500,
               "logs": [],
               "metadata": {
-                "contracts": [
-                  null
-                ],
+                "contracts": [null],
                 "gas_profile": [],
                 "version": 4
               },
@@ -11434,9 +11032,7 @@
               "gas_profile": null,
               "version": 1
             },
-            "receipt_ids": [
-              "B1akMG3ujdJMHqtYcpa37pu1z1JmHndiHMEkabtrUx9R"
-            ],
+            "receipt_ids": ["B1akMG3ujdJMHqtYcpa37pu1z1JmHndiHMEkabtrUx9R"],
             "status": {
               "SuccessReceiptId": "B1akMG3ujdJMHqtYcpa37pu1z1JmHndiHMEkabtrUx9R"
             },
@@ -11490,15 +11086,9 @@
           "block_ordinal": 271,
           "challenges_result": [],
           "challenges_root": "11111111111111111111111111111111",
-          "chunk_endorsements": [
-            [
-              1
-            ]
-          ],
+          "chunk_endorsements": [[1]],
           "chunk_headers_root": "ASWVvzYDGuMyX5kQZaD1bAbDmp7QUMyo8uWxL5h7BP52",
-          "chunk_mask": [
-            true
-          ],
+          "chunk_mask": [true],
           "chunk_receipts_root": "78L1txQ7ygcDp7K57nwbaKm4rHvo6CueU6jPLsqXHSZG",
           "chunk_tx_root": "7tkzFg8RHBmMw1ncRJZCCZAizgq4rwCftTKYLce8RU8t",
           "chunks_included": 1,
@@ -11609,10 +11199,7 @@
         "policy": {
           "mode": "auto_reprice",
           "operator_account_id": "dev-20261107092410-74122169561085.test.near",
-          "allowed_items": [
-            "iron_tool",
-            "health_potion"
-          ],
+          "allowed_items": ["iron_tool", "health_potion"],
           "min_price": "5",
           "max_price": "25",
           "expires_at_ns": "1794043654509450164"
@@ -11744,9 +11331,7 @@
                 ],
                 "version": 4
               },
-              "receipt_ids": [
-                "CYRZi4GGbzjcepyhJZkfRhb8J91snsSJdvvzLzevxqh"
-              ],
+              "receipt_ids": ["CYRZi4GGbzjcepyhJZkfRhb8J91snsSJdvvzLzevxqh"],
               "status": {
                 "Failure": {
                   "ActionError": {
@@ -11771,9 +11356,7 @@
               "gas_burnt": 223182562500,
               "logs": [],
               "metadata": {
-                "contracts": [
-                  null
-                ],
+                "contracts": [null],
                 "gas_profile": [],
                 "version": 4
               },
@@ -11828,9 +11411,7 @@
               "gas_profile": null,
               "version": 1
             },
-            "receipt_ids": [
-              "DeCefdhFDPD3jwKBFYEmdQeBptVLBmPYnRpha4cExEXn"
-            ],
+            "receipt_ids": ["DeCefdhFDPD3jwKBFYEmdQeBptVLBmPYnRpha4cExEXn"],
             "status": {
               "SuccessReceiptId": "DeCefdhFDPD3jwKBFYEmdQeBptVLBmPYnRpha4cExEXn"
             },
@@ -11884,15 +11465,9 @@
           "block_ordinal": 290,
           "challenges_result": [],
           "challenges_root": "11111111111111111111111111111111",
-          "chunk_endorsements": [
-            [
-              1
-            ]
-          ],
+          "chunk_endorsements": [[1]],
           "chunk_headers_root": "AA5UR2JhjHgzsa1UouLAsaa66TmH1fHhMXU6Ba2J5gYK",
-          "chunk_mask": [
-            true
-          ],
+          "chunk_mask": [true],
           "chunk_receipts_root": "DWVTW9bMxmraSxB8tAyEKGwH7fXn1tuBsNjNPtiMenBm",
           "chunk_tx_root": "7tkzFg8RHBmMw1ncRJZCCZAizgq4rwCftTKYLce8RU8t",
           "chunks_included": 1,

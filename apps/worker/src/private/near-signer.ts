@@ -22,15 +22,22 @@ export const townSourceMethods = [
   "allocate_raw_supply",
   "sweep_merchant_treasury",
 ] as const;
-type RuntimeScope = "merchant" | "customer" | "town_merchant" | "town_source";
+export const townOperatorMethods = [
+  ...townSourceMethods,
+  "assistant_reprice",
+] as const;
+type RuntimeScope =
+  "merchant" | "customer" | "town_merchant" | "town_source" | "town_operator";
 function methods(scope: RuntimeScope = "merchant"): readonly string[] {
   return scope === "town_merchant"
     ? townMerchantMethods
-    : scope === "town_source"
-      ? townSourceMethods
-      : scope === "customer"
-        ? customerRuntimeMethods
-        : runtimeMethods;
+    : scope === "town_operator"
+      ? townOperatorMethods
+      : scope === "town_source"
+        ? townSourceMethods
+        : scope === "customer"
+          ? customerRuntimeMethods
+          : runtimeMethods;
 }
 export const maximumRuntimeAllowance = 100_000_000_000_000_000_000_000n;
 export const customerRuntimeMethods = [
@@ -85,7 +92,9 @@ export function assertRuntimePermission(
     )
   ) {
     throw new Error(
-      scope === "town_source" || scope === "town_merchant"
+      scope === "town_source" ||
+        scope === "town_merchant" ||
+        scope === "town_operator"
         ? "Runtime key must allow exactly the selected V2 runtime methods"
         : scope === "customer"
           ? "Runtime key must allow exactly the two customer runtime methods"

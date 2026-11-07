@@ -10,7 +10,11 @@ import {
   parseU64,
   positiveU64,
 } from "../wire.js";
-import { livingTownProductionEffectBase, livingTownShop } from "./wire.js";
+import {
+  livingTownProductionEffectBase,
+  livingTownShop,
+  livingTownListing,
+} from "./wire.js";
 
 const settings = {
   mode: choice(["off", "recommendations", "auto_reprice"] as const),
@@ -76,6 +80,33 @@ export function livingTownAssistantPolicy(
 export type LivingTownAssistantPolicy = ReturnType<
   typeof livingTownAssistantPolicy
 >;
+
+export function livingTownAssistantRepriceEffect(value: unknown): ReturnType<
+  typeof livingTownProductionEffectBase
+> & {
+  outcome: {
+    kind: "assistant_repriced";
+    listing: ReturnType<typeof livingTownListing>;
+    policy_revision: string;
+  };
+} {
+  const base = livingTownProductionEffectBase(value),
+    outcome = object({
+      kind: literal("assistant_repriced"),
+      listing: livingTownListing,
+      policy_revision: positiveU64,
+    })(base.outcome);
+  check(
+    base.principal.startsWith("account:") &&
+      outcome.listing.owner.kind === "player" &&
+      outcome.listing.active &&
+      ["health_potion", "iron_tool"].includes(outcome.listing.item_id) &&
+      base.effect_revision === base.effect_event_sequence,
+    "invalid assistant repricing effect",
+  );
+  accountId(base.principal.slice(8));
+  return { ...base, outcome };
+}
 
 export function livingTownAssistantPolicyEffect(value: unknown): ReturnType<
   typeof livingTownProductionEffectBase

@@ -5,6 +5,7 @@ import {
 import {
   livingTownAssistantPolicy,
   livingTownAssistantPolicyEffect,
+  livingTownAssistantRepriceEffect,
 } from "./assistant-policy.js";
 import { livingTownSourceEffect, livingTownSourceState } from "./sources.js";
 import {
@@ -107,27 +108,29 @@ const listingsArgs = object({
   },
 });
 const effect = (v: unknown) =>
-  record(record(v)["outcome"])["kind"] === "assistant_policy_set"
-    ? livingTownAssistantPolicyEffect(v)
-    : record(record(v)["outcome"])["kind"] === "market_event_scheduled"
-      ? livingTownMarketEventEffect(v)
-      : ["raw_supplied", "treasury_swept"].includes(
-            String(record(record(v)["outcome"])["kind"]),
-          )
-        ? livingTownSourceEffect(v)
-        : ["customer_funded", "customer_sale"].includes(
+  record(record(v)["outcome"])["kind"] === "assistant_repriced"
+    ? livingTownAssistantRepriceEffect(v)
+    : record(record(v)["outcome"])["kind"] === "assistant_policy_set"
+      ? livingTownAssistantPolicyEffect(v)
+      : record(record(v)["outcome"])["kind"] === "market_event_scheduled"
+        ? livingTownMarketEventEffect(v)
+        : ["raw_supplied", "treasury_swept"].includes(
               String(record(record(v)["outcome"])["kind"]),
             )
-          ? livingTownCustomerEffect(v)
-          : ["listing_set", "listing_cancelled"].includes(
+          ? livingTownSourceEffect(v)
+          : ["customer_funded", "customer_sale"].includes(
                 String(record(record(v)["outcome"])["kind"]),
               )
-            ? livingTownListingEffect(v)
-            : record(record(v)["outcome"])["kind"] === "production_started"
-              ? livingTownProductionEffect(v)
-              : record(record(v)["outcome"])["kind"] === "raw_purchased"
-                ? livingTownPurchaseEffect(v)
-                : livingTownOwnershipEffect(v);
+            ? livingTownCustomerEffect(v)
+            : ["listing_set", "listing_cancelled"].includes(
+                  String(record(record(v)["outcome"])["kind"]),
+                )
+              ? livingTownListingEffect(v)
+              : record(record(v)["outcome"])["kind"] === "production_started"
+                ? livingTownProductionEffect(v)
+                : record(record(v)["outcome"])["kind"] === "raw_purchased"
+                  ? livingTownPurchaseEffect(v)
+                  : livingTownOwnershipEffect(v);
 const commandLookup = (v: unknown) => {
   const kind = record(v)["kind"];
   if (kind === "found")
@@ -135,6 +138,7 @@ const commandLookup = (v: unknown) => {
       kind: choice(["found"] as const),
       high_water: positiveU64,
       method: choice([
+        "assistant_reprice",
         "set_assistant_permissions",
         "schedule_market_event",
         "allocate_raw_supply",
@@ -476,6 +480,7 @@ export class FinalizedLivingTownReader {
               {
                 player_registered: "register_player",
                 assistant_policy_set: "set_assistant_permissions",
+                assistant_repriced: "assistant_reprice",
                 shop_created: "create_shop",
                 shop_renamed: "rename_shop",
                 raw_purchased: "buy_from_merchant",

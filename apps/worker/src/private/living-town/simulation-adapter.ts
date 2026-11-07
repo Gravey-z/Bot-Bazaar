@@ -22,8 +22,11 @@ import {
   isTownProposalDelivery,
 } from "./proposals.js";
 import type { TownProposal, ProposalMerchant } from "./proposals.js";
+import { resolveAssistantReprice } from "../assistant/automatic.js";
+import type { AutomaticAssistant } from "../assistant/automatic.js";
 
 type Decision =
+  | { kind: "assistant"; shop: string; proposal: unknown }
   | { kind: "raw"; item: string }
   | { kind: "sweep"; merchant: string }
   | { kind: "no_op"; reason: string }
@@ -77,7 +80,22 @@ export class LivingTownSimulationAdapter {
       facts: MerchantPolicyInput;
       schemaVersion: "living-town-proposal-v1";
     }) => Promise<unknown>,
+    private readonly assistant?: AutomaticAssistant,
   ) {
+    requireStorage(
+      !assistant ||
+        (assistant.shopIds.length > 0 &&
+          assistant.shopIds.length <= 16 &&
+          new Set(assistant.shopIds).size === assistant.shopIds.length &&
+          assistant.shopIds.every(
+            (s) =>
+              /^[1-9][0-9]{0,3}$/.test(s) &&
+              BigInt(s) >= 4n &&
+              BigInt(s) <= 1003n,
+          ) &&
+          adapters.operator.operatorScope === "town_operator"),
+      "bounded assistant shops and reviewed operator key scope required",
+    );
     this.runtime = new DurableTownExecutor(
       store,
       adapters,
@@ -104,6 +122,18 @@ export class LivingTownSimulationAdapter {
     reader: FinalizedLivingTownReader,
     command: unknown,
   ): Promise<TownCall | null> {
+    if (decision.kind === "assistant") {
+      requireStorage(
+        lane === "operator" && this.assistant?.shopIds.includes(decision.shop),
+        "assistant outside reviewed operator scope",
+      );
+      return resolveAssistantReprice(
+        decision.proposal,
+        reader,
+        command,
+        decision.shop,
+      );
+    }
     if (decision.kind === "no_op") return null;
     const town = await reader.getTown();
     if (decision.kind === "raw" || decision.kind === "sweep") {
@@ -249,6 +279,17 @@ export class LivingTownSimulationAdapter {
         ).toString();
         for (const name of ["rex", "luna", "bolt"] as const)
           add(`merchant:${name}:${slot}`, ["merchant", name, slot]);
+        if (this.assistant && !town.data.paused) {
+          // One shared automatic opportunity per chain epoch, including no-ops.
+          // Round robin is deterministic; policy changes cannot reset this allowance.
+          const shop =
+            this.assistant.shopIds[
+              Number(
+                BigInt(town.data.epoch) % BigInt(this.assistant.shopIds.length),
+              )
+            ]!;
+          add(`assistant:${shop}`, ["assistant", town.data.epoch]);
+        }
       }
       const tick =
           this.store.ticks.active() ??
@@ -273,7 +314,18 @@ export class LivingTownSimulationAdapter {
         decision = { kind: "raw", item: arrival.slice(4) };
       else if (arrival.startsWith("sweep:"))
         decision = { kind: "sweep", merchant: arrival.slice(6) };
-      else {
+      else if (arrival.startsWith("assistant:")) {
+        const shop = arrival.slice(10);
+        let proposal: unknown = null;
+        try {
+          proposal = await this.assistant?.propose(shop, reader);
+        } catch {
+          /* durable no-op */
+        }
+        decision = proposal
+          ? { kind: "assistant", shop, proposal }
+          : { kind: "no_op", reason: "assistant_unavailable_or_invalid" };
+      } else {
         lane = arrival.split(":")[1] as ProposalMerchant;
         const input = await this.facts(reader);
         if (!input.fresh || !input.historyComplete) return { kind: "deferred" };

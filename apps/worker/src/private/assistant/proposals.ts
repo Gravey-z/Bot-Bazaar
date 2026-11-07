@@ -108,6 +108,7 @@ export interface Candidate {
   reason: string;
 }
 export interface AssistantFacts {
+  assistantPolicy?: import("@bot-bazaar/chain").LivingTownAssistantPolicy;
   snapshot: {
     deployment: unknown;
     block_hash: string;

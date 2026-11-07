@@ -38,6 +38,7 @@ export const livingTownFoundationMethods = [
   "settle_customer_purchase",
   "get_assistant_policy",
   "set_assistant_permissions",
+  "assistant_reprice",
 ] as const;
 export const livingTownRecipeIds = ["health_potion", "iron_tool"] as const;
 export type LivingTownRecipeId = (typeof livingTownRecipeIds)[number];

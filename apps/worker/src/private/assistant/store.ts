@@ -175,7 +175,10 @@ export class AssistantStore {
         } as unknown as AssistantRecord)
       : null;
   }
-  begin(r: AssistantRecord): {
+  begin(
+    r: AssistantRecord,
+    automatic = false,
+  ): {
     record: AssistantRecord | null;
     admitted: boolean;
   } {
@@ -191,7 +194,8 @@ export class AssistantStore {
       if (old) return { record: old, admitted: false };
       const setting = this.settings(r.account, r.shop);
       requireStorage(
-        setting.mode === "recommendations" && setting.revision === r.revision,
+        (automatic || setting.mode === "recommendations") &&
+          setting.revision === r.revision,
         "assistant configuration changed",
       );
       if (

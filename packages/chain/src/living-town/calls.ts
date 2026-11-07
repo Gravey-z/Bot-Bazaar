@@ -7,6 +7,7 @@ import { livingTownMarketEventEffect } from "./market-events.js";
 import {
   livingTownAssistantPolicyEffect,
   livingTownAssistantPolicyInput,
+  livingTownAssistantRepriceEffect,
 } from "./assistant-policy.js";
 import { livingTownRecipeId } from "./recipes.js";
 import { livingTownProductionEffect } from "./production.js";
@@ -47,6 +48,13 @@ const name = (v: unknown): string => {
   return v;
 };
 export const livingTownCallArguments = {
+  assistant_reprice: object({
+    listing_id: positiveU64,
+    expected_listing_revision: positiveU64,
+    expected_policy_revision: positiveU64,
+    unit_price: bounded(1n, 100n),
+    command: livingTownCommand,
+  }),
   set_assistant_permissions: object({
     shop_id: bounded(4n, 1003n),
     expected_policy_revision: positiveU64,
@@ -158,6 +166,7 @@ export type LivingTownResult = ReturnType<
       | ReturnType<typeof livingTownSourceEffect>
       | ReturnType<typeof livingTownMarketEventEffect>
       | ReturnType<typeof livingTownAssistantPolicyEffect>
+      | ReturnType<typeof livingTownAssistantRepriceEffect>
     >
   >
 >;
@@ -253,23 +262,25 @@ export function decodeLivingTownResult(
   deployment: unknown,
 ): LivingTownResult {
   return decodeLivingTownSnapshot(value, deployment, (v) =>
-    method === "set_assistant_permissions"
-      ? livingTownAssistantPolicyEffect(v)
-      : method === "schedule_market_event"
-        ? livingTownMarketEventEffect(v)
-        : method === "allocate_raw_supply" ||
-            method === "sweep_merchant_treasury"
-          ? livingTownSourceEffect(v)
-          : method === "fund_customer_budget" ||
-              method === "settle_customer_purchase"
-            ? livingTownCustomerEffect(v)
-            : method === "set_listing" || method === "cancel_listing"
-              ? livingTownListingEffect(v)
-              : method === "start_production"
-                ? livingTownProductionEffect(v)
-                : method === "buy_from_merchant"
-                  ? livingTownPurchaseEffect(v)
-                  : livingTownOwnershipEffect(v),
+    method === "assistant_reprice"
+      ? livingTownAssistantRepriceEffect(v)
+      : method === "set_assistant_permissions"
+        ? livingTownAssistantPolicyEffect(v)
+        : method === "schedule_market_event"
+          ? livingTownMarketEventEffect(v)
+          : method === "allocate_raw_supply" ||
+              method === "sweep_merchant_treasury"
+            ? livingTownSourceEffect(v)
+            : method === "fund_customer_budget" ||
+                method === "settle_customer_purchase"
+              ? livingTownCustomerEffect(v)
+              : method === "set_listing" || method === "cancel_listing"
+                ? livingTownListingEffect(v)
+                : method === "start_production"
+                  ? livingTownProductionEffect(v)
+                  : method === "buy_from_merchant"
+                    ? livingTownPurchaseEffect(v)
+                    : livingTownOwnershipEffect(v),
   );
 }
 export async function verifyLivingTownEffect(
@@ -299,6 +310,17 @@ export async function verifyLivingTownEffect(
     "V2 command effect binding mismatch",
   );
   const outcome = effect.outcome;
+  if (call.method === "assistant_reprice") {
+    check(
+      outcome.kind === "assistant_repriced" &&
+        outcome.listing.listing_id === args["listing_id"] &&
+        outcome.listing.unit_price === args["unit_price"] &&
+        outcome.policy_revision === args["expected_policy_revision"] &&
+        BigInt(outcome.listing.revision) ===
+          BigInt(String(args["expected_listing_revision"])) + 1n,
+      "assistant repricing terms mismatch",
+    );
+  }
   if (call.method === "set_assistant_permissions") {
     check(
       outcome.kind === "assistant_policy_set",

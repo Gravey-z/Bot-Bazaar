@@ -447,6 +447,7 @@ export class LivingTownTransactions {
     }
     requireValue(
       call.method !== "schedule_market_event" &&
+        call.method !== "assistant_reprice" &&
         call.method !== "allocate_raw_supply" &&
         call.method !== "sweep_merchant_treasury" &&
         call.method !== "fund_customer_budget" &&

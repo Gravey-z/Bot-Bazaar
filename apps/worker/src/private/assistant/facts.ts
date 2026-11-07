@@ -47,6 +47,11 @@ export function assistantFactSource(
         "incoherent assistant owner facts",
       );
       const listings: AssistantFacts["listings"] = [];
+      const assistantPolicy = (
+        await reader.getFoundation()
+      ).data.supported_methods.includes("assistant_reprice")
+        ? (await reader.getAssistantPolicy(id)).data
+        : undefined;
       for (const shop_id of [id, "1", "2", "3"]) {
         const page = await reader.getListings({
           shop_id,
@@ -176,6 +181,7 @@ export function assistantFactSource(
           .toString();
       }
       return {
+        ...(assistantPolicy ? { assistantPolicy } : {}),
         snapshot: {
           deployment: town.deployment,
           block_hash: reader.block.hash,

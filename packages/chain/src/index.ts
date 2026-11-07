@@ -183,6 +183,7 @@ export {
   livingTownAssistantPolicy,
   livingTownAssistantPolicyInput,
   livingTownAssistantPolicyEffect,
+  livingTownAssistantRepriceEffect,
 } from "./living-town/assistant-policy.js";
 export type { LivingTownAssistantPolicy } from "./living-town/assistant-policy.js";
 export {

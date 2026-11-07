@@ -203,11 +203,13 @@ pub(crate) enum Outcome {
     Source(Box<super::sources::Allocation>),
     MarketEvent(super::market_events::MarketEvent),
     AssistantPolicy(Shop),
+    AssistantRepriced(super::assistant::Repriced),
 }
 impl Outcome {
     fn method(&self) -> &'static str {
         match self {
             Self::AssistantPolicy(_) => "set_assistant_permissions",
+            Self::AssistantRepriced(_) => "assistant_reprice",
             Self::MarketEvent(_) => "schedule_market_event",
             Self::Registered(_) => "register_player",
             Self::Created(_) => "create_shop",
@@ -237,6 +239,7 @@ impl Outcome {
             Self::AssistantPolicy(s) => {
                 json!({"kind":"assistant_policy_set","policy":s.assistant.view(s.id),"shop":s.view()})
             }
+            Self::AssistantRepriced(r) => r.view(),
             Self::MarketEvent(e) => json!({"kind":"market_event_scheduled","event":e.view()}),
             Self::Registered(p) => json!({"kind":"player_registered","player":p.view()}),
             Self::Created(s) => json!({"kind":"shop_created","shop":s.view()}),

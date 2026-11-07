@@ -4,6 +4,8 @@ import {
   assistantCallMatches,
   createLivingTownCall,
   assistantReviewLink,
+  livingTownAssistantPolicy,
+  parseLivingTownIdentity,
 } from "@bot-bazaar/chain";
 import type { AssistantManualReview } from "@bot-bazaar/chain";
 import { SafetyClock } from "../retries/clock.js";
@@ -22,7 +24,11 @@ import {
   rulesCandidates,
   validateCandidate,
 } from "./proposals.js";
-import type { AssistantFacts, Candidate } from "./proposals.js";
+import type {
+  AssistantFacts,
+  Candidate,
+  AssistantProposal,
+} from "./proposals.js";
 import { requireStorage, sha256 } from "../storage/validation.js";
 
 export interface AssistantProvider {
@@ -270,20 +276,77 @@ export class AssistantPipeline {
     this.pending.set(key, run);
     return run;
   }
+  private automaticAllowed(f: AssistantFacts): boolean {
+    try {
+      const p = livingTownAssistantPolicy(f.assistantPolicy),
+        identity = parseLivingTownIdentity(JSON.parse(this.store.identity));
+      return (
+        f.fresh &&
+        f.historyComplete &&
+        !f.paused &&
+        canonicalLivingTownJson(f.snapshot.deployment) ===
+          canonicalLivingTownJson(identity.deployment) &&
+        p.shop_id === f.shop.shop_id &&
+        p.revision === f.shop.policy_revision &&
+        p.mode === "auto_reprice" &&
+        p.operator_account_id === identity.operatorId &&
+        p.expires_at_ns !== null &&
+        BigInt(p.expires_at_ns) > BigInt(f.snapshot.block_timestamp_ns)
+      );
+    } catch {
+      return false;
+    }
+  }
+  /** Private scheduler capability: onchain permission replaces session authority, not shared budgets. */
+  async generateAutomatic(
+    account: string,
+    shop: string,
+    authorized: () => Promise<unknown>,
+  ): Promise<AssistantProposal[]> {
+    await authorized();
+    const f = await this.facts.load(account, shop);
+    this.checkOwner(f, account, shop);
+    requireStorage(
+      this.automaticAllowed(f),
+      "automatic assistant permission unavailable",
+    );
+    const key = `${account}:${shop}`;
+    let run = this.pending.get(key);
+    if (!run) {
+      run = this.run(account, shop, authorized, undefined, true).finally(() =>
+        this.pending.delete(key),
+      );
+      this.pending.set(key, run);
+    }
+    await run;
+    return this.store
+      .history(account, shop)
+      .filter((r) => r.status === "proposed")
+      .flatMap((r) => r.proposals)
+      .filter((p) => p.action.type === "suggest_price");
+  }
   private async run(
     account: string,
     shop: string,
     authorized: () => Promise<unknown>,
     signal?: AbortSignal,
+    automatic = false,
   ): Promise<unknown> {
     await authorized();
     const settings = this.store.settings(account, shop);
-    requireStorage(settings.mode === "recommendations", "assistant is off");
+    requireStorage(
+      automatic || settings.mode === "recommendations",
+      "assistant is off",
+    );
     const started = this.clock.now();
     let f: AssistantFacts;
     try {
       f = structuredClone(await this.facts.load(account, shop));
       this.checkOwner(f, account, shop);
+      requireStorage(
+        !automatic || this.automaticAllowed(f),
+        "automatic permission unavailable",
+      );
     } catch {
       const id = sha256(
         canonicalLivingTownJson([
@@ -307,7 +370,7 @@ export class AssistantPipeline {
         started,
         updated: started,
       };
-      if (this.store.begin(r).admitted)
+      if (this.store.begin(r, automatic).admitted)
         this.store.finish(
           id,
           "wait",
@@ -331,18 +394,21 @@ export class AssistantPipeline {
           this.provider?.promptVersion ?? "none",
         ]),
       );
-    const begun = this.store.begin({
-      id,
-      account,
-      shop,
-      context,
-      revision: settings.revision,
-      status: "pending",
-      code: "admitted",
-      proposals: [],
-      started,
-      updated: started,
-    });
+    const begun = this.store.begin(
+      {
+        id,
+        account,
+        shop,
+        context,
+        revision: settings.revision,
+        status: "pending",
+        code: "admitted",
+        proposals: [],
+        started,
+        updated: started,
+      },
+      automatic,
+    );
     if (!begun.admitted) {
       this.store.expire(shop, f.snapshot.block_timestamp_ns, context);
       return this.view(account, shop);
@@ -355,7 +421,9 @@ export class AssistantPipeline {
         const config = this.store.settings(account, shop);
         return (
           !signal?.aborted &&
-          config.mode === "recommendations" &&
+          (automatic
+            ? this.automaticAllowed(current)
+            : config.mode === "recommendations") &&
           config.revision === settings.revision &&
           current.fresh &&
           current.historyComplete &&
@@ -389,7 +457,9 @@ export class AssistantPipeline {
       const activeSettings = this.store.settings(account, shop);
       requireStorage(
         !signal?.aborted &&
-          activeSettings.mode === "recommendations" &&
+          (automatic
+            ? this.automaticAllowed(f)
+            : activeSettings.mode === "recommendations") &&
           activeSettings.revision === settings.revision,
         "assistant admission revoked",
       );

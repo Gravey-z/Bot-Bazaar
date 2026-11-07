@@ -43,7 +43,7 @@ export function townCall(
 ): TownCall {
   const allowed =
     lane === "operator"
-      ? ["allocate_raw_supply", "sweep_merchant_treasury"]
+      ? ["allocate_raw_supply", "sweep_merchant_treasury", "assistant_reprice"]
       : ["set_listing", "start_production", "complete_production"];
   requireStorage(allowed.includes(method), "method outside town lane scope");
   const call =
@@ -118,6 +118,7 @@ export class TownChainAdapter {
     private readonly rpc: RpcTransport,
     credential: MerchantCredential,
     readonly lane: TownLane,
+    readonly operatorScope: "town_source" | "town_operator" = "town_source",
   ) {
     this.client = new LivingTownClient(identity, rpc);
     this.identity = this.client.identity;
@@ -138,6 +139,11 @@ export class TownChainAdapter {
     beforeSign: () => Promise<void>,
   ): Promise<PreparedTownCall> {
     call = townCall(call.method, call.args, this.lane);
+    requireStorage(
+      call.method !== "assistant_reprice" ||
+        this.operatorScope === "town_operator",
+      "assistant requires explicit operator key scope",
+    );
     const reader = await this.client.finalized();
     const key = await reader.getAccessKey(
       this.signerId,
@@ -146,7 +152,7 @@ export class TownChainAdapter {
     assertRuntimePermission(
       key.permission,
       this.identity.deployment.contract_id,
-      this.lane === "operator" ? "town_source" : "town_merchant",
+      this.lane === "operator" ? this.operatorScope : "town_merchant",
     );
     const tx = createTransaction(
       this.signerId,
@@ -166,14 +172,14 @@ export class TownChainAdapter {
     assertRuntimePermission(
       freshKey.permission,
       this.identity.deployment.contract_id,
-      this.lane === "operator" ? "town_source" : "town_merchant",
+      this.lane === "operator" ? this.operatorScope : "town_merchant",
     );
     requireStorage(
       freshKey.nonce === key.nonce,
       "town key nonce changed before signing",
     );
     const signed = await signRestrictedTransaction({
-      scope: this.lane === "operator" ? "town_source" : "town_merchant",
+      scope: this.lane === "operator" ? this.operatorScope : "town_merchant",
       networkId: "testnet",
       controllerId: this.signerId,
       contractId: this.identity.deployment.contract_id,

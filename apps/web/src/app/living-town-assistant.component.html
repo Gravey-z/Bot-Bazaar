@@ -17,10 +17,54 @@
           {{ policy.revision }}.
         </p>
         <p>
-          These settings are public. Automatic execution is not available yet.
-          Private recommendation activation below does not grant signing or
-          spending authority.
+          These settings are public. Automatic permission only allows the
+          reviewed operator to reprice existing product listings. Private
+          recommendations do not grant signing or spending authority.
         </p>
+        @if (state().observation?.assistantRepriceAvailable) {
+          <p>
+            Automatic scope: health potions and iron tools, price only. Stock,
+            ownership and sale recipient cannot change. The operator must have
+            this shop configured in its worker; permission alone does not start
+            a worker.
+          </p>
+          <p>
+            Reviewed operator: {{ state().observation?.assistantOperatorId }}.
+          </p>
+          <label
+            >Minimum price (gold)
+            <input #minimum type="number" min="1" max="100" step="1" value="5"
+          /></label>
+          <label
+            >Maximum price (gold)
+            <input #maximum type="number" min="1" max="100" step="1" value="25"
+          /></label>
+          <label
+            >Permission expires after (minutes)
+            <input
+              #duration
+              type="number"
+              min="1"
+              max="1440"
+              step="1"
+              value="60"
+          /></label>
+          <button
+            type="button"
+            [disabled]="!controller().canTransact || view().busy"
+            (click)="
+              controller().enableAssistantRepricing(
+                minimum.value,
+                maximum.value,
+                duration.value
+              )
+            "
+          >
+            Review and sign automatic repricing permission
+          </button>
+        } @else {
+          <p>Automatic repricing is unavailable on this contract version.</p>
+        }
         @if (policy.mode !== "recommendations") {
           <p>
             Recommendations-only records both products with a price range of

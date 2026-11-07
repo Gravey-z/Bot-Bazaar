@@ -26,6 +26,131 @@ mod tests {
             expires_at_ns: Some(Decimal(400_000_000_000)),
         }
     }
+    fn reprice(
+        t: &mut LivingTown,
+        actor: &str,
+        sequence: u64,
+        policy: u64,
+        revision: u64,
+        price: u64,
+        now: u64,
+    ) -> Value {
+        let command = Command {
+            sequence: Decimal(sequence),
+            config_version: Decimal(1),
+            valid_until_ns: Decimal(500_000_000_000),
+        };
+        context(
+            actor,
+            json!({"listing_id":"5","expected_listing_revision":revision.to_string(),"expected_policy_revision":policy.to_string(),"unit_price":price.to_string(),"command":command}),
+            now,
+        );
+        t.assistant_reprice(
+            Decimal(5),
+            Decimal(revision),
+            Decimal(policy),
+            Decimal(price),
+            command,
+        )
+    }
+    #[test]
+    fn repricing_preserves_quantity_ledger_and_owner_and_rejects_stale_permission() {
+        let mut t = town();
+        let actor: AccountId = "player.testnet".parse().unwrap();
+        t.players.get_mut(&actor).unwrap().inventory.quantities[4] = 3;
+        let command = Command {
+            sequence: Decimal(3),
+            config_version: Decimal(1),
+            valid_until_ns: Decimal(500_000_000_000),
+        };
+        context(
+            "player.testnet",
+            json!({"shop_id":"4","item_id":"health_potion","quantity":"2","unit_price":"10","expected_listing_revision":null,"command":command}),
+            4,
+        );
+        t.set_listing(
+            Decimal(4),
+            Item::HealthPotion,
+            Decimal(2),
+            Decimal(10),
+            None,
+            command,
+        );
+        set(&mut t, "player.testnet", 4, 1, enabled(), 5);
+        let ledger = t.players.get(&actor).unwrap().ledger();
+        let shop = t.shops.get(&4).unwrap().view();
+        for (actor, policy, revision, price) in [
+            ("player.testnet", 2, 1, 12),
+            ("other.testnet", 2, 1, 12),
+            ("rex.testnet", 2, 1, 12),
+            ("operator.testnet", 1, 1, 12),
+            ("operator.testnet", 2, 2, 12),
+            ("operator.testnet", 2, 1, 4),
+            ("operator.testnet", 2, 1, 26),
+            ("operator.testnet", 2, 1, 10),
+        ] {
+            assert!(
+                std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| reprice(
+                    &mut t, actor, 1, policy, revision, price, 6
+                )))
+                .is_err()
+            );
+            assert_eq!(t.listing_row(5).unwrap().2.unit_price, 10);
+        }
+        let effect = reprice(&mut t, "operator.testnet", 1, 2, 1, 12, 6);
+        assert_eq!(
+            effect["data"]["outcome"]["listing"]["remaining_quantity"],
+            "2"
+        );
+        assert_eq!(ledger, t.players.get(&actor).unwrap().ledger());
+        assert_eq!(shop, t.shops.get(&4).unwrap().view());
+        assert!(
+            std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| reprice(
+                &mut t,
+                "operator.testnet",
+                2,
+                2,
+                2,
+                13,
+                450_000_000_000
+            )))
+            .is_err()
+        );
+        t.paused = true;
+        assert!(
+            std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| reprice(
+                &mut t,
+                "operator.testnet",
+                2,
+                2,
+                2,
+                13,
+                7
+            )))
+            .is_err()
+        );
+        set(&mut t, "player.testnet", 5, 2, PolicyInput::default(), 8);
+        let revision = t.market_revision;
+        let bytes = near_sdk::borsh::to_vec(&t).unwrap();
+        drop(t);
+        let mut t: LivingTown = near_sdk::borsh::from_slice(&bytes).unwrap();
+        let replay = reprice(&mut t, "operator.testnet", 1, 2, 1, 12, 600_000_000_000);
+        assert_eq!(replay["data"]["outcome"], effect["data"]["outcome"]);
+        assert_eq!(t.market_revision, revision);
+        t.paused = false;
+        assert!(
+            std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| reprice(
+                &mut t,
+                "operator.testnet",
+                2,
+                2,
+                2,
+                13,
+                9
+            )))
+            .is_err()
+        );
+    }
     fn set(
         t: &mut LivingTown,
         actor: &str,
@@ -299,9 +424,119 @@ struct SetArgs {
 struct GetArgs {
     shop_id: Decimal,
 }
+#[derive(Deserialize)]
+#[serde(crate = "near_sdk::serde", deny_unknown_fields)]
+struct RepriceArgs {
+    listing_id: Decimal,
+    expected_listing_revision: Decimal,
+    expected_policy_revision: Decimal,
+    unit_price: Decimal,
+    command: Command,
+}
+
+#[near(serializers = [borsh])]
+#[derive(Clone)]
+pub(crate) struct Repriced {
+    pub listing: Listing,
+    pub shop_id: u64,
+    pub item: Item,
+    pub owner: AccountId,
+    pub policy_revision: u64,
+}
+impl Repriced {
+    pub(super) fn view(&self) -> Value {
+        json!({"kind":"assistant_repriced","listing":listings::view(self.shop_id,self.item,&self.listing,&production::Owner::Player(self.owner.clone())),"policy_revision":self.policy_revision.to_string()})
+    }
+}
 
 #[near]
 impl LivingTown {
+    pub fn assistant_reprice(
+        &mut self,
+        listing_id: Decimal,
+        expected_listing_revision: Decimal,
+        expected_policy_revision: Decimal,
+        unit_price: Decimal,
+        command: Command,
+    ) -> Value {
+        let p: RepriceArgs = args(&[
+            "listing_id",
+            "expected_listing_revision",
+            "expected_policy_revision",
+            "unit_price",
+            "command",
+        ]);
+        require!(
+            p.listing_id == listing_id
+                && p.expected_listing_revision == expected_listing_revision
+                && p.expected_policy_revision == expected_policy_revision
+                && p.unit_price == unit_price
+                && p.command == command,
+            "LT:E_INVALID_ARGUMENT"
+        );
+        let actor = env::predecessor_account_id();
+        require!(actor == self.operator, "LT:E_UNAUTHORIZED");
+        let (digest, replay) = self.command_check(&actor, "assistant_reprice", json!({"listing_id":listing_id,"expected_listing_revision":expected_listing_revision,"expected_policy_revision":expected_policy_revision,"unit_price":unit_price,"command":command}), &command);
+        if let Some(result) = replay {
+            return result;
+        }
+        let (shop_id, item, mut listing) = self
+            .listing_row(listing_id.0)
+            .expect("LT:E_LISTING_NOT_FOUND");
+        require!(shop_id >= 4, "LT:E_PLAYER_PRODUCTS_ONLY");
+        let shop = self.shops.get(&shop_id).expect("LT:E_SHOP_NOT_FOUND");
+        let policy = &shop.assistant;
+        require!(
+            policy.revision == expected_policy_revision.0,
+            "LT:E_POLICY_CHANGED"
+        );
+        require!(
+            policy.mode == Mode::AutoReprice && policy.operator_account_id.as_ref() == Some(&actor),
+            "LT:E_POLICY_DISABLED"
+        );
+        require!(
+            policy
+                .expires_at_ns
+                .is_some_and(|t| t > env::block_timestamp()),
+            "LT:E_POLICY_EXPIRED"
+        );
+        require!(
+            policy
+                .allowed_items
+                .iter()
+                .any(|v| v == ITEM_IDS[item as usize])
+                && matches!(item, Item::HealthPotion | Item::IronTool),
+            "LT:E_POLICY_ITEMS"
+        );
+        require!(
+            (policy.min_price..=policy.max_price).contains(&unit_price.0),
+            "LT:E_POLICY_PRICE"
+        );
+        require!(listing.quantity > 0, "LT:E_LISTING_INACTIVE");
+        require!(
+            listing.revision == expected_listing_revision.0,
+            "LT:E_STALE_LISTING"
+        );
+        require!(listing.unit_price != unit_price.0, "LT:E_NO_CHANGE");
+        let owner = shop.owner.clone();
+        let revision = policy.revision;
+        listing.unit_price = unit_price.0;
+        listing.revision = next(listing.revision);
+        // Price only: do not touch ledgers, quantity, ownership or reservation lots.
+        self.player_listings.insert(listing.id, listing.clone());
+        self.commit(
+            actor,
+            command,
+            digest,
+            Outcome::AssistantRepriced(Repriced {
+                listing,
+                shop_id,
+                item,
+                owner,
+                policy_revision: revision,
+            }),
+        )
+    }
     pub fn get_assistant_policy(&self, shop_id: Decimal) -> Value {
         let p: GetArgs = args(&["shop_id"]);
         require!(p.shop_id == shop_id, "LT:E_INVALID_ARGUMENT");

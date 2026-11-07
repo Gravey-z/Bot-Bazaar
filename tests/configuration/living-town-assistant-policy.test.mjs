@@ -48,12 +48,7 @@ const proof = (s) => ({
   referenceBlockHeight: s.reference_block_height,
 });
 test("actual permission receipts verify exact SDK terms, original replays and indexed event bindings", async () => {
-  for (const profile of ["web", "reader", "assistant"]) {
-    const config = JSON.parse(
-      readFileSync(`config/living-town-${profile}.example.json`, "utf8"),
-    );
-    assert.equal(config.identity.codeHash, active.account.code_hash);
-  }
+  // This is preserved P5.5 evidence; current artifact pins are checked by P5.6.
   for (const s of fixture.steps) {
     const p = proof(s),
       status = await verifyLivingTownReceipt(s.receipt, p, async () =>
@@ -349,4 +344,57 @@ test("canonical disable remains signable while the town is paused and the old po
   assert.equal(f.sends, 0);
   await j.submit(a.id);
   assert.equal(f.sends, 1);
+});
+
+test("owner automatic controls bind the reviewed operator, price band and explicit future expiry", async () => {
+  const c = new LivingTownController({}, () => {}),
+    now = Date.now();
+  c.value = {
+    ...c.value,
+    phase: "ready",
+    accountId: active.signer_id,
+    transactionAvailable: true,
+    observation: {
+      ownershipKnown: true,
+      stale: false,
+      receivedAt: now,
+      town: { paused: false },
+      shop: active.effect.data.outcome.shop,
+      assistantPolicy: fixture.active.data,
+      assistantOperatorId: identity.operatorId,
+      assistantRepriceAvailable: true,
+      chainTimestampNs: fixture.active.block_timestamp_ns,
+    },
+  };
+  let call;
+  c.act = async (method, args) => {
+    call = { method, args };
+  };
+  await c.enableAssistantRepricing("8", "15", "10");
+  assert.equal(call.method, "set_assistant_permissions");
+  assert.equal(call.args.policy.operator_account_id, identity.operatorId);
+  assert.equal(
+    call.args.policy.expires_at_ns,
+    (BigInt(fixture.active.block_timestamp_ns) + 600_000_000_000n).toString(),
+  );
+  assert.equal(call.args.policy.mode, "auto_reprice");
+  call = null;
+  await c.enableAssistantRepricing("0", "15", "10");
+  assert.equal(call, null);
+  c.value.observation.assistantRepriceAvailable = false;
+  await c.enableAssistantRepricing("8", "15", "10");
+  assert.equal(call, null);
+});
+test("the owner wallet flow cannot submit an operator automatic action", async () => {
+  const f = journalFixture();
+  await assert.rejects(
+    f.make().prepare(active.signer_id, "assistant_reprice", {
+      listing_id: "5",
+      expected_listing_revision: "1",
+      expected_policy_revision: "2",
+      unit_price: "12",
+      command: active.args.command,
+    }),
+  );
+  assert.equal(f.sends, 0);
 });

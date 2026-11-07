@@ -53,6 +53,8 @@ export interface TownObservation {
   chainTimestampNs?: string;
   recipes?: TownRecipe[];
   assistantPolicy?: LivingTownAssistantPolicy;
+  assistantOperatorId?: string;
+  assistantRepriceAvailable?: boolean;
 }
 export interface TownPort {
   assistant?: {
@@ -637,6 +639,47 @@ export class LivingTownController {
         expires_at_ns: null,
       },
     });
+  }
+  async enableAssistantRepricing(
+    min: string,
+    max: string,
+    minutes: string,
+  ): Promise<void> {
+    const o = this.value.observation;
+    if (
+      !this.canAct() ||
+      !o?.assistantRepriceAvailable ||
+      !o.assistantOperatorId ||
+      !o.shop ||
+      !o.assistantPolicy ||
+      !o.chainTimestampNs ||
+      !/^[1-9][0-9]{0,3}$/.test(minutes) ||
+      BigInt(minutes) > 1440n
+    )
+      return;
+    try {
+      const policy = livingTownAssistantPolicyInput({
+        mode: "auto_reprice",
+        operator_account_id: o.assistantOperatorId,
+        allowed_items: ["health_potion", "iron_tool"],
+        min_price: min,
+        max_price: max,
+        expires_at_ns: (
+          BigInt(o.chainTimestampNs) +
+          BigInt(minutes) * 60_000_000_000n
+        ).toString(),
+      });
+      await this.act("set_assistant_permissions", {
+        shop_id: o.shop.shop_id,
+        expected_policy_revision: o.assistantPolicy.revision,
+        policy,
+      });
+    } catch {
+      this.publish({
+        message:
+          "Review a whole-number price band from 1 to 100 and expiry from 1 to 1440 minutes.",
+      });
+    }
   }
   private canAct(claim = false): boolean {
     return (

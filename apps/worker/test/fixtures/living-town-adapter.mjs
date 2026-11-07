@@ -11,6 +11,7 @@ import { LivingTownSimulationAdapter } from "../../dist/private/living-town/simu
 import {
   townMerchantMethods,
   townSourceMethods,
+  townOperatorMethods,
 } from "../../dist/private/near-signer.js";
 import { CustomerChainAdapter } from "../../dist/private/living-town/customer-chain.js";
 import { DurableCustomerExecutor } from "../../dist/private/living-town/customer-executor.js";
@@ -46,7 +47,7 @@ export function closeAdapterFixturesAt(dir) {
 }
 export async function adapterFixture(
   dir,
-  { propose, crashAt, realCustomers = false, seed = "42" } = {},
+  { propose, assistant, crashAt, realCustomers = false, seed = "42" } = {},
 ) {
   const path = join(dir, "model.json");
   const state = existsSync(path)
@@ -140,7 +141,22 @@ export async function adapterFixture(
         ? `account:${identity.operatorId}`
         : `merchant:${lane}`;
     let outcome;
-    if (
+    if (method === "assistant_reprice") {
+      const listing = state.assistantListing;
+      if (
+        state.assistantPolicy.mode !== "auto_reprice" ||
+        state.assistantPolicy.revision !== a.expected_policy_revision ||
+        listing.revision !== a.expected_listing_revision
+      )
+        throw Error("controlled policy rejected");
+      listing.unit_price = a.unit_price;
+      listing.revision = (BigInt(listing.revision) + 1n).toString();
+      outcome = {
+        kind: "assistant_repriced",
+        listing: clone(listing),
+        policy_revision: a.expected_policy_revision,
+      };
+    } else if (
       method === "allocate_raw_supply" ||
       method === "sweep_merchant_treasury"
     ) {
@@ -347,6 +363,7 @@ export async function adapterFixture(
         },
       },
       lane,
+      assistant ? "town_operator" : "town_source",
     );
     function assertPrepared() {
       if (store.unresolved()[0]?.status !== "prepared")
@@ -360,6 +377,11 @@ export async function adapterFixture(
         timestampNs: state.town.block_timestamp_ns,
       },
       getTown: async () => clone(state.town),
+      getShop: async () => pin(state.assistantShop),
+      getShopInventory: async () => pin(state.assistantLedger),
+      getAssistantPolicy: async () => pin(state.assistantPolicy),
+      getListings: async () =>
+        pin({ items: [clone(state.assistantListing)], has_more: false }),
       getSourceState: async () => pin(state.markers),
       getMarketEvents: async () =>
         pin({
@@ -376,7 +398,7 @@ export async function adapterFixture(
             allowance: "10000000000000000000000",
             method_names:
               lane === "operator"
-                ? [...townSourceMethods]
+                ? [...(assistant ? townOperatorMethods : townSourceMethods)]
                 : [...townMerchantMethods],
           },
         },
@@ -490,6 +512,7 @@ export async function adapterFixture(
           return propose(c);
         }
       : undefined,
+    assistant,
   );
   return {
     store,

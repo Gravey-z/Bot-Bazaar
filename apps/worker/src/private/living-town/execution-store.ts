@@ -29,6 +29,7 @@ import {
   livingTownSourceEffect,
   livingTownProductionEffect,
   livingTownListingEffect,
+  livingTownAssistantRepriceEffect,
   livingTownProductionJob,
   livingTownLedger,
   parseU64,
@@ -63,7 +64,7 @@ const townJournalSchema = schema
   )
   .replace(
     "'cancel_trade','expire_offers'))",
-    "'cancel_trade','expire_offers','fund_customer_budget','settle_customer_purchase','start_production','complete_production','allocate_raw_supply','sweep_merchant_treasury'))",
+    "'cancel_trade','expire_offers','fund_customer_budget','settle_customer_purchase','start_production','complete_production','allocate_raw_supply','sweep_merchant_treasury','assistant_reprice'))",
   );
 
 /** One exclusive execution database for all V2 actors; never a customer-only side journal. */
@@ -132,7 +133,7 @@ export class LivingTownExecutionStore {
             CREATE TABLE town_runtime(singleton INTEGER PRIMARY KEY CHECK(singleton=1), seed TEXT NOT NULL, epoch TEXT, next_arrival INTEGER NOT NULL DEFAULT 0 CHECK(next_arrival BETWEEN 0 AND 4)) STRICT;
             CREATE TABLE customer_actions(id TEXT PRIMARY KEY REFERENCES jobs(id), tick TEXT NOT NULL, arrival TEXT NOT NULL, decision_json TEXT NOT NULL CHECK(length(CAST(decision_json AS BLOB))<=65536), UNIQUE(tick,arrival)) STRICT;
             CREATE TRIGGER bound_customer_actions BEFORE INSERT ON customer_actions WHEN (SELECT count(*) FROM customer_actions)>=10000 BEGIN SELECT RAISE(ABORT,'customer action journal full'); END;
-            PRAGMA user_version=1006;`,
+            PRAGMA user_version=1007;`,
           );
           this.db
             .prepare(
@@ -161,7 +162,7 @@ export class LivingTownExecutionStore {
       }
       requireStorage(
         this.db.prepare("PRAGMA user_version").get()?.["user_version"] ===
-          1006 &&
+          1007 &&
           this.db.prepare("SELECT identity FROM deployment").get()?.[
             "identity"
           ] === identityJson &&
@@ -325,6 +326,20 @@ export class LivingTownExecutionStore {
         "SELECT j.status AS job_status,c.*,i.merchant_id AS lane,i.method,i.args_json,i.args_digest,i.status,i.action_id,a.tx_hash,a.signed_json FROM customer_actions c JOIN jobs j ON j.id=c.id LEFT JOIN intents i ON i.id=c.id LEFT JOIN attempts a ON a.intent_id=i.id WHERE c.id=?",
       )
       .get(id(actionId));
+  }
+  /** Private owner audit only; never exported through public merchant activity. */
+  assistantAudit(shop: string): Row[] {
+    requireStorage(
+      /^[1-9][0-9]{0,3}$/.test(shop) &&
+        BigInt(shop) >= 4n &&
+        BigInt(shop) <= 1003n,
+      "invalid assistant shop",
+    );
+    return this.db
+      .prepare(
+        "SELECT c.*,j.status AS job_status,i.method,i.status,a.tx_hash FROM customer_actions c JOIN jobs j ON j.id=c.id LEFT JOIN intents i ON i.id=c.id LEFT JOIN attempts a ON a.intent_id=i.id WHERE c.arrival=? ORDER BY c.rowid DESC LIMIT 32",
+      )
+      .all(`assistant:${shop}`);
   }
   unresolved(): Row[] {
     return this.journal.unresolved();
@@ -609,7 +624,9 @@ export class LivingTownExecutionStore {
           ? livingTownSourceEffect(data)
           : row["method"] === "start_production"
             ? livingTownProductionEffect(data)
-            : livingTownListingEffect(data);
+            : row["method"] === "assistant_reprice"
+              ? livingTownAssistantRepriceEffect(data)
+              : livingTownListingEffect(data);
         const principal =
           row["lane"] === "operator"
             ? `account:${this.identity.operatorId}`

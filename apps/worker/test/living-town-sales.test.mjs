@@ -452,6 +452,8 @@ test("assistant collector binds RPC stock to receipt-projected costs and refuses
   const reader = {
     block: block(p.after.block),
     getTown: async () => clone(p.after.town),
+    // This historical sales capture predates assistant methods.
+    getFoundation: async () => ({ data: { supported_methods: [] } }),
     getShop: async () => clone(row.shop),
     getShopInventory: async () => clone(row.ledger),
     getListings: async (args) => ({
