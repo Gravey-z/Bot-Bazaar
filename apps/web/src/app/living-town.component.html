@@ -162,7 +162,10 @@
           <dd>{{ hud().slots ?? "Unavailable" }}</dd>
         </div>
         <div>
-          <dt>Town customer budget</dt>
+          <dt>
+            <app-town-art kind="customer" class="hud-token" />Town customer
+            budget
+          </dt>
           <dd>{{ hud().customers ?? "Unavailable" }}</dd>
         </div>
       </dl>
@@ -258,9 +261,7 @@
         <article class="storefront personal" aria-labelledby="your-storefront">
           <div class="awning" aria-hidden="true"></div>
           <div class="personal-art" aria-hidden="true">
-            <span>✦</span>
-            <div class="door"></div>
-            <div class="window"></div>
+            <app-town-art kind="storefront" class="facade-art" />
           </div>
           <div class="storefront-body">
             <span class="shop-tag">{{
@@ -782,8 +783,11 @@
               @case ("overview") {
                 <div class="overview">
                   <div>
-                    <span class="pill"
-                      >{{ level() }} · {{ shop()!.production_slots }} production
+                    <span class="pill">
+                      @if (shop()!.production_slots === "2") {
+                        <app-town-art kind="upgrade" />
+                      }
+                      {{ level() }} · {{ shop()!.production_slots }} production
                       slot</span
                     >
                     <h3>A shop to call your own.</h3>
@@ -887,11 +891,7 @@
                       @for (row of items(); track row.id) {
                         <tr>
                           <th scope="row">
-                            <span
-                              class="item-icon small-icon"
-                              aria-hidden="true"
-                              >{{ itemSymbol(row.id) }}</span
-                            >
+                            <app-town-art class="small-icon" [kind]="row.id" />
                             {{ row.name }}
                           </th>
                           <td>{{ row.held }}</td>
@@ -924,7 +924,9 @@
                   <div class="workshop-heading">
                     <div>
                       <p class="eyebrow">FROM MATERIALS TO SOMETHING MORE</p>
-                      <h3 id="workshop-title">Your workshop</h3>
+                      <h3 id="workshop-title">
+                        <app-town-art kind="workbench" />Your workshop
+                      </h3>
                     </div>
                     <button
                       type="button"
@@ -943,6 +945,7 @@
                     >
                       @if (upgrade.production_slots === "2") {
                         <p>
+                          <app-town-art kind="upgrade" />
                           Second slot unlocked. Two batches can run together;
                           each keeps its own timing and output.
                         </p>
@@ -991,9 +994,7 @@
                   <div class="recipe-grid">
                     @for (card of recipeCards(); track card.recipe.recipe_id) {
                       <article class="recipe-card">
-                        <span class="item-icon" aria-hidden="true">{{
-                          itemSymbol(card.recipe.output_item)
-                        }}</span>
+                        <app-town-art [kind]="card.recipe.output_item" />
                         <h4>{{ itemName(card.recipe.output_item) }}</h4>
                         @if (card.review; as quote) {
                           <p>
@@ -1146,16 +1147,22 @@
                           [class.completed]="job.status === 'completed'"
                         >
                           <div>
-                            <span class="item-icon" aria-hidden="true">{{
-                              itemSymbol(job.output_item)
-                            }}</span>
+                            <app-town-art [kind]="job.output_item" />
                             <h4>
                               Batch #{{ job.job_id }} -
                               {{ itemName(job.output_item) }} -
                               {{ job.output_quantity }}
                             </h4>
                           </div>
-                          <p>{{ jobCountdown(job) }}</p>
+                          <p>
+                            @if (job.status === "running") {
+                              <app-town-art
+                                kind="progress"
+                                class="status-art"
+                              />
+                            }
+                            {{ jobCountdown(job) }}
+                          </p>
                           <p class="muted">
                             Whole batch: {{ jobDuration(job) }} - Recipe version
                             {{ job.recipe_version }}

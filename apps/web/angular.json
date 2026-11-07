@@ -30,7 +30,17 @@
                 "input": "public/replays",
                 "output": "/replays/"
               },
-              { "glob": "*.png", "input": "public/art", "output": "/art/" }
+              { "glob": "*.png", "input": "public/art", "output": "/art/" },
+              {
+                "glob": "*.svg",
+                "input": "public/art/living-town",
+                "output": "/art/living-town/"
+              },
+              {
+                "glob": "LICENSE.txt",
+                "input": "public/art/living-town",
+                "output": "/art/living-town/"
+              }
             ]
           },
           "configurations": {

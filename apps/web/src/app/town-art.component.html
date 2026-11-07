@@ -1,0 +1,19 @@
+<span class="art-shell">
+  @for (art of artwork(); track art.id) {
+    @if (failedFor() !== art.id) {
+      <img
+        [src]="art.src"
+        alt=""
+        [width]="art.width"
+        [height]="art.height"
+        decoding="async"
+        draggable="false"
+        (error)="failedFor.set(art.id)"
+      />
+    } @else {
+      <span class="art-fallback">{{ art.fallback }}</span>
+    }
+  } @empty {
+    <span class="art-fallback">{{ fallback() }}</span>
+  }
+</span>

@@ -8,11 +8,13 @@ import {
 } from "@angular/core";
 import type { OnDestroy } from "@angular/core";
 import { AssistantPanel } from "./assistant-panel";
+import { TownArtComponent } from "./town-art.component";
 import { assistantAuditReceiptUrl } from "@bot-bazaar/chain";
 import type { AssistantPanelState } from "./assistant-panel";
 import type { TownState, LivingTownController } from "./living-town-controller";
 @Component({
   selector: "app-town-assistant",
+  imports: [TownArtComponent],
   templateUrl: "./living-town-assistant.component.html",
   styleUrl: "./living-town-assistant.component.css",
 })

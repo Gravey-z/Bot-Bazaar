@@ -1,6 +1,11 @@
 :host {
   display: block;
 }
+#assistant-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
 .pause-control {
   border: 2px solid #b45309;
   border-radius: 0.5rem;

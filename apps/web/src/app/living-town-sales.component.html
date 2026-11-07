@@ -9,7 +9,7 @@
     <div class="shelves">
       @for (p of products; track p.id) {
         <article class="shelf">
-          <h4>{{ p.name }}</h4>
+          <h4><app-town-art [kind]="p.id" />{{ p.name }}</h4>
           <dl>
             <div>
               <dt>Held</dt>

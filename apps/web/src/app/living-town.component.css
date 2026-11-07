@@ -1,6 +1,23 @@
 :host {
   display: block;
 }
+.personal-art {
+  display: grid;
+  place-items: end center;
+}
+.personal-art .facade-art {
+  width: min(160px, 100%);
+  height: 128px;
+}
+.hud-token,
+.status-art {
+  --town-art-size: 24px;
+  margin-right: 6px;
+}
+#workshop-title app-town-art,
+.pill app-town-art {
+  margin-right: 8px;
+}
 .economy-hud {
   margin: 28px 0 16px;
   padding: 22px;

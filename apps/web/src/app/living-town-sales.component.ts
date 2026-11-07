@@ -7,6 +7,7 @@ import {
   untracked,
 } from "@angular/core";
 import { DatePipe } from "@angular/common";
+import { TownArtComponent } from "./town-art.component";
 import type { LivingTownController, TownState } from "./living-town-controller";
 import {
   listingQuote,
@@ -25,7 +26,7 @@ import { townTransactionUrl } from "./living-town-port";
 
 @Component({
   selector: "app-town-sales",
-  imports: [DatePipe],
+  imports: [DatePipe, TownArtComponent],
   templateUrl: "./living-town-sales.component.html",
   styleUrl: "./living-town-sales.component.css",
 })

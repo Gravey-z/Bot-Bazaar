@@ -1,0 +1,26 @@
+<!-- SPDX-License-Identifier: 0BSD; original Bot Bazaar artwork, 2026. -->
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  viewBox="0 0 80 64"
+  width="80"
+  height="64"
+  shape-rendering="crispEdges"
+>
+  <path
+    fill="#203e35"
+    d="M8 18h64v40H8zM16 10h48v8H16zM20 6h40v4H20zM4 58h72v4H4z"
+  />
+  <path fill="#d6b88a" d="M12 26h56v28H12z" />
+  <path fill="#f8edc8" d="M16 30h48v20H16zM20 10h40v4H20z" />
+  <path
+    fill="#6b8459"
+    d="M8 18h64v8H8zM12 14h56v4H12zM12 26h8v4h-8zM28 26h8v4h-8zM44 26h8v4h-8zM60 26h8v4h-8z"
+  />
+  <path fill="#f8edc8" d="M20 18h8v8h-8zM36 18h8v8h-8zM52 18h8v8h-8z" />
+  <path fill="#203e35" d="M20 34h16v24H20zM44 34h16v16H44z" />
+  <path fill="#9f6c4a" d="M24 38h8v20h-8z" />
+  <path fill="#849eac" d="M48 38h8v8h-8z" />
+  <path fill="#f8edc8" d="M28 46h4v4h-4zM48 38h4v4h-4zM12 58h56v2H12z" />
+  <path fill="#6b8459" d="M60 50h8v4h-8zM64 46h4v4h-4z" />
+  <path fill="#9f6c4a" d="M60 54h8v4h-8z" />
+</svg>

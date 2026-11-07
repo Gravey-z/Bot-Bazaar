@@ -1,0 +1,37 @@
+:host {
+  display: inline-block;
+  width: var(--town-art-size, 32px);
+  height: var(--town-art-size, 32px);
+  flex-shrink: 0;
+  vertical-align: middle;
+}
+.art-shell {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+}
+img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  image-rendering: pixelated;
+}
+.art-fallback {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  color: #203e35;
+  font:
+    700 1.3em/1 system-ui,
+    sans-serif;
+}
+@media (prefers-reduced-motion: reduce) {
+  :host,
+  img,
+  .art-fallback {
+    animation: none;
+    transition: none;
+  }
+}
