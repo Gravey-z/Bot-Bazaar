@@ -280,6 +280,7 @@ dialog::backdrop {
 }
 .topbar {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: 24px;
@@ -319,9 +320,12 @@ dialog::backdrop {
 }
 .topbar nav {
   display: flex;
+  align-items: center;
+  flex-wrap: wrap;
   gap: 26px;
 }
-.topbar nav a {
+.topbar nav a,
+.topbar nav button {
   font-size: 12px;
   text-decoration: none;
   color: inherit;

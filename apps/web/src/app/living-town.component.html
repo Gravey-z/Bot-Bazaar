@@ -15,6 +15,10 @@
       ><a href="#your-shop" (click)="$event.preventDefault(); openManager()"
         >Your shop</a
       >
+      <button class="quiet" type="button" (click)="openManager('production')">
+        Craft
+      </button>
+      <a href="#town-activity">Activity</a>
       <button class="quiet" type="button" (click)="openHelp()">
         How to play
       </button>
@@ -1444,7 +1448,11 @@
       </section>
     </dialog>
     @if (screen.setup.kind === "ready") {
-      <section class="session" aria-labelledby="town-activity-title">
+      <section
+        id="town-activity"
+        class="session"
+        aria-labelledby="town-activity-title"
+      >
         <div>
           <h2 id="town-activity-title">Around the bazaar</h2>
           <p>
