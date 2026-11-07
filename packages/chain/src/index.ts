@@ -194,3 +194,17 @@ export {
   townAgentInput,
 } from "./living-town/activity.js";
 export type { TownActivity } from "./living-town/activity.js";
+export {
+  assistantProposal,
+  assistantManualReview,
+  verifyAssistantReview,
+  assistantCallMatches,
+  assistantHistory,
+  assistantReviewLink,
+  assistantReviewReference,
+} from "./living-town/assistant-review.js";
+export type {
+  AssistantPublicProposal,
+  AssistantManualReview,
+  AssistantReviewLink,
+} from "./living-town/assistant-review.js";

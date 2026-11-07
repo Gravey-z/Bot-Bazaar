@@ -8,6 +8,11 @@ import {
   parseLivingTownJson,
   parseU64,
   planLivingTownProduction,
+  assistantManualReview,
+  assistantCallMatches,
+  livingTownJsonDigest,
+  assistantReviewLink,
+  assistantReviewReference,
 } from "@bot-bazaar/chain";
 import type {
   LivingTownCall,
@@ -16,6 +21,8 @@ import type {
   LivingTownIdentity,
   LivingTownMethod,
   LivingTownReceiptStatus,
+  AssistantManualReview,
+  AssistantReviewLink,
 } from "@bot-bazaar/chain";
 import type { WalletStorage } from "./wallet-context";
 import { walletTransactionHash } from "./registration-reader";
@@ -29,7 +36,15 @@ async function attemptDigest(
   identity: LivingTownIdentity,
   account: string,
   call: TownCall,
+  review?: AssistantReviewLink,
 ): Promise<string> {
+  if (review)
+    return livingTownJsonDigest({
+      identity,
+      account,
+      call,
+      assistant_review: review,
+    });
   if (call.method !== "complete_production")
     return livingTownCommandDigest(identity.deployment, account, call);
   const bytes = new TextEncoder().encode(
@@ -53,6 +68,7 @@ type Phase =
   | "failed"
   | "not_submitted";
 export interface LivingTownAttempt {
+  readonly assistant_review?: AssistantReviewLink;
   readonly id: string;
   readonly accountId: string;
   readonly call: TownCall;
@@ -106,13 +122,23 @@ export class LivingTownTransactions {
     ) => Promise<unknown>,
     private readonly lock: LivingTownLock = browserLock,
     private readonly uuid: () => string = () => crypto.randomUUID(),
+    private readonly reviewGuard?: (
+      review: AssistantReviewLink,
+      account: string,
+      call: LivingTownCall,
+      attemptId: string,
+      stage: "prepare" | "submit",
+    ) => Promise<void>,
   ) {
     this.identity = parseLivingTownIdentity(client.identity);
     this.key = `bot-bazaar:living-town:journal:1:${this.identity.deployment.network_id}:${this.identity.deployment.genesis_hash}:${this.identity.deployment.contract_id}`;
   }
   private async decodeAttempt(v: unknown): Promise<LivingTownAttempt | null> {
     if (v === null) return null;
+    const hasReview =
+      !!v && typeof v === "object" && Object.hasOwn(v, "assistant_review");
     const r = exact(v, [
+        ...(hasReview ? ["assistant_review"] : []),
         "id",
         "accountId",
         "call",
@@ -138,12 +164,23 @@ export class LivingTownTransactions {
         ].includes(String(r["phase"])),
     );
     const call = decodeCall(c["method"] as TownTransactionMethod, c["args"]);
+    const review = hasReview
+      ? assistantReviewLink(r["assistant_review"])
+      : undefined;
+    if (review)
+      requireValue(
+        (call.method === "set_listing" ||
+          call.method === "buy_from_merchant") &&
+          review.owner_account_id === r["accountId"] &&
+          BigInt(call.args.command.valid_until_ns) <=
+            BigInt(review.expires_at_ns),
+      );
     requireValue(
       c["gas"] === call.gas &&
         c["deposit"] === "0" &&
         BigInt(parseU64(r["referenceBlockHeight"])) > 0n &&
         r["digest"] ===
-          (await attemptDigest(this.identity, r["accountId"], call)),
+          (await attemptDigest(this.identity, r["accountId"], call, review)),
     );
     requireValue(
       (r["transactionHash"] === null && r["hashSource"] === null) ||
@@ -161,7 +198,11 @@ export class LivingTownTransactions {
       ) || r["transactionHash"] === null,
     );
     requireValue(r["phase"] !== "failed" || r["hashSource"] === "wallet");
-    return { ...r, call } as unknown as LivingTownAttempt;
+    return {
+      ...r,
+      call,
+      ...(review ? { assistant_review: review } : {}),
+    } as unknown as LivingTownAttempt;
   }
   private async load(): Promise<Envelope> {
     const raw = this.storage.getItem(this.key);
@@ -385,13 +426,17 @@ export class LivingTownTransactions {
     account: string,
     method: TownTransactionMethod,
     args: unknown,
+    assistantReview?: AssistantManualReview,
   ): Promise<LivingTownAttempt> {
     return this.lock(this.key, async () => {
       const e = await this.load();
       requireValue(e.pending === null);
       const call = decodeCall(method, args),
         reader = await this.admit(account, call),
-        digest = await attemptDigest(this.identity, account, call);
+        link = assistantReview
+          ? assistantReviewReference(assistantManualReview(assistantReview))
+          : undefined,
+        digest = await attemptDigest(this.identity, account, call, link);
       const a: LivingTownAttempt = {
         id: this.uuid(),
         accountId: account,
@@ -401,7 +446,16 @@ export class LivingTownTransactions {
         phase: "prepared",
         transactionHash: null,
         hashSource: null,
+        ...(link ? { assistant_review: link } : {}),
       };
+      if (assistantReview) {
+        requireValue(
+          call.method !== "complete_production" &&
+            this.reviewGuard &&
+            assistantCallMatches(assistantReview, call),
+        );
+        await this.reviewGuard(link!, account, call, a.id, "prepare");
+      }
       await this.save({ ...e, pending: a });
       return a;
     });
@@ -412,6 +466,18 @@ export class LivingTownTransactions {
         a = e.pending;
       requireValue(a?.id === id && a.phase === "prepared");
       await this.admit(a.accountId, a.call);
+      if (a.assistant_review) {
+        requireValue(
+          a.call.method !== "complete_production" && this.reviewGuard,
+        );
+        await this.reviewGuard(
+          a.assistant_review,
+          a.accountId,
+          a.call,
+          a.id,
+          "submit",
+        );
+      }
       // Persist the irreversible handoff boundary BEFORE entering the wallet.
       await this.save({ ...e, pending: { ...a, phase: "awaiting_wallet" } });
       try {

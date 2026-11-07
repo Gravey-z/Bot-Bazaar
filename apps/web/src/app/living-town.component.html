@@ -381,7 +381,21 @@
           </button>
         }
       </div>
-      @if (!shop() && tab() === "overview") {
+      @if (tab() === "assistant") {
+        <div
+          role="tabpanel"
+          id="shop-panel-assistant"
+          aria-labelledby="shop-tab-assistant"
+          tabindex="0"
+          class="manager-panel"
+        >
+          <app-town-assistant
+            [state]="state()"
+            [controller]="screen.controller"
+            [elapsedMs]="elapsedMs()"
+          />
+        </div>
+      } @else if (!shop() && tab() === "overview") {
         <div
           class="onboarding"
           role="tabpanel"
@@ -505,13 +519,6 @@
                   A verified ownership transaction will appear after your shop
                   is created. Confirmed trading history becomes available in
                   your manager.
-                </p>
-              }
-              @case ("assistant") {
-                <h3>A helping hand, a little later.</h3>
-                <p>
-                  The assistant is not enabled. No automated trades or price
-                  changes are being made.
                 </p>
               }
             }
@@ -902,16 +909,6 @@
                 [controller]="screen.controller"
                 [explorer]="explorer"
               />
-            }
-            @case ("assistant") {
-              <div class="coming-later">
-                <span aria-hidden="true">✧</span>
-                <h3>A helping hand, a little later.</h3>
-                <p>
-                  Your assistant is not enabled. No automated price changes or
-                  trades are being made for your shop.
-                </p>
-              </div>
             }
           }
         </div>

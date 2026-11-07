@@ -1,6 +1,7 @@
 import { townActivityText } from "./living-town-live";
 import { describeLivingTownMarketEvent } from "@bot-bazaar/chain";
 import { LivingTownSalesComponent } from "./living-town-sales.component";
+import { LivingTownAssistantComponent } from "./living-town-assistant.component";
 import {
   Component,
   Injectable,
@@ -53,7 +54,7 @@ type Listing = ReturnType<typeof livingTownListing>;
 @Component({
   selector: "app-root",
   providers: [LivingTownScreen],
-  imports: [DatePipe, LivingTownSalesComponent],
+  imports: [DatePipe, LivingTownSalesComponent, LivingTownAssistantComponent],
   templateUrl: "./living-town.component.html",
   styleUrl: "./living-town.component.css",
 })

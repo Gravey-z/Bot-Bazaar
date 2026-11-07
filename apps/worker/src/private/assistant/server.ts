@@ -74,7 +74,7 @@ export function createAssistantServer(
             authorization,
           )?.[1];
           const scope =
-            /^\/private\/assistant\/shops\/([1-9][0-9]{0,19})\/(scope|recommendations|generate|configuration)$/.exec(
+            /^\/private\/assistant\/shops\/([1-9][0-9]{0,19})\/(scope|recommendations|generate|configuration|review|dismiss|accept)$/.exec(
               route,
             );
           if (
@@ -103,17 +103,22 @@ export function createAssistantServer(
             ? ["accountId", "shopId"]
             : route.endsWith("/verify")
               ? ["id", "accountId", "publicKey", "signature"]
-              : route.endsWith("/configuration")
-                ? ["mode"]
-                : [];
+              : scope?.[2] === "accept"
+                ? ["review", "attemptId", "call"]
+                : ["review", "dismiss"].includes(scope?.[2] ?? "")
+                  ? ["proposalId"]
+                  : route.endsWith("/configuration")
+                    ? ["mode"]
+                    : [];
           if (
             !body ||
             typeof body !== "object" ||
             Array.isArray(body) ||
             Object.keys(body).sort().join() !== [...keys].sort().join() ||
-            Object.values(body).some(
-              (v) => typeof v !== "string" || v.length > 512,
-            )
+            (scope?.[2] !== "accept" &&
+              Object.values(body).some(
+                (v) => typeof v !== "string" || v.length > 512,
+              ))
           )
             throw new AssistantAuthError(400);
           const b = body as Record<string, string>;
@@ -136,6 +141,29 @@ export function createAssistantServer(
                 owner.accountId,
                 owner.shopId,
                 b["mode"],
+              );
+            } else if (scope[2] === "review")
+              result = await pipeline.review(
+                owner.accountId,
+                owner.shopId,
+                b["proposalId"]!,
+              );
+            else if (scope[2] === "dismiss")
+              result = pipeline.dismiss(
+                owner.accountId,
+                owner.shopId,
+                b["proposalId"]!,
+              );
+            else if (scope[2] === "accept") {
+              const payload = body as Record<string, unknown>;
+              if (typeof payload["attemptId"] !== "string")
+                throw new AssistantAuthError(400);
+              result = await pipeline.accept(
+                owner.accountId,
+                owner.shopId,
+                payload["review"],
+                payload["attemptId"],
+                payload["call"],
               );
             } else if (scope[2] === "generate")
               result = await pipeline.generate(

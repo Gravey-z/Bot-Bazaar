@@ -1,5 +1,6 @@
 import { LivingTownLiveFeed, TownActivityReset } from "./living-town-live";
 import { AssistantSession } from "./assistant-session";
+import { verifyAssistantReview, assistantCallMatches } from "@bot-bazaar/chain";
 import type { TownLiveState } from "./living-town-live";
 import {
   LivingTownClient,
@@ -115,6 +116,45 @@ export function createLivingTownPort(
     storage,
     async (account, call) =>
       (await getWallet()).livingTown(account, call, client.identity),
+    undefined,
+    undefined,
+    async (review, account, call, attemptId, stage) => {
+      const session = privateSession,
+        version = privateVersion;
+      if (
+        !session ||
+        privateAccount !== account ||
+        review.owner_account_id !== account
+      )
+        throw new Error("Assistant sign-in and current review required");
+      if (stage === "prepare") {
+        const current = await verifyAssistantReview(
+          await session.review(review.shop_id, review.proposal_id),
+        );
+        if (
+          version !== privateVersion ||
+          privateAccount !== account ||
+          current.review_id !== review.review_id ||
+          !assistantCallMatches(current, call)
+        )
+          throw new Error("Assistant review changed");
+      } else {
+        const result = (await session.accept(
+          review.shop_id,
+          review,
+          attemptId,
+          call,
+        )) as { accepted?: unknown; review_id?: unknown; attempt_id?: unknown };
+        if (
+          !result ||
+          result.accepted !== true ||
+          result.review_id !== review.review_id ||
+          result.attempt_id !== attemptId ||
+          version !== privateVersion
+        )
+          throw new Error("Assistant acceptance unavailable");
+      }
+    },
   );
   const prefix = `bot-bazaar:living-town:ownership:1:${profile.identity.deployment.genesis_hash}:${profile.identity.deployment.contract_id}:`;
   const sessionProofs = new Map<string, LivingTownProof>(),
@@ -274,6 +314,16 @@ export function createLivingTownPort(
         }
       },
       logout: invalidatePrivate,
+      async review(shopId, proposalId) {
+        await this.scope(shopId);
+        return verifyAssistantReview(
+          await privateSession!.review(shopId, proposalId),
+        );
+      },
+      async dismiss(shopId, proposalId) {
+        await this.scope(shopId);
+        return privateSession!.dismiss(shopId, proposalId);
+      },
       async recommendations(shopId) {
         await this.scope(shopId);
         return privateSession!.recommendations(shopId);
@@ -598,7 +648,7 @@ export function createLivingTownPort(
         receivedAt: session.startedAt,
       };
     },
-    async prepare(account, method, args) {
+    async prepare(account, method, args, assistantReview) {
       if (method === "complete_production")
         return journal.prepare(account, method, args);
       const reader = await client.finalized(),
@@ -610,11 +660,17 @@ export function createLivingTownPort(
       const command = {
         sequence,
         config_version: profile.identity.deployment.config_version,
-        valid_until_ns: (
-          BigInt(reader.block.timestampNs) + 300_000_000_000n
+        valid_until_ns: (assistantReview
+          ? BigInt(assistantReview.proposal.expires_at_ns)
+          : BigInt(reader.block.timestampNs) + 300_000_000_000n
         ).toString(),
       };
-      return journal.prepare(account, method, { ...args, command });
+      return journal.prepare(
+        account,
+        method,
+        { ...args, command },
+        assistantReview,
+      );
     },
     submit: (id) => journal.submit(id),
     pending: () => journal.read(),

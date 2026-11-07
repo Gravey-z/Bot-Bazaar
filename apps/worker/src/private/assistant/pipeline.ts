@@ -1,4 +1,11 @@
-import { canonicalLivingTownJson } from "@bot-bazaar/chain";
+import {
+  canonicalLivingTownJson,
+  assistantManualReview,
+  assistantCallMatches,
+  createLivingTownCall,
+  assistantReviewLink,
+} from "@bot-bazaar/chain";
+import type { AssistantManualReview } from "@bot-bazaar/chain";
 import { SafetyClock } from "../retries/clock.js";
 import type { BudgetRepository, PreparedInference } from "../policy/budget.js";
 import type { ProviderInvocation } from "../retries/provider.js";
@@ -109,6 +116,132 @@ export class AssistantPipeline {
       stale,
       inferenceConfigured: this.provider !== null && this.budget !== null,
       history: this.store.history(account, shop),
+    };
+  }
+  async review(
+    account: string,
+    shop: string,
+    proposalId: string,
+    allowAccepted = false,
+  ): Promise<AssistantManualReview> {
+    const { record, proposal } = this.store.proposal(account, shop, proposalId),
+      settings = this.store.settings(account, shop);
+    requireStorage(
+      record.status === "proposed" &&
+        settings.mode === "recommendations" &&
+        settings.revision === proposal.config_revision,
+      "assistant proposal not current",
+    );
+    const decision = this.store.decision(account, shop, proposalId);
+    requireStorage(
+      !decision ||
+        decision.status === "reviewed" ||
+        (allowAccepted && decision.status === "accepted"),
+      "assistant proposal dismissed or already accepted",
+    );
+    const f = await this.facts.load(account, shop);
+    this.checkOwner(f, account, shop);
+    requireStorage(
+      f.snapshot.market_revision === proposal.snapshot.market_revision &&
+        f.snapshot.event_sequence === proposal.snapshot.event_sequence &&
+        f.shop.revision === proposal.expected_shop_revision &&
+        f.ledger.revision === proposal.expected_ledger_revision &&
+        f.shop.policy_revision === proposal.expected_policy_revision &&
+        canonicalLivingTownJson(f.snapshot.deployment) ===
+          canonicalLivingTownJson(proposal.snapshot.deployment) &&
+        BigInt(f.snapshot.block_timestamp_ns) < BigInt(proposal.expires_at_ns),
+      "assistant terms changed or expired",
+    );
+    validateCandidate(proposal, f);
+    const a = proposal.action,
+      l = f.listings.find((l) => l.listing_id === a.listing_id)!;
+    const call =
+      a.type === "suggest_price"
+        ? {
+            method: "set_listing",
+            args: {
+              shop_id: shop,
+              item_id: a.item_id,
+              quantity: l.remaining_quantity,
+              unit_price: a.suggested_unit_price,
+              expected_listing_revision: a.expected_listing_revision,
+            },
+          }
+        : {
+            method: "buy_from_merchant",
+            args: {
+              merchant_id: ["rex", "luna", "bolt"][
+                Number(a.seller_shop_id) - 1
+              ],
+              item_id: a.item_id,
+              quantity: a.quantity,
+              expected_listing_revision: a.expected_listing_revision,
+              max_total_price: a.total_price,
+            },
+          };
+    const body = { schema: "living-town-assistant-review-v1", proposal, call };
+    const review = assistantManualReview({
+      ...body,
+      review_id: sha256(canonicalLivingTownJson(body)),
+    });
+    // Recheck local state after asynchronous facts collection.
+    const current = this.store.settings(account, shop);
+    requireStorage(
+      current.mode === "recommendations" &&
+        current.revision === settings.revision,
+      "assistant configuration changed",
+    );
+    if (decision?.status === "accepted")
+      requireStorage(
+        allowAccepted && decision.review?.review_id === review.review_id,
+        "accepted terms changed",
+      );
+    else this.store.saveReview(account, shop, review);
+    return review;
+  }
+  dismiss(account: string, shop: string, proposalId: string): unknown {
+    this.store.dismiss(account, shop, proposalId);
+    return this.view(account, shop);
+  }
+  async accept(
+    account: string,
+    shop: string,
+    reviewValue: unknown,
+    attemptId: string,
+    callValue: unknown,
+  ): Promise<unknown> {
+    const supplied = assistantReviewLink(reviewValue);
+    const review = await this.review(account, shop, supplied.proposal_id, true);
+    requireStorage(
+      review.review_id === supplied.review_id &&
+        supplied.shop_id === shop &&
+        supplied.owner_account_id === account &&
+        supplied.expires_at_ns === review.proposal.expires_at_ns &&
+        /^[a-f0-9-]{36}$/.test(attemptId),
+      "assistant reviewed terms mismatch",
+    );
+    const raw = callValue as { method: unknown; args: unknown };
+    requireStorage(
+      raw &&
+        (raw.method === "set_listing" || raw.method === "buy_from_merchant"),
+      "unsupported assistant owner action",
+    );
+    const call = createLivingTownCall(raw.method, raw.args);
+    requireStorage(
+      assistantCallMatches(review, call),
+      "assistant call differs from review",
+    );
+    this.store.claimReview(
+      account,
+      shop,
+      review.proposal.proposal_id,
+      attemptId,
+      sha256(canonicalLivingTownJson(call)),
+    );
+    return {
+      accepted: true,
+      review_id: review.review_id,
+      attempt_id: attemptId,
     };
   }
   private checkOwner(f: AssistantFacts, account: string, shop: string): void {

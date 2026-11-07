@@ -18,6 +18,11 @@ import { SafetyClock } from "../dist/private/retries/clock.js";
 import { BudgetRepository } from "../dist/private/policy/budget.js";
 import { configureJournal } from "../dist/private/storage/journal.js";
 import { policySchema } from "../dist/private/storage/schema.js";
+import {
+  assistantReviewReference,
+  verifyAssistantReview,
+  createLivingTownCall,
+} from "../../../packages/chain/dist/index.js";
 const capture = JSON.parse(
   readFileSync("tests/fixtures/chain/living-town-sandbox.json", "utf8"),
 );
@@ -553,4 +558,172 @@ test("logout during fact collection prevents shared-budget reservation and model
   assert.equal(f.calls, 0);
   assert.equal(f.budget.history().entries.length, 0);
   assert.equal(result.history[0].status, "rejected");
+});
+
+const ownerCall = (review) =>
+  createLivingTownCall(review.call.method, {
+    ...review.call.args,
+    command: {
+      sequence: "1",
+      config_version: review.proposal.snapshot.deployment.config_version,
+      valid_until_ns: review.proposal.expires_at_ns,
+    },
+  });
+for (const kind of ["suggest_price", "suggest_restock"])
+  test(`manual ${kind}: exact review, one accepted attempt, unchanged economic state`, async (t) => {
+    const f = fixture(t, { rules: true });
+    f.enable();
+    const response = await f.generate(),
+      p = response.history[0].proposals.find((p) => p.action.type === kind);
+    const before = structuredClone(f.f),
+      review = await verifyAssistantReview(
+        await f.runner.review("alice.testnet", f.f.shop.shop_id, p.proposal_id),
+      );
+    if (kind === "suggest_price") {
+      assert.equal(review.call.method, "set_listing");
+      assert.equal(review.call.args.quantity, "1");
+      assert.equal(review.call.args.unit_price, p.action.suggested_unit_price);
+    } else {
+      assert.equal(review.call.method, "buy_from_merchant");
+      assert.equal(review.call.args.max_total_price, p.action.total_price);
+    }
+    const id = "11111111-1111-4111-8111-111111111111",
+      call = ownerCall(review),
+      link = assistantReviewReference(review);
+    assert.equal(
+      (await f.runner.accept("alice.testnet", f.f.shop.shop_id, link, id, call))
+        .accepted,
+      true,
+    );
+    assert.equal(
+      (await f.runner.accept("alice.testnet", f.f.shop.shop_id, link, id, call))
+        .accepted,
+      true,
+    );
+    await assert.rejects(
+      f.runner.accept(
+        "alice.testnet",
+        f.f.shop.shop_id,
+        link,
+        "22222222-2222-4222-8222-222222222222",
+        call,
+      ),
+    );
+    const changed = createLivingTownCall(call.method, {
+      ...call.args,
+      command: { ...call.args.command, sequence: "2" },
+    });
+    await assert.rejects(
+      f.runner.accept("alice.testnet", f.f.shop.shop_id, link, id, changed),
+    );
+    assert.deepEqual(f.f, before);
+    assert.equal(f.calls, 0);
+    assert.equal(
+      f.store
+        .history("alice.testnet", f.f.shop.shop_id)[0]
+        .decisions.find((d) => d.proposal_id === p.proposal_id).status,
+      "accepted",
+    );
+  });
+test("dismissal/ignoring do not execute, spend or admit inference and dismissed advice cannot be accepted", async (t) => {
+  const f = fixture(t, { rules: true });
+  f.enable();
+  const response = await f.generate(),
+    p = response.history[0].proposals[0],
+    before = structuredClone(f.f);
+  const dismissed = f.runner.dismiss(
+    "alice.testnet",
+    f.f.shop.shop_id,
+    p.proposal_id,
+  );
+  assert.equal(dismissed.history[0].decisions[0].status, "dismissed");
+  await assert.rejects(
+    f.runner.review("alice.testnet", f.f.shop.shop_id, p.proposal_id),
+  );
+  assert.deepEqual(f.f, before);
+  assert.equal(f.calls, 0);
+  assert.equal(f.budget.history().entries.length, 0);
+});
+for (const change of [
+  "owner",
+  "market",
+  "listing",
+  "shop",
+  "ledger",
+  "policy",
+  "expired",
+  "stock",
+  "price",
+  "config",
+])
+  test(`manual acceptance rejects changed ${change}`, async (t) => {
+    const f = fixture(t, { rules: true });
+    f.enable();
+    const response = await f.generate(),
+      p = response.history[0].proposals[0];
+    const review = await f.runner.review(
+      "alice.testnet",
+      f.f.shop.shop_id,
+      p.proposal_id,
+    );
+    if (change === "owner") f.f.shop.owner.account_id = "bob.testnet";
+    if (change === "market") f.f.snapshot.market_revision = "6";
+    if (change === "listing")
+      f.f.listings.find((l) => l.listing_id === p.action.listing_id).revision =
+        "2";
+    if (change === "shop")
+      f.f.shop.revision = String(BigInt(f.f.shop.revision) + 1n);
+    if (change === "ledger")
+      f.f.ledger.revision = String(BigInt(f.f.ledger.revision) + 1n);
+    if (change === "policy") f.f.shop.policy_revision = "2";
+    if (change === "expired") f.advance(121000);
+    if (change === "stock")
+      f.f.listings.find(
+        (l) => l.listing_id === p.action.listing_id,
+      ).remaining_quantity = "2";
+    if (change === "price")
+      f.f.listings.find(
+        (l) => l.listing_id === p.action.listing_id,
+      ).unit_price = "12";
+    if (change === "config")
+      f.runner.configure("alice.testnet", f.f.shop.shop_id, "off");
+    await assert.rejects(
+      f.runner.accept(
+        "alice.testnet",
+        f.f.shop.shop_id,
+        assistantReviewReference(review),
+        "11111111-1111-4111-8111-111111111111",
+        ownerCall(review),
+      ),
+    );
+  });
+test("manual call tampering, cross-shop/account access and price-only quantity changes fail", async (t) => {
+  const f = fixture(t, { rules: true });
+  f.enable();
+  const r = await f.generate(),
+    p = r.history[0].proposals[0],
+    review = await f.runner.review(
+      "alice.testnet",
+      f.f.shop.shop_id,
+      p.proposal_id,
+    );
+  await assert.rejects(
+    f.runner.review("bob.testnet", f.f.shop.shop_id, p.proposal_id),
+  );
+  await assert.rejects(f.runner.review("alice.testnet", "999", p.proposal_id));
+  const bad = createLivingTownCall("set_listing", {
+    ...review.call.args,
+    quantity: "2",
+    command: ownerCall(review).args.command,
+  });
+  await assert.rejects(
+    f.runner.accept(
+      "alice.testnet",
+      f.f.shop.shop_id,
+      assistantReviewReference(review),
+      "11111111-1111-4111-8111-111111111111",
+      bad,
+    ),
+  );
+  assert.equal(f.calls, 0);
 });

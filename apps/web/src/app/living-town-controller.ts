@@ -6,6 +6,8 @@ import type {
   TownTransactionMethod,
   TownTransactionStatus,
 } from "./living-town-transactions";
+import { verifyAssistantReview } from "@bot-bazaar/chain";
+import type { AssistantManualReview } from "@bot-bazaar/chain";
 import { LivingTownIdentityError } from "@bot-bazaar/chain";
 import { productionQuote } from "./living-town-production-ui";
 import type { TownRecipe } from "./living-town-production-ui";
@@ -56,6 +58,8 @@ export interface TownPort {
       mode: "off" | "recommendations",
     ): Promise<unknown>;
     logout(): void;
+    review?(shopId: string, proposalId: string): Promise<AssistantManualReview>;
+    dismiss?(shopId: string, proposalId: string): Promise<unknown>;
   };
   watchActivity?: (changed: (state: TownLiveState) => void) => () => void;
   market?(cursor: string | null, signal?: AbortSignal): Promise<TownMarketPage>;
@@ -74,6 +78,7 @@ export interface TownPort {
     account: string,
     method: TownTransactionMethod,
     args: Record<string, unknown>,
+    assistantReview?: AssistantManualReview,
   ): Promise<LivingTownAttempt>;
   submit(id: string): Promise<void>;
   pending(): Promise<LivingTownAttempt | null>;
@@ -177,6 +182,36 @@ export class LivingTownController {
   ) {}
   get state(): TownState {
     return this.value;
+  }
+  get assistant(): TownPort["assistant"] {
+    return this.port?.assistant;
+  }
+  async acceptAssistantReview(value: unknown): Promise<void> {
+    if (!this.canAct()) return;
+    const account = this.value.accountId,
+      version = this.accountEpoch;
+    try {
+      const review = await verifyAssistantReview(value),
+        o = this.value.observation;
+      if (
+        version !== this.accountEpoch ||
+        account !== this.value.accountId ||
+        review.proposal.owner_account_id !== account ||
+        !o?.shop ||
+        !o.ledger ||
+        o.shop.shop_id !== review.proposal.shop_id ||
+        o.shop.revision !== review.proposal.expected_shop_revision ||
+        o.ledger.revision !== review.proposal.expected_ledger_revision ||
+        o.shop.policy_revision !== review.proposal.expected_policy_revision
+      )
+        throw new Error("Assistant review changed");
+      await this.act(review.call.method, review.call.args, review);
+    } catch {
+      this.publish({
+        message:
+          "Recommendation terms changed or expired. Refresh and review again before signing.",
+      });
+    }
   }
   private publish(patch: Partial<TownState>): void {
     if (!this.stopped) {
@@ -587,6 +622,7 @@ export class LivingTownController {
   async act(
     method: TownTransactionMethod,
     args: Record<string, unknown>,
+    assistantReview?: AssistantManualReview,
   ): Promise<void> {
     if (
       !this.canAct(
@@ -667,7 +703,12 @@ export class LivingTownController {
     if (method === "buy_from_merchant" && !observation.player) return;
     this.publish({ busy: true, message: "" });
     try {
-      const attempt = await this.port!.prepare(account, method, args);
+      const attempt = await this.port!.prepare(
+        account,
+        method,
+        args,
+        assistantReview,
+      );
       this.publish({ pending: attempt });
       if (
         this.stopped ||

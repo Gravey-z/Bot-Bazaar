@@ -1,0 +1,167 @@
+<section class="assistant" aria-labelledby="assistant-title">
+  <h3 id="assistant-title">Your shop assistant</h3>
+  <p>
+    Suggestions change nothing by themselves. Every price change or purchase
+    below requires your own wallet approval.
+  </p>
+  @if (!ownerReady()) {
+    <p role="status">
+      Connect and load your confirmed shop to view private recommendations.
+    </p>
+  } @else {
+    @if (!view().signedIn) {
+      <button type="button" [disabled]="view().busy" (click)="panel.signIn()">
+        Sign in with wallet
+      </button>
+      <p>
+        Sign a session message. This does not approve spending or change your
+        listings.
+      </p>
+    } @else {
+      <div class="actions">
+        @if (view().mode === "off") {
+          <button
+            type="button"
+            [disabled]="view().busy"
+            (click)="panel.activate()"
+          >
+            Activate free recommendations
+          </button>
+        }
+        <button
+          type="button"
+          [disabled]="view().busy"
+          (click)="panel.refresh()"
+        >
+          Refresh suggestions
+        </button>
+        <button
+          type="button"
+          [disabled]="view().busy || view().mode !== 'recommendations'"
+          (click)="panel.generate()"
+        >
+          Generate suggestions
+        </button>
+      </div>
+      <p>
+        Refreshing only reads saved advice. Generation is capped; model requests
+        use the shared inference budget when configured. Rules fallback is
+        labelled below.
+      </p>
+      @if (view().stale) {
+        <p role="status">
+          Current facts are unavailable. Refresh before reviewing advice.
+        </p>
+      }
+      @for (p of view().proposals; track p.proposal_id) {
+        <article>
+          <h4>
+            {{
+              p.action.type === "suggest_price"
+                ? "Price suggestion"
+                : "Restock suggestion"
+            }}: {{ name(p.action.item_id) }}
+          </h4>
+          <p>
+            {{ p.source === "model" ? "Model suggestion" : "Rules fallback" }}
+          </p>
+          <p>{{ p.reason }}</p>
+          @if (p.action.type === "suggest_price") {
+            <p>
+              {{ p.action.current_unit_price }} →
+              {{ p.action.suggested_unit_price }} game gold per item.
+            </p>
+          } @else {
+            <p>
+              Buy {{ p.action.quantity }} at {{ p.action.unit_price }} game gold
+              each; total {{ p.action.total_price }}.
+            </p>
+          }
+          <div class="actions">
+            <button
+              type="button"
+              [disabled]="view().busy || view().stale || !!state().pending"
+              (click)="panel.review(p.proposal_id)"
+            >
+              Review exact terms
+            </button>
+            <button
+              type="button"
+              [disabled]="view().busy"
+              (click)="panel.dismiss(p.proposal_id)"
+            >
+              Dismiss suggestion
+            </button>
+          </div>
+        </article>
+      } @empty {
+        <p>
+          No current suggestions. Your shop may already meet its targets, or
+          confirmed history may be incomplete.
+        </p>
+      }
+      @if (view().review; as r) {
+        <div
+          class="review"
+          role="region"
+          aria-label="Review assistant recommendation"
+        >
+          <h4>Review before signing</h4>
+          <p>
+            Wallet account: {{ r.proposal.owner_account_id }} · Shop
+            {{ r.proposal.shop_id }}
+          </p>
+          @if (r.proposal.action.type === "suggest_price") {
+            <p>
+              Change {{ name(r.proposal.action.item_id) }} from
+              {{ r.proposal.action.current_unit_price }} to
+              {{ r.proposal.action.suggested_unit_price }} game gold per item.
+              Keep {{ r.call.args["quantity"] }} listed units. Ownership and
+              recipient stay the same.
+            </p>
+          } @else {
+            <p>
+              Buy {{ r.proposal.action.quantity }}
+              {{ name(r.proposal.action.item_id) }} from NPC shop
+              {{ r.proposal.action.seller_shop_id }} at
+              {{ r.proposal.action.unit_price }} each. Maximum total:
+              {{ r.proposal.action.total_price }} game gold, delivered to your
+              shop.
+            </p>
+          }
+          <p>
+            Wallet fees use NEAR separately. Changed stock, price, ownership or
+            expired advice requires a new review. Nothing is credited before the
+            original transaction confirms.
+          </p>
+          @if (!canAccept()) {
+            <p role="status">
+              Refresh confirmed data or resolve the saved transaction before
+              accepting. Expired or changed recommendations must be reviewed
+              again.
+            </p>
+          }
+          <div class="actions">
+            <button
+              type="button"
+              [disabled]="view().busy || !canAccept()"
+              (click)="panel.accept()"
+            >
+              Accept and sign in wallet
+            </button>
+            <button
+              type="button"
+              [disabled]="view().busy"
+              (click)="panel.cancelReview()"
+            >
+              Cancel review
+            </button>
+          </div>
+        </div>
+      }
+    }
+    @if (view().message) {
+      <p role="status">{{ view().message }}</p>
+    }
+  }
+</section>

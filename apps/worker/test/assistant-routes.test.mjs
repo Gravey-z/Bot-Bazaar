@@ -88,3 +88,83 @@ test("private recommendation routes derive owner scope, separate reads from gene
   assert.equal(rejected.status, 401);
   assert.equal((await rejected.text()).includes("owner only"), false);
 });
+
+test("manual review/dismiss/accept routes require owner scope and reject caller-supplied account authority", async (t) => {
+  const seen = [];
+  let allowed = true;
+  const auth = {
+    origin: "https://bazaar.example",
+    scope: async (token, shop) => {
+      if (!allowed || token !== "a".repeat(43) || shop !== "4")
+        throw new AssistantAuthError(401);
+      return {
+        accountId: "alice.testnet",
+        shopId: shop,
+        expiresAt: Date.now() + 10000,
+      };
+    },
+  };
+  const pipeline = {
+    review: async (...args) => {
+      seen.push(["review", ...args]);
+      return { terms: "exact" };
+    },
+    dismiss: (...args) => {
+      seen.push(["dismiss", ...args]);
+      return { dismissed: true };
+    },
+    accept: async (...args) => {
+      seen.push(["accept", ...args]);
+      return { accepted: true };
+    },
+  };
+  const server = createAssistantServer(auth, pipeline);
+  server.listen(0, "127.0.0.1");
+  await once(server, "listening");
+  t.after(() => {
+    server.closeAllConnections();
+    server.close();
+  });
+  const base = `http://127.0.0.1:${server.address().port}/private/assistant/shops/4/`;
+  const call = (path, body, token = "a".repeat(43)) =>
+    fetch(base + path, {
+      method: "POST",
+      headers: {
+        Origin: auth.origin,
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(body),
+    });
+  assert.equal(
+    (await call("review", { proposalId: "p" }, "invalid")).status,
+    401,
+  );
+  assert.equal(
+    (await call("review", { proposalId: "p", accountId: "other.testnet" }))
+      .status,
+    400,
+  );
+  assert.equal((await call("review", { proposalId: "p" })).status, 200);
+  assert.equal((await call("dismiss", { proposalId: "p" })).status, 200);
+  assert.equal(
+    (
+      await call("accept", {
+        review: { review_id: "r" },
+        attemptId: "attempt",
+        call: { method: "set_listing", args: {} },
+      })
+    ).status,
+    200,
+  );
+  assert.equal(seen.length, 3);
+  for (const row of seen) {
+    assert.equal(row[1], "alice.testnet");
+    assert.equal(row[2], "4");
+  }
+  allowed = false;
+  assert.equal(
+    (await call("accept", { review: {}, attemptId: "x", call: {} })).status,
+    401,
+  );
+});

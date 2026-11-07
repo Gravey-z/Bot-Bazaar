@@ -1,0 +1,49 @@
+:host {
+  display: block;
+}
+.assistant {
+  display: grid;
+  gap: 1rem;
+}
+.assistant h3,
+.assistant h4,
+.assistant p {
+  margin: 0;
+}
+.assistant p {
+  line-height: 1.6;
+}
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+article,
+.review {
+  display: grid;
+  gap: 0.75rem;
+  padding: 1rem;
+  border: 1px solid #ffffff25;
+  border-radius: 1rem;
+  background: #ffffff07;
+}
+.review {
+  border-color: #d9a34e80;
+}
+button {
+  font: inherit;
+  color: inherit;
+  padding: 0.65rem 1rem;
+  border: 1px solid #d9a34e80;
+  border-radius: 0.65rem;
+  background: #d9a34e18;
+  cursor: pointer;
+}
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+button:focus-visible {
+  outline: 3px solid #d9a34e;
+  outline-offset: 3px;
+}

@@ -14,6 +14,7 @@ import { canonicalLivingTownJson, parseU64 } from "@bot-bazaar/chain";
 import { configureJournal } from "../storage/journal.js";
 import { requireStorage } from "../storage/validation.js";
 import type { AssistantProposal } from "./proposals.js";
+import type { AssistantManualReview } from "@bot-bazaar/chain";
 export interface AssistantRecord {
   id: string;
   account: string;
@@ -72,13 +73,15 @@ export class AssistantStore {
           CREATE TABLE settings(shop TEXT PRIMARY KEY,account TEXT NOT NULL,revision TEXT NOT NULL,mode TEXT NOT NULL CHECK(mode IN ('off','recommendations'))) STRICT;
           CREATE TABLE requests(id TEXT PRIMARY KEY,account TEXT NOT NULL,shop TEXT NOT NULL,context TEXT NOT NULL,revision TEXT NOT NULL,status TEXT NOT NULL,code TEXT NOT NULL,proposals TEXT NOT NULL,started INTEGER NOT NULL,updated INTEGER NOT NULL,model_status TEXT NOT NULL DEFAULT 'not_called',payload_hash TEXT) STRICT;
           CREATE INDEX request_scope ON requests(account,shop,started);
-          PRAGMA user_version=5001;
+          CREATE TABLE decisions(proposal_id TEXT PRIMARY KEY,review_id TEXT UNIQUE,account TEXT NOT NULL,shop TEXT NOT NULL,status TEXT NOT NULL CHECK(status IN ('reviewed','accepted','dismissed')),review_json TEXT,attempt_id TEXT,call_hash TEXT) STRICT;
+          CREATE UNIQUE INDEX decision_attempt ON decisions(attempt_id) WHERE attempt_id IS NOT NULL;
+          PRAGMA user_version=5002;
         `);
           this.db.prepare("INSERT INTO metadata VALUES(1,?,0)").run(identity);
         });
       requireStorage(
         this.db.prepare("PRAGMA user_version").get()?.["user_version"] ===
-          5001 &&
+          5002 &&
           this.db.prepare("SELECT identity FROM metadata").get()?.[
             "identity"
           ] === identity &&
@@ -316,7 +319,148 @@ export class AssistantStore {
         "SELECT id FROM requests WHERE account=? AND shop=? ORDER BY started DESC,id DESC LIMIT 4",
       )
       .all(account, shop)
-      .map((r) => this.get(String(r["id"]))!);
+      .map((r) => {
+        const record = this.get(String(r["id"]))!;
+        return {
+          ...record,
+          decisions: record.proposals.flatMap((p) => {
+            const d = this.decision(account, shop, p.proposal_id);
+            return d
+              ? [
+                  {
+                    proposal_id: p.proposal_id,
+                    status: d.status,
+                    attempt_id: d.attempt_id,
+                  },
+                ]
+              : [];
+          }),
+        };
+      });
+  }
+  proposal(
+    account: string,
+    shop: string,
+    proposalId: string,
+  ): { record: AssistantRecord; proposal: AssistantProposal } {
+    for (const record of this.history(account, shop)) {
+      const proposal = record.proposals.find(
+        (p) => p.proposal_id === proposalId,
+      );
+      if (proposal) return { record, proposal };
+    }
+    throw new Error("Assistant proposal unavailable");
+  }
+  decision(
+    account: string,
+    shop: string,
+    proposalId: string,
+  ): {
+    status: string;
+    attempt_id: string | null;
+    call_hash: string | null;
+    review: AssistantManualReview | null;
+  } | null {
+    const r = this.db
+      .prepare(
+        "SELECT * FROM decisions WHERE proposal_id=? AND account=? AND shop=?",
+      )
+      .get(proposalId, account, shop);
+    return r
+      ? {
+          status: String(r["status"]),
+          attempt_id: r["attempt_id"] as string | null,
+          call_hash: r["call_hash"] as string | null,
+          review: r["review_json"]
+            ? JSON.parse(String(r["review_json"]))
+            : null,
+        }
+      : null;
+  }
+  saveReview(
+    account: string,
+    shop: string,
+    review: AssistantManualReview,
+  ): void {
+    this.write(() => {
+      const old = this.decision(account, shop, review.proposal.proposal_id);
+      requireStorage(
+        !old ||
+          (old.status === "reviewed" &&
+            old.review?.review_id === review.review_id),
+        "proposal decision already closed",
+      );
+      if (old) return;
+      requireStorage(
+        Number(
+          this.db.prepare("SELECT count(*) AS n FROM decisions").get()!["n"],
+        ) < 20000,
+        "assistant decision audit full",
+      );
+      this.db
+        .prepare(
+          "INSERT INTO decisions VALUES(?,?,?,?, 'reviewed',?,NULL,NULL)",
+        )
+        .run(
+          review.proposal.proposal_id,
+          review.review_id,
+          account,
+          shop,
+          canonicalLivingTownJson(review),
+        );
+    });
+  }
+  claimReview(
+    account: string,
+    shop: string,
+    proposalId: string,
+    attemptId: string,
+    callHash: string,
+  ): void {
+    this.write(() => {
+      const d = this.decision(account, shop, proposalId);
+      const config = this.settings(account, shop);
+      requireStorage(
+        d &&
+          d.review &&
+          config.mode === "recommendations" &&
+          config.revision === d.review.proposal.config_revision &&
+          this.proposal(account, shop, proposalId).record.status ===
+            "proposed" &&
+          (d.status === "reviewed" ||
+            (d.status === "accepted" &&
+              d.attempt_id === attemptId &&
+              d.call_hash === callHash)),
+        "assistant acceptance replay/conflict",
+      );
+      this.db
+        .prepare(
+          "UPDATE decisions SET status='accepted',attempt_id=?,call_hash=? WHERE proposal_id=?",
+        )
+        .run(attemptId, callHash, proposalId);
+    });
+  }
+  dismiss(account: string, shop: string, proposalId: string): void {
+    this.proposal(account, shop, proposalId);
+    this.write(() => {
+      const d = this.decision(account, shop, proposalId);
+      requireStorage(
+        !d || d.status !== "accepted",
+        "accepted attempt needs original transaction reconciliation",
+      );
+      requireStorage(
+        d ||
+          Number(
+            this.db.prepare("SELECT count(*) AS n FROM decisions").get()!["n"],
+          ) < 20000,
+        "assistant decision audit full",
+      );
+      this.db
+        .prepare(
+          "INSERT INTO decisions(proposal_id,account,shop,status) VALUES(?,?,?,'dismissed') ON CONFLICT(proposal_id) DO UPDATE SET status='dismissed'",
+        )
+        .run(proposalId, account, shop);
+    });
   }
   close(): void {
     this.db.close();
