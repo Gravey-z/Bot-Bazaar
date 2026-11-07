@@ -1,6 +1,73 @@
 :host {
   display: block;
 }
+.first-loop {
+  margin: 0 0 28px;
+  padding: 22px;
+  border: 1px solid #d0d8c7;
+  border-radius: 16px;
+  background: #f4f3e8;
+}
+.first-loop h2,
+.help-dialog h2 {
+  font:
+    normal 25px Georgia,
+    serif;
+}
+.first-loop p,
+.help-dialog p {
+  font-size: 13px;
+  line-height: 1.75;
+}
+.tutorial-steps {
+  list-style: none;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(125px, 1fr));
+  gap: 10px;
+}
+.tutorial-steps li {
+  display: grid;
+  align-content: start;
+  gap: 8px;
+  padding: 14px;
+  border: 1px solid #d4d8c9;
+  border-radius: 8px;
+  background: #fffaf1;
+}
+.tutorial-steps li.confirmed {
+  background: #e6eddc;
+}
+.tutorial-steps li[aria-current="step"] {
+  border: 2px solid #42654a;
+}
+.tutorial-steps strong,
+.tutorial-steps small,
+.help-dialog small {
+  font-size: 12px;
+  line-height: 1.6;
+}
+.help-dialog {
+  width: min(760px, calc(100vw - 32px));
+  max-width: none;
+  max-height: calc(100dvh - 32px);
+  border-radius: 16px;
+  padding: 26px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.help-dialog .workshop-heading {
+  position: sticky;
+  top: -26px;
+  background: #f8f7ef;
+  padding-block: 12px;
+}
+.help-steps {
+  padding-left: 24px;
+}
+.help-steps li {
+  padding: 8px 0;
+}
 .personal-art {
   display: grid;
   place-items: end center;

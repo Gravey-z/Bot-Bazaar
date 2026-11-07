@@ -5,7 +5,7 @@ import { build } from "esbuild";
 const built = await build({
   stdin: {
     contents:
-      "export * from './apps/web/src/app/living-town-layout.ts'; export {LivingTownComponent} from './apps/web/src/app/living-town.component.ts'; export {initialTownState} from './apps/web/src/app/living-town-controller.ts';",
+      "export * from './apps/web/src/app/living-town-layout.ts'; export * from './apps/web/src/app/living-town-tutorial.ts'; export {LivingTownComponent} from './apps/web/src/app/living-town.component.ts'; export {initialTownState} from './apps/web/src/app/living-town-controller.ts';",
     resolveDir: process.cwd(),
   },
   bundle: true,
@@ -46,6 +46,8 @@ const {
   townMarketComparisons,
   LivingTownComponent,
   initialTownState,
+  firstLoopTutorial,
+  TutorialGoalTracker,
 } = await import(
   `data:text/javascript;base64,${Buffer.from(built.outputFiles[0].contents).toString("base64")}`
 );
@@ -277,4 +279,189 @@ test("wallet recovery remains inside the manager modal and purchase review stays
   assert.match(html, /Close manager/);
   assert.match(html, /Only confirmed History proves a\s+sale/);
   assert.doesNotMatch(html, /innerHTML/);
+});
+
+function tutorialState() {
+  const s = state();
+  s.observation.shop.production_slots = "1";
+  s.observation.player = {
+    account_id: owner,
+    shop_id: s.observation.shop.shop_id,
+    grant_issued: true,
+  };
+  s.history = {
+    shopId: s.observation.shop.shop_id,
+    items: [],
+    costs: { recorded_sales_revenue: "0", recorded_material_spending: "0" },
+    historyComplete: true,
+    nextCursor: null,
+    receivedAt: now,
+    stale: false,
+  };
+  return s;
+}
+const tutorial = (s) => firstLoopTutorial(s, "ready", now);
+const milestone = (s, id) => tutorial(s).steps.find((step) => step.id === id);
+
+test("tutorial separates registration and shop approval; wallet assertions never confirm milestones", () => {
+  const s = tutorialState();
+  s.observation.shop = null;
+  s.observation.player.shop_id = null;
+  s.pending = { phase: "confirmed", accountId: owner };
+  s.lastAttempt = { phase: "confirmed", method: "create_shop" };
+  assert.equal(milestone(s, "register").status, "confirmed");
+  assert.equal(milestone(s, "shop").status, "not_confirmed");
+  assert.equal(tutorial(s).completed, 1);
+});
+test("tutorial advances through receipts and retained listing state, not elapsed production time", () => {
+  const s = tutorialState();
+  assert.equal(tutorial(s).current.id, "buy");
+  s.observation.production.items = [
+    {
+      shop_id: s.observation.shop.shop_id,
+      owner: s.observation.shop.owner,
+      status: "running",
+      ready_at_ns: "999999999999999998",
+    },
+  ];
+  assert.equal(tutorial(s).current.id, "craft");
+  s.observation.chainTimestampNs = "999999999999999999";
+  assert.equal(milestone(s, "craft").status, "not_confirmed");
+  s.history.items.push({ kind: "production_completed" });
+  assert.equal(tutorial(s).current.id, "list");
+  s.observation.ownListings = [
+    {
+      shop_id: s.observation.shop.shop_id,
+      owner: s.observation.shop.owner,
+      active: false,
+      remaining_quantity: "0",
+    },
+  ];
+  assert.equal(tutorial(s).current.id, "sale");
+  assert.equal(milestone(s, "sale").status, "not_confirmed");
+  s.history.items.push({ kind: "customer_sale" });
+  assert.equal(tutorial(s).current.id, "upgrade");
+});
+test("tutorial restores later prerequisites across paged history without grants becoming sales", () => {
+  const s = tutorialState();
+  s.history.stale = true;
+  assert.equal(milestone(s, "buy").status, "unknown");
+  s.history.stale = false;
+  s.history.historyComplete = false;
+  s.history.nextCursor = "older";
+  s.history.items = [{ kind: "player_grant" }];
+  assert.equal(milestone(s, "buy").status, "unknown");
+  assert.equal(tutorial(s).action.tab, "history");
+  assert.equal(milestone(s, "sale").status, "unknown");
+  s.history.costs.recorded_sales_revenue = "20";
+  assert.equal(tutorial(s).completed, 6);
+  assert.equal(tutorial(s).current.id, "upgrade");
+});
+test("two-slot chain state restores the whole tutorial after reconnect with no archive", () => {
+  const s = tutorialState();
+  s.history = null;
+  s.observation.production = undefined;
+  s.observation.ownListings = undefined;
+  s.observation.shop.production_slots = "2";
+  assert.equal(tutorial(s).completed, 7);
+  assert.equal(tutorial(s).current, null);
+  assert.deepEqual(tutorial(structuredClone(s)), tutorial(s));
+});
+test("tutorial ignores foreign account, shop history, jobs and listings", () => {
+  const s = tutorialState();
+  s.history.shopId = "foreign";
+  s.history.costs.recorded_sales_revenue = "999";
+  s.observation.production.items = [
+    {
+      shop_id: "foreign",
+      owner: s.observation.shop.owner,
+      status: "completed",
+    },
+  ];
+  s.observation.ownListings = [
+    { shop_id: "foreign", owner: s.observation.shop.owner },
+  ];
+  assert.equal(tutorial(s).completed, 2);
+  s.accountId = "other.testnet";
+  assert.equal(tutorial(s).scope, null);
+  assert.equal(tutorial(s).completed, 0);
+  assert.equal(tutorial(s).action.target, "refresh");
+});
+test("saved unknown requests and stale observations keep recovery priority without mutation", () => {
+  const s = tutorialState();
+  s.pending = {
+    id: "original",
+    accountId: "original.testnet",
+    phase: "unknown",
+  };
+  const before = JSON.stringify(s);
+  assert.match(tutorial(s).action.detail, /original.testnet/);
+  assert.equal(tutorial(s).blocked, true);
+  assert.equal(JSON.stringify(s), before);
+  s.pending = null;
+  s.observation.stale = true;
+  assert.equal(tutorial(s).fresh, false);
+  assert.equal(tutorial(s).action.target, "refresh");
+});
+test("goal announcements baseline reconnects and deduplicate polls, stale state and pending outcomes", () => {
+  const s = tutorialState(),
+    tracker = new TutorialGoalTracker();
+  assert.equal(tracker.observe(tutorial(s)), null);
+  s.history.items.push({ kind: "material_purchase" });
+  s.pending = { phase: "unknown" };
+  assert.equal(tracker.observe(tutorial(s)), null);
+  s.pending = null;
+  s.observation.stale = true;
+  assert.equal(tracker.observe(tutorial(s)), null);
+  s.observation.stale = false;
+  assert.match(tracker.observe(tutorial(s)), /Craft and claim/);
+  assert.equal(tracker.observe(tutorial(s)), null);
+  assert.equal(new TutorialGoalTracker().observe(tutorial(s)), null);
+  s.accountId = "other.testnet";
+  assert.equal(tracker.observe(tutorial(s)), null);
+  s.accountId = owner;
+  assert.equal(tracker.observe(tutorial(s)), null);
+});
+test("How to Play preserves reviews and restores focus; pending manager can take precedence", (t) => {
+  const { component, manager, opener } = dialogHarness(t);
+  const help = {
+    open: false,
+    showModal() {
+      this.open = true;
+    },
+    close() {
+      this.open = false;
+    },
+  };
+  component.helpDialog = { nativeElement: help };
+  const review = component.productionReview();
+  component.openHelp();
+  component.openHelp();
+  assert.equal(help.open, true);
+  assert.equal(component.productionReview(), review);
+  component.closeHelp();
+  component.helpClosed();
+  assert.equal(opener.focusCount, 1);
+  component.openHelp();
+  component.openManager("overview");
+  manager.contains = () => false;
+  component.helpClosed();
+  assert.equal(help.open, false);
+  assert.equal(manager.open, true);
+  assert.equal(opener.focusCount, 1);
+});
+test("tutorial overlay supplies all recovery topics and a labelled native modal", () => {
+  const html = readFileSync(
+    "apps/web/src/app/living-town.component.html",
+    "utf8",
+  );
+  assert.match(html, /#helpDialog[\s\S]*?aria-labelledby="how-to-play-title"/);
+  for (const topic of [
+    "Game gold and native NEAR",
+    "Waiting, unsold goods and restocking",
+    "Pending or unknown wallet outcome",
+    "Returning to your shop",
+    'aria-live="polite"',
+  ])
+    assert.ok(html.includes(topic), topic);
 });

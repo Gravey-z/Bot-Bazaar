@@ -15,6 +15,9 @@
       ><a href="#your-shop" (click)="$event.preventDefault(); openManager()"
         >Your shop</a
       >
+      <button class="quiet" type="button" (click)="openHelp()">
+        How to play
+      </button>
     </nav>
     <span class="network"
       ><span aria-hidden="true"></span>{{ modeLabel() }}</span
@@ -198,6 +201,78 @@
         }}
       </button>
     </aside>
+    <section class="first-loop" aria-labelledby="first-loop-title">
+      <div class="workshop-heading">
+        <div>
+          <p class="eyebrow">YOUR FIRST LOOP</p>
+          <h2 id="first-loop-title">From first stock to a second slot</h2>
+        </div>
+        <button class="quiet" type="button" (click)="openHelp()">
+          How to play
+        </button>
+      </div>
+      @if (tutorial().scope) {
+        <p>
+          {{ tutorial().completed }} of {{ tutorial().steps.length }} milestones
+          confirmed.
+          {{
+            tutorial().fresh
+              ? "Progress uses confirmed state and receipt history."
+              : "Previous observations; refresh before acting."
+          }}
+        </p>
+      } @else {
+        <p>
+          Connect a player to load confirmed progress. Preview does not create
+          or save a game.
+        </p>
+      }
+      <ol class="tutorial-steps">
+        @for (step of tutorial().steps; track step.id; let n = $index) {
+          <li
+            [class.confirmed]="step.status === 'confirmed'"
+            [attr.aria-current]="
+              tutorial().current?.id === step.id ? 'step' : null
+            "
+          >
+            <span aria-hidden="true">{{
+              step.status === "confirmed" ? "✓" : n + 1
+            }}</span
+            ><strong>{{ step.title }}</strong
+            ><small>{{
+              step.status === "confirmed"
+                ? "Confirmed"
+                : step.status === "unknown"
+                  ? "History not yet established"
+                  : "Awaiting confirmed state"
+            }}</small>
+          </li>
+        }
+      </ol>
+      @if (tutorial().current; as goal) {
+        <p>
+          <strong>Goal: {{ goal.title }}.</strong> {{ goal.detail }}
+        </p>
+        @if (goal.status === "unknown") {
+          <p class="muted">{{ goal.evidence }}</p>
+        }
+      } @else {
+        <p>
+          Your second slot is confirmed. Continue with two independent batches
+          and track your realized profit in History.
+        </p>
+      }
+      <p class="muted">
+        Steps advance after finalized state or confirmed history, never from a
+        button click. Reconnect to restore these facts; missing history is not a
+        reason to repeat a purchase.
+      </p>
+      @if (goalNotice()) {
+        <p class="notice" role="status" aria-live="polite">
+          {{ goalNotice() }}
+        </p>
+      }
+    </section>
     <section id="marketplace" class="market" aria-labelledby="market-title">
       <div class="section-heading">
         <div>
@@ -429,6 +504,75 @@
       }
     </section>
     <dialog
+      #helpDialog
+      class="help-dialog"
+      aria-labelledby="how-to-play-title"
+      (close)="helpClosed()"
+    >
+      <div class="workshop-heading">
+        <h2 id="how-to-play-title">How to play Living Town</h2>
+        <button type="button" class="quiet" (click)="closeHelp()">
+          Close guide
+        </button>
+      </div>
+      <p>
+        Register, claim your shop, buy ingredients, craft and claim output, list
+        a product, confirm a sale, then earn a second production slot. Every
+        wallet approval shows the exact request; the guide never signs for you.
+      </p>
+      <ol class="help-steps">
+        @for (step of tutorial().steps; track step.id) {
+          <li>
+            <h3>{{ step.title }}</h3>
+            <p>{{ step.detail }}</p>
+            <small>{{ step.evidence }}</small>
+          </li>
+        }
+      </ol>
+      <h3>Game gold and native NEAR</h3>
+      <p>
+        Game gold is non-redeemable and stays in the town economy. Native
+        Testnet NEAR pays wallet/network fees separately; a failed transaction
+        can still burn native gas. History separates grants, purchases, upgrade
+        burns and realized trading profit.
+      </p>
+      <h3>Waiting, unsold goods and restocking</h3>
+      <p>
+        Production inputs are consumed at Start. The whole batch becomes
+        claimable after its pinned network time; there is no cancellation or
+        refund. A browser countdown is an estimate: refresh for finalized
+        readiness.
+      </p>
+      <p>
+        Listed goods stay reserved. Overpriced goods have no baseline customer
+        demand. Affordable goods can still wait for shared budgets, quotas and
+        competing offers. Compare prices or cancel/relist through the normal
+        owner review; only confirmed History proves a sale.
+      </p>
+      <p>
+        Suppliers restock through bounded town supply. Stock, capacity, market
+        events and the town worker affect replenishment. Empty shelves can
+        persist; refresh and compare other recipes instead of assuming another
+        click creates stock.
+      </p>
+      <h3>Pending or unknown wallet outcome</h3>
+      <p>
+        Closing a wallet or refreshing the page does not prove failure. Open the
+        saved original request in your manager, check its transaction or verify
+        its original hash. Do not create a replacement while the outcome is
+        unknown. Cancelling a prepared request applies only before wallet
+        handoff.
+      </p>
+      <h3>Returning to your shop</h3>
+      <p>
+        Reconnect the same account and town. Progress is rebuilt from finalized
+        shop facts and confirmed receipt history, not a local completion flag.
+        Load more History when older proof is missing. A confirmed later
+        production, listing, sale or upgrade can establish earlier workflow
+        prerequisites without asking you to buy twice.
+      </p>
+    </dialog>
+    <dialog
       #purchaseDialog
       class="purchase-dialog"
       aria-labelledby="purchase-title"
@@ -501,6 +645,9 @@
             (click)="screen.controller.refresh()"
           >
             Refresh confirmed data
+          </button>
+          <button class="quiet" type="button" (click)="openHelp()">
+            How to play
           </button>
           <button
             type="button"

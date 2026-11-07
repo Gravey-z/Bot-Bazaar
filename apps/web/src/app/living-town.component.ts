@@ -41,10 +41,10 @@ import {
   ownedTownObservation,
   townHud,
   townMode,
-  nextTownAction,
   townMarketComparisons,
 } from "./living-town-layout";
 import type { TownManagerTab } from "./living-town-layout";
+import { firstLoopTutorial, TutorialGoalTracker } from "./living-town-tutorial";
 
 @Injectable()
 export class LivingTownScreen {
@@ -80,6 +80,13 @@ export class LivingTownComponent implements OnInit, OnDestroy {
   private managerDialog?: ElementRef<HTMLDialogElement>;
   @ViewChild("purchaseDialog")
   private purchaseDialog?: ElementRef<HTMLDialogElement>;
+  @ViewChild("helpDialog") private helpDialog?: ElementRef<HTMLDialogElement>;
+  private helpOpener: HTMLElement | null = null;
+  protected readonly goalNotice = signal("");
+  protected readonly tutorial = computed(() => {
+    this.elapsedMs();
+    return firstLoopTutorial(this.state(), this.screen.setup.kind, Date.now());
+  });
   private managerOpener: HTMLElement | null = null;
   private purchaseOpener: HTMLElement | null = null;
   protected readonly modeLabel = computed(() =>
@@ -90,8 +97,7 @@ export class LivingTownComponent implements OnInit, OnDestroy {
     return townHud(this.state(), Date.now());
   });
   protected readonly nextAction = computed(() => {
-    this.elapsedMs();
-    return nextTownAction(this.state(), this.screen.setup.kind, Date.now());
+    return this.tutorial().action;
   });
   protected readonly comparisons = computed(() => {
     this.elapsedMs();
@@ -253,6 +259,7 @@ export class LivingTownComponent implements OnInit, OnDestroy {
         this.productionReview.set(null);
         this.managerDialog?.nativeElement.close();
         this.purchaseDialog?.nativeElement.close();
+        this.helpDialog?.nativeElement.close();
       }
     });
     let pendingId: string | undefined;
@@ -271,6 +278,56 @@ export class LivingTownComponent implements OnInit, OnDestroy {
         previousObservation = observation;
         this.observationAnchor = performance.now();
         this.elapsedMs.set(0);
+      }
+    });
+    const goals = new TutorialGoalTracker();
+    let goalScope: string | null = null;
+    effect(() => {
+      const view = this.tutorial(),
+        notice = goals.observe(view);
+      if (
+        view.scope !== goalScope ||
+        !view.scope ||
+        !view.fresh ||
+        view.blocked
+      ) {
+        goalScope = view.scope;
+        this.goalNotice.set("");
+      } else if (notice) this.goalNotice.set(notice);
+    });
+    let historyScope: string | null = null,
+      lastHistoryRequest = 0;
+    effect(() => {
+      const view = this.tutorial(),
+        state = this.state(),
+        shop = ownedTownObservation(state)?.shop;
+      if (!view.scope || !shop) {
+        historyScope = null;
+        return;
+      }
+      const changed = historyScope !== view.scope;
+      if (changed) {
+        historyScope = view.scope;
+        lastHistoryRequest = 0;
+      }
+      const now = Date.now(),
+        history = state.history;
+      if (
+        view.completed === view.steps.length ||
+        !view.fresh ||
+        state.historyBusy ||
+        (!changed && now - lastHistoryRequest < 15000)
+      )
+        return;
+      if (
+        changed ||
+        !history ||
+        history.shopId !== shop.shop_id ||
+        history.stale ||
+        now - history.receivedAt >= 15000
+      ) {
+        lastHistoryRequest = now;
+        void this.screen.controller.loadHistory();
       }
     });
   }
@@ -458,6 +515,7 @@ export class LivingTownComponent implements OnInit, OnDestroy {
     document.getElementById(`shop-tab-${this.tabs[next]!.id}`)?.focus();
   }
   protected openManager(tab: Tab = "overview"): void {
+    this.helpDialog?.nativeElement.close();
     const dialog = this.managerDialog?.nativeElement;
     this.tab.set(tab);
     if (!dialog || dialog.open) return;
@@ -477,6 +535,7 @@ export class LivingTownComponent implements OnInit, OnDestroy {
     this.tab.set("overview");
     if (
       !this.purchaseDialog?.nativeElement.open &&
+      !this.helpDialog?.nativeElement.open &&
       this.managerOpener?.isConnected
     )
       this.managerOpener.focus();
@@ -490,6 +549,7 @@ export class LivingTownComponent implements OnInit, OnDestroy {
     this.selected.set(null);
     if (
       !this.managerDialog?.nativeElement.open &&
+      !this.helpDialog?.nativeElement.open &&
       this.purchaseOpener?.isConnected
     )
       this.purchaseOpener.focus();
@@ -503,5 +563,29 @@ export class LivingTownComponent implements OnInit, OnDestroy {
         .getElementById("marketplace")
         ?.scrollIntoView({ block: "start" });
     else this.openManager(action.tab);
+  }
+  protected openHelp(): void {
+    const dialog = this.helpDialog?.nativeElement;
+    if (!dialog || dialog.open) return;
+    this.helpOpener =
+      document.activeElement instanceof HTMLElement
+        ? document.activeElement
+        : null;
+    dialog.showModal();
+  }
+  protected closeHelp(): void {
+    this.helpDialog?.nativeElement.close();
+  }
+  protected helpClosed(): void {
+    if (this.helpDialog?.nativeElement.open || !this.helpOpener?.isConnected)
+      return;
+    const manager = this.managerDialog?.nativeElement,
+      purchase = this.purchaseDialog?.nativeElement;
+    if (
+      (manager?.open && !manager.contains(this.helpOpener)) ||
+      (purchase?.open && !purchase.contains(this.helpOpener))
+    )
+      return;
+    this.helpOpener.focus();
   }
 }
