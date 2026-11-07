@@ -42,6 +42,7 @@ import {
   livingTownSnapshot,
   livingTownFoundation,
   livingTownLedger,
+  livingTownUpgrade,
   livingTownListing,
   livingTownOwnershipEffect,
   livingTownPlayer,
@@ -138,6 +139,7 @@ const commandLookup = (v: unknown) => {
       kind: choice(["found"] as const),
       high_water: positiveU64,
       method: choice([
+        "purchase_upgrade",
         "assistant_reprice",
         "set_assistant_permissions",
         "schedule_market_event",
@@ -288,6 +290,34 @@ export class FinalizedLivingTownReader {
   }
   getFoundation(): Promise<Snapshot<ReturnType<typeof livingTownFoundation>>> {
     return this.view("get_foundation", {}, livingTownFoundation);
+  }
+  async getUpgrade(
+    id: string,
+  ): Promise<Snapshot<ReturnType<typeof livingTownUpgrade>>> {
+    const shopId = positiveU64(id),
+      foundation = await this.getFoundation();
+    check(
+      foundation.data.supported_methods.includes("get_upgrade"),
+      "upgrade unsupported by this artifact",
+    );
+    const shop = await this.getShop(shopId),
+      result = await this.view(
+        "get_upgrade",
+        { shop_id: shopId },
+        livingTownUpgrade,
+      );
+    check(
+      shop.data?.owner.kind === "player" &&
+        result.data.shop_id === shopId &&
+        result.data.shop_revision === shop.data.revision &&
+        result.data.production_slots === shop.data.production_slots &&
+        (!result.data.eligible ||
+          (result.data.completed_both &&
+            result.data.sold_both &&
+            result.data.production_slots === "1")),
+      "upgrade finalized identity/revision mismatch",
+    );
+    return result;
   }
   async getAssistantPolicy(
     id: string,
@@ -479,6 +509,7 @@ export class FinalizedLivingTownReader {
             (
               {
                 player_registered: "register_player",
+                upgrade_purchased: "purchase_upgrade",
                 assistant_policy_set: "set_assistant_permissions",
                 assistant_repriced: "assistant_reprice",
                 shop_created: "create_shop",

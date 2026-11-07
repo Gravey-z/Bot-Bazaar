@@ -183,10 +183,13 @@ pub(crate) struct Shop {
     pub created_at_ns: u64,
     pub creation_sequence: u64,
     pub assistant: super::assistant::Policy,
+    pub production_slots: u8,
+    pub completed_products: u8,
+    pub sold_products: u8,
 }
 impl Shop {
     pub(super) fn view(&self) -> Value {
-        json!({"shop_id":self.id.to_string(),"owner":{"kind":"player","account_id":self.owner},"name":self.name,"revision":self.revision.to_string(),"production_slots":"1","policy_revision":self.assistant.revision.to_string(),"created_at_ns":self.created_at_ns.to_string(),"ownership_command_sequence":self.creation_sequence.to_string()})
+        json!({"shop_id":self.id.to_string(),"owner":{"kind":"player","account_id":self.owner},"name":self.name,"revision":self.revision.to_string(),"production_slots":self.production_slots.to_string(),"policy_revision":self.assistant.revision.to_string(),"created_at_ns":self.created_at_ns.to_string(),"ownership_command_sequence":self.creation_sequence.to_string()})
     }
 }
 #[near(serializers = [borsh])]
@@ -204,10 +207,12 @@ pub(crate) enum Outcome {
     MarketEvent(super::market_events::MarketEvent),
     AssistantPolicy(Shop),
     AssistantRepriced(super::assistant::Repriced),
+    Upgrade(Box<super::upgrades::Purchased>),
 }
 impl Outcome {
     fn method(&self) -> &'static str {
         match self {
+            Self::Upgrade(_) => "purchase_upgrade",
             Self::AssistantPolicy(_) => "set_assistant_permissions",
             Self::AssistantRepriced(_) => "assistant_reprice",
             Self::MarketEvent(_) => "schedule_market_event",
@@ -236,6 +241,7 @@ impl Outcome {
     }
     fn view(&self) -> Value {
         match self {
+            Self::Upgrade(p) => p.view(),
             Self::AssistantPolicy(s) => {
                 json!({"kind":"assistant_policy_set","policy":s.assistant.view(s.id),"shop":s.view()})
             }
@@ -422,6 +428,7 @@ impl LivingTown {
         self.trades.flush();
         self.jobs.flush();
         self.active_jobs.flush();
+        self.second_active_jobs.flush();
         self.player_listings.flush();
         self.listing_slots.flush();
         self.listing_index.flush();
@@ -551,6 +558,9 @@ impl LivingTown {
             created_at_ns: env::block_timestamp(),
             creation_sequence: command.sequence.0,
             assistant: super::assistant::Policy::default(),
+            production_slots: 1,
+            completed_products: 0,
+            sold_products: 0,
         };
         self.players.get_mut(&actor).expect("player").shop_id = Some(id);
         self.shops.insert(id, shop.clone());

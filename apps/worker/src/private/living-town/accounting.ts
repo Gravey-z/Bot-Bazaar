@@ -124,6 +124,15 @@ export class LivingTownAccounting {
         o.player.ledger.gold.held,
         "not_applicable",
       );
+    if (o.kind === "upgrade_purchased")
+      add(
+        actorKey(o.ledger.actor),
+        "upgrade_purchase",
+        null,
+        null,
+        o.gold_burned,
+        "not_applicable",
+      );
     if (o.kind === "raw_purchased") {
       add(
         actorKey(o.buyer.actor),
@@ -346,7 +355,7 @@ export class LivingTownAccounting {
       recorded_grants: sum("player_grant"),
       recorded_material_spending: sum("material_purchase"),
       recorded_sales_revenue: revenue.toString(),
-      recorded_upgrade_spending: "0",
+      recorded_upgrade_spending: sum("upgrade_purchase"),
       recorded_cogs: cogs?.toString() ?? null,
       recorded_profit: cogs === null ? null : (revenue - cogs).toString(),
       cost_history_complete: complete,

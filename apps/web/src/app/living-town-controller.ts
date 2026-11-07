@@ -34,6 +34,7 @@ export interface TownShopPage {
   receivedAt: number;
 }
 export interface TownObservation {
+  upgrade?: ReturnType<typeof import("@bot-bazaar/chain").livingTownUpgrade>;
   accountId: string | null;
   town: ReturnType<typeof livingTownTown>;
   player: TownPlayer | null;
@@ -159,6 +160,8 @@ export function describeTownAttempt(a: LivingTownAttempt): string {
     return `Start ${args.quantity} ${args.recipe_id.replaceAll("_", " ")} in shop #${args.shop_id}, recipe version ${args.recipe_version}.`;
   if (a.call.method === "register_player")
     return "Register player: one-time 100 game gold grant.";
+  if (a.call.method === "purchase_upgrade" && "shop_id" in args)
+    return `Unlock a second production slot in shop #${args.shop_id}: burn 150 game gold, retaining at least 30 available. Wallet fees use NEAR separately.`;
   if (a.call.method === "create_shop" && "name" in args)
     return `Create shop: ${args.name}.`;
   if (a.call.method === "rename_shop" && "shop_id" in args && "name" in args)

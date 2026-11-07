@@ -288,7 +288,31 @@ export function livingTownPlayer(
   );
   return result;
 }
+export const livingTownUpgrade = object({
+  shop_id: positiveU64,
+  upgrade_id: literal("second_slot"),
+  shop_revision: positiveU64,
+  production_slots: bounded(1n, 2n),
+  completed_both: boolean,
+  sold_both: boolean,
+  gold_cost: literal("150"),
+  minimum_reserve: literal("30"),
+  eligible: boolean,
+});
 const ownershipOutcome = (value: unknown) => {
+  if (
+    value &&
+    typeof value === "object" &&
+    "kind" in value &&
+    value.kind === "upgrade_purchased"
+  )
+    return object({
+      kind: literal("upgrade_purchased"),
+      upgrade_id: literal("second_slot"),
+      shop: livingTownShop,
+      ledger: livingTownLedger,
+      gold_burned: literal("150"),
+    })(value);
   if (
     value &&
     typeof value === "object" &&
@@ -347,6 +371,14 @@ export function livingTownOwnershipEffect(
         result.command_sequence,
       "V2 shop creation command mismatch",
     );
+  if (result.outcome.kind === "upgrade_purchased")
+    check(
+      result.outcome.shop.production_slots === "2" &&
+        result.outcome.ledger.actor.kind === "player" &&
+        result.outcome.ledger.actor.account_id === owner &&
+        BigInt(result.outcome.ledger.gold.available) >= 30n,
+      "V2 upgrade identity/capacity/reserve mismatch",
+    );
   return result;
 }
 export function livingTownSnapshot<T>(decode: Decoder<T>): Decoder<{
@@ -398,9 +430,11 @@ export function livingTownFoundation(
     result.item_ids.join() === livingTownItemIds.join() &&
       (result.supported_methods.join() === livingTownFoundationMethods.join() ||
         result.supported_methods.join() ===
-          livingTownFoundationMethods.slice(0, -1).join() ||
+          livingTownFoundationMethods.slice(0, -2).join() ||
         result.supported_methods.join() ===
-          livingTownFoundationMethods.slice(0, -3).join()),
+          livingTownFoundationMethods.slice(0, -3).join() ||
+        result.supported_methods.join() ===
+          livingTownFoundationMethods.slice(0, -5).join()),
     "V2 foundation capabilities/items mismatch",
   );
   const roles = [

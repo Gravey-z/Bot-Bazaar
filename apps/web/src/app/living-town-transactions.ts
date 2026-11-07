@@ -299,6 +299,20 @@ export class LivingTownTransactions {
         expiry > now &&
         expiry <= now + 600_000_000_000n,
     );
+    if (call.method === "purchase_upgrade") {
+      const a = call.args;
+      requireValue("shop_id" in a && "expected_shop_revision" in a);
+      const shop = await reader.getShop(a.shop_id),
+        status = await reader.getUpgrade(a.shop_id),
+        town = await reader.getTown();
+      requireValue(
+        !town.data.paused &&
+          shop.data?.owner.kind === "player" &&
+          shop.data.owner.account_id === account &&
+          shop.data.revision === a.expected_shop_revision &&
+          status.data.eligible,
+      );
+    }
     if (call.method === "set_assistant_permissions") {
       const a = call.args;
       requireValue(

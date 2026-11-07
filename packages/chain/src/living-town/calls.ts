@@ -48,6 +48,12 @@ const name = (v: unknown): string => {
   return v;
 };
 export const livingTownCallArguments = {
+  purchase_upgrade: object({
+    shop_id: positiveU64,
+    upgrade_id: literal("second_slot"),
+    expected_shop_revision: positiveU64,
+    command: livingTownCommand,
+  }),
   assistant_reprice: object({
     listing_id: positiveU64,
     expected_listing_revision: positiveU64,
@@ -310,6 +316,14 @@ export async function verifyLivingTownEffect(
     "V2 command effect binding mismatch",
   );
   const outcome = effect.outcome;
+  if (call.method === "purchase_upgrade")
+    check(
+      outcome.kind === "upgrade_purchased" &&
+        outcome.shop.shop_id === args["shop_id"] &&
+        BigInt(outcome.shop.revision) ===
+          BigInt(String(args["expected_shop_revision"])) + 1n,
+      "upgrade reviewed terms mismatch",
+    );
   if (call.method === "assistant_reprice") {
     check(
       outcome.kind === "assistant_repriced" &&

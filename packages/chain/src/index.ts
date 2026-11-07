@@ -31,6 +31,7 @@ export type {
   Page,
   OfferLookup,
 } from "./wire.js";
+export { livingTownUpgrade } from "./living-town/wire.js";
 export {
   assistantAuditEntry,
   assistantAuditEntries,

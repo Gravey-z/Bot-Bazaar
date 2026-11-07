@@ -35,6 +35,7 @@ const historyShape = object({
   event_sequence: positiveU64,
   kind: choice([
     "material_purchase",
+    "upgrade_purchase",
     "material_sale",
     "customer_sale",
     "player_grant",
@@ -60,7 +61,7 @@ export function livingTownHistoryEntry(
   value: unknown,
 ): ReturnType<typeof historyShape> {
   const r = historyShape(value);
-  if (r.kind === "player_grant")
+  if (r.kind === "player_grant" || r.kind === "upgrade_purchase")
     check(
       r.item_id === null &&
         r.quantity === null &&
@@ -75,6 +76,8 @@ export function livingTownHistoryEntry(
       r.item_id !== null && r.quantity !== null,
       "history item/quantity required",
     );
+  if (r.kind === "upgrade_purchase")
+    check(r.gold_amount === "150", "upgrade sink mismatch");
   if (r.kind === "material_purchase")
     check(
       r.cost_status === "known" &&

@@ -12,6 +12,7 @@ mod production;
 mod purchases;
 mod recipes;
 mod sources;
+mod upgrades;
 pub use ownership::{Command, Decimal};
 use ownership::{CommandRecord, Player, Shop};
 pub use purchases::MerchantId;
@@ -193,6 +194,8 @@ pub struct LivingTown {
     next_job_id: u64,
     jobs: LookupMap<u64, production::Job>,
     active_jobs: LookupMap<u64, u64>,
+    second_active_jobs: LookupMap<u64, u64>,
+    upgrade_burns: u128,
     recipe_inputs_consumed: [u128; 6],
     completed_outputs: [u128; 6],
     completed_jobs: std::collections::VecDeque<u64>,
@@ -235,7 +238,7 @@ impl LivingTown {
             shops.push(json!({"shop_id":(index+1).to_string(),"owner":owner,"name":(["Rex","Luna","Bolt"][index]),"revision":npc.production_revision.to_string(),"production_slots":"1","policy_revision":"1","created_at_ns":self.genesis_time_ns.to_string(),"ownership_command_sequence":null}));
             ledgers.push(purchases::npc_ledger(index, npc));
         }
-        json!({"paused":self.paused,"registered_player_count":self.registered_player_count.to_string(),"epoch":((env::block_timestamp()-self.genesis_time_ns)/60_000_000_000).to_string(),"genesis_time_ns":self.genesis_time_ns.to_string(),"npc_shops":shops,"npc_ledgers":ledgers,"customer_pool":self.customer_pool.view(self.customer_epoch()),"totals":{"initial_gold":"700","player_grants":self.issued_grants.to_string(),"customer_topups":self.customer_topups.to_string(),"upgrade_burns":"0","treasury_burns":self.treasury_burns.to_string(),"seed_items":Inventory::new([10,10,20,20,0,0]).view(),"supplied_items":Value::Object(ITEM_IDS.iter().zip(self.supplied_items).map(|(k,v)|((*k).to_owned(),json!(v.to_string()))).collect()),"recipe_inputs_consumed":Value::Object(ITEM_IDS.iter().zip(self.recipe_inputs_consumed).map(|(k,v)|((*k).to_owned(),json!(v.to_string()))).collect()),"completed_outputs":Value::Object(ITEM_IDS.iter().zip(self.completed_outputs).map(|(k,v)|((*k).to_owned(),json!(v.to_string()))).collect()),"customer_consumed":Value::Object(ITEM_IDS.iter().zip(self.customer_consumed).map(|(k,v)|((*k).to_owned(),json!(v.to_string()))).collect())},"market_event":self.market_events.back().map(market_events::MarketEvent::view),"next_shop_id":self.next_shop_id.to_string(),"next_listing_id":self.next_listing_id.to_string(),"next_job_id":self.next_job_id.to_string(),"next_offer_id":"1","next_trade_id":self.next_trade_id.to_string(),"next_market_event_id":self.next_market_event_id.to_string(),"retained_events_from":"1","limits":config()["limits"]})
+        json!({"paused":self.paused,"registered_player_count":self.registered_player_count.to_string(),"epoch":((env::block_timestamp()-self.genesis_time_ns)/60_000_000_000).to_string(),"genesis_time_ns":self.genesis_time_ns.to_string(),"npc_shops":shops,"npc_ledgers":ledgers,"customer_pool":self.customer_pool.view(self.customer_epoch()),"totals":{"initial_gold":"700","player_grants":self.issued_grants.to_string(),"customer_topups":self.customer_topups.to_string(),"upgrade_burns":self.upgrade_burns.to_string(),"treasury_burns":self.treasury_burns.to_string(),"seed_items":Inventory::new([10,10,20,20,0,0]).view(),"supplied_items":Value::Object(ITEM_IDS.iter().zip(self.supplied_items).map(|(k,v)|((*k).to_owned(),json!(v.to_string()))).collect()),"recipe_inputs_consumed":Value::Object(ITEM_IDS.iter().zip(self.recipe_inputs_consumed).map(|(k,v)|((*k).to_owned(),json!(v.to_string()))).collect()),"completed_outputs":Value::Object(ITEM_IDS.iter().zip(self.completed_outputs).map(|(k,v)|((*k).to_owned(),json!(v.to_string()))).collect()),"customer_consumed":Value::Object(ITEM_IDS.iter().zip(self.customer_consumed).map(|(k,v)|((*k).to_owned(),json!(v.to_string()))).collect())},"market_event":self.market_events.back().map(market_events::MarketEvent::view),"next_shop_id":self.next_shop_id.to_string(),"next_listing_id":self.next_listing_id.to_string(),"next_job_id":self.next_job_id.to_string(),"next_offer_id":"1","next_trade_id":self.next_trade_id.to_string(),"next_market_event_id":self.next_market_event_id.to_string(),"retained_events_from":"1","limits":config()["limits"]})
     }
 }
 #[near]
@@ -341,6 +344,8 @@ impl LivingTown {
             next_job_id: 1,
             jobs: LookupMap::new(b"lt:v2:jobs:".to_vec()),
             active_jobs: LookupMap::new(b"lt:v2:active-jobs:".to_vec()),
+            second_active_jobs: LookupMap::new(b"lt:v2:second-active-jobs:".to_vec()),
+            upgrade_burns: 0,
             recipe_inputs_consumed: [0; 6],
             completed_outputs: [0; 6],
             completed_jobs: std::collections::VecDeque::new(),
@@ -385,7 +390,7 @@ impl LivingTown {
     pub fn get_foundation(&self) -> Value {
         let _: EmptyArgs = input();
         self.assert_versions();
-        self.snapshot(json!({"owner_account_id":self.owner,"operator_account_id":self.operator,"merchant_controllers":{"rex":self.controllers[0],"luna":self.controllers[1],"bolt":self.controllers[2]},"item_ids":ITEM_IDS,"supported_methods":["initialize_town","get_foundation","get_town","register_player","create_shop","rename_shop","get_player","get_shop","get_player_shops","get_command","buy_from_merchant","get_listings","get_trade","get_shop_inventory","get_recipes","start_production","get_production_jobs","complete_production","set_listing","cancel_listing","get_source_state","get_market_events","schedule_market_event","allocate_raw_supply","sweep_merchant_treasury","fund_customer_budget","settle_customer_purchase","get_assistant_policy","set_assistant_permissions","assistant_reprice"]}))
+        self.snapshot(json!({"owner_account_id":self.owner,"operator_account_id":self.operator,"merchant_controllers":{"rex":self.controllers[0],"luna":self.controllers[1],"bolt":self.controllers[2]},"item_ids":ITEM_IDS,"supported_methods":["initialize_town","get_foundation","get_town","register_player","create_shop","rename_shop","get_player","get_shop","get_player_shops","get_command","buy_from_merchant","get_listings","get_trade","get_shop_inventory","get_recipes","start_production","get_production_jobs","complete_production","set_listing","cancel_listing","get_source_state","get_market_events","schedule_market_event","allocate_raw_supply","sweep_merchant_treasury","fund_customer_budget","settle_customer_purchase","get_assistant_policy","set_assistant_permissions","assistant_reprice","get_upgrade","purchase_upgrade"]}))
     }
 }
 

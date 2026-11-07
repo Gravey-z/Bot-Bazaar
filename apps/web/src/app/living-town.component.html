@@ -684,6 +684,40 @@
                   </button>
                 </div>
                 <p>{{ productionPolicy }}</p>
+                @if (state().observation?.upgrade; as upgrade) {
+                  <section
+                    class="production-review"
+                    aria-label="Second production slot upgrade"
+                  >
+                    @if (upgrade.production_slots === "2") {
+                      <p>
+                        Second slot unlocked. Two batches can run together; each
+                        keeps its own timing and output.
+                      </p>
+                    } @else {
+                      <h4>Unlock a second production slot</h4>
+                      <p>
+                        Burn 150 game gold and keep at least 30 available.
+                        Complete and sell both products first. Existing batches
+                        keep their original timing and output. Wallet fees use
+                        NEAR separately.
+                      </p>
+                      <p>
+                        Both products completed:
+                        {{ upgrade.completed_both ? "yes" : "still needed" }} ·
+                        Both sold:
+                        {{ upgrade.sold_both ? "yes" : "still needed" }}
+                      </p>
+                      <button
+                        type="button"
+                        [disabled]="!canAct() || !upgrade.eligible"
+                        (click)="purchaseUpgrade()"
+                      >
+                        Purchase second slot for 150 game gold
+                      </button>
+                    }
+                  </section>
+                }
                 <label class="batch-quantity" for="batch-quantity"
                   >Batch quantity
                   <input

@@ -295,6 +295,15 @@ export class LivingTownComponent implements OnInit, OnDestroy {
   protected register(): void {
     void this.screen.controller.act("register_player", {});
   }
+  protected purchaseUpgrade(): void {
+    const o = this.state().observation;
+    if (!this.canAct() || !o?.shop || !o.upgrade?.eligible) return;
+    void this.screen.controller.act("purchase_upgrade", {
+      shop_id: o.shop.shop_id,
+      upgrade_id: "second_slot",
+      expected_shop_revision: o.shop.revision,
+    });
+  }
   protected create(): void {
     if (this.nameValid())
       void this.screen.controller.act("create_shop", { name: this.shopName() });

@@ -552,12 +552,19 @@ export function createLivingTownPort(
       let shop: TownShop | null = null,
         ledger = player?.data?.ledger ?? null;
       let assistantPolicy: LivingTownAssistantPolicy | undefined;
+      let upgrade: TownObservation["upgrade"];
       const production: {
         items: ReturnType<typeof livingTownProductionJob>[];
         historyGap: boolean;
       } = { items: [], historyGap: false };
       if (player?.data?.shop_id) {
         const s = await reader.getShop(player.data.shop_id);
+        if (
+          (await reader.getFoundation()).data.supported_methods.includes(
+            "get_upgrade",
+          )
+        )
+          upgrade = (await reader.getUpgrade(player.data.shop_id)).data;
         if (
           !s.data ||
           s.data.owner.kind !== "player" ||
@@ -623,6 +630,7 @@ export function createLivingTownPort(
         town: town.data,
         player: player?.data ?? null,
         shop,
+        ...(upgrade ? { upgrade } : {}),
         ...(assistantPolicy ? { assistantPolicy } : {}),
         ...(assistantPolicy
           ? {

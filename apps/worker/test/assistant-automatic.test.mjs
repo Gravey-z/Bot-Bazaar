@@ -55,13 +55,8 @@ test("actual WASM repricing receipts bind exact SDK terms and retain original ac
   assert.equal(capture.steps[0].effect.data.outcome.listing.unit_price, "12");
   assert.equal(capture.steps[1].effect.data.replayed, true);
   assert.equal(capture.rejected.length, 12);
-  for (const name of ["web", "reader", "assistant"])
-    assert.equal(
-      JSON.parse(
-        readFileSync(`config/living-town-${name}.example.json`, "utf8"),
-      ).identity.codeHash,
-      capture.steps[0].account.code_hash,
-    );
+  // This historical artifact remains immutable. Current pins are checked against
+  // the newer actual upgrade capture in living-town-upgrade.test.mjs.
 });
 test("repricing DTO rejects spending, quantity, recipient and missing policy revision", () => {
   for (const extra of ["quantity", "recipient", "allowed_actions", "shop_id"])

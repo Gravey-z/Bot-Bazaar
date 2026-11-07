@@ -252,6 +252,7 @@ impl LivingTown {
             event,
         };
         self.players.insert(owner, seller.clone());
+        self.shops.get_mut(&shop).expect("shop").sold_products |= 1 << product;
         self.player_listings.insert(listing.id, listing.clone());
         self.customer_pool = pool.clone();
         self.customer_consumed[slot] = consumed;

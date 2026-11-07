@@ -14,6 +14,7 @@ mod living_town_recipes;
 mod living_town_reprice;
 mod living_town_sales_races;
 mod living_town_settlement;
+mod living_town_upgrade;
 
 fn wasm() -> Result<Vec<u8>> {
     std::fs::read(Path::new(

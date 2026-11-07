@@ -127,6 +127,7 @@ export function historyLabel(kind: TownHistoryEntry["kind"]): string {
     material_sale: "Materials sold",
     customer_sale: "Customer sale",
     player_grant: "Starter grant",
+    upgrade_purchase: "Second-slot upgrade (gold burned)",
     production_started: "Production started",
     production_completed: "Production completed",
   }[kind];

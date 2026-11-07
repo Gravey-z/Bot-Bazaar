@@ -486,7 +486,8 @@ impl LivingTown {
             "LT:E_PRODUCTION_NOT_READY"
         );
         require!(
-            self.active_jobs.get(&job.shop_id) == Some(&job.id),
+            self.active_jobs.get(&job.shop_id) == Some(&job.id)
+                || self.second_active_jobs.get(&job.shop_id) == Some(&job.id),
             "LT:E_INVALID_PRODUCTION_SLOT"
         );
         let ledger = match &job.owner {
@@ -496,6 +497,7 @@ impl LivingTown {
                 credit(&mut player.inventory, &mut player.reservations, &job.terms);
                 player.ledger_revision = next(player.ledger_revision);
                 shop.revision = next(shop.revision);
+                shop.completed_products |= 1 << (job.terms.output_item as u8 - 4);
                 let l = ValueLedger {
                     owner: job.owner.clone(),
                     gold: player.gold,
@@ -535,7 +537,11 @@ impl LivingTown {
         job.completed_at_ns = Some(env::block_timestamp());
         job.completion_revision = self.market_revision;
         job.completion_ledger = Some(ledger);
-        self.active_jobs.remove(&job.shop_id);
+        if self.active_jobs.get(&job.shop_id) == Some(&job.id) {
+            self.active_jobs.remove(&job.shop_id);
+        } else {
+            self.second_active_jobs.remove(&job.shop_id);
+        }
         self.jobs.insert(job.id, job.clone());
         self.completed_jobs.push_back(job.id);
         if self.completed_jobs.len() > 256 {
@@ -594,10 +600,11 @@ impl LivingTown {
         if let Some(value) = replay {
             return value;
         }
-        require!(
-            !self.active_jobs.contains_key(&shop_id.0),
-            "LT:E_NO_PRODUCTION_SLOT"
-        );
+        let primary_free = !self.active_jobs.contains_key(&shop_id.0);
+        let secondary_free = shop_id.0 > 3
+            && self.shops.get(&shop_id.0).expect("shop").production_slots == 2
+            && !self.second_active_jobs.contains_key(&shop_id.0);
+        require!(primary_free || secondary_free, "LT:E_NO_PRODUCTION_SLOT");
         let terms = Recipe::versioned(recipe_id, recipe_version.0).terms(
             self.config_version,
             quantity.0,
@@ -669,7 +676,11 @@ impl LivingTown {
             completion_ledger: None,
         };
         self.next_job_id = next(job.id);
-        self.active_jobs.insert(shop_id.0, job.id);
+        if primary_free {
+            self.active_jobs.insert(shop_id.0, job.id);
+        } else {
+            self.second_active_jobs.insert(shop_id.0, job.id);
+        }
         self.jobs.insert(job.id, job.clone());
         self.commit(
             actor,
@@ -717,6 +728,9 @@ impl LivingTown {
         );
         let mut ids: Vec<u64> = self.completed_jobs.iter().copied().collect();
         if let Some(id) = self.active_jobs.get(&shop_id.0) {
+            ids.push(*id);
+        }
+        if let Some(id) = self.second_active_jobs.get(&shop_id.0) {
             ids.push(*id);
         }
         ids.sort_unstable();
