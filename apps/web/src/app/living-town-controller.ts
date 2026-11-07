@@ -46,6 +46,11 @@ export interface TownObservation {
   recipes?: TownRecipe[];
 }
 export interface TownPort {
+  assistant?: {
+    authenticate(accountId: string, shopId: string): Promise<void>;
+    scope(shopId: string): Promise<unknown>;
+    logout(): void;
+  };
   watchActivity?: (changed: (state: TownLiveState) => void) => () => void;
   market?(cursor: string | null, signal?: AbortSignal): Promise<TownMarketPage>;
   history?(
@@ -202,6 +207,7 @@ export class LivingTownController {
     await this.syncAccounts();
   }
   private select(account: string | null, accounts: readonly string[]): void {
+    if (account !== this.preferredAccount) this.port?.assistant?.logout();
     this.preferredAccount = account;
     if (account !== this.value.accountId) {
       this.invalidateReads();
@@ -250,6 +256,7 @@ export class LivingTownController {
     return request;
   }
   private clearUnverifiedIdentity(): void {
+    this.port?.assistant?.logout();
     this.accountEpoch++;
     this.preferredAccount = null;
     this.browseEpoch++;
@@ -293,6 +300,7 @@ export class LivingTownController {
       }
     } catch {
       if (this.stopped || request !== this.accountEpoch) return;
+      this.port.assistant?.logout();
       this.publish({
         phase: "unavailable",
         observation: null,

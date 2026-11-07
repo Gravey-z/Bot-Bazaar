@@ -1,4 +1,5 @@
 import { LivingTownLiveFeed, TownActivityReset } from "./living-town-live";
+import { AssistantSession } from "./assistant-session";
 import type { TownLiveState } from "./living-town-live";
 import {
   LivingTownClient,
@@ -202,9 +203,21 @@ export function createLivingTownPort(
   }
   let unsubscribe: (() => void) | undefined;
   let changed: (() => void) | undefined;
+  let privateSession: AssistantSession | undefined;
+  let privateAccount: string | null = null;
+  let privateVersion = 0;
+  const invalidatePrivate = (): void => {
+    privateAccount = null;
+    privateVersion++;
+    privateSession?.invalidate();
+  };
+  const notify = (): void => {
+    invalidatePrivate();
+    changed?.();
+  };
   const initializeWallet = async (): Promise<PortWallet> => {
     const w = await getWallet();
-    if (!unsubscribe && changed) unsubscribe = w.subscribe(changed);
+    if (!unsubscribe && changed) unsubscribe = w.subscribe(notify);
     return w;
   };
   let directory:
@@ -220,6 +233,48 @@ export function createLivingTownPort(
     | undefined;
   let directoryEpoch = 0;
   return {
+    assistant: {
+      async authenticate(accountId, shopId) {
+        invalidatePrivate();
+        const version = privateVersion;
+        const w = await initializeWallet();
+        const accounts = await w.accounts();
+        if (
+          version !== privateVersion ||
+          !accounts.some((a) => a.accountId === accountId)
+        )
+          throw new Error("Wallet changed");
+        privateAccount = accountId;
+        privateSession ??= new AssistantSession(
+          globalThis.location.origin,
+          canonicalLivingTownJson(profile.identity),
+          () => ({ accountId: privateAccount, version: privateVersion }),
+          async (account, challenge) =>
+            (await getWallet()).signAssistantChallenge(account, challenge),
+          fetcher,
+        );
+        await privateSession.authenticate(shopId);
+      },
+      async scope(shopId) {
+        const version = privateVersion;
+        try {
+          const w = await initializeWallet();
+          const accounts = await w.accounts();
+          if (version !== privateVersion) throw new Error("Wallet changed");
+          if (
+            !privateAccount ||
+            !accounts.some((a) => a.accountId === privateAccount)
+          )
+            throw new Error("Wallet changed");
+          if (!privateSession) throw new Error("Assistant sign-in required");
+          return await privateSession.scope(shopId);
+        } catch (error) {
+          if (version === privateVersion) invalidatePrivate();
+          throw error;
+        }
+      },
+      logout: invalidatePrivate,
+    },
     ...(profile.public.workerUrl
       ? {
           watchActivity: (publish: (state: TownLiveState) => void) => {
@@ -278,12 +333,24 @@ export function createLivingTownPort(
       };
     },
     async accounts() {
-      return (await initializeWallet()).accounts();
+      try {
+        const accounts = await (await initializeWallet()).accounts();
+        if (
+          privateAccount &&
+          !accounts.some((a) => a.accountId === privateAccount)
+        )
+          invalidatePrivate();
+        return accounts;
+      } catch (error) {
+        invalidatePrivate();
+        throw error;
+      }
     },
     async connect() {
       return (await initializeWallet()).connect();
     },
     async disconnect() {
+      invalidatePrivate();
       await (await initializeWallet()).disconnect();
     },
     subscribe(callback) {
@@ -295,11 +362,12 @@ export function createLivingTownPort(
           event.key.startsWith("bot-bazaar:living-town:journal:") ||
           event.key.startsWith("bot-bazaar:wallet:")
         )
-          callback();
+          notify();
       };
       globalThis.window?.addEventListener("focus", callback);
       globalThis.window?.addEventListener("storage", onStorage);
       return () => {
+        invalidatePrivate();
         globalThis.window?.removeEventListener("focus", callback);
         globalThis.window?.removeEventListener("storage", onStorage);
         unsubscribe?.();

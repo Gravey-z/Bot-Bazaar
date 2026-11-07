@@ -1175,6 +1175,27 @@ test("account switch aborts old reads and late inventory cannot enter another pl
   h.c.stop();
 });
 
+test("selecting another connected account revokes assistant scope without revoking on unchanged checks", async () => {
+  const h = harness();
+  h.setStage(4);
+  h.setAccounts([f.player_id, "other.testnet"]);
+  let logouts = 0;
+  h.port.assistant = {
+    logout: () => {
+      logouts++;
+    },
+  };
+  await h.c.start();
+  const baseline = logouts;
+  await h.c.syncAccounts();
+  assert.equal(logouts, baseline);
+  await h.c.chooseAccount("other.testnet");
+  assert.equal(logouts, baseline + 1);
+  await h.c.chooseAccount(f.player_id);
+  assert.equal(logouts, baseline + 2);
+  h.c.stop();
+});
+
 test("network and deployment mismatch remove owned projections while retaining the original pending command", async () => {
   for (const reason of ["network", "genesis", "code hash", "config"]) {
     const h = harness();
@@ -1280,6 +1301,29 @@ test("pending journals isolate fresh deployments and fail closed on same-address
     await assert.rejects(async () => make(replacement).restore());
   }
   assert.deepEqual([...storage.map], before);
+});
+
+test("logout during assistant wallet lookup cannot restore a stale authentication attempt", async () => {
+  const wait = deferred();
+  let signs = 0;
+  const port = createLivingTownPort(
+    sandboxProfile(),
+    memoryStorage(),
+    receiptRpc(),
+    async () => ({
+      accounts: async () => wait.promise,
+      signAssistantChallenge: async () => {
+        signs++;
+        throw Error("Must not sign");
+      },
+    }),
+  );
+  const pending = port.assistant.authenticate(f.player_id, "1");
+  await new Promise((r) => setTimeout(r, 0));
+  port.assistant.logout();
+  wait.resolve([{ accountId: f.player_id }]);
+  await assert.rejects(pending, /Wallet changed/);
+  assert.equal(signs, 0);
 });
 
 test("a port freezes its deployment and propagates read cancellation into RPC fetch", async () => {

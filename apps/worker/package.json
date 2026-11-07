@@ -12,6 +12,7 @@
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "start": "node --env-file-if-exists=.env dist/index.js",
     "start:living-town": "node dist/living-town.js",
+    "start:assistant": "node dist/assistant.js",
     "test:signer": "node --test test/*.test.mjs"
   },
   "dependencies": {

@@ -70,6 +70,10 @@ export async function createWalletPort(
       call: LivingTownCall | LivingTownCompletionCall,
       identity: LivingTownIdentity,
     ): Promise<unknown>;
+    signAssistantChallenge(
+      accountId: string,
+      challenge: { message: string; recipient: string; nonce: string },
+    ): Promise<{ accountId: string; publicKey: string; signature: string }>;
   }
 > {
   if (config.networkId !== "testnet") throw new Error("Testnet required");
@@ -133,6 +137,32 @@ export async function createWalletPort(
     throw error;
   }
   return {
+    async signAssistantChallenge(accountId, challenge) {
+      await verifyActiveAccount(accountId);
+      if (
+        challenge.recipient !== globalThis.location.origin ||
+        challenge.message.length > 4096 ||
+        !/^[A-Za-z0-9+/]{43}=$/.test(challenge.nonce)
+      )
+        throw new Error("Invalid assistant challenge");
+      const nonce = Uint8Array.from(atob(challenge.nonce), (c) =>
+        c.charCodeAt(0),
+      );
+      if (nonce.length !== 32) throw new Error("Invalid assistant nonce");
+      const signed = await wallet
+        .signMessage({
+          network: "testnet",
+          signerId: accountId,
+          message: challenge.message,
+          recipient: challenge.recipient,
+          nonce,
+        })
+        .catch(rejectWallet);
+      await verifyActiveAccount(accountId);
+      if (signed.accountId !== accountId)
+        throw new Error("Assistant signer changed");
+      return signed;
+    },
     async accounts() {
       await verifyNetwork();
       return wallet.getAccounts({ network: "testnet" });
