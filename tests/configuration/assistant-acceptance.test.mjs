@@ -13,7 +13,7 @@ import {
 const built = await build({
   stdin: {
     contents:
-      "export {LivingTownTransactions} from './apps/web/src/app/living-town-transactions.ts'; export {AssistantPanel} from './apps/web/src/app/assistant-panel.ts';",
+      "export {LivingTownTransactions} from './apps/web/src/app/living-town-transactions.ts'; export {AssistantPanel} from './apps/web/src/app/assistant-panel.ts'; export {LivingTownController} from './apps/web/src/app/living-town-controller.ts';",
     resolveDir: process.cwd(),
   },
   bundle: true,
@@ -21,9 +21,10 @@ const built = await build({
   format: "esm",
   write: false,
 });
-const { LivingTownTransactions, AssistantPanel } = await import(
-  `data:text/javascript;base64,${Buffer.from(built.outputFiles[0].contents).toString("base64")}`
-);
+const { LivingTownTransactions, AssistantPanel, LivingTownController } =
+  await import(
+    `data:text/javascript;base64,${Buffer.from(built.outputFiles[0].contents).toString("base64")}`
+  );
 const capture = JSON.parse(
   readFileSync("tests/fixtures/chain/living-town-sandbox.json", "utf8"),
 );
@@ -515,4 +516,289 @@ test("late advisory configuration refresh cannot populate a different account", 
   assert.equal(panel.state.restock, null);
   assert.equal(panel.state.revision, null);
   assert.equal(panel.state.signedIn, false);
+});
+test("Pause bypasses busy generation, clears reviews and ignores a late enabled response", async () => {
+  const f = await reviewFixture();
+  let released,
+    generations = 0,
+    revocations = 0,
+    configurations = 0;
+  let configuration = {
+    mode: "recommendations",
+    revision: f.review.proposal.config_revision,
+    paused: false,
+    pause_policy_revision: null,
+  };
+  const history = () => ({
+    configuration: structuredClone(configuration),
+    stale: false,
+    history: [{ status: "proposed", proposals: [f.review.proposal] }],
+  });
+  const old = history();
+  const port = {
+    logout() {},
+    authenticate: async () => {},
+    recommendations: async () => history(),
+    review: async () => f.review,
+    configure: async () => {
+      configurations++;
+    },
+    generate: async () => {
+      generations++;
+      return new Promise((resolve) => {
+        released = resolve;
+      });
+    },
+    pause: async () => {
+      configuration = {
+        ...configuration,
+        mode: "off",
+        revision: (BigInt(configuration.revision) + 1n).toString(),
+        paused: true,
+        pause_policy_revision: "2",
+      };
+      return history();
+    },
+  };
+  const panel = new AssistantPanel(
+    () => port,
+    async () => {},
+    () => {},
+    async () => {
+      revocations++;
+    },
+  );
+  panel.setScope(f.review.proposal.owner_account_id, f.review.proposal.shop_id);
+  await panel.signIn();
+  await panel.review(f.review.proposal.proposal_id);
+  const generation = panel.generate();
+  assert.equal(panel.state.busy, true);
+  await panel.pause();
+  assert.equal(panel.state.review, null);
+  assert.deepEqual(panel.state.proposals, []);
+  assert.equal(panel.state.pauseConfirmed, true);
+  released(old);
+  await generation;
+  assert.equal(panel.state.paused, true);
+  await panel.generate();
+  await panel.activate();
+  assert.equal(generations, 1);
+  assert.equal(configurations, 0);
+  assert.equal(revocations, 1);
+  const reloaded = new AssistantPanel(
+    () => port,
+    async () => {},
+    () => {},
+  );
+  reloaded.setScope(
+    f.review.proposal.owner_account_id,
+    f.review.proposal.shop_id,
+  );
+  await reloaded.signIn();
+  assert.equal(reloaded.state.paused, true);
+  await reloaded.activate();
+  assert.equal(configurations, 0);
+});
+test("unconfirmed worker pause still requests onchain revoke and refresh cannot silently re-enable", async () => {
+  let revocations = 0,
+    generations = 0;
+  const port = {
+    logout() {},
+    authenticate: async () => {},
+    recommendations: async () => ({
+      configuration: { mode: "recommendations", revision: "2", paused: false },
+      stale: false,
+      history: [],
+    }),
+    pause: async () => {
+      throw Error("session expired");
+    },
+    generate: async () => {
+      generations++;
+    },
+  };
+  const panel = new AssistantPanel(
+    () => port,
+    async () => {},
+    () => {},
+    async () => {
+      revocations++;
+    },
+  );
+  panel.setScope("alice.testnet", "4");
+  await panel.signIn();
+  await panel.pause();
+  assert.equal(panel.state.pauseConfirmed, false);
+  assert.equal(panel.state.signedIn, false);
+  assert.equal(revocations, 1);
+  await panel.signIn();
+  await panel.refresh();
+  await panel.generate();
+  assert.equal(panel.state.paused, true);
+  assert.equal(generations, 0);
+});
+test("late pause acknowledgment cannot update another account or revoke its shop", async () => {
+  let release,
+    revocations = 0;
+  const port = {
+    logout() {},
+    pause: async () =>
+      new Promise((resolve) => {
+        release = resolve;
+      }),
+  };
+  const panel = new AssistantPanel(
+    () => port,
+    async () => {},
+    () => {},
+    async () => {
+      revocations++;
+    },
+  );
+  panel.setScope("alice.testnet", "4");
+  const pause = panel.pause();
+  panel.setScope("bob.testnet", "5");
+  release({
+    configuration: {
+      mode: "off",
+      revision: "3",
+      paused: true,
+      pause_policy_revision: "2",
+    },
+    stale: true,
+    history: [],
+  });
+  await pause;
+  assert.equal(revocations, 0);
+  assert.equal(panel.state.paused, null);
+  assert.equal(panel.state.pausePending, false);
+});
+test("resuming is an explicit revision-bound owner operation rather than a cached toggle", async () => {
+  let resumed = 0;
+  const port = {
+    logout() {},
+    authenticate: async () => {},
+    recommendations: async () => ({
+      configuration: {
+        mode: "off",
+        revision: "3",
+        paused: true,
+        pause_policy_revision: "2",
+      },
+      stale: true,
+      history: [],
+    }),
+    resume: async (shop, revision, policy, mode) => {
+      assert.deepEqual(
+        [shop, revision, policy, mode],
+        ["4", "3", "4", "auto_reprice"],
+      );
+      resumed++;
+      return {
+        configuration: {
+          mode: "recommendations",
+          revision: "4",
+          paused: false,
+          pause_policy_revision: "2",
+        },
+        stale: false,
+        history: [],
+      };
+    },
+  };
+  const panel = new AssistantPanel(
+    () => port,
+    async () => {},
+    () => {},
+  );
+  panel.setScope("alice.testnet", "4");
+  await panel.signIn();
+  assert.equal(resumed, 0);
+  await panel.resume("auto_reprice", "4");
+  assert.equal(resumed, 1);
+  assert.equal(panel.state.paused, false);
+});
+for (const phase of ["prepared", "unknown", "submitted"])
+  test(`revoke handles ${phase} owner enable request without resending it`, async () => {
+    const owner = capture.player_id;
+    let pending = {
+        id: "original",
+        accountId: owner,
+        phase,
+        call: {
+          method: "set_assistant_permissions",
+          args: { policy: { mode: "auto_reprice" } },
+        },
+      },
+      discarded = 0,
+      revoked = 0;
+    const port = {
+      discardPrepared: async () => {
+        discarded++;
+        pending = null;
+      },
+      pending: async () => pending,
+    };
+    const c = new LivingTownController(port, () => {});
+    c.value = {
+      ...c.value,
+      accountId: owner,
+      pending,
+      observation: {
+        shop: { owner: { kind: "player", account_id: owner }, shop_id: "4" },
+        assistantPolicy: { mode: "auto_reprice", revision: "2" },
+      },
+    };
+    c.act = async (method, args) => {
+      assert.equal(method, "set_assistant_permissions");
+      assert.equal(args.policy.mode, "off");
+      revoked++;
+    };
+    await c.revokeAssistant();
+    assert.equal(discarded, phase === "prepared" ? 1 : 0);
+    assert.equal(revoked, phase === "prepared" ? 1 : 0);
+    if (phase !== "prepared") {
+      assert.equal(c.state.pending.id, "original");
+      assert.match(c.state.message, /pending/);
+    }
+  });
+test("pausing a new account never discards another owner's prepared request", async () => {
+  let discarded = 0;
+  const pending = {
+    id: "alice-request",
+    accountId: "alice.testnet",
+    phase: "prepared",
+    assistant_review: {},
+    call: { method: "set_listing" },
+  };
+  const c = new LivingTownController(
+    {
+      discardPrepared: async () => {
+        discarded++;
+      },
+    },
+    () => {},
+  );
+  c.value = {
+    ...c.value,
+    accountId: "bob.testnet",
+    pending,
+    observation: {
+      shop: {
+        shop_id: "5",
+        owner: { kind: "player", account_id: "bob.testnet" },
+      },
+      assistantPolicy: { mode: "auto_reprice", revision: "2" },
+    },
+  };
+  await c.revokeAssistant();
+  assert.equal(discarded, 0);
+  assert.equal(c.state.pending.id, "alice-request");
+  c.value.pending = null;
+  let revoked = 0;
+  c.act = async () => {
+    revoked++;
+  };
+  await c.revokeAssistant("alice.testnet", "4");
+  assert.equal(revoked, 0);
 });

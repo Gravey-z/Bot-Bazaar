@@ -24,6 +24,8 @@ export interface AssistantSettings {
   mode: string;
   revision: string;
   restock: AssistantRestockLimits;
+  paused: boolean;
+  pause_policy_revision: string | null;
 }
 export interface AssistantRecord {
   id: string;
@@ -80,18 +82,18 @@ export class AssistantStore {
         this.write(() => {
           this.db.exec(`
           CREATE TABLE metadata(singleton INTEGER PRIMARY KEY CHECK(singleton=1),identity TEXT NOT NULL,high_water INTEGER NOT NULL) STRICT;
-          CREATE TABLE settings(shop TEXT PRIMARY KEY,account TEXT NOT NULL,revision TEXT NOT NULL,mode TEXT NOT NULL CHECK(mode IN ('off','recommendations')),restock TEXT NOT NULL CHECK(length(restock)<=1024)) STRICT;
+          CREATE TABLE settings(shop TEXT PRIMARY KEY,account TEXT NOT NULL,revision TEXT NOT NULL,mode TEXT NOT NULL CHECK(mode IN ('off','recommendations')),restock TEXT NOT NULL CHECK(length(restock)<=1024),paused INTEGER NOT NULL DEFAULT 0 CHECK(paused IN (0,1)),pause_policy_revision TEXT) STRICT;
           CREATE TABLE requests(id TEXT PRIMARY KEY,account TEXT NOT NULL,shop TEXT NOT NULL,context TEXT NOT NULL,revision TEXT NOT NULL,status TEXT NOT NULL,code TEXT NOT NULL,proposals TEXT NOT NULL,started INTEGER NOT NULL,updated INTEGER NOT NULL,model_status TEXT NOT NULL DEFAULT 'not_called',payload_hash TEXT) STRICT;
           CREATE INDEX request_scope ON requests(account,shop,started);
           CREATE TABLE decisions(proposal_id TEXT PRIMARY KEY,review_id TEXT UNIQUE,account TEXT NOT NULL,shop TEXT NOT NULL,status TEXT NOT NULL CHECK(status IN ('reviewed','accepted','dismissed')),review_json TEXT,attempt_id TEXT,call_hash TEXT) STRICT;
           CREATE UNIQUE INDEX decision_attempt ON decisions(attempt_id) WHERE attempt_id IS NOT NULL;
-          PRAGMA user_version=5003;
+          PRAGMA user_version=5004;
         `);
           this.db.prepare("INSERT INTO metadata VALUES(1,?,0)").run(identity);
         });
       requireStorage(
         this.db.prepare("PRAGMA user_version").get()?.["user_version"] ===
-          5003 &&
+          5004 &&
           this.db.prepare("SELECT identity FROM metadata").get()?.[
             "identity"
           ] === identity &&
@@ -134,7 +136,7 @@ export class AssistantStore {
   settings(account: string, shop: string): AssistantSettings {
     const r = this.db
       .prepare(
-        "SELECT account,mode,revision,restock FROM settings WHERE shop=?",
+        "SELECT account,mode,revision,restock,paused,pause_policy_revision FROM settings WHERE shop=?",
       )
       .get(shop);
     requireStorage(!r || r["account"] === account, "assistant owner mismatch");
@@ -143,11 +145,18 @@ export class AssistantStore {
           mode: String(r["mode"]),
           revision: String(r["revision"]),
           restock: assistantRestockLimits(JSON.parse(String(r["restock"]))),
+          paused: r["paused"] === 1,
+          pause_policy_revision:
+            r["pause_policy_revision"] === null
+              ? null
+              : parseU64(r["pause_policy_revision"]),
         }
       : {
           mode: "off",
           revision: "1",
           restock: defaultAssistantRestockLimits(),
+          paused: false,
+          pause_policy_revision: null,
         };
   }
   configure(
@@ -175,7 +184,7 @@ export class AssistantStore {
       const revision = parseU64((BigInt(old.revision) + 1n).toString());
       this.db
         .prepare(
-          "INSERT INTO settings VALUES(?,?,?,?,?) ON CONFLICT(shop) DO UPDATE SET revision=excluded.revision,mode=excluded.mode",
+          "INSERT INTO settings(shop,account,revision,mode,restock) VALUES(?,?,?,?,?) ON CONFLICT(shop) DO UPDATE SET revision=excluded.revision,mode=excluded.mode",
         )
         .run(shop, account, revision, mode, JSON.stringify(old.restock));
       this.db
@@ -183,7 +192,7 @@ export class AssistantStore {
           "UPDATE requests SET status='expired',code='settings_changed' WHERE shop=? AND status IN ('pending','proposed')",
         )
         .run(shop);
-      return { mode, revision, restock: old.restock };
+      return { ...old, mode, revision };
     });
   }
   configureRestock(
@@ -214,7 +223,7 @@ export class AssistantStore {
       const revision = parseU64((BigInt(old.revision) + 1n).toString());
       this.db
         .prepare(
-          "INSERT INTO settings VALUES(?,?,?,?,?) ON CONFLICT(shop) DO UPDATE SET revision=excluded.revision,restock=excluded.restock",
+          "INSERT INTO settings(shop,account,revision,mode,restock) VALUES(?,?,?,?,?) ON CONFLICT(shop) DO UPDATE SET revision=excluded.revision,restock=excluded.restock",
         )
         .run(shop, account, revision, old.mode, JSON.stringify(restock));
       this.db
@@ -223,6 +232,96 @@ export class AssistantStore {
         )
         .run(shop);
       return { ...old, revision, restock };
+    });
+  }
+  isPaused(shop: string): boolean {
+    return (
+      this.db.prepare("SELECT paused FROM settings WHERE shop=?").get(shop)?.[
+        "paused"
+      ] === 1
+    );
+  }
+  pause(account: string, shop: string): AssistantSettings {
+    return this.write(() => {
+      const old = this.settings(account, shop);
+      requireStorage(
+        this.db.prepare("SELECT 1 FROM settings WHERE shop=?").get(shop) ||
+          Number(
+            this.db.prepare("SELECT count(*) AS n FROM settings").get()!["n"],
+          ) < 1000,
+        "assistant settings full",
+      );
+      const revision = parseU64((BigInt(old.revision) + 1n).toString());
+      this.db
+        .prepare(
+          "INSERT INTO settings VALUES(?,?,?,?,?,1,?) ON CONFLICT(shop) DO UPDATE SET revision=excluded.revision,mode='off',paused=1,pause_policy_revision=excluded.pause_policy_revision",
+        )
+        .run(
+          shop,
+          account,
+          revision,
+          "off",
+          JSON.stringify(old.restock),
+          old.paused ? old.pause_policy_revision : null,
+        );
+      this.db
+        .prepare(
+          "UPDATE requests SET status='expired',code='assistant_paused' WHERE shop=? AND status IN ('pending','proposed')",
+        )
+        .run(shop);
+      return {
+        ...old,
+        revision,
+        mode: "off",
+        paused: true,
+        pause_policy_revision: old.paused ? old.pause_policy_revision : null,
+      };
+    });
+  }
+  capturePausedPolicy(
+    account: string,
+    shop: string,
+    revision: string,
+    policyRevision: string,
+  ): void {
+    this.write(() => {
+      const old = this.settings(account, shop);
+      if (
+        old.paused &&
+        old.revision === revision &&
+        old.pause_policy_revision === null
+      )
+        this.db
+          .prepare("UPDATE settings SET pause_policy_revision=? WHERE shop=?")
+          .run(parseU64(policyRevision), shop);
+    });
+  }
+  resume(
+    account: string,
+    shop: string,
+    revision: string,
+    policyRevision: string,
+    automatic: boolean,
+  ): AssistantSettings {
+    return this.write(() => {
+      const old = this.settings(account, shop);
+      requireStorage(
+        old.paused && old.revision === revision,
+        "explicit current paused revision required",
+      );
+      requireStorage(
+        !automatic ||
+          (old.pause_policy_revision !== null &&
+            BigInt(policyRevision) > BigInt(old.pause_policy_revision)),
+        "new owner-approved policy required after pause",
+      );
+      const next = parseU64((BigInt(old.revision) + 1n).toString());
+      this.db
+        .prepare(
+          "UPDATE settings SET revision=?,mode='recommendations',paused=0 WHERE shop=?",
+        )
+        .run(next, shop);
+      return { ...old, revision: next, mode: "recommendations", paused: false };
     });
   }
   get(id: string): AssistantRecord | null {
@@ -253,7 +352,8 @@ export class AssistantStore {
       if (old) return { record: old, admitted: false };
       const setting = this.settings(r.account, r.shop);
       requireStorage(
-        (automatic || setting.mode === "recommendations") &&
+        !setting.paused &&
+          (automatic || setting.mode === "recommendations") &&
           setting.revision === r.revision,
         "assistant configuration changed",
       );
@@ -486,6 +586,7 @@ export class AssistantStore {
       requireStorage(
         d &&
           d.review &&
+          !config.paused &&
           config.mode === "recommendations" &&
           config.revision === d.review.proposal.config_revision &&
           this.proposal(account, shop, proposalId).record.status ===

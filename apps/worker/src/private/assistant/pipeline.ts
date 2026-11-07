@@ -78,6 +78,8 @@ function economicKey(f: AssistantFacts): string {
 }
 export class AssistantPipeline {
   private readonly pending = new Map<string, Promise<unknown>>();
+  private readonly controls = new Map<string, AbortController>();
+  private readonly failedStops = new Set<string>();
   private readonly clock: SafetyClock;
   constructor(
     private readonly store: AssistantStore,
@@ -116,17 +118,98 @@ export class AssistantPipeline {
     account: string,
     shop: string,
   ): Promise<AssistantFacts> {
-    return {
-      ...(await this.facts.load(account, shop)),
-      restockLimits: this.store.settings(account, shop).restock,
-    };
+    const f = await this.facts.load(account, shop),
+      settings = this.store.settings(account, shop);
+    this.checkOwner(f, account, shop);
+    if (
+      settings.paused &&
+      settings.pause_policy_revision === null &&
+      f.fresh &&
+      f.assistantPolicy &&
+      f.assistantPolicy.shop_id === shop &&
+      f.assistantPolicy.revision === f.shop.policy_revision
+    )
+      this.store.capturePausedPolicy(
+        account,
+        shop,
+        settings.revision,
+        f.assistantPolicy.revision,
+      );
+    return { ...f, restockLimits: settings.restock };
+  }
+  dispatchAllowed(shop: string): boolean {
+    try {
+      return !this.failedStops.has(shop) && !this.store.isPaused(shop);
+    } catch {
+      return false;
+    }
+  }
+  async pause(account: string, shop: string): Promise<unknown> {
+    this.store.settings(account, shop);
+    this.failedStops.add(shop);
+    this.controls.get(`${account}:${shop}`)?.abort();
+    this.store.pause(account, shop);
+    this.failedStops.delete(shop);
+    try {
+      await this.loadFacts(account, shop);
+    } catch {
+      /* The durable stop must survive unavailable authority facts. */
+    }
+    return this.view(account, shop, true);
+  }
+  async resume(
+    account: string,
+    shop: string,
+    revision: string,
+    policyRevision: string,
+    mode: "recommendations" | "auto_reprice",
+  ): Promise<unknown> {
+    requireStorage(
+      mode === "recommendations" || mode === "auto_reprice",
+      "invalid resume mode",
+    );
+    const f = await this.loadFacts(account, shop),
+      p = livingTownAssistantPolicy(f.assistantPolicy);
+    requireStorage(
+      f.fresh &&
+        !f.paused &&
+        p.revision === policyRevision &&
+        p.revision === f.shop.policy_revision,
+      "current confirmed policy required",
+    );
+    if (mode === "auto_reprice") {
+      const identity = parseLivingTownIdentity(JSON.parse(this.store.identity));
+      requireStorage(
+        p.mode === "auto_reprice" &&
+          p.operator_account_id === identity.operatorId &&
+          p.expires_at_ns !== null &&
+          BigInt(p.expires_at_ns) > BigInt(f.snapshot.block_timestamp_ns),
+        "new automatic permission required",
+      );
+    } else
+      requireStorage(
+        p.mode !== "auto_reprice",
+        "confirm onchain revocation before recommendations-only resume",
+      );
+    this.store.resume(
+      account,
+      shop,
+      revision,
+      policyRevision,
+      mode === "auto_reprice",
+    );
+    return this.view(account, shop);
   }
   async read(account: string, shop: string): Promise<unknown> {
     let stale = true;
     try {
       const f = await this.loadFacts(account, shop);
       this.checkOwner(f, account, shop);
-      stale = !f.fresh || !f.historyComplete || f.paused;
+      stale =
+        !f.fresh ||
+        !f.historyComplete ||
+        f.paused ||
+        !this.dispatchAllowed(shop);
       this.store.expire(shop, f.snapshot.block_timestamp_ns, economicKey(f));
     } catch {
       /* Retained history is not fresh acceptance authority. */
@@ -151,6 +234,8 @@ export class AssistantPipeline {
       settings = this.store.settings(account, shop);
     requireStorage(
       record.status === "proposed" &&
+        this.dispatchAllowed(shop) &&
+        !settings.paused &&
         settings.mode === "recommendations" &&
         settings.revision === proposal.config_revision,
       "assistant proposal not current",
@@ -284,12 +369,37 @@ export class AssistantPipeline {
     authorized: () => Promise<unknown>,
     signal?: AbortSignal,
   ): Promise<unknown> {
+    return this.start(account, shop, authorized, signal, false);
+  }
+  private start(
+    account: string,
+    shop: string,
+    authorized: () => Promise<unknown>,
+    signal: AbortSignal | undefined,
+    automatic: boolean,
+  ): Promise<unknown> {
+    if (
+      !this.dispatchAllowed(shop) ||
+      this.store.settings(account, shop).paused
+    )
+      return Promise.reject(new Error("assistant is paused"));
     const key = `${account}:${shop}`,
       active = this.pending.get(key);
     if (active) return active;
-    const run = this.run(account, shop, authorized, signal).finally(() =>
-      this.pending.delete(key),
-    );
+    const control = new AbortController();
+    this.controls.set(key, control);
+    const run = this.run(
+      account,
+      shop,
+      authorized,
+      signal ? AbortSignal.any([signal, control.signal]) : control.signal,
+      automatic,
+    ).finally(() => {
+      if (this.controls.get(key) === control) {
+        this.controls.delete(key);
+        this.pending.delete(key);
+      }
+    });
     this.pending.set(key, run);
     return run;
   }
@@ -301,6 +411,7 @@ export class AssistantPipeline {
         f.fresh &&
         f.historyComplete &&
         !f.paused &&
+        this.dispatchAllowed(f.shop.shop_id) &&
         canonicalLivingTownJson(f.snapshot.deployment) ===
           canonicalLivingTownJson(identity.deployment) &&
         p.shop_id === f.shop.shop_id &&
@@ -327,15 +438,7 @@ export class AssistantPipeline {
       this.automaticAllowed(f),
       "automatic assistant permission unavailable",
     );
-    const key = `${account}:${shop}`;
-    let run = this.pending.get(key);
-    if (!run) {
-      run = this.run(account, shop, authorized, undefined, true).finally(() =>
-        this.pending.delete(key),
-      );
-      this.pending.set(key, run);
-    }
-    await run;
+    await this.start(account, shop, authorized, undefined, true);
     return this.store
       .history(account, shop)
       .filter((r) => r.status === "proposed")
@@ -352,7 +455,7 @@ export class AssistantPipeline {
     await authorized();
     const settings = this.store.settings(account, shop);
     requireStorage(
-      automatic || settings.mode === "recommendations",
+      !settings.paused && (automatic || settings.mode === "recommendations"),
       "assistant is off",
     );
     const started = this.clock.now();
@@ -441,6 +544,7 @@ export class AssistantPipeline {
           (automatic
             ? this.automaticAllowed(current)
             : config.mode === "recommendations") &&
+          !config.paused &&
           config.revision === settings.revision &&
           current.fresh &&
           current.historyComplete &&
@@ -477,6 +581,7 @@ export class AssistantPipeline {
           (automatic
             ? this.automaticAllowed(f)
             : activeSettings.mode === "recommendations") &&
+          !activeSettings.paused &&
           activeSettings.revision === settings.revision,
         "assistant admission revoked",
       );

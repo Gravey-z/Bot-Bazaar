@@ -333,6 +333,19 @@ export function createLivingTownPort(
         await this.scope(shopId);
         return privateSession!.generate(shopId);
       },
+      async pause(shopId) {
+        await this.scope(shopId);
+        return privateSession!.pause(shopId);
+      },
+      async resume(shopId, expectedRevision, policyRevision, mode) {
+        await this.scope(shopId);
+        return privateSession!.resume(
+          shopId,
+          expectedRevision,
+          policyRevision,
+          mode,
+        );
+      },
       async configure(shopId, mode) {
         await this.scope(shopId);
         return privateSession!.configure(shopId, mode);

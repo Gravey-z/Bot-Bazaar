@@ -20,6 +20,10 @@ export interface AssistantPanelState {
   review: AssistantManualReview | null;
   restock: AssistantRestockLimits | null;
   revision: string | null;
+  paused: boolean | null;
+  pausePolicyRevision: string | null;
+  pausePending: boolean;
+  pauseConfirmed: boolean;
 }
 const initial: AssistantPanelState = {
   signedIn: false,
@@ -31,15 +35,21 @@ const initial: AssistantPanelState = {
   review: null,
   restock: null,
   revision: null,
+  paused: null,
+  pausePolicyRevision: null,
+  pausePending: false,
+  pauseConfirmed: false,
 };
 export class AssistantPanel {
   private scope: { account: string; shop: string } | null = null;
   private version = 0;
+  private locallyPaused = false;
   private value: AssistantPanelState = { ...initial };
   constructor(
     private readonly port: () => Port | undefined,
     private readonly transact: (review: AssistantManualReview) => Promise<void>,
     private readonly changed: (state: AssistantPanelState) => void,
+    private readonly revoke?: (account: string, shop: string) => Promise<void>,
   ) {}
   get state(): AssistantPanelState {
     return this.value;
@@ -52,6 +62,7 @@ export class AssistantPanel {
     if (account === this.scope?.account && shop === this.scope?.shop) return;
     this.port()?.logout();
     this.version++;
+    this.locallyPaused = false;
     this.scope = account && shop ? { account, shop } : null;
     this.value = { ...initial };
     this.changed(this.value);
@@ -77,9 +88,15 @@ export class AssistantPanel {
     this.publish({
       mode: h.mode,
       stale: h.stale,
-      proposals: h.proposals.filter((p) => !closed.has(p.proposal_id)),
+      proposals:
+        h.paused || this.locallyPaused
+          ? []
+          : h.proposals.filter((p) => !closed.has(p.proposal_id)),
       restock: h.restock,
       revision: h.revision,
+      paused: this.locallyPaused ? true : h.paused,
+      pausePolicyRevision: h.pausePolicyRevision,
+      pauseConfirmed: h.paused === true,
     });
   }
   private async work(
@@ -125,6 +142,7 @@ export class AssistantPanel {
     });
   }
   async activate(): Promise<void> {
+    if (this.value.paused) return;
     return this.work(async (p, s) => {
       const v = this.version;
       await p.configure!(s.shop, "recommendations");
@@ -134,6 +152,7 @@ export class AssistantPanel {
     });
   }
   async generate(): Promise<void> {
+    if (this.value.paused) return;
     return this.work(async (p, s) => {
       const v = this.version;
       const h = await p.generate!(s.shop);
@@ -172,6 +191,7 @@ export class AssistantPanel {
     });
   }
   async review(id: string): Promise<void> {
+    if (this.value.paused) return;
     return this.work(async (p, s) => {
       const v = this.version;
       if (
@@ -204,6 +224,7 @@ export class AssistantPanel {
     });
   }
   async accept(): Promise<void> {
+    if (this.value.paused) return;
     const review = this.value.review;
     if (!review) return;
     return this.work(async (p, s) => {
@@ -213,6 +234,73 @@ export class AssistantPanel {
       this.publish({ review: null });
       const h = await p.recommendations!(s.shop);
       if (v === this.version) this.history(h);
+    });
+  }
+  async pause(): Promise<void> {
+    if (!this.scope || this.value.pausePending) return;
+    const scope = this.scope,
+      version = ++this.version,
+      port = this.port();
+    this.locallyPaused = true;
+    this.publish({
+      paused: true,
+      pausePending: true,
+      pauseConfirmed: false,
+      busy: true,
+      proposals: [],
+      review: null,
+      stale: true,
+      message:
+        "Pause requested. Worker confirmation and onchain revocation are pending.",
+    });
+    try {
+      if (!port?.pause) throw new Error("Worker pause unavailable");
+      const h = await port.pause(scope.shop);
+      if (version !== this.version) return;
+      this.history(h);
+      if (!this.value.pauseConfirmed)
+        throw new Error("Worker pause unconfirmed");
+      this.publish({
+        message:
+          "Worker paused. Onchain revocation remains pending until finalized; already-submitted transactions may still settle.",
+      });
+    } catch {
+      if (version !== this.version) return;
+      this.publish({
+        paused: true,
+        signedIn: false,
+        pauseConfirmed: false,
+        message:
+          "Worker pause could not be confirmed. Revoke onchain permission to stop independent dispatch; transactions already handed to the wallet or submitted may still settle.",
+      });
+    }
+    try {
+      if (version === this.version)
+        await this.revoke?.(scope.account, scope.shop);
+    } finally {
+      if (version === this.version)
+        this.publish({ busy: false, pausePending: false });
+    }
+  }
+  async resume(
+    mode: "recommendations" | "auto_reprice",
+    policyRevision: string,
+  ): Promise<void> {
+    if (!this.value.paused || !this.value.signedIn || !this.value.revision)
+      return;
+    return this.work(async (p, s) => {
+      const v = this.version,
+        h = await p.resume!(s.shop, this.value.revision!, policyRevision, mode);
+      if (v === this.version) {
+        if (assistantHistory(h).paused !== false)
+          throw new Error("Resume not confirmed");
+        this.locallyPaused = false;
+        this.history(h);
+        this.publish({
+          review: null,
+          message: "Assistant resumed by explicit owner approval.",
+        });
+      }
     });
   }
 }

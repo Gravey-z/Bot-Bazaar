@@ -230,6 +230,21 @@ export class AssistantSession {
   async generate(shopId: string): Promise<unknown> {
     return this.operation(shopId, "generate");
   }
+  async pause(shopId: string): Promise<unknown> {
+    return this.operation(shopId, "pause");
+  }
+  async resume(
+    shopId: string,
+    expectedRevision: string,
+    policyRevision: string,
+    mode: "recommendations" | "auto_reprice",
+  ): Promise<unknown> {
+    return this.operation(shopId, "resume", {
+      expectedRevision,
+      policyRevision,
+      mode,
+    });
+  }
   async configure(
     shopId: string,
     mode: "off" | "recommendations",

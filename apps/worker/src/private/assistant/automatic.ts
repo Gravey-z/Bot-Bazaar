@@ -15,6 +15,7 @@ import { requireStorage } from "../storage/validation.js";
 
 export interface AutomaticAssistant {
   readonly shopIds: readonly string[];
+  canDispatch(shop: string): boolean;
   propose(
     shop: string,
     reader: FinalizedLivingTownReader,
@@ -126,11 +127,15 @@ export function automaticAssistant(
   const ids = Object.freeze([...shopIds]);
   return {
     shopIds: ids,
+    canDispatch(shop) {
+      return ids.includes(shop) && pipeline.dispatchAllowed(shop);
+    },
     async propose(id, reader) {
       requireStorage(
         ids.includes(id),
         "shop outside automatic scheduler scope",
       );
+      if (!pipeline.dispatchAllowed(id)) return null;
       requireStorage(
         canonicalLivingTownJson(client.identity) ===
           canonicalLivingTownJson(reader.identity),
@@ -151,7 +156,8 @@ export function automaticAssistant(
               currentShop = (await fresh.getShop(id)).data,
               town = await fresh.getTown();
             requireStorage(
-              !town.data.paused &&
+              pipeline.dispatchAllowed(id) &&
+                !town.data.paused &&
                 currentShop?.owner.kind === "player" &&
                 currentShop.owner.account_id === owner &&
                 p.revision === initial.revision &&

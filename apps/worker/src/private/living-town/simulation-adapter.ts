@@ -84,7 +84,8 @@ export class LivingTownSimulationAdapter {
   ) {
     requireStorage(
       !assistant ||
-        (assistant.shopIds.length > 0 &&
+        (typeof assistant.canDispatch === "function" &&
+          assistant.shopIds.length > 0 &&
           assistant.shopIds.length <= 16 &&
           new Set(assistant.shopIds).size === assistant.shopIds.length &&
           assistant.shopIds.every(
@@ -127,6 +128,7 @@ export class LivingTownSimulationAdapter {
         lane === "operator" && this.assistant?.shopIds.includes(decision.shop),
         "assistant outside reviewed operator scope",
       );
+      if (!this.assistant!.canDispatch(decision.shop)) return null;
       return resolveAssistantReprice(
         decision.proposal,
         reader,

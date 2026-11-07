@@ -29,12 +29,17 @@ export class LivingTownAssistantComponent implements OnDestroy {
     review: null,
     restock: null,
     revision: null,
+    paused: null,
+    pausePolicyRevision: null,
+    pausePending: false,
+    pauseConfirmed: false,
   });
   private readonly scopeOwner = signal<string | null>(null);
   protected readonly panel = new AssistantPanel(
     () => this.controller().assistant,
     (r) => this.controller().acceptAssistantReview(r),
     (v) => this.view.set(v),
+    (account, shop) => this.controller().revokeAssistant(account, shop),
   );
   protected readonly ownerReady = computed(() => {
     const s = this.state();
@@ -47,6 +52,10 @@ export class LivingTownAssistantComponent implements OnDestroy {
       !s.observation.stale
     );
   });
+  protected readonly canPause = computed(
+    () =>
+      !!this.state().accountId && this.scopeOwner() === this.state().accountId,
+  );
   protected readonly canAccept = computed(() => {
     this.elapsedMs();
     const s = this.state(),
@@ -54,6 +63,7 @@ export class LivingTownAssistantComponent implements OnDestroy {
       r = this.view().review;
     if (
       !r ||
+      this.view().paused ||
       !this.ownerReady() ||
       s.busy ||
       s.pending ||
@@ -96,6 +106,14 @@ export class LivingTownAssistantComponent implements OnDestroy {
   }
   protected name(item: string): string {
     return item.replaceAll("_", " ");
+  }
+  protected async resumeAssistant(
+    mode: "recommendations" | "auto_reprice",
+  ): Promise<void> {
+    const p = this.state().observation?.assistantPolicy;
+    if (!this.ownerReady() || !p || this.state().pending || this.state().busy)
+      return;
+    await this.panel.resume(mode, p.revision);
   }
   protected saveRestock(
     budget: string,

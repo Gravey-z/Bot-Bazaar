@@ -1,6 +1,7 @@
 import {
   accountId,
   array,
+  boolean,
   bounded,
   check,
   choice,
@@ -213,6 +214,8 @@ export function assistantHistory(value: unknown): {
   decisions: ReturnType<typeof assistantDecision>[];
   restock: AssistantRestockLimits | null;
   revision: string | null;
+  paused: boolean | null;
+  pausePolicyRevision: string | null;
 } {
   const r = record(value),
     config = record(r["configuration"]);
@@ -236,6 +239,12 @@ export function assistantHistory(value: unknown): {
     mode: String(config["mode"]),
     proposals,
     decisions,
+    paused: config["paused"] === undefined ? null : boolean(config["paused"]),
+    pausePolicyRevision:
+      config["pause_policy_revision"] === undefined ||
+      config["pause_policy_revision"] === null
+        ? null
+        : positiveU64(config["pause_policy_revision"]),
     restock:
       config["restock"] === undefined
         ? null

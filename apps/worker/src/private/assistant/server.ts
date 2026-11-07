@@ -74,7 +74,7 @@ export function createAssistantServer(
             authorization,
           )?.[1];
           const scope =
-            /^\/private\/assistant\/shops\/([1-9][0-9]{0,19})\/(scope|recommendations|generate|configuration|restock|review|dismiss|accept)$/.exec(
+            /^\/private\/assistant\/shops\/([1-9][0-9]{0,19})\/(scope|recommendations|generate|configuration|restock|pause|resume|review|dismiss|accept)$/.exec(
               route,
             );
           if (
@@ -107,11 +107,13 @@ export function createAssistantServer(
                 ? ["review", "attemptId", "call"]
                 : scope?.[2] === "restock"
                   ? ["expectedRevision", "limits"]
-                  : ["review", "dismiss"].includes(scope?.[2] ?? "")
-                    ? ["proposalId"]
-                    : route.endsWith("/configuration")
-                      ? ["mode"]
-                      : [];
+                  : scope?.[2] === "resume"
+                    ? ["expectedRevision", "policyRevision", "mode"]
+                    : ["review", "dismiss"].includes(scope?.[2] ?? "")
+                      ? ["proposalId"]
+                      : route.endsWith("/configuration")
+                        ? ["mode"]
+                        : [];
           if (
             !body ||
             typeof body !== "object" ||
@@ -136,7 +138,22 @@ export function createAssistantServer(
             const controller = new AbortController();
             res.once("close", () => controller.abort());
             let result: unknown;
-            if (scope[2] === "configuration") {
+            if (scope[2] === "pause")
+              result = await pipeline.pause(owner.accountId, owner.shopId);
+            else if (scope[2] === "resume") {
+              if (
+                b["mode"] !== "recommendations" &&
+                b["mode"] !== "auto_reprice"
+              )
+                throw new AssistantAuthError(400);
+              result = await pipeline.resume(
+                owner.accountId,
+                owner.shopId,
+                b["expectedRevision"]!,
+                b["policyRevision"]!,
+                b["mode"],
+              );
+            } else if (scope[2] === "configuration") {
               if (b["mode"] !== "off" && b["mode"] !== "recommendations")
                 throw new AssistantAuthError(400);
               result = pipeline.configure(

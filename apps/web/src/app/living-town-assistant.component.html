@@ -4,6 +4,82 @@
     Suggestions change nothing by themselves. Every price change or purchase
     below requires your own wallet approval.
   </p>
+  @if (canPause()) {
+    <div class="pause-control">
+      <button
+        type="button"
+        [disabled]="view().pausePending"
+        (click)="panel.pause()"
+      >
+        Pause assistant and revoke permission
+      </button>
+      <p>
+        Stops new local work and requests a durable worker pause. Your wallet
+        approval is needed to revoke onchain permission. If private sign-in has
+        expired, worker pause may be unconfirmed until you sign in again.
+      </p>
+      @if (view().paused) {
+        <p role="status">
+          {{
+            view().pauseConfirmed
+              ? "Worker pause confirmed."
+              : "Local pause requested; worker confirmation is pending."
+          }}
+          @if (
+            ownerReady() &&
+            controller().canClaim &&
+            state().observation?.assistantPolicy?.mode === "off"
+          ) {
+            Onchain permission is confirmed off.
+          } @else {
+            Revocation pending: current onchain permission remains authoritative
+            until a disable transaction is finalized.
+          }
+        </p>
+        <p>
+          A transaction already handed to the wallet or submitted may still
+          settle. Check the original transaction; pausing does not cancel an
+          already-submitted transaction or an existing wallet request.
+        </p>
+        @if (state().pending) {
+          <p>
+            Resolve the saved owner transaction before submitting revocation.
+            The original transaction will not be sent again automatically.
+          </p>
+        }
+        @if (view().signedIn && view().pauseConfirmed) {
+          @if (state().observation?.assistantPolicy?.mode !== "auto_reprice") {
+            <button
+              type="button"
+              [disabled]="view().busy || !controller().canTransact"
+              (click)="resumeAssistant('recommendations')"
+            >
+              Resume recommendations by owner approval
+            </button>
+          } @else {
+            <p>
+              To resume automatic work, first sign a new bounded policy below
+              and wait for confirmation, then explicitly resume. Pausing, reload
+              or a cached toggle cannot re-enable it.
+            </p>
+            <button
+              type="button"
+              [disabled]="
+                view().busy ||
+                !controller().canTransact ||
+                !view().pausePolicyRevision ||
+                state().observation?.assistantPolicy?.revision ===
+                  view().pausePolicyRevision
+              "
+              (click)="resumeAssistant('auto_reprice')"
+            >
+              Resume automatic repricing by owner approval
+            </button>
+          }
+        }
+      }
+    </div>
+  }
   @if (!ownerReady()) {
     <p role="status">
       Connect and load your confirmed shop to view private recommendations.
@@ -65,7 +141,7 @@
         } @else {
           <p>Automatic repricing is unavailable on this contract version.</p>
         }
-        @if (policy.mode !== "recommendations") {
+        @if (policy.mode === "off") {
           <p>
             Recommendations-only records both products with a price range of
             1–100 gold, no operator and no expiry.
@@ -87,8 +163,8 @@
           </p>
           <button
             type="button"
-            [disabled]="!controller().canClaim || view().busy"
-            (click)="controller().setAssistantPermissionMode('off')"
+            [disabled]="view().pausePending"
+            (click)="panel.pause()"
           >
             Sign disable onchain permission
           </button>
@@ -219,7 +295,7 @@
         @if (view().mode === "off") {
           <button
             type="button"
-            [disabled]="view().busy"
+            [disabled]="view().busy || !!view().paused"
             (click)="panel.activate()"
           >
             Activate free recommendations
@@ -234,7 +310,9 @@
         </button>
         <button
           type="button"
-          [disabled]="view().busy || view().mode !== 'recommendations'"
+          [disabled]="
+            view().busy || !!view().paused || view().mode !== 'recommendations'
+          "
           (click)="panel.generate()"
         >
           Generate suggestions

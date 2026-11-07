@@ -377,6 +377,65 @@ test("automatic generation shares recommendation cache and limits without a sepa
     h.pipeline.generateAutomatic(owner, "4", async () => true),
   );
 });
+test("private pause during signing expires the intent while onchain permission is still enabled", async (t) => {
+  const h = await harness(t),
+    adapter = h.f.adapters.operator,
+    prepare = adapter.prepare.bind(adapter);
+  adapter.prepare = async (call, beforeSign) =>
+    prepare(call, async () => {
+      if (call.method === "assistant_reprice")
+        await h.pipeline.pause("alice.testnet", "4");
+      await beforeSign();
+    });
+  await untilAssistant(h);
+  assert.equal(h.f.state.assistantPolicy.mode, "auto_reprice");
+  assert.equal(h.f.state.assistantListing.unit_price, "10");
+  assert.equal(h.f.store.assistantAudit("4")[0].job_status, "expired");
+  assert.equal(h.pipeline.dispatchAllowed("4"), false);
+});
+test("private pause blocks new automatic inference and records a no-op before onchain revocation", async (t) => {
+  const h = await harness(t);
+  await h.pipeline.pause("alice.testnet", "4");
+  await untilAssistant(h);
+  assert.equal(h.f.state.assistantPolicy.mode, "auto_reprice");
+  assert.equal(h.f.store.assistantAudit("4")[0].method, null);
+  assert.equal(h.assistantStore.history("alice.testnet", "4").length, 0);
+});
+test("private pause after signing prevents broadcasting the saved signed repricing bytes", async (t) => {
+  const h = await harness(t),
+    adapter = h.f.adapters.operator,
+    prepare = adapter.prepare.bind(adapter);
+  adapter.prepare = async (call, beforeSign) => {
+    const signed = await prepare(call, beforeSign);
+    if (call.method === "assistant_reprice")
+      await h.pipeline.pause("alice.testnet", "4");
+    return signed;
+  };
+  await untilAssistant(h);
+  const row = h.f.store.assistantAudit("4")[0];
+  assert.equal(row.job_status, "expired");
+  assert(row.tx_hash);
+  assert.equal(h.f.state.assistantPolicy.mode, "auto_reprice");
+  assert.equal(h.f.state.assistantListing.unit_price, "10");
+});
+test("pausing an unknown automatic transaction preserves its original hash and never resends on restart", async (t) => {
+  const h = await harness(t),
+    submit = h.f.adapters.operator.submit.bind(h.f.adapters.operator);
+  h.f.adapters.operator.submit = async (p) => {
+    if (p.call.method === "assistant_reprice") h.f.mode("timeout_before");
+    return submit(p);
+  };
+  await untilAssistant(h);
+  const original = h.f.store.assistantAudit("4")[0];
+  await h.pipeline.pause("alice.testnet", "4");
+  await h.restart();
+  const sends = h.f.stats.send;
+  assert.equal((await h.f.simulation.poll()).kind, "blocked");
+  assert.equal(h.f.stats.send, sends);
+  const current = h.f.store.assistantAudit("4")[0];
+  assert.equal(current.status, "unknown");
+  assert.equal(current.tx_hash, original.tx_hash);
+});
 
 test("automatic inference authority uses a new finalized block rather than a cached enabled policy", async (t) => {
   const h = await harness(t),
@@ -391,6 +450,7 @@ test("automatic inference authority uses a new finalized block rather than a cac
   const capability = automaticAssistant(
     ["4"],
     {
+      dispatchAllowed: () => true,
       generateAutomatic: async (_owner, _shop, authorized) => {
         h.f.state.assistantPolicy.mode = "off";
         h.f.state.assistantPolicy.revision = "3";

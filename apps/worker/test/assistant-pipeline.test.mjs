@@ -303,6 +303,48 @@ test("provider prompt contains a valid numeric JSON Schema without relaxing econ
     2,
   );
 });
+test("pause aborts an in-flight provider and ignores its late successful response without refunding reserved usage", async (t) => {
+  let release, notify, signal;
+  const ready = new Promise((resolve) => {
+    notify = resolve;
+  });
+  const f = fixture(t, {
+    invoke: async (c, facts) => {
+      signal = c.signal;
+      c.reportIdentity({ provider: "fixture", model: "fixture-model" });
+      notify();
+      return new Promise((resolve) => {
+        release = () =>
+          resolve({
+            schema: assistantSchema,
+            proposals: rulesCandidates(facts),
+          });
+      });
+    },
+  });
+  f.enable();
+  const pending = f.generate();
+  await ready;
+  const charged = f.budget.status().dailyMicro;
+  assert(charged > 0);
+  await f.runner.pause("alice.testnet", "4");
+  assert.equal(signal.aborted, true);
+  const outcome = await pending;
+  assert.equal(outcome.configuration.paused, true);
+  assert(outcome.history.every((r) => r.status !== "proposed"));
+  release();
+  await new Promise((resolve) => setImmediate(resolve));
+  assert.equal(f.budget.status().dailyMicro, charged);
+  assert.equal(f.budget.history().entries[0].status, "reserved");
+  assert(
+    f.store.history("alice.testnet", "4").every((r) => r.status !== "proposed"),
+  );
+  assert.equal(f.calls, 1);
+  assert.equal(f.runner.dispatchAllowed("4"), false);
+  f.restart();
+  assert.equal(f.runner.dispatchAllowed("4"), false);
+  await assert.rejects(f.generate());
+});
 for (const kind of ["schema", "policy", "identity", "unavailable"])
   test(`model ${kind} rejection persists audit and bounded rules fallback`, async (t) => {
     const f = fixture(t, {

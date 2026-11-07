@@ -71,6 +71,13 @@ export interface TownPort {
       expectedRevision: string,
       limits: import("@bot-bazaar/chain").AssistantRestockLimits,
     ): Promise<unknown>;
+    pause?(shopId: string): Promise<unknown>;
+    resume?(
+      shopId: string,
+      expectedRevision: string,
+      policyRevision: string,
+      mode: "recommendations" | "auto_reprice",
+    ): Promise<unknown>;
     logout(): void;
     review?(shopId: string, proposalId: string): Promise<AssistantManualReview>;
     dismiss?(shopId: string, proposalId: string): Promise<unknown>;
@@ -618,6 +625,44 @@ export class LivingTownController {
   }
   get canClaim(): boolean {
     return this.canAct(true);
+  }
+  async revokeAssistant(
+    expectedAccount?: string,
+    expectedShop?: string,
+  ): Promise<void> {
+    const account = this.value.accountId,
+      shop = this.value.observation?.shop;
+    if (
+      (expectedAccount !== undefined && account !== expectedAccount) ||
+      (expectedShop !== undefined && shop?.shop_id !== expectedShop)
+    )
+      return;
+    if (
+      !account ||
+      shop?.owner.kind !== "player" ||
+      shop.owner.account_id !== account
+    )
+      return;
+    const pending = this.value.pending;
+    if (
+      pending?.accountId === account &&
+      pending.phase === "prepared" &&
+      (pending.assistant_review ||
+        (pending.call.method === "set_assistant_permissions" &&
+          "policy" in pending.call.args &&
+          pending.call.args.policy.mode !== "off"))
+    ) {
+      await this.discardPrepared();
+    }
+    if (this.value.accountId !== account) return;
+    if (this.value.pending || this.value.busy) {
+      this.publish({
+        message:
+          "Worker pause requested. Revocation is pending: resolve the saved owner transaction first. An already-submitted transaction may still settle.",
+      });
+      return;
+    }
+    await this.setAssistantPermissionMode("off");
   }
   async setAssistantPermissionMode(
     mode: "off" | "recommendations",
