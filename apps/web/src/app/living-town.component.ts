@@ -9,6 +9,8 @@ import {
   signal,
   computed,
   effect,
+  ViewChild,
+  ElementRef,
 } from "@angular/core";
 import type { OnInit, OnDestroy } from "@angular/core";
 import { DatePipe } from "@angular/common";
@@ -33,6 +35,15 @@ import {
   itemSymbol,
 } from "./living-town-production-ui";
 import type { ProductionReview, TownRecipe } from "./living-town-production-ui";
+import {
+  shopManagerTabs,
+  ownedTownObservation,
+  townHud,
+  townMode,
+  nextTownAction,
+  townMarketComparisons,
+} from "./living-town-layout";
+import type { TownManagerTab } from "./living-town-layout";
 
 @Injectable()
 export class LivingTownScreen {
@@ -49,7 +60,7 @@ export class LivingTownScreen {
     (state) => this.state.set(state),
   );
 }
-type Tab = "overview" | "inventory" | "production" | "history" | "assistant";
+type Tab = TownManagerTab;
 type Listing = ReturnType<typeof livingTownListing>;
 @Component({
   selector: "app-root",
@@ -59,6 +70,27 @@ type Listing = ReturnType<typeof livingTownListing>;
   styleUrl: "./living-town.component.css",
 })
 export class LivingTownComponent implements OnInit, OnDestroy {
+  @ViewChild("managerDialog")
+  private managerDialog?: ElementRef<HTMLDialogElement>;
+  @ViewChild("purchaseDialog")
+  private purchaseDialog?: ElementRef<HTMLDialogElement>;
+  private managerOpener: HTMLElement | null = null;
+  private purchaseOpener: HTMLElement | null = null;
+  protected readonly modeLabel = computed(() =>
+    townMode(this.screen.setup.kind, this.state().accountId),
+  );
+  protected readonly hud = computed(() => {
+    this.elapsedMs();
+    return townHud(this.state(), Date.now());
+  });
+  protected readonly nextAction = computed(() => {
+    this.elapsedMs();
+    return nextTownAction(this.state(), this.screen.setup.kind, Date.now());
+  });
+  protected readonly comparisons = computed(() => {
+    this.elapsedMs();
+    return townMarketComparisons(this.state(), Date.now());
+  });
   protected readonly marketEvent = computed(() => {
     const t = this.state().observation?.town;
     return t?.market_event
@@ -123,19 +155,13 @@ export class LivingTownComponent implements OnInit, OnDestroy {
     { id: "luna", name: "Luna", specialty: "Herbs", color: "lilac" },
     { id: "bolt", name: "Bolt", specialty: "Wood & iron", color: "peach" },
   ] as const;
-  protected readonly tabs = [
-    { id: "overview", name: "Overview" },
-    { id: "inventory", name: "Inventory" },
-    { id: "production", name: "Production" },
-    { id: "history", name: "History" },
-    { id: "assistant", name: "Assistant" },
-  ] as const;
+  protected readonly tabs = shopManagerTabs;
   protected readonly items = computed(() => {
     const ledger = this.state().observation?.ledger;
     return ledger ? inventoryRows(ledger) : [];
   });
   protected readonly shop = computed(
-    () => this.state().observation?.shop ?? null,
+    () => ownedTownObservation(this.state())?.shop ?? null,
   );
   protected readonly reserved = computed(() => {
     const account = this.state().accountId,
@@ -219,7 +245,18 @@ export class LivingTownComponent implements OnInit, OnDestroy {
         this.tab.set("overview");
         this.batchQuantity.set("1");
         this.productionReview.set(null);
+        this.managerDialog?.nativeElement.close();
+        this.purchaseDialog?.nativeElement.close();
       }
+    });
+    let pendingId: string | undefined;
+    effect(() => {
+      const id = this.state().pending?.id;
+      if (id && id !== pendingId)
+        queueMicrotask(() => {
+          if (this.state().pending?.id === id) this.openManager();
+        });
+      pendingId = id;
     });
     let previousObservation: TownState["observation"] | undefined;
     effect(() => {
@@ -278,7 +315,18 @@ export class LivingTownComponent implements OnInit, OnDestroy {
   protected selectOffer(listing: Listing): void {
     this.selected.set(listing);
     this.quantity.set("1");
-    document.getElementById("purchase-review")?.focus();
+    this.purchaseOpener =
+      document.activeElement instanceof HTMLElement
+        ? document.activeElement
+        : null;
+    this.managerDialog?.nativeElement.close();
+    queueMicrotask(() => {
+      if (
+        this.selected()?.listing_id === listing.listing_id &&
+        !this.purchaseDialog?.nativeElement.open
+      )
+        this.purchaseDialog?.nativeElement.showModal();
+    });
   }
   protected buy(): void {
     const l = this.selected(),
@@ -291,6 +339,8 @@ export class LivingTownComponent implements OnInit, OnDestroy {
       expected_listing_revision: l.revision,
       max_total_price: q.total,
     });
+    this.closePurchase();
+    this.openManager("inventory");
   }
   protected register(): void {
     void this.screen.controller.act("register_player", {});
@@ -381,7 +431,7 @@ export class LivingTownComponent implements OnInit, OnDestroy {
       else await this.screen.controller.refresh();
       if (this.tab() === "history" && !this.state().history?.nextCursor)
         await this.screen.controller.loadHistory();
-      else if (this.tab() === "inventory" && !this.state().market?.nextCursor)
+      else if (this.tab() === "listings" && !this.state().market?.nextCursor)
         await this.screen.controller.loadMarket();
     })();
   }
@@ -400,5 +450,52 @@ export class LivingTownComponent implements OnInit, OnDestroy {
     event.preventDefault();
     this.tab.set(this.tabs[next]!.id);
     document.getElementById(`shop-tab-${this.tabs[next]!.id}`)?.focus();
+  }
+  protected openManager(tab: Tab = "overview"): void {
+    const dialog = this.managerDialog?.nativeElement;
+    this.tab.set(tab);
+    if (!dialog || dialog.open) return;
+    this.purchaseDialog?.nativeElement.close();
+    this.managerOpener =
+      document.activeElement instanceof HTMLElement
+        ? document.activeElement
+        : null;
+    dialog.showModal();
+  }
+  protected closeManager(): void {
+    this.managerDialog?.nativeElement.close();
+  }
+  protected managerClosed(): void {
+    if (this.managerDialog?.nativeElement.open) return;
+    this.productionReview.set(null);
+    this.tab.set("overview");
+    if (
+      !this.purchaseDialog?.nativeElement.open &&
+      this.managerOpener?.isConnected
+    )
+      this.managerOpener.focus();
+  }
+  protected closePurchase(): void {
+    this.purchaseDialog?.nativeElement.close();
+    this.selected.set(null);
+  }
+  protected purchaseClosed(): void {
+    if (this.purchaseDialog?.nativeElement.open) return;
+    this.selected.set(null);
+    if (
+      !this.managerDialog?.nativeElement.open &&
+      this.purchaseOpener?.isConnected
+    )
+      this.purchaseOpener.focus();
+  }
+  protected followNextAction(): void {
+    const action = this.nextAction();
+    if (action.target === "connect") void this.screen.controller.connect();
+    else if (action.target === "refresh") void this.screen.controller.refresh();
+    else if (action.target === "market")
+      document
+        .getElementById("marketplace")
+        ?.scrollIntoView({ block: "start" });
+    else this.openManager(action.tab);
   }
 }
