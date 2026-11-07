@@ -114,6 +114,11 @@ const costSummary = object({
   recorded_upgrade_spending: parseLivingTownU128,
   recorded_cogs: nullable(parseLivingTownU128),
   recorded_profit: nullable(signedCost),
+  recorded_cash_change: signedCost,
+  unsold_inventory_cost: nullable(parseLivingTownU128),
+  work_in_progress_cost: nullable(parseLivingTownU128),
+  recorded_native_fees_yocto: nullable(parseLivingTownU128),
+  native_fee_history_complete: boolean,
   cost_history_complete: boolean,
   through_event_sequence: parseU64,
   gap_from_sequence: nullable(positiveU64),
@@ -122,6 +127,23 @@ export function livingTownCostSummary(
   value: unknown,
 ): ReturnType<typeof costSummary> {
   const r = costSummary(value);
+  check(
+    BigInt(r.recorded_cash_change) ===
+      BigInt(r.recorded_grants) +
+        BigInt(r.recorded_sales_revenue) -
+        BigInt(r.recorded_material_spending) -
+        BigInt(r.recorded_upgrade_spending),
+    "recorded cash flow mismatch",
+  );
+  check(
+    r.native_fee_history_complete === (r.recorded_native_fees_yocto !== null),
+    "unknown native fee history must remain unknown",
+  );
+  check(
+    r.cost_history_complete ||
+      (r.unsold_inventory_cost === null && r.work_in_progress_cost === null),
+    "incomplete inventory costs must remain unknown",
+  );
   check(
     r.cost_history_complete
       ? r.gap_from_sequence === null

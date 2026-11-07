@@ -3,6 +3,7 @@ import {
   canonicalLivingTownJson,
   livingTownHistoryEntry,
   livingTownCostSummary,
+  parseLivingTownU128,
 } from "@bot-bazaar/chain";
 import type {
   LivingTownIndexedReceipt,
@@ -36,6 +37,42 @@ const json = canonicalLivingTownJson;
 /** Runs only inside the projection's receipt/event transaction. Balances are independent. */
 export class LivingTownAccounting {
   constructor(private readonly db: DatabaseSync) {}
+  recordFee(
+    indexed: LivingTownIndexedReceipt | LivingTownIndexedCompletion,
+  ): void {
+    let amount: string | null = null;
+    try {
+      const r = indexed.response as {
+        transaction_outcome: { outcome: { tokens_burnt: unknown } };
+        receipts_outcome: { outcome: { tokens_burnt: unknown } }[];
+      };
+      requireStorage(
+        r &&
+          Array.isArray(r.receipts_outcome) &&
+          r.receipts_outcome.length <= 128,
+        "missing bounded receipt gas accounting",
+      );
+      amount = parseLivingTownU128(
+        [r.transaction_outcome, ...r.receipts_outcome]
+          .reduce(
+            (sum, row) =>
+              sum + BigInt(parseLivingTownU128(row.outcome.tokens_burnt)),
+            0n,
+          )
+          .toString(),
+      );
+    } catch {
+      /* Missing/malformed gas amounts are unknown, never zero. */
+    }
+    this.db
+      .prepare("INSERT INTO projection_fees VALUES(?,?,?,?)")
+      .run(
+        indexed.proof.transactionHash,
+        `account:${indexed.proof.signerId}`,
+        indexed.status.block.height,
+        amount,
+      );
+  }
   through(): string {
     return String(
       this.db.prepare("SELECT through_sequence FROM cost_cursor").get()![
@@ -335,6 +372,7 @@ export class LivingTownAccounting {
   summary(
     actor: string,
     through: string,
+    height = "18446744073709551615",
   ): ReturnType<typeof livingTownCostSummary> {
     const rows = this.history(actor, through),
       sales = rows.filter(
@@ -351,6 +389,35 @@ export class LivingTownAccounting {
         sales.every((r) => r.cogs !== null),
       cogs = known ? sales.reduce((n, r) => n + BigInt(r.cogs!), 0n) : null;
     const complete = BigInt(this.through()) >= BigInt(through);
+    const atCheckpoint =
+      this.through() === through &&
+      !!this.db
+        .prepare("SELECT actor FROM cost_actors WHERE actor=?")
+        .get(actor);
+    const inventory = atCheckpoint
+      ? costTotal(livingTownItemIds.flatMap((item) => this.units(actor, item)))
+      : null;
+    const jobs = this.db
+      .prepare("SELECT body FROM cost_jobs WHERE actor=?")
+      .all(actor)
+      .map(
+        (r) =>
+          JSON.parse(String(r["body"])) as {
+            cost: string | null;
+            completed: boolean;
+          },
+      )
+      .filter((j) => !j.completed);
+    const wip =
+      atCheckpoint && jobs.every((j) => j.cost !== null)
+        ? jobs.reduce((sum, j) => sum + BigInt(j.cost!), 0n).toString()
+        : null;
+    const fees = this.db
+      .prepare("SELECT amount,block_height FROM projection_fees WHERE actor=?")
+      .all(actor)
+      .filter((r) => BigInt(String(r["block_height"])) <= BigInt(height));
+    const feesKnown =
+      actor.startsWith("account:") && fees.every((r) => r["amount"] !== null);
     return livingTownCostSummary({
       recorded_grants: sum("player_grant"),
       recorded_material_spending: sum("material_purchase"),
@@ -358,6 +425,20 @@ export class LivingTownAccounting {
       recorded_upgrade_spending: sum("upgrade_purchase"),
       recorded_cogs: cogs?.toString() ?? null,
       recorded_profit: cogs === null ? null : (revenue - cogs).toString(),
+      recorded_cash_change: (
+        BigInt(sum("player_grant")) +
+        revenue -
+        BigInt(sum("material_purchase")) -
+        BigInt(sum("upgrade_purchase"))
+      ).toString(),
+      unsold_inventory_cost: inventory,
+      work_in_progress_cost: wip,
+      recorded_native_fees_yocto: feesKnown
+        ? fees
+            .reduce((sum, r) => sum + BigInt(String(r["amount"])), 0n)
+            .toString()
+        : null,
+      native_fee_history_complete: feesKnown,
       cost_history_complete: complete,
       through_event_sequence:
         BigInt(this.through()) < BigInt(through) ? this.through() : through,

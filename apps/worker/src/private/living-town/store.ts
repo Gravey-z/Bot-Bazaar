@@ -156,7 +156,7 @@ export class LivingTownProjectionStore {
         });
       } else
         requireValue(
-          version === 4,
+          version === 5,
           "unsupported projection schema; initialize a fresh disposable read projection",
         );
       requireValue(
@@ -581,6 +581,7 @@ export class LivingTownProjectionStore {
           status.kind,
           stamp(now),
         );
+      this.accounting.recordFee(receipt);
       if (receipt.response !== undefined && receipt.response !== null) {
         const raw = Buffer.from(JSON.stringify(receipt.response));
         requireValue(
@@ -1160,7 +1161,11 @@ export class LivingTownProjectionStore {
         next_cursor: more
           ? this.nextPage(scope, items.at(-1)!.event_sequence)
           : null,
-        costs: this.accounting.summary(key, through),
+        costs: this.accounting.summary(
+          key,
+          through,
+          this.state()!.checkpoint.finalized_block_height,
+        ),
       },
       livingTownSalesHistoryRead,
       now,

@@ -52,6 +52,7 @@ const {
   listingQuote,
   listingReviewMatches,
   productDemandText,
+  nativeFeeText,
   LivingTownTransactions,
   LivingTownController,
   LivingTownSalesComponent,
@@ -59,6 +60,25 @@ const {
 } = await import(
   `data:text/javascript;base64,${Buffer.from(bundle.outputFiles[0].contents).toString("base64")}`
 );
+test("native gas formatting preserves yocto precision and game-gold sinks stay separate", () => {
+  assert.equal(nativeFeeText(null), "Unknown");
+  assert.equal(nativeFeeText("0"), "0 NEAR");
+  assert.equal(nativeFeeText("1"), "0.000000000000000000000001 NEAR");
+  assert.equal(
+    nativeFeeText("1000000000000000000000001"),
+    "1.000000000000000000000001 NEAR",
+  );
+  assert.throws(() => nativeFeeText("1.5"));
+  const component = new LivingTownSalesComponent();
+  assert.equal(
+    component.amount({ kind: "upgrade_purchase", gold_amount: "150" }),
+    "150 burned",
+  );
+  assert.equal(
+    component.cost({ kind: "upgrade_purchase", gold_amount: "150" }),
+    "Not applicable",
+  );
+});
 const p = JSON.parse(
     readFileSync(
       "tests/fixtures/chain/living-town-customers-sandbox.json",
@@ -172,6 +192,11 @@ function historyPage(row) {
       recorded_upgrade_spending: "0",
       recorded_cogs: null,
       recorded_profit: null,
+      recorded_cash_change: "18",
+      unsold_inventory_cost: null,
+      work_in_progress_cost: null,
+      recorded_native_fees_yocto: null,
+      native_fee_history_complete: false,
       cost_history_complete: false,
       through_event_sequence: "1",
       gap_from_sequence: "2",

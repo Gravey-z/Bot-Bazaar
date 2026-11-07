@@ -15,6 +15,7 @@ import {
   livingTownIndexedReceipt,
   livingTownIndexedCompletion,
   livingTownHistoryEntry,
+  livingTownCostSummary,
   livingTownSalesHistoryRead,
   livingTownReadEnvelope,
   livingTownMarketListingsRead,
@@ -142,6 +143,11 @@ test("actual complete setup-to-sale receipts yield exact FIFO costs, grants, rev
     recorded_upgrade_spending: "0",
     recorded_cogs: "30",
     recorded_profit: "24",
+    recorded_cash_change: "124",
+    unsold_inventory_cost: "0",
+    work_in_progress_cost: "0",
+    recorded_native_fees_yocto: "6137537002067900000000",
+    native_fee_history_complete: true,
     cost_history_complete: true,
     through_event_sequence: p.after.town.event_sequence,
     gap_from_sequence: null,
@@ -179,6 +185,26 @@ test("actual complete setup-to-sale receipts yield exact FIFO costs, grants, rev
   assert.deepEqual(f.store.counts(), before);
 });
 
+test("accounting summary rejects inconsistent cash flow, invented fee completeness and zero-filled unknown stock", (t) => {
+  const f = fixture(t);
+  ingest(f);
+  const costs = f.store.history("4").snapshot.data.costs;
+  assert.throws(() =>
+    livingTownCostSummary({ ...costs, recorded_cash_change: "0" }),
+  );
+  assert.throws(() =>
+    livingTownCostSummary({ ...costs, native_fee_history_complete: false }),
+  );
+  assert.throws(() =>
+    livingTownCostSummary({
+      ...costs,
+      cost_history_complete: false,
+      gap_from_sequence: "2",
+      recorded_cogs: null,
+      recorded_profit: null,
+    }),
+  );
+});
 test("missing purchase/start history shows unknown sale cost until late verified receipts fill the prefix", (t) => {
   const f = fixture(t);
   assert.equal(f.store.history("4").snapshot.data.costs.recorded_profit, null);
@@ -187,6 +213,8 @@ test("missing purchase/start history shows unknown sale cost until late verified
   assert.equal(unknown.costs.recorded_sales_revenue, "54");
   assert.equal(unknown.costs.recorded_cogs, null);
   assert.equal(unknown.costs.recorded_profit, null);
+  assert.equal(unknown.costs.unsold_inventory_cost, null);
+  assert.equal(unknown.costs.work_in_progress_cost, null);
   assert.equal(unknown.costs.gap_from_sequence, "2");
   assert(unknown.items.every((r) => r.cogs === null));
   const inventory = canonicalLivingTownJson(

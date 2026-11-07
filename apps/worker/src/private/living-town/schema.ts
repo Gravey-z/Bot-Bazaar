@@ -26,5 +26,7 @@ CREATE TABLE cost_job_inputs(job_id TEXT NOT NULL REFERENCES cost_jobs(job_id),i
 CREATE TABLE sales_history(event_sequence TEXT NOT NULL REFERENCES projection_events(event_sequence),actor TEXT NOT NULL,body TEXT NOT NULL CHECK(length(CAST(body AS BLOB))<=4096),PRIMARY KEY(event_sequence,actor)) STRICT;
 CREATE INDEX sales_by_actor ON sales_history(actor);
 CREATE TABLE customer_fulfillment(actor TEXT NOT NULL,item TEXT NOT NULL,event_sequence TEXT NOT NULL,PRIMARY KEY(actor,item)) STRICT;
-PRAGMA user_version=4;
+CREATE TABLE projection_fees(tx_hash TEXT PRIMARY KEY REFERENCES projection_receipts(tx_hash),actor TEXT NOT NULL,block_height TEXT NOT NULL,amount TEXT) STRICT;
+CREATE INDEX fees_by_actor ON projection_fees(actor);
+PRAGMA user_version=5;
 `;

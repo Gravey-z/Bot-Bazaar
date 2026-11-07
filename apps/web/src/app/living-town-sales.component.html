@@ -241,7 +241,7 @@
       </p>
       <dl class="totals">
         <div>
-          <dt>Recorded sales revenue</dt>
+          <dt>Gross sales revenue (recorded)</dt>
           <dd>{{ history.costs.recorded_sales_revenue }} gold</dd>
         </div>
         <div>
@@ -259,7 +259,7 @@
           </dd>
         </div>
         <div>
-          <dt>Trading profit</dt>
+          <dt>Realized trading profit</dt>
           <dd>
             {{
               history.costs.recorded_profit === null
@@ -268,7 +268,53 @@
             }}
           </dd>
         </div>
+        <div>
+          <dt>Unsold inventory cost</dt>
+          <dd>
+            {{
+              history.costs.unsold_inventory_cost === null
+                ? "Unknown"
+                : history.costs.unsold_inventory_cost + " gold"
+            }}
+          </dd>
+        </div>
+        <div>
+          <dt>Work in progress cost</dt>
+          <dd>
+            {{
+              history.costs.work_in_progress_cost === null
+                ? "Unknown"
+                : history.costs.work_in_progress_cost + " gold"
+            }}
+          </dd>
+        </div>
+        <div>
+          <dt>Recorded net cash change</dt>
+          <dd>{{ history.costs.recorded_cash_change }} gold</dd>
+        </div>
+        <div>
+          <dt>Recorded native transaction gas burned</dt>
+          <dd>{{ nativeFee(history.costs.recorded_native_fees_yocto) }}</dd>
+        </div>
       </dl>
+      <p>
+        Realized trading profit = sales revenue − cost of the units sold.
+        Material purchases remain inventory or work in progress until those
+        units sell. Unsold inventory includes raw materials and listed stock at
+        acquisition/production cost, not asking price.
+      </p>
+      <p>
+        Recorded net cash change = starter grants + sales revenue − material
+        purchases − upgrade spending. Grants are a faucet, and upgrades are a
+        sink; neither is trading profit. These totals cover retained receipts,
+        not a selected accounting period.
+      </p>
+      <p class="muted">
+        Native NEAR gas is separate from game gold. Only archived finalized
+        transactions signed by this owner are included, including failed and
+        replayed transactions. Other wallet activity, storage deposits and
+        native transfers are not included. Missing gas amounts remain unknown.
+      </p>
       <p class="muted">
         Starter grants: {{ history.costs.recorded_grants }} gold · Upgrade
         spending: {{ history.costs.recorded_upgrade_spending }} gold. Neither is

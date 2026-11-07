@@ -13,6 +13,8 @@ import {
   listingReviewMatches,
   productDemandText,
   historyLabel,
+  nativeFeeText,
+  historyGoldAmount,
 } from "./living-town-sales-ui";
 import type {
   ListingReview,
@@ -86,6 +88,8 @@ export class LivingTownSalesComponent {
   );
   protected readonly demandText = productDemandText;
   protected readonly label = historyLabel;
+  protected readonly nativeFee = nativeFeeText;
+  protected readonly amount = historyGoldAmount;
   constructor() {
     let scope = "";
     effect(() => {
@@ -183,16 +187,9 @@ export class LivingTownSalesComponent {
       ? townTransactionUrl(this.explorer(), row.transaction_hash)
       : null;
   }
-  protected amount(row: TownHistoryEntry): string {
-    if (row.kind === "player_grant")
-      return `${row.gold_amount} grant (not revenue)`;
-    if (row.kind === "material_purchase") return `${row.gold_amount} spent`;
-    if (row.kind === "customer_sale" || row.kind === "material_sale")
-      return `${row.gold_amount} revenue`;
-    return "No gold transfer";
-  }
   protected cost(row: TownHistoryEntry): string {
-    if (row.kind === "player_grant") return "Not applicable";
+    if (row.kind === "player_grant" || row.kind === "upgrade_purchase")
+      return "Not applicable";
     if (row.kind === "material_purchase")
       return `${row.gold_amount} acquisition cost`;
     const value =

@@ -132,3 +132,20 @@ export function historyLabel(kind: TownHistoryEntry["kind"]): string {
     production_completed: "Production completed",
   }[kind];
 }
+export function nativeFeeText(yocto: string | null): string {
+  if (yocto === null) return "Unknown";
+  if (!/^(0|[1-9][0-9]*)$/.test(yocto))
+    throw new Error("Invalid native fee amount");
+  const digits = yocto.padStart(25, "0"),
+    fraction = digits.slice(-24).replace(/0+$/, "");
+  return `${digits.slice(0, -24)}${fraction ? `.${fraction}` : ""} NEAR`;
+}
+export function historyGoldAmount(row: TownHistoryEntry): string {
+  if (row.kind === "player_grant")
+    return `${row.gold_amount} grant (not revenue)`;
+  if (row.kind === "upgrade_purchase") return `${row.gold_amount} burned`;
+  if (row.kind === "material_purchase") return `${row.gold_amount} spent`;
+  if (row.kind === "customer_sale" || row.kind === "material_sale")
+    return `${row.gold_amount} revenue`;
+  return "No gold transfer";
+}

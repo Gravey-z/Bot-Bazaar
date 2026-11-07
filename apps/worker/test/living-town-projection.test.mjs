@@ -161,7 +161,7 @@ test("V2 disposable projection initializes only its own schema and rejects misma
     /unsupported projection schema/,
   );
   const reset = new DatabaseSync(f.store.path);
-  reset.exec("PRAGMA user_version=4");
+  reset.exec("PRAGMA user_version=5");
   reset.close();
   f.restart();
   assert.throws(
