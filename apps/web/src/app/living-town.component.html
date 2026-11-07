@@ -201,6 +201,55 @@
         }}
       </button>
     </aside>
+    <section class="town-feedback" aria-labelledby="feedback-title">
+      <div class="workshop-heading">
+        <h2 id="feedback-title">Confirmed shop updates</h2>
+        <button
+          class="quiet"
+          type="button"
+          [attr.aria-pressed]="soundEnabled()"
+          (click)="toggleFeedbackSound()"
+        >
+          {{ soundEnabled() ? "Mute feedback sound" : "Enable feedback sound" }}
+        </button>
+      </div>
+      <p class="muted">
+        Sound starts muted each visit. Recent net changes compare finalized
+        observations; History records individual receipts. Older or reconnect
+        activity is not replayed as a new notification.
+      </p>
+      @if (soundMessage()) {
+        <p role="status">{{ soundMessage() }}</p>
+      }
+      <p
+        class="feedback-announcement"
+        [attr.aria-live]="managerVisible() ? 'off' : 'polite'"
+        aria-atomic="true"
+      >
+        {{ feedbackAnnouncement() }}
+      </p>
+      @if (feedback().length) {
+        <ol class="feedback-list">
+          @for (event of feedback(); track event.id) {
+            <li>{{ event.text }}</li>
+          }
+        </ol>
+      } @else {
+        <p>
+          No new confirmed updates this visit. Current balances and past
+          receipts remain in your manager.
+        </p>
+      }
+      @if (state().pending) {
+        <p>
+          Original wallet request: {{ pendingSummary() }}. These updates do not
+          resolve an unknown transaction.
+        </p>
+        <button class="quiet" type="button" (click)="openManager()">
+          Open original request
+        </button>
+      }
+    </section>
     <section class="first-loop" aria-labelledby="first-loop-title">
       <div class="workshop-heading">
         <div>
@@ -657,6 +706,43 @@
             Close manager
           </button>
         </div>
+        <section
+          class="town-feedback"
+          aria-label="Recent confirmed shop updates"
+        >
+          <p
+            class="feedback-announcement"
+            [attr.aria-live]="managerVisible() ? 'polite' : 'off'"
+            aria-atomic="true"
+          >
+            {{ feedbackAnnouncement() }}
+          </p>
+          @if (feedback().length) {
+            <details>
+              <summary>
+                Recent confirmed shop updates ({{ feedback().length }})
+              </summary>
+              <ol class="feedback-list">
+                @for (event of feedback(); track event.id) {
+                  <li>{{ event.text }}</li>
+                }
+              </ol>
+            </details>
+          }
+          <button
+            class="quiet"
+            type="button"
+            [attr.aria-pressed]="soundEnabled()"
+            (click)="toggleFeedbackSound()"
+          >
+            {{
+              soundEnabled() ? "Mute feedback sound" : "Enable feedback sound"
+            }}
+          </button>
+          @if (soundMessage()) {
+            <p role="status">{{ soundMessage() }}</p>
+          }
+        </section>
         @if (state().observation; as observation) {
           <p class="freshness">
             {{

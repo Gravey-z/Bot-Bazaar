@@ -1303,6 +1303,34 @@ footer a {
     transition: none;
   }
 }
+.town-feedback {
+  margin-block: 20px;
+  padding: 20px;
+  border: 1px solid #899b91;
+  border-radius: 14px;
+  background: #fffdf7;
+  overflow-wrap: anywhere;
+}
+.town-feedback h2 {
+  font-size: 21px;
+  margin: 0;
+}
+.feedback-list {
+  padding-inline-start: 22px;
+}
+.feedback-list li {
+  margin-block: 10px;
+}
+.feedback-announcement {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
 .shop-directory {
   margin-top: 32px;
   padding: 24px;

@@ -42,9 +42,12 @@ import {
   townHud,
   townMode,
   townMarketComparisons,
+  townSnapshotFresh,
 } from "./living-town-layout";
 import type { TownManagerTab } from "./living-town-layout";
 import { firstLoopTutorial, TutorialGoalTracker } from "./living-town-tutorial";
+import { TownFeedbackTracker, TownFeedbackSound } from "./living-town-feedback";
+import type { TownFeedback } from "./living-town-feedback";
 
 @Injectable()
 export class LivingTownScreen {
@@ -76,6 +79,12 @@ type Listing = ReturnType<typeof livingTownListing>;
   styleUrl: "./living-town.component.css",
 })
 export class LivingTownComponent implements OnInit, OnDestroy {
+  private readonly feedbackSound = new TownFeedbackSound();
+  protected readonly feedback = signal<TownFeedback[]>([]);
+  protected readonly feedbackAnnouncement = signal("");
+  protected readonly managerVisible = signal(false);
+  protected readonly soundEnabled = signal(false);
+  protected readonly soundMessage = signal("");
   @ViewChild("managerDialog")
   private managerDialog?: ElementRef<HTMLDialogElement>;
   @ViewChild("purchaseDialog")
@@ -244,6 +253,35 @@ export class LivingTownComponent implements OnInit, OnDestroy {
       : null;
   });
   constructor() {
+    const feedbackTracker = new TownFeedbackTracker();
+    let feedbackScope: string | null = null;
+    let feedbackRows: TownFeedback[] = [];
+    effect(() => {
+      this.elapsedMs();
+      const state = this.state(),
+        now = Date.now();
+      const o =
+        this.screen.setup.kind === "ready" ? ownedTownObservation(state) : null;
+      const scope =
+        o && townSnapshotFresh(state, now)
+          ? `${state.accountId}:${o.shop!.shop_id}`
+          : null;
+      const events = feedbackTracker.observe(state, now);
+      if (scope !== feedbackScope || !scope) {
+        feedbackScope = scope;
+        feedbackRows = [];
+        this.feedback.set([]);
+        this.feedbackAnnouncement.set("");
+      }
+      if (scope && events.length) {
+        feedbackRows = [...feedbackRows, ...events].slice(-12);
+        this.feedback.set(feedbackRows);
+        this.feedbackAnnouncement.set(
+          events.map((event) => event.text).join(" "),
+        );
+        this.feedbackSound.play();
+      }
+    });
     let last: string | null | undefined;
     effect(() => {
       const account = this.state().accountId;
@@ -344,6 +382,7 @@ export class LivingTownComponent implements OnInit, OnDestroy {
     );
   }
   ngOnDestroy(): void {
+    this.feedbackSound.dispose();
     if (this.timer) clearInterval(this.timer);
     if (this.countdownTimer) clearInterval(this.countdownTimer);
     this.screen.controller.stop();
@@ -525,12 +564,16 @@ export class LivingTownComponent implements OnInit, OnDestroy {
         ? document.activeElement
         : null;
     dialog.showModal();
+    this.feedbackAnnouncement?.set("");
+    this.managerVisible?.set(true);
   }
   protected closeManager(): void {
     this.managerDialog?.nativeElement.close();
   }
   protected managerClosed(): void {
     if (this.managerDialog?.nativeElement.open) return;
+    this.feedbackAnnouncement?.set("");
+    this.managerVisible?.set(false);
     this.productionReview.set(null);
     this.tab.set("overview");
     if (
@@ -563,6 +606,21 @@ export class LivingTownComponent implements OnInit, OnDestroy {
         .getElementById("marketplace")
         ?.scrollIntoView({ block: "start" });
     else this.openManager(action.tab);
+  }
+  protected async toggleFeedbackSound(): Promise<void> {
+    if (this.soundEnabled()) {
+      this.feedbackSound.mute();
+      this.soundEnabled.set(false);
+      this.soundMessage.set("");
+    } else {
+      const enabled = await this.feedbackSound.enable();
+      this.soundEnabled.set(enabled);
+      this.soundMessage.set(
+        enabled
+          ? ""
+          : "Sound is unavailable. All feedback remains visible as text.",
+      );
+    }
   }
   protected openHelp(): void {
     const dialog = this.helpDialog?.nativeElement;
