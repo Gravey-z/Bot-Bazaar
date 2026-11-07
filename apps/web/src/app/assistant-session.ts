@@ -78,7 +78,7 @@ export class AssistantSession {
       const chunk = await reader.read();
       if (chunk.done) break;
       size += chunk.value.length;
-      if (size > 8192) {
+      if (size > 65536) {
         await reader.cancel();
         throw new Error("Invalid assistant response");
       }
@@ -209,5 +209,50 @@ export class AssistantSession {
         this.invalidate();
       throw error;
     }
+  }
+  async recommendations(shopId: string): Promise<unknown> {
+    return this.operation(shopId, "recommendations");
+  }
+  async generate(shopId: string): Promise<unknown> {
+    return this.operation(shopId, "generate");
+  }
+  async configure(
+    shopId: string,
+    mode: "off" | "recommendations",
+  ): Promise<unknown> {
+    return this.operation(shopId, "configuration", { mode });
+  }
+  private async operation(
+    shopId: string,
+    action: string,
+    body: unknown = {},
+  ): Promise<unknown> {
+    const s = this.session,
+      identity = this.identity(),
+      generation = this.generation;
+    if (
+      !s ||
+      s.shopId !== shopId ||
+      s.accountId !== identity.accountId ||
+      this.sessionVersion !== identity.version ||
+      s.expiresAt <= Date.now()
+    ) {
+      this.invalidate();
+      throw new Error("Assistant sign-in required");
+    }
+    const value = await this.request(
+      `shops/${shopId}/${action}`,
+      body,
+      s.token,
+    );
+    if (
+      this.session !== s ||
+      generation !== this.generation ||
+      this.identity().accountId !== identity.accountId ||
+      this.identity().version !== identity.version ||
+      s.expiresAt <= Date.now()
+    )
+      throw new Error("Wallet changed");
+    return value;
   }
 }

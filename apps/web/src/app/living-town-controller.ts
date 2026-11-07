@@ -49,6 +49,12 @@ export interface TownPort {
   assistant?: {
     authenticate(accountId: string, shopId: string): Promise<void>;
     scope(shopId: string): Promise<unknown>;
+    recommendations?(shopId: string): Promise<unknown>;
+    generate?(shopId: string): Promise<unknown>;
+    configure?(
+      shopId: string,
+      mode: "off" | "recommendations",
+    ): Promise<unknown>;
     logout(): void;
   };
   watchActivity?: (changed: (state: TownLiveState) => void) => () => void;

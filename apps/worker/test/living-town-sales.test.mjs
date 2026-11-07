@@ -31,6 +31,7 @@ import {
 } from "../dist/private/living-town/cost-lots.js";
 import { createReadServer } from "../dist/private/read-api/server.js";
 import { readLivingTownHealth } from "../dist/private/living-town/health.js";
+import { assistantFactSource } from "../dist/private/assistant/facts.js";
 
 const p = JSON.parse(
   readFileSync(
@@ -441,4 +442,71 @@ test("public listings and history are bounded GET/HEAD reads with no signing cap
   ]) {
     assert.equal((await fetch(base + path)).status, 400);
   }
+});
+
+test("assistant collector binds RPC stock to receipt-projected costs and refuses mismatched history", async (t) => {
+  const f = fixture(t);
+  ingest(f);
+  const clock = Number(BigInt(p.after.town.block_timestamp_ns) / 1000000n);
+  const row = p.after.shops.find((r) => r.shop.data.shop_id === "4");
+  const reader = {
+    block: block(p.after.block),
+    getTown: async () => clone(p.after.town),
+    getShop: async () => clone(row.shop),
+    getShopInventory: async () => clone(row.ledger),
+    getListings: async (args) => ({
+      ...clone(p.after.town),
+      data: {
+        items: p.after.listings_pages
+          .flatMap((p) => p.data.items)
+          .filter((l) => l.shop_id === args.shop_id && l.active),
+        next_after_id: null,
+        has_more: false,
+      },
+    }),
+  };
+  let mutate = (x) => x;
+  const source = assistantFactSource(
+    { identity, finalized: async () => reader },
+    "http://127.0.0.1:3011",
+    async (url, init) => {
+      assert.equal(init.credentials, "omit");
+      assert.equal(init.redirect, "error");
+      const u = new URL(url),
+        envelope = clone(f.store.history("4", u.searchParams.get("after"), 50));
+      envelope.observed_at_ms = String(clock);
+      envelope.stale = false;
+      return Response.json(mutate(envelope));
+    },
+    () => clock,
+  );
+  const partial = await source.load(row.shop.data.owner.account_id, "4");
+  assert.equal(partial.productionCost.health_potion, "10");
+  assert.equal(
+    partial.historyComplete,
+    false,
+    "missing global initialization proof remains a gap",
+  );
+  assert.equal(partial.snapshot.block_hash, reader.block.hash);
+  mutate = (e) => {
+    e.history_complete = true;
+    e.checkpoint.history_complete = true;
+    e.checkpoint.baseline_event_sequence = "0";
+    e.checkpoint.gap_from_sequence = null;
+    e.checkpoint.last_receipt_id =
+      p.steps.at(-1).receipt.receipts_outcome[0].id;
+    e.checkpoint.last_log_index = "0";
+    return e;
+  };
+  assert.equal(
+    (await source.load(row.shop.data.owner.account_id, "4")).historyComplete,
+    true,
+    "controlled complete projection declaration, not live proof",
+  );
+  mutate = (e) => {
+    e.checkpoint.verified_code_hash = "11111111111111111111111111111111";
+    return e;
+  };
+  await assert.rejects(source.load(row.shop.data.owner.account_id, "4"));
+  await assert.rejects(source.load("other.testnet", "4"));
 });

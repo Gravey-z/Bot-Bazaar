@@ -245,3 +245,22 @@ test("installed wallet connector has message signing with 32-byte nonce and retu
   );
   assert.match(adapter, /async signMessage\(params\)/);
 });
+
+test("recommendation polling and explicit generation use separate authenticated operations", async () => {
+  const f = fixture();
+  await f.session.authenticate("1");
+  await f.session.recommendations("1");
+  await f.session.recommendations("1");
+  assert.equal(f.calls.filter((c) => c.url.endsWith("/generate")).length, 0);
+  await f.session.configure("1", "recommendations");
+  await f.session.generate("1");
+  const calls = f.calls.filter((c) =>
+    /\/(recommendations|configuration|generate)$/.test(c.url),
+  );
+  assert.equal(calls.length, 4);
+  assert.ok(
+    calls.every((c) => c.init.headers.Authorization === `Bearer ${token}`),
+  );
+  f.switch();
+  await assert.rejects(f.session.recommendations("1"));
+});

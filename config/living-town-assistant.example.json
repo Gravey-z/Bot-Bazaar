@@ -1,0 +1,37 @@
+{
+  "schema": "bot-bazaar-living-town-reader-v1",
+  "identity": {
+    "deployment": {
+      "network_id": "testnet",
+      "genesis_hash": "11111111111111111111111111111111",
+      "contract_id": "replace-with-reviewed-v2.testnet",
+      "api_version": "2.0.0",
+      "state_schema": "1",
+      "command_schema": "1",
+      "config_version": "1",
+      "config_sha256": "a932efb48c70a73ce46472cd754288649541b34604e2ea49a4093961e71a2d10"
+    },
+    "codeHash": "3JJnyeiNBzr7MfibkyGMMc1WgFCVd35ovjd2855UjyJc",
+    "ownerId": "replace-with-reviewed-owner.testnet",
+    "operatorId": "replace-with-reviewed-operator.testnet",
+    "controllers": {
+      "rex": "replace-with-reviewed-rex.testnet",
+      "luna": "replace-with-reviewed-luna.testnet",
+      "bolt": "replace-with-reviewed-bolt.testnet"
+    }
+  },
+  "public": {
+    "networkId": "testnet",
+    "contractId": "replace-with-reviewed-v2.testnet",
+    "rpcUrl": "https://test.rpc.fastnear.com",
+    "explorerUrl": "https://testnet.nearblocks.io",
+    "workerUrl": "http://127.0.0.1:3011"
+  },
+  "data_dir": "/absolute/path/to/dedicated-v2-assistant",
+  "receipt_inbox": null,
+  "agent_activity_inbox": null,
+  "trusted_proxy_ips": [],
+  "port": "3012",
+  "poll_ms": "3000",
+  "allowed_origins": ["http://127.0.0.1:4201"]
+}

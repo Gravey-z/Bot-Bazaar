@@ -274,6 +274,18 @@ export function createLivingTownPort(
         }
       },
       logout: invalidatePrivate,
+      async recommendations(shopId) {
+        await this.scope(shopId);
+        return privateSession!.recommendations(shopId);
+      },
+      async generate(shopId) {
+        await this.scope(shopId);
+        return privateSession!.generate(shopId);
+      },
+      async configure(shopId, mode) {
+        await this.scope(shopId);
+        return privateSession!.configure(shopId, mode);
+      },
     },
     ...(profile.public.workerUrl
       ? {

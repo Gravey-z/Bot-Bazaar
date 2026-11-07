@@ -3,9 +3,13 @@ import type { Server } from "node:http";
 import { parseLivingTownJson } from "@bot-bazaar/chain";
 import { AssistantAuth, AssistantAuthError } from "./auth.js";
 import { ReadLimits } from "../read-api/limits.js";
+import type { AssistantPipeline } from "./pipeline.js";
 
-/** Separate private boundary; no economic signer, model or public-read capabilities. */
-export function createAssistantServer(auth: AssistantAuth): Server {
+/** Separate private boundary. Optional bounded recommendation service; no economic signer. */
+export function createAssistantServer(
+  auth: AssistantAuth,
+  pipeline?: AssistantPipeline,
+): Server {
   const limits = new ReadLimits({
     allowedOrigins: [auth.origin],
     trustedProxyIps: [],
@@ -70,7 +74,7 @@ export function createAssistantServer(auth: AssistantAuth): Server {
             authorization,
           )?.[1];
           const scope =
-            /^\/private\/assistant\/shops\/([1-9][0-9]{0,19})\/scope$/.exec(
+            /^\/private\/assistant\/shops\/([1-9][0-9]{0,19})\/(scope|recommendations|generate|configuration)$/.exec(
               route,
             );
           if (
@@ -99,7 +103,9 @@ export function createAssistantServer(auth: AssistantAuth): Server {
             ? ["accountId", "shopId"]
             : route.endsWith("/verify")
               ? ["id", "accountId", "publicKey", "signature"]
-              : [];
+              : route.endsWith("/configuration")
+                ? ["mode"]
+                : [];
           if (
             !body ||
             typeof body !== "object" ||
@@ -113,7 +119,36 @@ export function createAssistantServer(auth: AssistantAuth): Server {
           const b = body as Record<string, string>;
           if (scope) {
             if (!bearer) throw new AssistantAuthError(401);
-            send(200, await auth.scope(bearer, scope[1]!));
+            const authorized = () => auth.scope(bearer, scope[1]!);
+            const owner = await authorized();
+            if (scope[2] === "scope") {
+              send(200, owner);
+              return;
+            }
+            if (!pipeline) throw new AssistantAuthError(404);
+            const controller = new AbortController();
+            res.once("close", () => controller.abort());
+            let result: unknown;
+            if (scope[2] === "configuration") {
+              if (b["mode"] !== "off" && b["mode"] !== "recommendations")
+                throw new AssistantAuthError(400);
+              result = pipeline.configure(
+                owner.accountId,
+                owner.shopId,
+                b["mode"],
+              );
+            } else if (scope[2] === "generate")
+              result = await pipeline.generate(
+                owner.accountId,
+                owner.shopId,
+                authorized,
+                controller.signal,
+              );
+            else result = await pipeline.read(owner.accountId, owner.shopId);
+            // Logout/key/owner changes while a private operation ran cannot leak its response.
+            await authorized();
+            if (controller.signal.aborted) return;
+            send(200, result);
             return;
           }
           if (route.endsWith("/challenge"))
@@ -144,7 +179,7 @@ export function createAssistantServer(auth: AssistantAuth): Server {
   server.maxConnections = 32;
   server.maxHeadersCount = 32;
   server.maxRequestsPerSocket = 40;
-  server.setTimeout(5000, (socket) => socket.destroy());
+  server.setTimeout(30000, (socket) => socket.destroy());
   server.on("clientError", (_error, socket) => {
     if (socket.writable)
       socket.end(
