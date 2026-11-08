@@ -4,6 +4,7 @@ import type {
   LivingTownClient,
 } from "@bot-bazaar/chain";
 import { requireStorage } from "../storage/validation.js";
+import type { TownOperations } from "./operations.js";
 import type { CustomerDemandInput } from "./customers.js";
 import { sameCustomerCheckpointState } from "./customers.js";
 import type {
@@ -30,6 +31,7 @@ export class LivingTownTickRunner {
     private readonly collect: (
       reader: FinalizedLivingTownReader,
     ) => Promise<Omit<CustomerDemandInput, "seed" | "tick" | "arrivalIndex">>,
+    private readonly operations?: TownOperations,
   ) {
     requireStorage(
       canonicalLivingTownJson(client.identity) ===
@@ -41,7 +43,11 @@ export class LivingTownTickRunner {
     requireStorage(!this.busy, "tick runner already in progress");
     this.busy = true;
     try {
+      if (this.operations?.mode === "paused")
+        return { kind: "blocked", reasons: ["operator_paused"] };
       const recovered = await this.executor.recover({ preservePrepared: true });
+      if (this.operations && this.operations.mode !== "active")
+        return { kind: "blocked", reasons: ["operator_recovery_only"] };
       if (recovered.kind === "blocked") {
         const pending = this.store.unresolved();
         if (
@@ -100,6 +106,8 @@ export class LivingTownTickRunner {
         const latest = await this.client.finalized();
         if (!sameCustomerCheckpointState(town, await latest.getTown()))
           return { kind: "deferred", tickId };
+        if (this.operations && this.operations.mode !== "active")
+          return { kind: "blocked", reasons: ["operator_admission_stopped"] };
         action = await this.executor.executeCustomer({
           ...facts,
           seed: this.store.seed,

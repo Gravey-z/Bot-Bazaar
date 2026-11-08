@@ -30,6 +30,7 @@ async fn reject(c: &Contract, a: &Account, args: Value, code: &str) -> Result<()
     let r = a
         .call(c.id(), "buy_from_merchant")
         .args_json(args)
+        .gas(near_workspaces::types::Gas::from_tgas(100))
         .transact()
         .await?
         .into_result();
@@ -40,6 +41,7 @@ async fn reject(c: &Contract, a: &Account, args: Value, code: &str) -> Result<()
 async fn register(c: &Contract, a: &Account) -> Result<()> {
     a.call(c.id(), "register_player")
         .args_json(json!({"command":command(c,1).await?}))
+        .gas(near_workspaces::types::Gas::from_tgas(100))
         .transact()
         .await?
         .into_result()?;
@@ -55,7 +57,7 @@ async fn materials_settle_once_conserve_assets_and_acquire_both_recipe_inputs() 
         .collect();
     let worker = near_workspaces::sandbox().await?;
     let c = worker.dev_deploy(&wasm()?).await?;
-    c.call("initialize_town").args_json(json!({"owner_account_id":c.id(),"operator_account_id":"operator.testnet","merchant_controllers":{"rex":"rex.testnet","luna":"luna.testnet","bolt":"bolt.testnet"},"network_genesis_hash":"11111111111111111111111111111111","config_sha256":digest})).transact().await?.into_result()?;
+    c.call("initialize_town").args_json(json!({"owner_account_id":c.id(),"operator_account_id":"operator.testnet","merchant_controllers":{"rex":"rex.testnet","luna":"luna.testnet","bolt":"bolt.testnet"},"network_genesis_hash":"11111111111111111111111111111111","config_sha256":digest})).gas(near_workspaces::types::Gas::from_tgas(100)).transact().await?.into_result()?;
     let player = worker.dev_create_account().await?;
     reject(
         &c,
@@ -68,6 +70,7 @@ async fn materials_settle_once_conserve_assets_and_acquire_both_recipe_inputs() 
     player
         .call(c.id(), "create_shop")
         .args_json(json!({"name":"Materials","command":command(&c,2).await?}))
+        .gas(near_workspaces::types::Gas::from_tgas(100))
         .transact()
         .await?
         .into_result()?;
@@ -119,6 +122,7 @@ async fn materials_settle_once_conserve_assets_and_acquire_both_recipe_inputs() 
         let receipt = player
             .call(c.id(), "buy_from_merchant")
             .args_json(args.clone())
+            .gas(near_workspaces::types::Gas::from_tgas(100))
             .transact()
             .await?
             .into_result()?;
@@ -136,6 +140,7 @@ async fn materials_settle_once_conserve_assets_and_acquire_both_recipe_inputs() 
         let retry = player
             .call(c.id(), "buy_from_merchant")
             .args_json(args.clone())
+            .gas(near_workspaces::types::Gas::from_tgas(100))
             .transact()
             .await?
             .into_result()?;
@@ -264,6 +269,7 @@ async fn materials_settle_once_conserve_assets_and_acquire_both_recipe_inputs() 
     player
         .call(c.id(), "buy_from_merchant")
         .args_json(buy(&c, 7, "luna", "herb", "10", "2", "30").await?)
+        .gas(near_workspaces::types::Gas::from_tgas(100))
         .transact()
         .await?
         .into_result()?;
@@ -277,6 +283,7 @@ async fn materials_settle_once_conserve_assets_and_acquire_both_recipe_inputs() 
     player
         .call(c.id(), "buy_from_merchant")
         .args_json(buy(&c, 8, "rex", "crystal", "7", "2", "28").await?)
+        .gas(near_workspaces::types::Gas::from_tgas(100))
         .transact()
         .await?
         .into_result()?;
@@ -296,9 +303,11 @@ async fn materials_settle_once_conserve_assets_and_acquire_both_recipe_inputs() 
     let (r1, r2) = tokio::join!(
         a.call(c.id(), "buy_from_merchant")
             .args_json(args.clone())
+            .gas(near_workspaces::types::Gas::from_tgas(100))
             .transact(),
         b.call(c.id(), "buy_from_merchant")
             .args_json(args)
+            .gas(near_workspaces::types::Gas::from_tgas(100))
             .transact()
     );
     let results = [r1?.into_result(), r2?.into_result()];
@@ -359,6 +368,7 @@ async fn materials_settle_once_conserve_assets_and_acquire_both_recipe_inputs() 
     let recovered: Value = storage_player
         .call(c.id(), "buy_from_merchant")
         .args_json(pending)
+        .gas(near_workspaces::types::Gas::from_tgas(100))
         .transact()
         .await?
         .into_result()?

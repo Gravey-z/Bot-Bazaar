@@ -15,7 +15,12 @@ async fn command(c: &Contract, seq: u64) -> Result<Value> {
 }
 async fn reject_raw(c: &Contract, a: &Account, method: &str, raw: Vec<u8>) -> Result<()> {
     let before = c.view_state().await?;
-    let failed = a.call(c.id(), method).args(raw).transact().await?;
+    let failed = a
+        .call(c.id(), method)
+        .args(raw)
+        .gas(near_workspaces::types::Gas::from_tgas(100))
+        .transact()
+        .await?;
     assert!(
         failed.is_failure(),
         "hostile {method} unexpectedly succeeded"
@@ -38,7 +43,7 @@ async fn hostile_wire_names_deposits_and_registered_owner_spoofing_are_atomic() 
         .collect();
     let worker = near_workspaces::sandbox().await?;
     let c = worker.dev_deploy(&wasm()?).await?;
-    c.call("initialize_town").args_json(json!({"owner_account_id":c.id(),"operator_account_id":"operator.testnet","merchant_controllers":{"rex":"rex.testnet","luna":"luna.testnet","bolt":"bolt.testnet"},"network_genesis_hash":"11111111111111111111111111111111","config_sha256":digest})).transact().await?.into_result()?;
+    c.call("initialize_town").args_json(json!({"owner_account_id":c.id(),"operator_account_id":"operator.testnet","merchant_controllers":{"rex":"rex.testnet","luna":"luna.testnet","bolt":"bolt.testnet"},"network_genesis_hash":"11111111111111111111111111111111","config_sha256":digest})).gas(near_workspaces::types::Gas::from_tgas(100)).transact().await?.into_result()?;
     let victim = worker.dev_create_account().await?;
     let attacker = worker.dev_create_account().await?;
     let mut forged = json!({"command":command(&c,1).await?});
@@ -53,6 +58,7 @@ async fn hostile_wire_names_deposits_and_registered_owner_spoofing_are_atomic() 
     for a in [&victim, &attacker] {
         a.call(c.id(), "register_player")
             .args_json(json!({"command":command(&c,1).await?}))
+            .gas(near_workspaces::types::Gas::from_tgas(100))
             .transact()
             .await?
             .into_result()?;
@@ -80,6 +86,7 @@ async fn hostile_wire_names_deposits_and_registered_owner_spoofing_are_atomic() 
         .call(c.id(), "create_shop")
         .args_json(normal)
         .deposit(near_workspaces::types::NearToken::from_yoctonear(1))
+        .gas(near_workspaces::types::Gas::from_tgas(100))
         .transact()
         .await?;
     assert!(deposited.is_failure());
@@ -87,6 +94,7 @@ async fn hostile_wire_names_deposits_and_registered_owner_spoofing_are_atomic() 
     let first: Value = victim
         .call(c.id(), "create_shop")
         .args_json(json!({"name":"X".repeat(32),"command":command(&c,2).await?}))
+        .gas(near_workspaces::types::Gas::from_tgas(100))
         .transact()
         .await?
         .into_result()?
@@ -104,10 +112,11 @@ async fn hostile_wire_names_deposits_and_registered_owner_spoofing_are_atomic() 
     }
     victim.call(c.id(), "rename_shop")
         .args_json(json!({"shop_id":"4","expected_shop_revision":"1","name":"Y".repeat(32),"command":command(&c,3).await?}))
-        .transact().await?.into_result()?;
+        .gas(near_workspaces::types::Gas::from_tgas(100)).transact().await?.into_result()?;
     attacker
         .call(c.id(), "create_shop")
         .args_json(json!({"name":"Independent","command":command(&c,2).await?}))
+        .gas(near_workspaces::types::Gas::from_tgas(100))
         .transact()
         .await?
         .into_result()?;

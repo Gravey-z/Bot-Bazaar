@@ -36,6 +36,7 @@ class ProviderUnavailable extends Error {
   }
 }
 /** One shared budget authority supplied by the owner, never a fresh allowance per V2 deployment. */
+import type { TownOperations } from "./operations.js";
 export class LivingTownProviderRunner {
   private readonly clock: SafetyClock;
   private readonly pending = new Map<string, Promise<TownProposalDelivery>>();
@@ -51,6 +52,7 @@ export class LivingTownProviderRunner {
     private readonly timeoutMs = 15000,
     private readonly fallbackMode: "policy" | "wait" = "policy",
     clock?: SafetyClock,
+    private readonly operations?: TownOperations,
   ) {
     requireStorage(
       Number.isSafeInteger(timeoutMs) && timeoutMs >= 1 && timeoutMs <= 15000,
@@ -88,9 +90,25 @@ export class LivingTownProviderRunner {
       id = this.requestId(detached),
       old = this.pending.get(id);
     if (old) return old;
-    const request = this.run(id, detached, options).finally(() =>
-      this.pending.delete(id),
-    );
+    const request = this.run(id, detached, options).finally(() => {
+      this.pending.delete(id);
+      if (this.operations) {
+        try {
+          const row = this.store.providerAttempts.get(id);
+          this.operations.observeProvider(
+            !this.provider
+              ? "disabled"
+              : row?.status === "accepted"
+                ? "available"
+                : "unavailable",
+            this.budget?.status(this.now()) ?? null,
+            Number(row?.finished_at ?? row?.started_at ?? Date.now()),
+          );
+        } catch {
+          this.operations.observeProvider("unavailable", null);
+        }
+      }
+    });
     this.pending.set(id, request);
     return request;
   }

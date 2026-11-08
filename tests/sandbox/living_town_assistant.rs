@@ -27,7 +27,7 @@ async fn assistant_permissions_are_owner_only_bounded_revisioned_and_replay_safe
     let bolt = w.dev_create_account().await?;
     let player = w.dev_create_account().await?;
     let other = w.dev_create_account().await?;
-    c.call("initialize_town").args_json(json!({"owner_account_id":c.id(),"operator_account_id":op.id(),"merchant_controllers":{"rex":rex.id(),"luna":luna.id(),"bolt":bolt.id()},"network_genesis_hash":"11111111111111111111111111111111","config_sha256":digest})).transact().await?.into_result()?;
+    c.call("initialize_town").args_json(json!({"owner_account_id":c.id(),"operator_account_id":op.id(),"merchant_controllers":{"rex":rex.id(),"luna":luna.id(),"bolt":bolt.id()},"network_genesis_hash":"11111111111111111111111111111111","config_sha256":digest})).gas(near_workspaces::types::Gas::from_tgas(100)).transact().await?.into_result()?;
     let url = w.rpc_addr();
     let mut steps = vec![];
     steps.push(
@@ -115,7 +115,11 @@ async fn assistant_permissions_are_owner_only_bounded_revisioned_and_replay_safe
     let active = view(&c, "get_assistant_policy", json!({"shop_id":"4"})).await?;
     assert_eq!(active["data"]["revision"], "2");
     // Exact replay, even after policy/command expiry, changes no state and emits no event.
-    w.fast_forward(1200).await?;
+    let command_expiry = args["command"]["valid_until_ns"]
+        .as_str()
+        .unwrap()
+        .parse::<u64>()?;
+    super::advance_to(&w, &c, command_expiry + 1).await?;
     let before = c.view_state().await?;
     steps.push(call(&url, &c, &player, "set_assistant_permissions", args.clone()).await?);
     assert_eq!(steps.last().unwrap()["effect"]["data"]["replayed"], true);
@@ -162,10 +166,7 @@ async fn assistant_permissions_are_owner_only_bounded_revisioned_and_replay_safe
         "failed successful step"
     );
     let fixture = json!({"source":"actual disposable local WASM receipts; no Testnet deployment or AI calls","initial":initial,"active":active,"after":after,"ledger_before":ledger,"steps":steps,"failures":failures});
-    std::fs::write(
-        "../fixtures/chain/living-town-assistant-sandbox.json",
-        serde_json::to_string_pretty(&fixture)? + "\n",
-    )?;
+    super::save_capture("living-town-assistant-sandbox.json", &fixture)?;
     println!(
         "assistant permission sandbox: {} successes, {} rejected receipts",
         fixture["steps"].as_array().unwrap().len(),

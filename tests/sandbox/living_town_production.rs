@@ -27,7 +27,8 @@ pub(super) async fn reject(
         .transact()
         .await?
         .into_result();
-    assert!(r.unwrap_err().to_string().contains(code), "expected {code}");
+    let error = r.unwrap_err().to_string();
+    assert!(error.contains(code), "expected {code}, got {error}");
     assert_eq!(c.view_state().await?, before);
     Ok(())
 }
@@ -124,19 +125,21 @@ async fn starts_consume_real_inputs_once_pin_jobs_and_rollback_storage_failure()
     let worker = near_workspaces::sandbox().await?;
     let c = worker.dev_deploy(&wasm()?).await?;
     let url = worker.rpc_addr();
-    c.call("initialize_town").args_json(json!({"owner_account_id":c.id(),"operator_account_id":"operator.testnet","merchant_controllers":{"rex":"rex.testnet","luna":"luna.testnet","bolt":"bolt.testnet"},"network_genesis_hash":"11111111111111111111111111111111","config_sha256":digest})).transact().await?.into_result()?;
+    c.call("initialize_town").args_json(json!({"owner_account_id":c.id(),"operator_account_id":"operator.testnet","merchant_controllers":{"rex":"rex.testnet","luna":"luna.testnet","bolt":"bolt.testnet"},"network_genesis_hash":"11111111111111111111111111111111","config_sha256":digest})).gas(near_workspaces::types::Gas::from_tgas(100)).transact().await?.into_result()?;
     let a = worker.dev_create_account().await?;
     let b = worker.dev_create_account().await?;
     for (player, name) in [(&a, "Potions"), (&b, "Tools")] {
         player
             .call(c.id(), "register_player")
             .args_json(json!({"command":command(&c,1).await?}))
+            .gas(near_workspaces::types::Gas::from_tgas(100))
             .transact()
             .await?
             .into_result()?;
         player
             .call(c.id(), "create_shop")
             .args_json(json!({"name":name,"command":command(&c,2).await?}))
+            .gas(near_workspaces::types::Gas::from_tgas(100))
             .transact()
             .await?
             .into_result()?;
@@ -157,7 +160,7 @@ async fn starts_consume_real_inputs_once_pin_jobs_and_rollback_storage_failure()
         (&b, 3, "bolt", "wood", "2", "4"),
         (&b, 4, "bolt", "iron", "4", "20"),
     ] {
-        player.call(c.id(),"buy_from_merchant").args_json(json!({"merchant_id":m,"item_id":item,"quantity":q,"expected_listing_revision":"1","max_total_price":price,"command":command(&c,seq).await?})).transact().await?.into_result()?;
+        player.call(c.id(),"buy_from_merchant").args_json(json!({"merchant_id":m,"item_id":item,"quantity":q,"expected_listing_revision":"1","max_total_price":price,"command":command(&c,seq).await?})).gas(near_workspaces::types::Gas::from_tgas(100)).transact().await?.into_result()?;
     }
     let args = json!({"shop_id":"4","recipe_id":"health_potion","recipe_version":"1","quantity":"3","expected_shop_revision":"1","command":command(&c,5).await?});
     for (field, value, code) in [
@@ -256,14 +259,16 @@ async fn concurrent_conflicting_starts_admit_one_batch_and_preserve_losing_state
     let worker = near_workspaces::sandbox().await?;
     let c = worker.dev_deploy(&wasm()?).await?;
     let a = worker.dev_create_account().await?;
-    c.call("initialize_town").args_json(json!({"owner_account_id":c.id(),"operator_account_id":"operator.testnet","merchant_controllers":{"rex":"rex.testnet","luna":"luna.testnet","bolt":"bolt.testnet"},"network_genesis_hash":"11111111111111111111111111111111","config_sha256":digest})).transact().await?.into_result()?;
+    c.call("initialize_town").args_json(json!({"owner_account_id":c.id(),"operator_account_id":"operator.testnet","merchant_controllers":{"rex":"rex.testnet","luna":"luna.testnet","bolt":"bolt.testnet"},"network_genesis_hash":"11111111111111111111111111111111","config_sha256":digest})).gas(near_workspaces::types::Gas::from_tgas(100)).transact().await?.into_result()?;
     a.call(c.id(), "register_player")
         .args_json(json!({"command":command(&c,1).await?}))
+        .gas(near_workspaces::types::Gas::from_tgas(100))
         .transact()
         .await?
         .into_result()?;
     a.call(c.id(), "create_shop")
         .args_json(json!({"name":"Start Race","command":command(&c,2).await?}))
+        .gas(near_workspaces::types::Gas::from_tgas(100))
         .transact()
         .await?
         .into_result()?;
@@ -271,7 +276,7 @@ async fn concurrent_conflicting_starts_admit_one_batch_and_preserve_losing_state
         (3, "rex", "crystal", "2", "8"),
         (4, "luna", "herb", "4", "12"),
     ] {
-        a.call(c.id(),"buy_from_merchant").args_json(json!({"merchant_id":merchant,"item_id":item,"quantity":q,"expected_listing_revision":"1","max_total_price":cost,"command":command(&c,seq).await?})).transact().await?.into_result()?;
+        a.call(c.id(),"buy_from_merchant").args_json(json!({"merchant_id":merchant,"item_id":item,"quantity":q,"expected_listing_revision":"1","max_total_price":cost,"command":command(&c,seq).await?})).gas(near_workspaces::types::Gas::from_tgas(100)).transact().await?.into_result()?;
     }
     let one = json!({"shop_id":"4","recipe_id":"health_potion","recipe_version":"1","quantity":"1","expected_shop_revision":"1","command":command(&c,5).await?});
     let mut two = one.clone();

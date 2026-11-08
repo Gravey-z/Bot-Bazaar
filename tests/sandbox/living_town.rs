@@ -22,6 +22,62 @@ fn wasm() -> Result<Vec<u8>> {
     ))
     .context("Build V2 with corepack pnpm build:contract:v2; never substitute the V1 artifact")
 }
+// Regression runs preserve reviewed source fixtures. New disposable receipts
+// are retained in the toolchain's target volume for deliberate review/promotion.
+fn save_capture(filename: &str, value: &Value) -> Result<()> {
+    let directory = Path::new("../../target/living-town-captures");
+    std::fs::create_dir_all(directory)?;
+    std::fs::write(
+        directory.join(filename),
+        serde_json::to_string_pretty(value)? + "\n",
+    )?;
+    Ok(())
+}
+// Fast-forward counts blocks, not seconds. Observe chain time before acting.
+async fn advance_to(
+    worker: &near_workspaces::Worker<near_workspaces::network::Sandbox>,
+    contract: &near_workspaces::Contract,
+    target_ns: u64,
+) -> Result<()> {
+    for _ in 0..10 {
+        let town = living_town_production::view(contract, "get_town", json!({})).await?;
+        let now = town["block_timestamp_ns"]
+            .as_str()
+            .unwrap()
+            .parse::<u64>()?;
+        if now >= target_ns {
+            return Ok(());
+        }
+        worker.fast_forward(1000).await?;
+    }
+    anyhow::bail!("sandbox chain did not reach the requested timestamp")
+}
+async fn advance_epoch(
+    worker: &near_workspaces::Worker<near_workspaces::network::Sandbox>,
+    contract: &near_workspaces::Contract,
+) -> Result<()> {
+    let town = living_town_production::view(contract, "get_town", json!({})).await?;
+    let genesis = town["data"]["genesis_time_ns"]
+        .as_str()
+        .unwrap()
+        .parse::<u64>()?;
+    let epoch = town["data"]["epoch"].as_str().unwrap().parse::<u64>()?;
+    let target = genesis + (epoch + 1) * 60_000_000_000;
+    // Land near the epoch's beginning so same-epoch replay assertions have
+    // headroom for several actual transactions before the next boundary.
+    for _ in 0..200 {
+        let town = living_town_production::view(contract, "get_town", json!({})).await?;
+        let now = town["block_timestamp_ns"]
+            .as_str()
+            .unwrap()
+            .parse::<u64>()?;
+        if now >= target {
+            return Ok(());
+        }
+        worker.fast_forward(10).await?;
+    }
+    anyhow::bail!("sandbox chain did not reach the next epoch")
+}
 fn canonical(value: &Value) -> String {
     match value {
         Value::Object(fields) => {
@@ -62,6 +118,7 @@ async fn isolated_v2_foundation_pins_versions_six_items_config_and_authority() -
     let bad = outsider
         .call(contract.id(), "initialize_town")
         .args_json(args.clone())
+        .gas(near_workspaces::types::Gas::from_tgas(100))
         .transact()
         .await?
         .into_result();
@@ -93,6 +150,7 @@ async fn isolated_v2_foundation_pins_versions_six_items_config_and_authority() -
             contract
                 .call("initialize_town")
                 .args_json(bad_args)
+                .gas(near_workspaces::types::Gas::from_tgas(100))
                 .transact()
                 .await?
                 .into_result()
@@ -103,6 +161,7 @@ async fn isolated_v2_foundation_pins_versions_six_items_config_and_authority() -
     let initialized = contract
         .call("initialize_town")
         .args_json(args.clone())
+        .gas(near_workspaces::types::Gas::from_tgas(100))
         .transact()
         .await?
         .into_result()?;
@@ -164,6 +223,7 @@ async fn isolated_v2_foundation_pins_versions_six_items_config_and_authority() -
         contract
             .call("initialize_town")
             .args_json(args)
+            .gas(near_workspaces::types::Gas::from_tgas(100))
             .transact()
             .await?
             .into_result()
@@ -180,6 +240,7 @@ async fn isolated_v2_foundation_pins_versions_six_items_config_and_authority() -
         contract
             .call("register_player")
             .args_json(json!({}))
+            .gas(near_workspaces::types::Gas::from_tgas(100))
             .transact()
             .await?
             .into_result()

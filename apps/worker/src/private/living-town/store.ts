@@ -1,6 +1,6 @@
 import { TownActivityFeed } from "./feed.js";
 import { gzipSync } from "node:zlib";
-import { DatabaseSync } from "node:sqlite";
+import { DatabaseSync, backup } from "node:sqlite";
 import {
   closeSync,
   openSync,
@@ -106,6 +106,7 @@ export class LivingTownProjectionStore {
   readonly identity: LivingTownIdentity;
   private synchronized = false;
   private closed = false;
+  private snapshotting = false;
   readonly path: string;
   constructor(dataDir: string, identity: unknown, create = false) {
     this.identity = parseLivingTownIdentity(identity);
@@ -1279,7 +1280,25 @@ export class LivingTownProjectionStore {
   invalidate(): void {
     this.synchronized = false;
   }
+  /** Online consistent copy only; never exports signing journals or credentials. */
+  async snapshotTo(path: string): Promise<void> {
+    requireValue(
+      !this.closed &&
+        !this.snapshotting &&
+        isAbsolute(path) &&
+        !existsSync(path),
+      "new absolute snapshot path required",
+    );
+    this.snapshotting = true;
+    try {
+      closeSync(openSync(path, "wx", 0o600));
+      await backup(this.db, path);
+    } finally {
+      this.snapshotting = false;
+    }
+  }
   close(): void {
+    requireValue(!this.snapshotting, "projection snapshot in progress");
     if (!this.closed) {
       this.db.close();
       this.closed = true;

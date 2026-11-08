@@ -1,4 +1,6 @@
 import { mkdirSync } from "node:fs";
+import { TownOperations } from "./private/living-town/operations.js";
+import { verifyTownBackup } from "./private/living-town/backup.js";
 import { LivingTownClient, createRpcTransport } from "@bot-bazaar/chain";
 import {
   readBoundedFile,
@@ -20,22 +22,28 @@ if (args[0] !== "--config" || !args[1] || (args.length !== 2 && !initialize))
     "Usage: living-town --config <absolute-public-config.json> [--initialize]",
   );
 const config = parseLivingTownWorkerConfig(readBoundedFile(args[1], 32768));
+const operations = new TownOperations("read_projection");
+const rpc = createRpcTransport(config.public.rpcUrl);
 if (initialize) mkdirSync(config.dataDir, { recursive: true, mode: 0o700 });
 const store = new LivingTownProjectionStore(
     config.dataDir,
     config.identity,
     initialize,
   ),
-  client = new LivingTownClient(
-    config.identity,
-    createRpcTransport(config.public.rpcUrl),
+  client = new LivingTownClient(config.identity, (method, params) =>
+    operations.measure("chain", () => rpc(method, params)),
   ),
   projector = new LivingTownProjector(client, store);
 let stopping = false,
   running: Promise<void> | undefined;
+let backupCheckAt = 0,
+  lastSyncDiagnosticAt = 0,
+  lastReportDiagnosticAt = 0;
 const cycle = (): Promise<void> => {
   if (running) return running;
   running = (async () => {
+    const started = performance.now();
+    let failed = false;
     try {
       if (!store.cursor()) await projector.sync();
       if (config.inbox)
@@ -46,11 +54,47 @@ const cycle = (): Promise<void> => {
         store.agentActivity(
           readAgentActivityInbox(config.activityInbox, config.identity),
         );
-    } catch {
-      store.invalidate();
-      console.error(
-        "V2 read projection could not advance; retained state will be labelled stale",
+      const town = store.town();
+      operations.observeSnapshot(
+        Number(town.observed_at_ms),
+        town.snapshot.block_timestamp_ns,
       );
+    } catch {
+      failed = true;
+      store.invalidate();
+      if (Date.now() - lastSyncDiagnosticAt >= 60000) {
+        console.error(
+          "V2 projection sync failed; inspect the private operations report",
+        );
+        lastSyncDiagnosticAt = Date.now();
+      }
+    } finally {
+      operations.record("poll", performance.now() - started, failed);
+      operations.observeDisk(config.dataDir);
+      if (config.backupDirectory && Date.now() - backupCheckAt >= 300000) {
+        backupCheckAt = Date.now();
+        try {
+          const manifest = await verifyTownBackup(
+            config.backupDirectory,
+            config.identity,
+          );
+          operations.observeBackup(
+            "verified",
+            manifest.capturedAt,
+            manifest.report.historyComplete,
+          );
+        } catch {
+          operations.observeBackup("failed");
+        }
+      }
+      try {
+        await operations.persist(config.dataDir);
+      } catch {
+        if (Date.now() - lastReportDiagnosticAt >= 60000) {
+          console.error("V2 operations report write failed");
+          lastReportDiagnosticAt = Date.now();
+        }
+      }
     }
   })().finally(() => {
     running = undefined;
@@ -78,6 +122,7 @@ const server = createReadServer(
     }),
   },
   config.boundary,
+  (duration, status) => operations.record("api", duration, status >= 400),
 );
 server.listen(config.port, "127.0.0.1");
 let timer: NodeJS.Timeout | undefined;

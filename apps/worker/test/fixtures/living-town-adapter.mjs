@@ -47,7 +47,14 @@ export function closeAdapterFixturesAt(dir) {
 }
 export async function adapterFixture(
   dir,
-  { propose, assistant, crashAt, realCustomers = false, seed = "42" } = {},
+  {
+    propose,
+    assistant,
+    crashAt,
+    realCustomers = false,
+    seed = "42",
+    operations,
+  } = {},
 ) {
   const path = join(dir, "model.json");
   const state = existsSync(path)
@@ -495,6 +502,7 @@ export async function adapterFixture(
         historyComplete: true,
         candidates: [],
       }),
+      operations,
     );
   }
   const simulation = new LivingTownSimulationAdapter(
@@ -513,6 +521,7 @@ export async function adapterFixture(
         }
       : undefined,
     assistant,
+    operations,
   );
   return {
     store,

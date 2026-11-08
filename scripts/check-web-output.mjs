@@ -9,9 +9,11 @@ import {
   parseWebDeployment,
 } from "../packages/shared/dist/index.js";
 
-const output = fileURLToPath(
-  new URL("../apps/web/dist/browser/", import.meta.url),
-);
+if (process.argv.length > 3)
+  throw Error("Usage: check-web-output [public-build-directory]");
+const output = process.argv[2]
+  ? path.resolve(process.argv[2])
+  : fileURLToPath(new URL("../apps/web/dist/browser/", import.meta.url));
 const forbidden = [
   "OPENAI_API_KEY",
   "NEAR_AI_API_KEY",

@@ -813,6 +813,41 @@ export class LivingTownExecutionStore {
     this.gate();
     this.write(() => this.terminal(id(jobId), "completed"));
   }
+  operations(): import("./operations.js").RuntimeOperations {
+    const tick = (row: Record<string, unknown> | undefined) =>
+      row
+        ? {
+            id: String(row["id"]),
+            slot: String(row["slot"]),
+            epoch: String(row["epoch"]),
+            createdAt: Number(row["created_at"]),
+          }
+        : null;
+    const unresolved = this.db
+      .prepare(
+        "SELECT count(*) n,min(updated_at) oldest FROM intents WHERE status IN ('prepared','signed','submitted','unknown')",
+      )
+      .get()!;
+    return {
+      recoveryRequired: !this.ready,
+      unresolved: Number(unresolved["n"]),
+      oldestIntentAt:
+        unresolved["oldest"] === null ? null : Number(unresolved["oldest"]),
+      activeTick: tick(this.ticks.active()),
+      lastCompletedTick: tick(
+        this.db
+          .prepare(
+            "SELECT id,slot,epoch,created_at FROM town_ticks WHERE state='completed' ORDER BY sequence DESC LIMIT 1",
+          )
+          .get(),
+      ),
+      rejectedActions: Number(
+        this.db
+          .prepare("SELECT count(*) n FROM intents WHERE status='failed'")
+          .get()!["n"],
+      ),
+    };
+  }
   close(): void {
     if (this.stopped) return;
     this.ready = false;

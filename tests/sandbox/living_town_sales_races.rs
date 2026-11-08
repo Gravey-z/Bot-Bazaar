@@ -211,7 +211,7 @@ async fn sales_races_and_conservation_cover_last_unit_reservations_funding_and_p
     let bolt = worker.dev_create_account().await?;
     let operator = worker.dev_create_account().await?;
     let url = worker.rpc_addr();
-    c.call("initialize_town").args_json(json!({"owner_account_id":c.id(),"operator_account_id":operator.id(),"merchant_controllers":{"rex":rex.id(),"luna":"luna.testnet","bolt":bolt.id()},"network_genesis_hash":"11111111111111111111111111111111","config_sha256":digest})).transact().await?.into_result()?;
+    c.call("initialize_town").args_json(json!({"owner_account_id":c.id(),"operator_account_id":operator.id(),"merchant_controllers":{"rex":rex.id(),"luna":"luna.testnet","bolt":bolt.id()},"network_genesis_hash":"11111111111111111111111111111111","config_sha256":digest})).gas(near_workspaces::types::Gas::from_tgas(100)).transact().await?.into_result()?;
     let mut setup = Vec::new();
     let mut stages = Vec::new();
     for (account, name) in [(&a, "Race Potions"), (&b, "Race Buyer")] {

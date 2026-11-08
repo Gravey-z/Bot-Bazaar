@@ -7,6 +7,7 @@ import type { BoundaryConfig } from "./config.js";
 export function createReadServer(
   read: ReadCapabilities,
   config: BoundaryConfig,
+  observe?: (durationMs: number, status: number) => void,
 ): Server {
   const handler = createReadHandler(read, config);
   const server = createServer(
@@ -17,7 +18,18 @@ export function createReadServer(
       keepAliveTimeout: 5000,
       connectionsCheckingInterval: 1000,
     },
-    handler,
+    (request, response) => {
+      const started = performance.now();
+      if (!/^\/api\/events\/stream(?:\?|$)/.test(request.url ?? ""))
+        response.once("finish", () => {
+          try {
+            observe?.(performance.now() - started, response.statusCode);
+          } catch {
+            /* telemetry cannot change a response */
+          }
+        });
+      handler(request, response);
+    },
   );
   const close = server.close;
   server.close = function (callback) {

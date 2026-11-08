@@ -41,6 +41,7 @@ export function readBoundedFile(path: string, max: number): unknown {
   );
 }
 export interface LivingTownWorkerConfig {
+  backupDirectory: string | null;
   identity: LivingTownIdentity;
   public: PublicConfig;
   dataDir: string;
@@ -62,6 +63,11 @@ export function parseLivingTownWorkerConfig(
       "port",
       "poll_ms",
       "allowed_origins",
+      ...(value !== null &&
+      typeof value === "object" &&
+      Object.hasOwn(value, "backup_directory")
+        ? ["backup_directory"]
+        : []),
       ...(value !== null &&
       typeof value === "object" &&
       Object.hasOwn(value, "agent_activity_inbox")
@@ -94,6 +100,13 @@ export function parseLivingTownWorkerConfig(
     pollMs = Number(parseU64(r["poll_ms"])),
     proxies = r["trusted_proxy_ips"] ?? [];
   if (
+    r["backup_directory"] !== undefined &&
+    r["backup_directory"] !== null &&
+    (typeof r["backup_directory"] !== "string" ||
+      !isAbsolute(r["backup_directory"]))
+  )
+    throw new Error("absolute verified backup directory required");
+  if (
     !Array.isArray(proxies) ||
     proxies.length > 16 ||
     proxies.some((v) => typeof v !== "string" || v.includes(",")) ||
@@ -107,6 +120,8 @@ export function parseLivingTownWorkerConfig(
   )
     throw new Error("V2 read-worker bounds mismatch");
   return {
+    backupDirectory:
+      (r["backup_directory"] as string | null | undefined) ?? null,
     identity,
     public: pub,
     dataDir: resolve(r["data_dir"]),

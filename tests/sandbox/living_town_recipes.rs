@@ -13,7 +13,7 @@ async fn immutable_recipes_are_exact_paged_read_only_and_revision_bound() -> Res
         .collect();
     let worker = near_workspaces::sandbox().await?;
     let c = worker.dev_deploy(&wasm()?).await?;
-    c.call("initialize_town").args_json(json!({"owner_account_id":c.id(),"operator_account_id":"operator.testnet","merchant_controllers":{"rex":"rex.testnet","luna":"luna.testnet","bolt":"bolt.testnet"},"network_genesis_hash":"11111111111111111111111111111111","config_sha256":digest})).transact().await?.into_result()?;
+    c.call("initialize_town").args_json(json!({"owner_account_id":c.id(),"operator_account_id":"operator.testnet","merchant_controllers":{"rex":"rex.testnet","luna":"luna.testnet","bolt":"bolt.testnet"},"network_genesis_hash":"11111111111111111111111111111111","config_sha256":digest})).gas(near_workspaces::types::Gas::from_tgas(100)).transact().await?.into_result()?;
     let before = c.view_state().await?;
     let args = json!({"after_id":null,"limit":"1","expected_market_revision":"1"});
     let first: Value = c
@@ -96,7 +96,7 @@ async fn immutable_recipes_are_exact_paged_read_only_and_revision_bound() -> Res
         .as_str()
         .unwrap()
         .parse::<u64>()?;
-    player.call(c.id(),"register_player").args_json(json!({"command":{"sequence":"1","config_version":"1","valid_until_ns":(now+500_000_000_000).to_string()}})).transact().await?.into_result()?;
+    player.call(c.id(),"register_player").args_json(json!({"command":{"sequence":"1","config_version":"1","valid_until_ns":(now+500_000_000_000).to_string()}})).gas(near_workspaces::types::Gas::from_tgas(100)).transact().await?.into_result()?;
     assert!(c.view("get_recipes").args_json(args).await.is_err());
     Ok(())
 }

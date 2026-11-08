@@ -26,6 +26,7 @@
     "format:rust": "node scripts/rust-toolchain.mjs format",
     "check:web-output": "node scripts/check-web-output.mjs",
     "dev": "corepack pnpm dev:web",
+    "dev:rehearsal": "node scripts/local-rehearsal.mjs",
     "dev:web": "corepack pnpm build:packages && corepack pnpm --filter @bot-bazaar/web dev",
     "dev:worker": "corepack pnpm build:packages && corepack pnpm --filter @bot-bazaar/worker build && corepack pnpm --filter @bot-bazaar/worker start",
     "test:config": "node --test tests/configuration/*.test.mjs",

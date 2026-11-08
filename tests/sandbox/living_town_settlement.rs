@@ -36,17 +36,19 @@ async fn edited_listings_settle_once_with_conservation_and_no_arbitrary_counterp
     let b = worker.dev_create_account().await?;
     let rex = worker.dev_create_account().await?;
     let url = worker.rpc_addr();
-    c.call("initialize_town").args_json(json!({"owner_account_id":c.id(),"operator_account_id":"operator.testnet","merchant_controllers":{"rex":rex.id(),"luna":"luna.testnet","bolt":"bolt.testnet"},"network_genesis_hash":"11111111111111111111111111111111","config_sha256":digest})).transact().await?.into_result()?;
+    c.call("initialize_town").args_json(json!({"owner_account_id":c.id(),"operator_account_id":"operator.testnet","merchant_controllers":{"rex":rex.id(),"luna":"luna.testnet","bolt":"bolt.testnet"},"network_genesis_hash":"11111111111111111111111111111111","config_sha256":digest})).gas(near_workspaces::types::Gas::from_tgas(100)).transact().await?.into_result()?;
     for (player, name) in [(&a, "Buyer A"), (&b, "Buyer B")] {
         player
             .call(c.id(), "register_player")
             .args_json(json!({"command":command(&c,1).await?}))
+            .gas(near_workspaces::types::Gas::from_tgas(100))
             .transact()
             .await?
             .into_result()?;
         player
             .call(c.id(), "create_shop")
             .args_json(json!({"name":name,"command":command(&c,2).await?}))
+            .gas(near_workspaces::types::Gas::from_tgas(100))
             .transact()
             .await?
             .into_result()?;

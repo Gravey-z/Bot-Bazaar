@@ -93,7 +93,13 @@ export async function executionFixture(
   };
   const save = () => writeFileSync(statePath, JSON.stringify(state));
   const die = (point) => {
-    if (crashAt === point) process.kill(process.pid, "SIGKILL");
+    if (crashAt === point) {
+      writeFileSync(
+        join(dir, "crash-marker.json"),
+        JSON.stringify({ point, counts }),
+      );
+      process.kill(process.pid, "SIGKILL");
+    }
   };
   let mode = "success";
   async function execute(bytes) {
@@ -327,7 +333,12 @@ export async function executionFixture(
     counts.status++;
     if (!state.receipts || !state.receipt)
       return { kind: "unknown", transactionHash: proof.transactionHash };
-    return verifyLivingTownReceipt(state.receipt, proof, async () => block());
+    const verified = await verifyLivingTownReceipt(
+      state.receipt,
+      proof,
+      async () => block(),
+    );
+    return verified;
   };
   const originalSave = store.saveSigned.bind(store);
   store.saveSigned = (...args) => {
@@ -338,6 +349,14 @@ export async function executionFixture(
   store.markBroadcast = (...args) => {
     originalBroadcast(...args);
     if (args[1] === "unknown") die("after_unknown");
+    if (args[1] === "submitted") die("after_submission");
+  };
+  const originalResolve = store.resolve.bind(store);
+  store.resolve = (...args) => {
+    // Executor has authenticated the receipt or matching command checkpoint;
+    // die before its terminal journal update, rather than inventing a receipt.
+    die("after_confirmation");
+    return originalResolve(...args);
   };
   const processor = new DurableCustomerExecutor(
     store,

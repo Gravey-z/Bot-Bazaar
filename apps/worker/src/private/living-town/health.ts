@@ -8,6 +8,9 @@ export interface LivingTownHealth {
   captured_at: number;
   stale: boolean;
   history_complete: boolean;
+  role: "read_projection";
+  snapshot_age_ms: number | null;
+  finalized_block_age_ms: number | null;
 }
 export function readLivingTownHealth(
   store: LivingTownProjectionStore,
@@ -23,6 +26,15 @@ export function readLivingTownHealth(
       captured_at: now,
       stale: town.stale,
       history_complete: town.history_complete,
+      role: "read_projection",
+      snapshot_age_ms:
+        now >= Number(town.observed_at_ms)
+          ? now - Number(town.observed_at_ms)
+          : null,
+      finalized_block_age_ms:
+        now >= Number(BigInt(town.snapshot.block_timestamp_ns) / 1000000n)
+          ? now - Number(BigInt(town.snapshot.block_timestamp_ns) / 1000000n)
+          : null,
     };
   } catch {
     return {
@@ -33,6 +45,9 @@ export function readLivingTownHealth(
       captured_at: now,
       stale: true,
       history_complete: false,
+      role: "read_projection",
+      snapshot_age_ms: null,
+      finalized_block_age_ms: null,
     };
   }
 }

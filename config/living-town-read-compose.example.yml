@@ -1,0 +1,32 @@
+# Review local paths/ownership and the public reader config before use. Linux/OMV7.
+# The existing read worker binds loopback; host networking keeps it loopback-only.
+services:
+  living-town-reader:
+    image: bot-bazaar-worker:local
+    command: ["node", "dist/living-town.js", "--config", "/config/reader.json"]
+    network_mode: host
+    restart: unless-stopped
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    tmpfs: ["/tmp:size=32m"]
+    volumes:
+      - "${BAZAAR_V2_READER_CONFIG:?set reviewed public config path}:/config/reader.json:ro"
+      - "${BAZAAR_V2_PROJECTION_DIR:?set existing dedicated projection directory}:/data/projection"
+    logging:
+      driver: json-file
+      options:
+        max-size: "5m"
+        max-file: "3"
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:3011/health',{signal:AbortSignal.timeout(2000)}).then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s

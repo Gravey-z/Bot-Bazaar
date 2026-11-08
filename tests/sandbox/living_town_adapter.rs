@@ -35,7 +35,7 @@ async fn adapter_captures_real_v2_receipts_and_historical_code_views() -> Result
     let worker = near_workspaces::sandbox().await?;
     let url = worker.rpc_addr();
     let c = worker.dev_deploy(&wasm()?).await?;
-    c.call("initialize_town").args_json(json!({"owner_account_id":c.id(),"operator_account_id":"operator.testnet","merchant_controllers":{"rex":"rex.testnet","luna":"luna.testnet","bolt":"bolt.testnet"},"network_genesis_hash":"11111111111111111111111111111111","config_sha256":digest})).transact().await?.into_result()?;
+    c.call("initialize_town").args_json(json!({"owner_account_id":c.id(),"operator_account_id":"operator.testnet","merchant_controllers":{"rex":"rex.testnet","luna":"luna.testnet","bolt":"bolt.testnet"},"network_genesis_hash":"11111111111111111111111111111111","config_sha256":digest})).gas(near_workspaces::types::Gas::from_tgas(100)).transact().await?.into_result()?;
     let initial_town: Value = c.view("get_town").args_json(json!({})).await?.json()?;
     let initial_block = rpc(
         &url,

@@ -68,17 +68,19 @@ async fn stock_replacement_reserves_only_held_outputs_and_rolls_back_failed_chan
     let b = worker.dev_create_account().await?;
     let rex = worker.dev_create_account().await?;
     let url = worker.rpc_addr();
-    c.call("initialize_town").args_json(json!({"owner_account_id":c.id(),"operator_account_id":"operator.testnet","merchant_controllers":{"rex":rex.id(),"luna":"luna.testnet","bolt":"bolt.testnet"},"network_genesis_hash":"11111111111111111111111111111111","config_sha256":digest})).transact().await?.into_result()?;
+    c.call("initialize_town").args_json(json!({"owner_account_id":c.id(),"operator_account_id":"operator.testnet","merchant_controllers":{"rex":rex.id(),"luna":"luna.testnet","bolt":"bolt.testnet"},"network_genesis_hash":"11111111111111111111111111111111","config_sha256":digest})).gas(near_workspaces::types::Gas::from_tgas(100)).transact().await?.into_result()?;
     for (player, name) in [(&a, "Listed Potions"), (&b, "Other Shop")] {
         player
             .call(c.id(), "register_player")
             .args_json(json!({"command":command(&c,1).await?}))
+            .gas(near_workspaces::types::Gas::from_tgas(100))
             .transact()
             .await?
             .into_result()?;
         player
             .call(c.id(), "create_shop")
             .args_json(json!({"name":name,"command":command(&c,2).await?}))
+            .gas(near_workspaces::types::Gas::from_tgas(100))
             .transact()
             .await?
             .into_result()?;
@@ -87,7 +89,7 @@ async fn stock_replacement_reserves_only_held_outputs_and_rolls_back_failed_chan
         (3, "rex", "crystal", "3", "12"),
         (4, "luna", "herb", "6", "18"),
     ] {
-        a.call(c.id(),"buy_from_merchant").args_json(json!({"merchant_id":merchant,"item_id":item,"quantity":q,"expected_listing_revision":"1","max_total_price":cost,"command":command(&c,seq).await?})).transact().await?.into_result()?;
+        a.call(c.id(),"buy_from_merchant").args_json(json!({"merchant_id":merchant,"item_id":item,"quantity":q,"expected_listing_revision":"1","max_total_price":cost,"command":command(&c,seq).await?})).gas(near_workspaces::types::Gas::from_tgas(100)).transact().await?.into_result()?;
     }
     a.call(c.id(),"start_production").args_json(json!({"shop_id":"4","recipe_id":"health_potion","recipe_version":"1","quantity":"3","expected_shop_revision":"1","command":command(&c,5).await?})).gas(near_workspaces::types::Gas::from_tgas(100)).transact().await?.into_result()?;
     reject(

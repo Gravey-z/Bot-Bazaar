@@ -6,6 +6,7 @@ import {
 import type { FinalizedLivingTownReader } from "@bot-bazaar/chain";
 import type { ContinuityVerifier } from "../recovery/types.js";
 import { requireStorage, sha256 } from "../storage/validation.js";
+import type { TownOperations } from "./operations.js";
 import { LivingTownExecutionStore } from "./execution-store.js";
 import type { TownLane } from "./execution-store.js";
 import { LivingTownTickScheduler } from "./ticks.js";
@@ -81,6 +82,7 @@ export class LivingTownSimulationAdapter {
       schemaVersion: "living-town-proposal-v1";
     }) => Promise<unknown>,
     private readonly assistant?: AutomaticAssistant,
+    private readonly operations?: TownOperations,
   ) {
     requireStorage(
       !assistant ||
@@ -203,10 +205,28 @@ export class LivingTownSimulationAdapter {
   async poll(): Promise<SimulationPoll> {
     requireStorage(!this.busy, "simulation adapter already running");
     this.busy = true;
+    const started = performance.now();
+    let failed = false;
     try {
+      this.operations?.observeDisk(this.store.dataDir);
+      this.operations?.observeRuntime(this.store.operations());
+      if (this.operations?.mode === "paused")
+        return { kind: "blocked", reasons: ["operator_paused"] };
       let report = await this.runtime.recover();
+      if (this.operations?.getMode() === "paused")
+        return { kind: "blocked", reasons: ["operator_paused"] };
+      if (this.operations?.mode === "recovery_only") {
+        if (report.kind === "customer")
+          await this.customers.recover({ preservePrepared: true });
+        return {
+          kind: "blocked",
+          reasons: ["operator_recovery_only", ...report.reasons],
+        };
+      }
       if (report.kind === "customer") {
         const r = await this.customers.recover({ preservePrepared: true });
+        if (this.operations && this.operations.mode !== "active")
+          return { kind: "blocked", reasons: ["operator_admission_stopped"] };
         if (r.kind === "blocked") {
           const pending = this.store.unresolved();
           if (
@@ -227,6 +247,8 @@ export class LivingTownSimulationAdapter {
         report = await this.runtime.recover();
       }
       if (report.kind !== "ready") {
+        if (this.operations && this.operations.mode !== "active")
+          return { kind: "blocked", reasons: ["operator_admission_stopped"] };
         const pending = this.store.unresolved();
         if (
           pending.length === 1 &&
@@ -241,6 +263,7 @@ export class LivingTownSimulationAdapter {
       }
       const reader = await this.adapters.operator.client.finalized(),
         town = await reader.getTown();
+      this.operations?.observeSnapshot(Date.now(), town.block_timestamp_ns);
       this.store.ticks.reconcile({
         town,
         block: reader.block,
@@ -303,6 +326,8 @@ export class LivingTownSimulationAdapter {
       if (!next) return { kind: "idle" };
       const arrival = String(next["arrival"]);
       if (arrival === "fund" || /^[0-3]$/.test(arrival)) {
+        if (this.operations && this.operations.mode !== "active")
+          return { kind: "blocked", reasons: ["operator_admission_stopped"] };
         const result = await this.customerRunner.poll();
         return {
           kind: result.kind,
@@ -415,6 +440,8 @@ export class LivingTownSimulationAdapter {
           };
         }
       }
+      if (this.operations && this.operations.mode !== "active")
+        return { kind: "blocked", reasons: ["operator_admission_stopped"] };
       return {
         kind: "advanced",
         action: await this.runtime.execute({
@@ -425,8 +452,17 @@ export class LivingTownSimulationAdapter {
           decision,
         }),
       };
+    } catch (error) {
+      failed = true;
+      throw error;
     } finally {
       this.busy = false;
+      this.operations?.record("poll", performance.now() - started, failed);
+      try {
+        this.operations?.observeRuntime(this.store.operations());
+      } catch {
+        this.operations?.setMode("recovery_only");
+      }
     }
   }
 }

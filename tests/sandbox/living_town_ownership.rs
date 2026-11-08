@@ -27,6 +27,7 @@ async fn reject(
     let result = caller
         .call(contract.id(), method)
         .args_json(args)
+        .gas(near_workspaces::types::Gas::from_tgas(100))
         .transact()
         .await?
         .into_result();
@@ -58,7 +59,7 @@ async fn ownership_grants_races_replays_and_owner_only_rename() -> Result<()> {
     let bolt = worker.dev_create_account().await?;
     let player = worker.dev_create_account().await?;
     let other = worker.dev_create_account().await?;
-    contract.call("initialize_town").args_json(json!({"owner_account_id":owner.id(),"operator_account_id":operator.id(),"merchant_controllers":{"rex":rex.id(),"luna":luna.id(),"bolt":bolt.id()},"network_genesis_hash":"11111111111111111111111111111111","config_sha256":digest})).transact().await?.into_result()?;
+    contract.call("initialize_town").args_json(json!({"owner_account_id":owner.id(),"operator_account_id":operator.id(),"merchant_controllers":{"rex":rex.id(),"luna":luna.id(),"bolt":bolt.id()},"network_genesis_hash":"11111111111111111111111111111111","config_sha256":digest})).gas(near_workspaces::types::Gas::from_tgas(100)).transact().await?.into_result()?;
     for caller in [contract.as_account(), &owner, &operator, &rex, &luna, &bolt] {
         reject(
             &contract,
@@ -85,10 +86,12 @@ async fn ownership_grants_races_replays_and_owner_only_rename() -> Result<()> {
         player
             .call(contract.id(), "register_player")
             .args_json(register.clone())
+            .gas(near_workspaces::types::Gas::from_tgas(100))
             .transact(),
         player
             .call(contract.id(), "register_player")
             .args_json(register.clone())
+            .gas(near_workspaces::types::Gas::from_tgas(100))
             .transact()
     );
     let mut applied = 0;
@@ -113,6 +116,7 @@ async fn ownership_grants_races_replays_and_owner_only_rename() -> Result<()> {
     let replay = player
         .call(contract.id(), "register_player")
         .args_json(register.clone())
+        .gas(near_workspaces::types::Gas::from_tgas(100))
         .transact()
         .await?
         .into_result()?;
@@ -185,10 +189,12 @@ async fn ownership_grants_races_replays_and_owner_only_rename() -> Result<()> {
         player
             .call(contract.id(), "create_shop")
             .args_json(create.clone())
+            .gas(near_workspaces::types::Gas::from_tgas(100))
             .transact(),
         player
             .call(contract.id(), "create_shop")
             .args_json(rival.clone())
+            .gas(near_workspaces::types::Gas::from_tgas(100))
             .transact()
     );
     let mut winner = None;
@@ -214,6 +220,7 @@ async fn ownership_grants_races_replays_and_owner_only_rename() -> Result<()> {
     let cached = player
         .call(contract.id(), "create_shop")
         .args_json(winning)
+        .gas(near_workspaces::types::Gas::from_tgas(100))
         .transact()
         .await?
         .into_result()?;
@@ -279,6 +286,7 @@ async fn ownership_grants_races_replays_and_owner_only_rename() -> Result<()> {
     let renamed = player
         .call(contract.id(), "rename_shop")
         .args_json(rename.clone())
+        .gas(near_workspaces::types::Gas::from_tgas(100))
         .transact()
         .await?
         .into_result()?;
@@ -288,6 +296,7 @@ async fn ownership_grants_races_replays_and_owner_only_rename() -> Result<()> {
     let cached = player
         .call(contract.id(), "rename_shop")
         .args_json(rename)
+        .gas(near_workspaces::types::Gas::from_tgas(100))
         .transact()
         .await?
         .into_result()?;
@@ -329,12 +338,14 @@ async fn ownership_grants_races_replays_and_owner_only_rename() -> Result<()> {
     other
         .call(contract.id(), "register_player")
         .args_json(json!({"command":command(&contract,1).await?}))
+        .gas(near_workspaces::types::Gas::from_tgas(100))
         .transact()
         .await?
         .into_result()?;
     other
         .call(contract.id(), "create_shop")
         .args_json(json!({"name":"Independent","command":command(&contract,2).await?}))
+        .gas(near_workspaces::types::Gas::from_tgas(100))
         .transact()
         .await?
         .into_result()?;
@@ -386,6 +397,7 @@ async fn ownership_grants_races_replays_and_owner_only_rename() -> Result<()> {
     let recovered: Value = third
         .call(contract.id(), "register_player")
         .args_json(pending)
+        .gas(near_workspaces::types::Gas::from_tgas(100))
         .transact()
         .await?
         .into_result()?

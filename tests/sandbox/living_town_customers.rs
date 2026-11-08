@@ -52,7 +52,7 @@ async fn funded_customers_consume_real_products_with_global_quotas_and_capped_ep
     let b = worker.dev_create_account().await?;
     let operator = worker.dev_create_account().await?;
     let url = worker.rpc_addr();
-    c.call("initialize_town").args_json(json!({"owner_account_id":c.id(),"operator_account_id":operator.id(),"merchant_controllers":{"rex":"rex.testnet","luna":"luna.testnet","bolt":"bolt.testnet"},"network_genesis_hash":"11111111111111111111111111111111","config_sha256":digest})).transact().await?.into_result()?;
+    c.call("initialize_town").args_json(json!({"owner_account_id":c.id(),"operator_account_id":operator.id(),"merchant_controllers":{"rex":"rex.testnet","luna":"luna.testnet","bolt":"bolt.testnet"},"network_genesis_hash":"11111111111111111111111111111111","config_sha256":digest})).gas(near_workspaces::types::Gas::from_tgas(100)).transact().await?.into_result()?;
     reject(
         &c,
         &operator,

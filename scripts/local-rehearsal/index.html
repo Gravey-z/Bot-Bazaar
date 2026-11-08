@@ -1,0 +1,462 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Bot Bazaar — local rehearsal</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: #f8f7ef;
+        color: #203e35;
+        font:
+          16px/1.5 system-ui,
+          sans-serif;
+      }
+      main {
+        max-width: 1100px;
+        margin: auto;
+        padding: 28px;
+      }
+      h1,
+      h2,
+      h3 {
+        line-height: 1.2;
+      }
+      h1 {
+        font-size: 34px;
+      }
+      h2 {
+        font-size: 23px;
+      }
+      nav {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 18px;
+      }
+      a {
+        color: #224f3a;
+      }
+      section,
+      .banner {
+        background: #fffdf7;
+        border: 1px solid #b7c6b4;
+        border-radius: 12px;
+        padding: 22px;
+        margin: 20px 0;
+      }
+      .banner {
+        border: 2px solid #a66b28;
+        background: #fff1d6;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, 270px), 1fr));
+        gap: 18px;
+      }
+      article {
+        border-top: 2px solid #ced7c7;
+        padding: 10px;
+      }
+      button,
+      input {
+        font: inherit;
+        padding: 9px 12px;
+        border-radius: 6px;
+        border: 1px solid #65866b;
+      }
+      button {
+        cursor: pointer;
+        background: #244f3c;
+        color: white;
+        margin: 5px 5px 5px 0;
+      }
+      button:disabled {
+        opacity: 0.6;
+        cursor: wait;
+      }
+      input {
+        background: white;
+        color: #203e35;
+        max-width: 100%;
+      }
+      input[type="number"] {
+        width: 85px;
+      }
+      label {
+        display: inline-flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 8px;
+        margin: 5px;
+      }
+      :focus-visible {
+        outline: 3px solid #af6723;
+        outline-offset: 3px;
+      }
+      .muted {
+        color: #4b6054;
+      }
+      #message {
+        padding: 12px;
+        border-left: 4px solid #a66b28;
+        overflow-wrap: anywhere;
+      }
+      .metrics {
+        white-space: pre-wrap;
+        font-family: inherit;
+        overflow-wrap: anywhere;
+      }
+      li {
+        margin-block: 8px;
+        overflow-wrap: anywhere;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <p>BOT BAZAAR · PRACTICE ONLY</p>
+        <h1>Your local rehearsal shop</h1>
+        <nav aria-label="Rehearsal navigation">
+          <a href="#shop">Shop</a><a href="#suppliers">Suppliers</a
+          ><a href="#craft">Craft</a><a href="#listings">Listings</a
+          ><a href="#history">History</a>
+        </nav>
+      </header>
+      <aside class="banner">
+        <strong
+          >Simulated economy — no wallet, blockchain, native gas or AI
+          calls.</strong
+        >
+        <p>
+          This practice page uses the existing offline economy model. It is a
+          separate rehearsal interface; it does not verify the main Angular
+          page, real transactions or AI agents. Supplier rules and customers are
+          deterministic.
+        </p>
+        <p>
+          The clock advances only when you press Advance. Simulated seconds and
+          wall-clock time are separate. One practice shop is shared by tabs on
+          this server. Refresh preserves it; restarting the server or choosing
+          Fresh rehearsal clears only this practice state.
+        </p>
+      </aside>
+      <p id="message" role="status" aria-live="polite">
+        Connecting to the local rehearsal…
+      </p>
+      <section id="shop">
+        <h2>Your shop</h2>
+        <p id="summary" class="metrics"></p>
+        <form id="register">
+          <button>Register for 100 simulated gold</button>
+        </form>
+        <form id="claim">
+          <label
+            >Shop name
+            <input
+              name="name"
+              required
+              maxlength="32"
+              value="My practice shop" /></label
+          ><button>Claim shop</button>
+        </form>
+        <p>
+          Registration is once per rehearsal. Claiming a shop gives no second
+          grant.
+        </p>
+        <button id="advance">Advance 60 simulated seconds</button>
+        <button id="customers">Run deterministic customers</button>
+        <p>
+          Advance replenishes suppliers and customer funding within the current
+          epoch's limits. Running customers never advances time; repeated clicks
+          cannot bypass the per-product epoch quota.
+        </p>
+        <button id="upgrade">Buy second slot — 150 simulated gold</button>
+        <p>
+          Upgrade needs both products completed and sold, plus 180 available
+          gold: burn 150, retain 30. Repeat profitable production and sales.
+          Existing batches keep their original timing/output.
+        </p>
+      </section>
+      <section id="suppliers">
+        <h2>Buy ingredients</h2>
+        <p>
+          Purchases spend simulated gold immediately. Choose inputs from a
+          recipe below.
+        </p>
+        <div id="materials" class="grid"></div>
+      </section>
+      <section id="craft">
+        <h2>Craft and claim</h2>
+        <p>
+          Start consumes inputs and occupies a slot. A batch takes quantity ×
+          recipe seconds; all output is claimed together, with no
+          cancellation/refund. Advance the simulated clock until ready, then
+          claim.
+        </p>
+        <div id="recipes" class="grid"></div>
+        <h3>Production batches</h3>
+        <div id="jobs"></div>
+      </section>
+      <section id="listings">
+        <h2>List and sell</h2>
+        <p>
+          Listings reserve held products. Above the displayed customer price
+          cap, goods remain unsold. Even affordable goods need customer gold and
+          quota. Edit the listing or cancel it; listing alone creates no sale.
+        </p>
+        <div id="products" class="grid"></div>
+      </section>
+      <section id="history">
+        <h2>Simulated history and accounting</h2>
+        <p>
+          No receipt hashes are created. These local results are not chain
+          evidence. Revenue minus realized FIFO cost is trading profit; grants,
+          unsold stock and the upgrade burn remain separate.
+        </p>
+        <p id="accounting" class="metrics"></p>
+        <ol id="events"></ol>
+        <button id="export">Download rehearsal record</button
+        ><button id="refresh">Refresh state</button>
+      </section>
+      <section>
+        <h2>Start over</h2>
+        <p>
+          This resets only the disposable in-memory rehearsal shop. Download
+          your record first. No project database, wallet or chain state is
+          changed.
+        </p>
+        <button id="reset">Fresh rehearsal</button>
+      </section>
+    </main>
+    <script type="module">
+      let state,
+        busy = false,
+        controlsBuilt = false;
+      const $ = (id) => document.getElementById(id);
+      const node = (tag, text) => {
+        const n = document.createElement(tag);
+        if (text !== undefined) n.textContent = text;
+        return n;
+      };
+      function button(text, action) {
+        const n = node("button", text);
+        n.type = "button";
+        n.addEventListener("click", action);
+        return n;
+      }
+      function number(label, name, value, max) {
+        const wrapper = node("label", label),
+          input = node("input");
+        input.name = name;
+        input.type = "number";
+        input.min = "1";
+        input.max = String(max);
+        input.value = String(value);
+        input.required = true;
+        wrapper.append(input);
+        return wrapper;
+      }
+      function form(container, fields, text, action) {
+        const f = node("form");
+        f.append(...fields, node("button", text));
+        f.addEventListener("submit", (event) => {
+          event.preventDefault();
+          void send({ ...Object.fromEntries(new FormData(f)), ...action });
+        });
+        container.append(f);
+      }
+      async function send(action) {
+        if (busy || !state) return;
+        busy = true;
+        document.querySelectorAll("button").forEach((n) => (n.disabled = true));
+        try {
+          const response = await fetch("/api/action", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              ...action,
+              id: crypto.randomUUID(),
+              sessionId: state.sessionId,
+            }),
+          });
+          const result = await response.json();
+          if (!response.ok) throw Error(result.error);
+          state = result;
+          render();
+          $("message").textContent =
+            action.action === "reset"
+              ? "Fresh rehearsal started."
+              : (state.log.at(-1)?.note ?? "Local rehearsal ready.");
+        } catch (error) {
+          $("message").textContent =
+            error.message +
+            " No action was automatically retried. Refresh state before trying again.";
+        } finally {
+          busy = false;
+          document
+            .querySelectorAll("button")
+            .forEach((n) => (n.disabled = false));
+        }
+      }
+      function buildControls() {
+        for (const material of state.materials) {
+          const card = node("article");
+          card.append(node("h3", material.id));
+          const detail = node("p");
+          detail.id = "material-" + material.id;
+          card.append(detail);
+          form(
+            card,
+            [number("Quantity", "quantity", 1, 100)],
+            "Buy " + material.id,
+            { action: "buy", item: material.id },
+          );
+          $("materials").append(card);
+        }
+        for (const recipe of state.recipes) {
+          const card = node("article");
+          card.append(
+            node("h3", recipe.id),
+            node(
+              "p",
+              Object.entries(recipe.inputs)
+                .map(([id, count]) => count + " " + id)
+                .join(" + ") +
+                " → 1 " +
+                recipe.id +
+                " · " +
+                recipe.seconds +
+                " simulated seconds per output.",
+            ),
+          );
+          form(card, [number("Batch", "quantity", 1, 10)], "Start batch", {
+            action: "start",
+            item: recipe.id,
+          });
+          $("recipes").append(card);
+          const listing = node("article");
+          listing.append(node("h3", recipe.id));
+          const detail = node("p");
+          detail.id = "product-" + recipe.id;
+          listing.append(detail);
+          form(
+            listing,
+            [
+              number("Quantity", "quantity", 1, 100),
+              number("Gold each", "price", recipe.salePrice, 100),
+            ],
+            "Set / edit listing",
+            { action: "list", item: recipe.id },
+          );
+          listing.append(
+            button("Cancel listing", () =>
+              send({ action: "cancel", item: recipe.id }),
+            ),
+          );
+          $("products").append(listing);
+        }
+        controlsBuilt = true;
+      }
+      function render() {
+        if (!controlsBuilt) buildControls();
+        $("summary").textContent =
+          `${state.shop ?? "Shop not claimed"} · ${state.registered ? "Registered" : "Not registered"}\nAvailable game gold: ${state.gold ?? "—"} · Production slots: ${state.slots}\nSimulated seconds: ${state.simulatedSeconds} · Actual server-session seconds: ${state.elapsedWallSeconds}\nCustomer gold: ${state.customerGold}`;
+        for (const m of state.materials)
+          $("material-" + m.id).textContent =
+            `${m.supplier} · price ${m.price} gold · saleable stock ${m.stock} · you hold ${m.held} (${m.available} available)`;
+        for (const r of state.recipes)
+          $("product-" + r.id).textContent =
+            `Held ${r.held} · available ${r.available} · listed ${r.listing?.quantity ?? 0} at ${r.listing?.price ?? "—"} gold · customer price cap ${r.salePrice}`;
+        const jobs = state.jobs.map((job) => {
+          const p = node("article");
+          p.append(
+            node("strong", `${job.product} × ${job.quantity}`),
+            node(
+              "p",
+              job.completed
+                ? "Claimed"
+                : `Ready at simulated second ${job.ready} · ${job.claimable ? "Ready to claim" : "Still producing"}`,
+            ),
+          );
+          if (job.claimable)
+            p.append(
+              button("Claim whole batch", () =>
+                send({ action: "claim-output", job: job.id }),
+              ),
+            );
+          return p;
+        });
+        $("jobs").replaceChildren(
+          ...(jobs.length ? jobs : [node("p", "No production batches yet.")]),
+        );
+        const a = state.accounting;
+        $("accounting").textContent =
+          `Grant: ${a.grant}\nMaterial purchases: ${a.purchases}\nSales revenue: ${a.revenue}\nRealized FIFO COGS: ${a.cogs}\nRealized trading profit: ${a.profit}\nUpgrade spending: ${a.upgrade}\nNet cash change after grant: ${a.cashChange}\nFirst simulated sale: ${state.firstSale ? JSON.stringify(state.firstSale) : "Not reached"}\nSimulated upgrade: ${state.upgradeAt ? JSON.stringify(state.upgradeAt) : "Not reached"}`;
+        $("events").replaceChildren(
+          ...state.log.map((row) =>
+            node(
+              "li",
+              `Step ${row.step} · simulated ${row.simulatedSeconds}s: ${row.note}`,
+            ),
+          ),
+        );
+      }
+      async function refresh() {
+        try {
+          const response = await fetch("/api/state");
+          if (!response.ok) throw Error("Local server unavailable.");
+          state = await response.json();
+          render();
+          $("message").textContent =
+            "Local rehearsal state loaded. Practice only.";
+        } catch (error) {
+          $("message").textContent = error.message;
+        }
+      }
+      $("register").addEventListener("submit", (event) => {
+        event.preventDefault();
+        void send({ action: "register" });
+      });
+      $("claim").addEventListener("submit", (event) => {
+        event.preventDefault();
+        void send({
+          action: "claim",
+          name: new FormData(event.currentTarget).get("name"),
+        });
+      });
+      $("advance").addEventListener("click", () =>
+        send({ action: "advance", seconds: "60" }),
+      );
+      $("customers").addEventListener("click", () =>
+        send({ action: "customers" }),
+      );
+      $("upgrade").addEventListener("click", () => send({ action: "upgrade" }));
+      $("refresh").addEventListener("click", () => {
+        if (!busy) void refresh();
+      });
+      $("reset").addEventListener("click", () => {
+        if (confirm("Clear this disposable rehearsal and start fresh?"))
+          void send({ action: "reset" });
+      });
+      $("export").addEventListener("click", () => {
+        if (!state) return;
+        const url = URL.createObjectURL(
+            new Blob([JSON.stringify(state, null, 2)], {
+              type: "application/json",
+            }),
+          ),
+          a = node("a");
+        a.href = url;
+        a.download = "bot-bazaar-local-rehearsal.json";
+        a.click();
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+      });
+      void refresh();
+    </script>
+  </body>
+</html>

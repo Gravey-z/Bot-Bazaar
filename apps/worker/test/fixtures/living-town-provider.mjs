@@ -152,6 +152,7 @@ export async function providerFixture(t, options = {}) {
     options.timeoutMs ?? 1000,
     options.fallbackMode ?? "policy",
     options.makeClock ? options.makeClock(budget) : options.clock,
+    options.operations,
   );
   await f.simulation.runtime.recover();
   const reader = await f.adapters.operator.client.finalized(),

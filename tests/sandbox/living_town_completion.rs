@@ -60,7 +60,7 @@ async fn permissionless_completion_is_rewardless_exact_once_and_cannot_release_a
     let worker = near_workspaces::sandbox().await?;
     let c = worker.dev_deploy(&wasm()?).await?;
     let url = worker.rpc_addr();
-    c.call("initialize_town").args_json(json!({"owner_account_id":c.id(),"operator_account_id":"operator.testnet","merchant_controllers":{"rex":"rex.testnet","luna":"luna.testnet","bolt":"bolt.testnet"},"network_genesis_hash":"11111111111111111111111111111111","config_sha256":digest})).transact().await?.into_result()?;
+    c.call("initialize_town").args_json(json!({"owner_account_id":c.id(),"operator_account_id":"operator.testnet","merchant_controllers":{"rex":"rex.testnet","luna":"luna.testnet","bolt":"bolt.testnet"},"network_genesis_hash":"11111111111111111111111111111111","config_sha256":digest})).gas(near_workspaces::types::Gas::from_tgas(100)).transact().await?.into_result()?;
     let a = worker.dev_create_account().await?;
     let b = worker.dev_create_account().await?;
     let keeper = worker.dev_create_account().await?;
@@ -68,12 +68,14 @@ async fn permissionless_completion_is_rewardless_exact_once_and_cannot_release_a
         player
             .call(c.id(), "register_player")
             .args_json(json!({"command":command(&c,1).await?}))
+            .gas(near_workspaces::types::Gas::from_tgas(100))
             .transact()
             .await?
             .into_result()?;
         player
             .call(c.id(), "create_shop")
             .args_json(json!({"name":name,"command":command(&c,2).await?}))
+            .gas(near_workspaces::types::Gas::from_tgas(100))
             .transact()
             .await?
             .into_result()?;
@@ -84,7 +86,7 @@ async fn permissionless_completion_is_rewardless_exact_once_and_cannot_release_a
         (&b, 3, "bolt", "wood", "1", "2"),
         (&b, 4, "bolt", "iron", "2", "10"),
     ] {
-        player.call(c.id(),"buy_from_merchant").args_json(json!({"merchant_id":m,"item_id":item,"quantity":q,"expected_listing_revision":"1","max_total_price":price,"command":command(&c,seq).await?})).transact().await?.into_result()?;
+        player.call(c.id(),"buy_from_merchant").args_json(json!({"merchant_id":m,"item_id":item,"quantity":q,"expected_listing_revision":"1","max_total_price":price,"command":command(&c,seq).await?})).gas(near_workspaces::types::Gas::from_tgas(100)).transact().await?.into_result()?;
     }
     for (player, id, recipe) in [(&a, "4", "health_potion"), (&b, "5", "iron_tool")] {
         let started = player.call(c.id(),"start_production").args_json(json!({"shop_id":id,"recipe_id":recipe,"recipe_version":"1","quantity":"1","expected_shop_revision":"1","command":command(&c,5).await?})).gas(near_workspaces::types::Gas::from_tgas(100)).transact().await?;
@@ -199,7 +201,7 @@ async fn permissionless_completion_is_rewardless_exact_once_and_cannot_release_a
         (6, "rex", "crystal", "1", "4"),
         (7, "luna", "herb", "2", "6"),
     ] {
-        a.call(c.id(),"buy_from_merchant").args_json(json!({"merchant_id":m,"item_id":item,"quantity":q,"expected_listing_revision":"2","max_total_price":price,"command":command(&c,seq).await?})).transact().await?.into_result()?;
+        a.call(c.id(),"buy_from_merchant").args_json(json!({"merchant_id":m,"item_id":item,"quantity":q,"expected_listing_revision":"2","max_total_price":price,"command":command(&c,seq).await?})).gas(near_workspaces::types::Gas::from_tgas(100)).transact().await?.into_result()?;
     }
     let started = a.call(c.id(),"start_production").args_json(json!({"shop_id":"4","recipe_id":"health_potion","recipe_version":"1","quantity":"1","expected_shop_revision":"3","command":command(&c,8).await?})).gas(near_workspaces::types::Gas::from_tgas(100)).transact().await?;
     let hash = started.outcome().transaction_hash.to_string();

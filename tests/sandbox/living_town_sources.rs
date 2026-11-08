@@ -48,7 +48,7 @@ async fn persistent_supply_supports_depleted_seed_loops_and_exact_epoch_sources_
     let bolt = w.dev_create_account().await?;
     let a = w.dev_create_account().await?;
     let url = w.rpc_addr();
-    c.call("initialize_town").args_json(json!({"owner_account_id":c.id(),"operator_account_id":op.id(),"merchant_controllers":{"rex":rex.id(),"luna":luna.id(),"bolt":bolt.id()},"network_genesis_hash":"11111111111111111111111111111111","config_sha256":digest})).transact().await?.into_result()?;
+    c.call("initialize_town").args_json(json!({"owner_account_id":c.id(),"operator_account_id":op.id(),"merchant_controllers":{"rex":rex.id(),"luna":luna.id(),"bolt":bolt.id()},"network_genesis_hash":"11111111111111111111111111111111","config_sha256":digest})).gas(near_workspaces::types::Gas::from_tgas(100)).transact().await?.into_result()?;
     let mut steps = Vec::new();
     let mut checkpoints = Vec::new();
     for (method, args) in [
@@ -60,7 +60,7 @@ async fn persistent_supply_supports_depleted_seed_loops_and_exact_epoch_sources_
     ] {
         steps.push(call(&url, &c, &a, method, args).await?);
     }
-    w.fast_forward(200).await?;
+    super::advance_epoch(&w, &c).await?;
     let t = view(&c, "get_town", json!({})).await?;
     let e = t["data"]["epoch"].clone();
     let first = json!({"item_id":"crystal","epoch":e,"command":cmd(&c,&op,None).await?});
@@ -118,7 +118,7 @@ async fn persistent_supply_supports_depleted_seed_loops_and_exact_epoch_sources_
     reject(&c,&op,"allocate_raw_supply",json!({"item_id":"crystal","epoch":(e.as_str().unwrap().parse::<u64>()?-1).to_string(),"command":cmd(&c,&op,None).await?}),"LT:E_EPOCH_MISMATCH").await?;
     let before = view(&c, "get_town", json!({})).await?;
     for round in 0..4 {
-        w.fast_forward(200).await?;
+        super::advance_epoch(&w, &c).await?;
         for item in ["crystal", "wood", "herb", "iron"] {
             let t = view(&c, "get_town", json!({})).await?;
             steps.push(call(&url,&c,&op,"allocate_raw_supply",json!({"item_id":item,"epoch":t["data"]["epoch"],"command":cmd(&c,&op,None).await?})).await?);

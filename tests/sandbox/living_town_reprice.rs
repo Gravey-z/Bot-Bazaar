@@ -24,7 +24,7 @@ async fn automatic_repricing_settles_price_only_and_revocation_rejects_old_polic
     let op = w.dev_create_account().await?;
     let player = w.dev_create_account().await?;
     let other = w.dev_create_account().await?;
-    c.call("initialize_town").args_json(json!({"owner_account_id":c.id(),"operator_account_id":op.id(),"merchant_controllers":{"rex":"rex.testnet","luna":"luna.testnet","bolt":"bolt.testnet"},"network_genesis_hash":"11111111111111111111111111111111","config_sha256":digest})).transact().await?.into_result()?;
+    c.call("initialize_town").args_json(json!({"owner_account_id":c.id(),"operator_account_id":op.id(),"merchant_controllers":{"rex":"rex.testnet","luna":"luna.testnet","bolt":"bolt.testnet"},"network_genesis_hash":"11111111111111111111111111111111","config_sha256":digest})).gas(near_workspaces::types::Gas::from_tgas(100)).transact().await?.into_result()?;
     let url = w.rpc_addr();
     let mut setup = vec![];
     let mut steps = vec![];
@@ -53,7 +53,11 @@ async fn automatic_repricing_settles_price_only_and_revocation_rejects_old_polic
         ensure!(r["succeeded"] == true, "{}", r["error"]);
         setup.push(r);
     }
-    w.fast_forward(400).await?;
+    let ready = setup.last().unwrap()["effect"]["data"]["outcome"]["job"]["ready_at_ns"]
+        .as_str()
+        .unwrap()
+        .parse::<u64>()?;
+    super::advance_to(&w, &c, ready).await?;
     let r = call(
         &url,
         &c,
@@ -118,7 +122,7 @@ async fn automatic_repricing_settles_price_only_and_revocation_rejects_old_polic
         view(&c, "get_shop_inventory", json!({"shop_id":"4"})).await?["data"]
     );
     // Expired policy rejects a new sequence; the original exact acknowledgment remains replayable.
-    w.fast_forward(400).await?;
+    super::advance_to(&w, &c, now + 100_000_000_000).await?;
     let mut expired = original.clone();
     expired["command"] = command(&c, 2).await?;
     expired["unit_price"] = json!("13");
@@ -147,10 +151,7 @@ async fn automatic_repricing_settles_price_only_and_revocation_rejects_old_polic
     let after = view(&c, "get_shop_inventory", json!({"shop_id":"4"})).await?;
     assert_eq!(before["data"], after["data"]);
     let fixture = json!({"source":"actual local disposable WASM, no Testnet deployment or inference","setup":setup,"steps":steps,"rejected":rejected,"before":before,"after":after});
-    std::fs::write(
-        "../fixtures/chain/living-town-reprice-sandbox.json",
-        serde_json::to_string_pretty(&fixture)? + "\n",
-    )?;
+    super::save_capture("living-town-reprice-sandbox.json", &fixture)?;
     println!(
         "automatic repricing: {} successes, {} rejected calls",
         fixture["steps"].as_array().unwrap().len(),

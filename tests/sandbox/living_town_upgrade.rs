@@ -68,7 +68,7 @@ async fn earned_second_slot_burns_once_and_two_jobs_complete_independently() -> 
     let owner = w.dev_create_account().await?;
     let op = w.dev_create_account().await?;
     let other = w.dev_create_account().await?;
-    c.call("initialize_town").args_json(json!({"owner_account_id":c.id(),"operator_account_id":op.id(),"merchant_controllers":{"rex":"rex.testnet","luna":"luna.testnet","bolt":"bolt.testnet"},"network_genesis_hash":"11111111111111111111111111111111","config_sha256":digest})).transact().await?.into_result()?;
+    c.call("initialize_town").args_json(json!({"owner_account_id":c.id(),"operator_account_id":op.id(),"merchant_controllers":{"rex":"rex.testnet","luna":"luna.testnet","bolt":"bolt.testnet"},"network_genesis_hash":"11111111111111111111111111111111","config_sha256":digest})).gas(near_workspaces::types::Gas::from_tgas(100)).transact().await?.into_result()?;
     let mut trace = vec![];
     let mut failures = vec![];
     let mut seq = 1;
@@ -117,7 +117,11 @@ async fn earned_second_slot_burns_once_and_two_jobs_complete_independently() -> 
             act(&w.rpc_addr(),&c,&owner,&mut seq,"buy_from_merchant",json!({"merchant_id":merchant,"item_id":item,"quantity":q,"expected_listing_revision":l["revision"],"max_total_price":"100"}),&mut trace).await?;
         }
         let started=act(&w.rpc_addr(),&c,&owner,&mut seq,"start_production",json!({"shop_id":"4","recipe_id":recipe,"recipe_version":"1","quantity":"3","expected_shop_revision":revision(&c).await?}),&mut trace).await?;
-        w.fast_forward(2000).await?;
+        let ready = started["effect"]["data"]["outcome"]["job"]["ready_at_ns"]
+            .as_str()
+            .unwrap()
+            .parse::<u64>()?;
+        super::advance_to(&w, &c, ready).await?;
         let completed = call(
             &w.rpc_addr(),
             &c,
@@ -131,7 +135,7 @@ async fn earned_second_slot_burns_once_and_two_jobs_complete_independently() -> 
         let listed=act(&w.rpc_addr(),&c,&owner,&mut seq,"set_listing",json!({"shop_id":"4","item_id":recipe,"quantity":"3","unit_price":price,"expected_listing_revision":if recipe=="health_potion"&&trace.iter().any(|r|r["method"]=="set_listing"&&r["args"]["item_id"]=="health_potion"){json!("4")}else{Value::Null}}),&mut trace).await?;
         let listing = listed["effect"]["data"]["outcome"]["listing"]["listing_id"].clone();
         for n in 0..3 {
-            w.fast_forward(200).await?;
+            super::advance_epoch(&w, &c).await?;
             let t = view(&c, "get_town", json!({})).await?;
             let epoch = t["data"]["epoch"].clone();
             act(
@@ -201,7 +205,14 @@ async fn earned_second_slot_burns_once_and_two_jobs_complete_independently() -> 
     assert_eq!(third["succeeded"], false);
     assert_eq!(storage, c.view_state().await?);
     failures.push(third);
-    w.fast_forward(1000).await?;
+    let ready = jobs
+        .iter()
+        .map(|job| job["ready_at_ns"].as_str().unwrap().parse::<u64>())
+        .collect::<std::result::Result<Vec<_>, _>>()?
+        .into_iter()
+        .max()
+        .unwrap();
+    super::advance_to(&w, &c, ready).await?;
     for job in jobs.iter().rev() {
         let r = call(
             &w.rpc_addr(),
@@ -243,9 +254,6 @@ async fn earned_second_slot_burns_once_and_two_jobs_complete_independently() -> 
     )?;
     let baseline = json!({"block":block,"town":town,"shops":[{"shop":shop,"ledger":ledger}],"production":production,"listings":[listings]});
     let fixture = json!({"source":"actual local disposable WASM; no live deployment or inference","eligible":eligible,"upgrade_before":before,"upgrade_after":after,"running":running,"baseline":baseline,"steps":trace,"rejected":failures});
-    std::fs::write(
-        "../fixtures/chain/living-town-upgrade-sandbox.json",
-        serde_json::to_string_pretty(&fixture)? + "\n",
-    )?;
+    super::save_capture("living-town-upgrade-sandbox.json", &fixture)?;
     Ok(())
 }
