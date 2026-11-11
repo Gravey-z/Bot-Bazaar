@@ -342,6 +342,15 @@ export class TownReactionRepository {
         );
         if (offer.status === "pending") {
           if (BigInt(offer.expires_at_ns) <= now) {
+            // Never create an unbounded stream of attempts for the same offer.
+            // A purchase root has up to three cleanup attempts; the separate,
+            // stable housekeeping root may make three more attempts. Every
+            // attempt still uses the original single-writer execution journal.
+            const cleanupAttempts = this.steps(id).filter(s => s.role === "cleanup").length;
+            if (cleanupAttempts >= 3) {
+              this.close(id, "cleanup_retry_limit_reached");
+              return;
+            }
             this.add(id, offer.buyer, "cleanup", {
               kind: "reaction_cleanup",
               offerId: offer.offer_id,

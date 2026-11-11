@@ -335,11 +335,12 @@ export class DurableTownExecutor {
         ).toString(),
         config_version: town.deployment.config_version,
         valid_until_ns: (reaction
-          ? reaction.role === "cleanup" ||
-            BigInt(reaction.deadlineNs) >
-              BigInt(town.block_timestamp_ns) + 60000000000n
-            ? BigInt(town.block_timestamp_ns) + 60000000000n
-            : BigInt(reaction.deadlineNs)
+          ? reaction.role === "cleanup"
+            ? BigInt(town.block_timestamp_ns) + 120000000000n
+            : BigInt(reaction.deadlineNs) >
+                BigInt(town.block_timestamp_ns) + 60000000000n
+              ? BigInt(town.block_timestamp_ns) + 60000000000n
+              : BigInt(reaction.deadlineNs)
           : shelf ? BigInt(town.block_timestamp_ns) + 120000000000n
           : BigInt(town.data.genesis_time_ns) +
             (BigInt(work.tick) + 1n) * 60000000000n
@@ -363,7 +364,7 @@ export class DurableTownExecutor {
             )
           : sha256(canonicalLivingTownJson(call))
         : null;
-      this.store.prepareTown({ ...work, call, digest }, Date.now() + (shelf ? 120000 : 60000));
+      this.store.prepareTown({ ...work, call, digest }, Date.now() + (shelf || reaction?.role === "cleanup" ? 120000 : 60000));
       if (!call) return { kind: "no_op", actionId: work.id };
       return this.signAndSubmit(work, call);
     });

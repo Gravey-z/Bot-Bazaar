@@ -133,7 +133,8 @@ export class LivingTownSimulationAdapter {
       const action = d.action;
       const listing = listings.find(l => l.owner.kind === "merchant" &&
         l.owner.merchant_id === d.merchant && l.item_id === action.item);
-      return (listing?.remaining_quantity ?? "0") !== action.quantity;
+      return !listing || listing.remaining_quantity !== action.quantity ||
+        listing.unit_price !== action.price;
     }).map(d => d.merchant));
   }
   private supplyDue(
@@ -574,13 +575,14 @@ export class LivingTownSimulationAdapter {
         if (!this.store.ticks.active()) {
           const active = this.store.reactions.active();
           const work = this.store.reactions.next(input, this.store.offers);
-          // Saved decisions retain their recovery priority. New AI reactions
-          // must not indefinitely block deterministic shelf maintenance.
+          // Saved non-cleanup decisions retain recovery priority. Expiry
+          // housekeeping yields when deterministic supply or shelf work is due.
           const shelves = this.shelfUpdates(input);
           sourceMarkers = (await reader.getSourceState()).data;
           const supply = (["crystal", "wood", "herb", "iron"] as const)
             .some(item => this.supplyDue(town, sourceMarkers!, item));
-          if (work && (work.decision || (shelves.size === 0 && !supply)))
+          if (work && ((work.decision && work.role !== "cleanup") ||
+              (shelves.size === 0 && !supply)))
             return this.react(work, reader);
           if (
             active &&
