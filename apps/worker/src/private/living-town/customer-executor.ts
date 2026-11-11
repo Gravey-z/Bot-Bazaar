@@ -30,7 +30,12 @@ function requireFresh(value: unknown, message: string): asserts value {
 }
 export type CustomerExecutionResult = {
   kind:
-    "duplicate" | "no_purchase" | "already_allocated" | "submitted" | "unknown";
+    | "duplicate"
+    | "no_purchase"
+    | "already_allocated"
+    | "submitted"
+    | "unknown"
+    | "stale_checkpoint";
   actionId: string;
   transactionHash?: string;
 };
@@ -224,14 +229,18 @@ export class DurableCustomerExecutor {
         input.seed === this.store.seed,
         "persisted customer seed cannot change",
       );
-      const reader = await this.adapter.client.finalized(),
-        town = await reader.getTown();
-      requireStorage(
-        sameCustomerCheckpointState(input.town, town),
-        "customer decision checkpoint changed",
-      );
-      const decision = this.demand.select(input),
-        actionId = decision.customerId;
+const reader = await this.adapter.client.finalized(),
+  town = await reader.getTown();
+
+if (!sameCustomerCheckpointState(input.town, town)) {
+  return {
+    kind: "stale_checkpoint",
+    actionId: this.demand.select(input).customerId,
+  };
+}
+
+const decision = this.demand.select(input),
+  actionId = decision.customerId;
       if (this.store.get(actionId)) return { kind: "duplicate", actionId };
       const call =
         decision.kind === "purchase"

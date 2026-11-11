@@ -4,7 +4,7 @@ import { randomUUID } from "node:crypto";
 import { actions, baseDecode, baseEncode, createTransaction, KeyPairSigner, PublicKey } from "near-api-js";
 import type { KeyPairString } from "near-api-js";
 import { LivingTownClient, createLivingTownCall, createLivingTownCompletionCall, guestActionRequest,
-  guestActionMethod, playerReceiptProof, planLivingTownProduction } from "@bot-bazaar/chain";
+  guestActionMethod, playerReceiptProof, planLivingTownProduction, ChainRpcError } from "@bot-bazaar/chain";
 import type { RpcTransport, GuestActionRequest, FinalizedLivingTownReader } from "@bot-bazaar/chain";
 import { GuestError, GuestStore } from "./store.js";
 import type { GuestActionRow, GuestRow } from "./store.js";
@@ -16,6 +16,12 @@ type Call = ReturnType<typeof createLivingTownCall> | ReturnType<typeof createLi
 // NEP-642 buys receipt gas at >= 10^9 yocto/gas, even at a lower burn price.
 // 30 Tgas fits the existing 0.05 NEAR grant and the reviewed receipt gas allowlist.
 const guestGas = "30000000000000";
+function isNotEnoughBalance(error: unknown): boolean {
+  return error instanceof ChainRpcError &&
+    error.code === "REJECTED" &&
+    error.rpcCause === "INVALID_TRANSACTION" &&
+    error.transactionReason === "NotEnoughBalance";
+}
 export class GuestActions {
   private readonly client: LivingTownClient;
   private stopped = false;
@@ -75,7 +81,29 @@ export class GuestActions {
     if (!action.dispatch_started) {
       this.store.dispatchAction(guest.id, action.request_id);
       const signed = this.store.vault.open(action.signed_cipher!, `${this.store.binding}:${guest.id}:${action.request_id}:action`);
-      await this.rpc("send_tx", { signed_tx_base64: signed, wait_until: "INCLUDED" });
+      try {
+  await this.rpc("send_tx", {
+    signed_tx_base64: signed,
+    wait_until: "INCLUDED"
+  });
+} catch (error) {
+  if (isNotEnoughBalance(error)) {
+    this.store.finishAction(
+      guest.id,
+      action.request_id,
+      "failed",
+      {
+        kind: "rpc_rejection",
+        transactionHash: action.tx_hash,
+        reason: "NotEnoughBalance"
+      },
+      "guest_insufficient_balance"
+    );
+    return;
+  }
+
+  throw error;
+}
     }
     await this.publish();
     const proof = playerReceiptProof(JSON.parse(action.proof_json!));
@@ -102,7 +130,29 @@ export class GuestActions {
       // the persisted signed bytes: the signer, nonce, hash and terms stay fixed.
       // Never compile/sign a replacement or assign a new request ID here.
       const signed = this.store.vault.open(action.signed_cipher!, `${this.store.binding}:${guest.id}:${action.request_id}:action`);
-      await this.rpc("send_tx", { signed_tx_base64: signed, wait_until: "INCLUDED" });
+      try {
+  await this.rpc("send_tx", {
+    signed_tx_base64: signed,
+    wait_until: "INCLUDED"
+  });
+} catch (error) {
+  if (isNotEnoughBalance(error)) {
+    this.store.finishAction(
+      guest.id,
+      action.request_id,
+      "failed",
+      {
+        kind: "rpc_rejection",
+        transactionHash: action.tx_hash,
+        reason: "NotEnoughBalance"
+      },
+      "guest_insufficient_balance"
+    );
+    return;
+  }
+
+  throw error;
+}
       return;
     }
     if (evidence.status.kind === "succeeded" || evidence.status.kind === "failed") {

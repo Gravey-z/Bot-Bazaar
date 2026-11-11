@@ -207,25 +207,71 @@ export class TownReactionRepository {
       }
     });
   }
-  /** Commercial purchase opportunities share the existing witnessed reaction
-   * queue. Stable eligible terms, rather than block/epoch numbers, deduplicate
-   * a decision across polls and restarts. An open merchant root coalesces changes.
+  /** Run autonomous inventory-driven AI reviews at most once every 30 minutes
+   * of merchant inactivity. Purchase-triggered reactions remain immediate.
+   * All timestamps and review roots are durable in the existing execution journal.
    */
   observeOpportunities(input: MerchantPolicyInput, candidates: readonly StockSharingCandidate[]): void {
     this.gate();
     if (!input.fresh || !input.historyComplete || !input.negotiatedTrading || !candidates.length) return;
     const town = livingTownSnapshot(livingTownTown)(input.town);
     if (town.data.paused) return;
+    const now = BigInt(town.block_timestamp_ns);
+    const reviewIntervalNs = 1_800_000_000_000n;
     this.write(() => {
       for (const merchant of names) {
+        // Stock-sharing candidates already account for target stock, reservations,
+        // peer supply and affordability. No candidate means no paid AI request.
         const eligible = candidates.filter(c => c.buyer === merchant).map(c => c.id).sort();
         if (!eligible.length) continue;
-        const id = sha256(canonicalLivingTownJson([this.deployment, "merchant-opportunity-v1", merchant, eligible]));
-        if (this.root(id)) continue;
         if (this.db.prepare("SELECT id FROM reaction_roots WHERE merchant=? AND state!='closed'").get(merchant))
           continue;
-        this.db.prepare("INSERT INTO reaction_roots(id,merchant,kind,state,created_ns,deadline_ns) VALUES(?,?,'purchase','queued',?,?)")
-          .run(id, merchant, town.block_timestamp_ns, String(BigInt(town.block_timestamp_ns) + 600000000000n));
+
+        // Read the latest confirmed player purchase from the durable inbox.
+        // Compare decimal nanoseconds as strings: SQLite INTEGER cannot hold them.
+        const latestPurchase = this.db.prepare(
+          "SELECT json_extract(body,'$.settled_at_ns') AS settled_at_ns FROM reaction_purchases " +
+          "WHERE json_extract(body,'$.seller.merchant_id')=? " +
+          "ORDER BY length(json_extract(body,'$.settled_at_ns')) DESC, " +
+          "json_extract(body,'$.settled_at_ns') DESC LIMIT 1",
+        ).get(merchant)?.["settled_at_ns"];
+        // Existing purchase/review roots also provide a durable cooldown.
+        const latestRoot = this.db.prepare(
+          "SELECT created_ns FROM reaction_roots WHERE merchant=? AND kind='purchase' " +
+          "ORDER BY length(created_ns) DESC, created_ns DESC LIMIT 1",
+        ).get(merchant)?.["created_ns"];
+        let lastActivity = BigInt(town.data.genesis_time_ns);
+        for (const timestamp of [latestPurchase, latestRoot]) {
+          if (timestamp !== undefined && timestamp !== null) {
+            const observed = BigInt(String(timestamp));
+            if (observed > lastActivity) lastActivity = observed;
+          }
+        }
+        // Recent confirmed merchant-to-merchant purchases also reset inactivity.
+        // Older activity is covered by the durable 30-minute review cadence.
+        for (const value of input.trades) {
+          const trade = value as {
+            kind?: string;
+            settled_at_ns?: string;
+            seller?: { kind?: string; merchant_id?: string };
+          };
+          if (trade.kind !== "raw_purchase" && trade.kind !== "merchant_trade") continue;
+          if (trade.seller?.merchant_id !== merchant ||
+              typeof trade.settled_at_ns !== "string" ||
+              !/^[0-9]+$/.test(trade.settled_at_ns)) continue;
+          const settledAt = BigInt(trade.settled_at_ns);
+          if (settledAt <= now && settledAt > lastActivity) lastActivity = settledAt;
+        }
+        if (now - lastActivity < reviewIntervalNs) continue;
+
+        // A unique root is admitted only after the previous root's cooldown;
+        // the existing seller negotiation, AI budget and transaction journal remain authoritative.
+        const id = sha256(canonicalLivingTownJson([
+          this.deployment, "merchant-inventory-review-v1", merchant, town.block_timestamp_ns, eligible,
+        ]));
+        this.db.prepare(
+          "INSERT INTO reaction_roots(id,merchant,kind,state,created_ns,deadline_ns) VALUES(?,?,'purchase','queued',?,?)",
+        ).run(id, merchant, town.block_timestamp_ns, String(now + 600_000_000_000n));
       }
     });
   }

@@ -68,15 +68,48 @@ export class GuestProvisioner {
       const signed = this.store.vault.open(guest.signed_cipher!, `${this.store.binding}:${guest.id}:provision`);
       // A crash after this marker is deliberately uncertain. Restarts query the
       // same hash, never regenerate a nonce/account or top up another address.
-      try { await this.rpc("send_tx", { signed_tx_base64: signed, wait_until: "FINAL" }); }
-      catch { return; }
+      try {
+  await this.rpc("send_tx", {
+    signed_tx_base64: signed,
+    wait_until: "FINAL"
+  });
+} catch (error) {
+  if (
+    error instanceof ChainRpcError &&
+    error.code === "REJECTED" &&
+    error.rpcCause === "INVALID_TRANSACTION" &&
+    error.transactionReason === "NotEnoughBalance"
+  ) {
+    this.store.rejectInsufficientBalance(
+      guest.id,
+      guest.tx_hash!
+    );
+    return;
+  }
+
+  // Unknown broadcast outcome: retain the original transaction.
+  return;
+}
     }
     let response: unknown;
     try { response = await this.rpc("tx", { tx_hash: guest.tx_hash, sender_account_id: this.funder.accountId, wait_until: "FINAL" }); }
     catch (error) {
-      if (error instanceof ChainRpcError) return;
-      throw error;
-    }
+  if (
+    error instanceof ChainRpcError &&
+    error.code === "REJECTED" &&
+    error.rpcCause === "INVALID_TRANSACTION" &&
+    error.transactionReason === "NotEnoughBalance"
+  ) {
+    this.store.rejectInsufficientBalance(
+      guest.id,
+      guest.tx_hash!
+    );
+    return;
+  }
+
+  if (error instanceof ChainRpcError) return;
+  throw error;
+}
     try { await this.verify(guest, response); }
     catch (error) {
       // RPC unavailability is recoverable. Malformed/conflicting finalized

@@ -8,6 +8,7 @@ import { TransactionComponent } from "./transaction.component";
 import { ActivityComponent } from "./activity.component";
 import { DeploymentComponent } from "./deployment.component";
 import { replayPageUrl } from "./replay-navigation";
+import { GuestStatusComponent } from "./guest-status.component";
 
 @Component({
   selector: "app-root",
@@ -19,6 +20,7 @@ import { replayPageUrl } from "./replay-navigation";
     TransactionComponent,
     ActivityComponent,
     DeploymentComponent,
+    GuestStatusComponent
   ],
   templateUrl: "./app.component.html",
   styleUrl: "./app.component.css",

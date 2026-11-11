@@ -88,8 +88,8 @@ const operations = new TownOperations("simulation");
 const transport = resilientTownRpc(config.public.rpcUrl);
 const rpc = boundedTownRpc((method, params) =>
   operations.measure("chain", () => transport(method, params)),
-  500,
-  4,
+  1500,
+  2,
 );
 const client = new LivingTownClient(config.identity, rpc);
 const pinned = await client.finalized();

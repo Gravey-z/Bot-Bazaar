@@ -47,24 +47,40 @@ let stopping = false,
   running: Promise<void> | undefined;
 let backupCheckAt = 0,
   lastSyncDiagnosticAt = 0,
-  lastReportDiagnosticAt = 0;
+  lastReportDiagnosticAt = 0,
+  rpcRetryAt = 0;
 const cycle = (): Promise<void> => {
   if (running) return running;
+
   running = (async () => {
     const started = performance.now();
     let failed = false;
+
     try {
-      if (!store.cursor() || store.town().stale) await projector.sync();
-      await playerReceipts.drain(projector);
-      if (config.inbox) {
+      if (Date.now() < rpcRetryAt) {
+        return;
+      }
+
+      const initialSyncNeeded = !store.cursor() || store.town().stale;
+
+  if (initialSyncNeeded) {
+    await projector.sync();
+  }
+
+  await playerReceipts.drain(projector);
+
+  if (config.inbox) {
         if ((await lstat(config.inbox)).isDirectory())
           await drainRuntimeOutbox(config.inbox, config.identity, projector);
         else
           for (const proof of readReceiptInbox(config.inbox, config.identity))
             await projector.ingest(proof);
       }
-      await projector.sync();
-      if (config.activityInbox)
+if (!initialSyncNeeded) {
+  await projector.sync();
+}
+
+if (config.activityInbox)
         store.agentActivity(
           readAgentActivityInbox(config.activityInbox, config.identity),
         );
@@ -74,9 +90,19 @@ const cycle = (): Promise<void> => {
         town.snapshot.block_timestamp_ns,
       );
     } catch (error) {
-      failed = true;
-      store.invalidate();
-      if (Date.now() - lastSyncDiagnosticAt >= 60000) {
+  failed = true;
+
+  if (
+    error instanceof Error &&
+    error.name === "ChainRpcError" &&
+    error.message === "Chain RPC: RATE_LIMITED"
+  ) {
+    rpcRetryAt = Date.now() + 30000;
+  }
+
+  store.invalidate();
+
+  if (Date.now() - lastSyncDiagnosticAt >= 60000) {
         console.error(
           "V2 projection sync failed; inspect the private operations report",
         );
@@ -167,14 +193,28 @@ let viewRunning: Promise<void> | undefined;
 let lastViewDiagnostic = 0;
 const pollViews = async (): Promise<void> => {
   if (stopping) return;
-  viewRunning = gameViews.sync(client).catch(() => {
+
+  if (Date.now() < rpcRetryAt) {
+    viewTimer = setTimeout(() => {
+      void pollViews();
+    }, 15000);
+    return;
+  }
+  viewRunning = gameViews.sync(client).catch((error: unknown) => {
+  if (
+    error instanceof Error &&
+    error.name === "ChainRpcError" &&
+    error.message === "Chain RPC: RATE_LIMITED"
+  ) {
+    rpcRetryAt = Date.now() + 30000;
+  }
     if (Date.now() - lastViewDiagnostic > 60000) {
       console.error("Player display sync delayed; retained snapshots will be marked stale.");
       lastViewDiagnostic = Date.now();
     }
   });
   await viewRunning;
-  if (!stopping) viewTimer = setTimeout(() => { void pollViews(); }, 2500);
+  if (!stopping) viewTimer = setTimeout(() => { void pollViews(); }, 15000);
 };
 void pollViews();
 const stop = async (): Promise<void> => {

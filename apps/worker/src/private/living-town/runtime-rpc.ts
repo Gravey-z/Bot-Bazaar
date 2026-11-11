@@ -38,8 +38,8 @@ export function resilientTownRpc(primary: string): RpcTransport {
 /** Immutable block-addressed reads are reusable; moving finality selectors are never cached. */
 export function boundedTownRpc(
   transport: RpcTransport,
-  spacingMs = 500,
-  maxConcurrentReads: 1 | 2 | 4 = 4,
+  spacingMs = 1500,
+  maxConcurrentReads: 1 | 2 | 4 = 2,
 ): RpcTransport {
   const cache = new Map<string, { at: number; value: unknown }>();
   const inFlight = new Set<Promise<void>>();

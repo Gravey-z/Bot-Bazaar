@@ -51,8 +51,15 @@ import { id, json, requireStorage, sha256 } from "../storage/validation.js";
 import { readCustomerPrepared, customerCall } from "./customer-chain.js";
 import type { PreparedCustomerCall, CustomerCall } from "./customer-chain.js";
 import { tickSchema, TownTickRepository } from "./ticks.js";
-import { isVerifiedAdmissionRejection } from "./admission-rejection.js";
-import type { ExpiredAdmissionRejection } from "./admission-rejection.js";
+import {
+  isVerifiedAdmissionRejection,
+  isVerifiedExpiredUnappliedCommand,
+} from "./admission-rejection.js";
+
+import type {
+  ExpiredAdmissionRejection,
+  ExpiredUnappliedCommand,
+} from "./admission-rejection.js";
 
 export const townLanes = ["rex", "luna", "bolt", "operator"] as const;
 export type TownLane = (typeof townLanes)[number];
@@ -366,7 +373,7 @@ export class LivingTownExecutionStore {
   }[] {
     return this.db
       .prepare(
-        "SELECT a.signed_json FROM attempts a JOIN intents i ON i.id=a.intent_id WHERE i.status IN ('submitted','unknown','confirmed','failed') AND coalesce(json_extract(a.evidence_json,'$.kind'),'')!='expired_admission_rejection' ORDER BY a.rowid",
+        "SELECT a.signed_json FROM attempts a JOIN intents i ON i.id=a.intent_id WHERE i.status IN ('submitted','unknown','confirmed','failed') AND coalesce(json_extract(a.evidence_json,'$.kind'),'') NOT IN ('expired_admission_rejection','expired_unapplied_command') ORDER BY a.rowid",
       )
       .all()
       .map((row) => {
@@ -407,14 +414,57 @@ export class LivingTownExecutionStore {
       this.terminal(actionId, "failed");
     });
   }
+  retireExpiredUnappliedCommand(
+  actionId: string,
+  evidence: ExpiredUnappliedCommand
+): void {
+  requireStorage(
+    isVerifiedExpiredUnappliedCommand(evidence),
+    "verified expiration evidence required"
+  );
+
+  this.write(() => {
+    const row = this.get(actionId);
+
+    requireStorage(
+  row?.["status"] === "unknown" &&
+    row["lane"] === "operator" &&
+    row["method"] === "allocate_raw_supply" &&
+    row["action_id"] === evidence.sequence &&
+    row["tx_hash"] === evidence.transactionHash,
+  "original unknown operator action required"
+);
+
+    this.db.prepare(`
+      UPDATE attempts
+      SET evidence_json = ?, updated_at = ?
+      WHERE intent_id = ?
+    `).run(
+      json(evidence),
+      Date.now(),
+      actionId
+    );
+
+    this.db.prepare(`
+      UPDATE intents
+      SET status = 'failed', updated_at = ?
+      WHERE id = ?
+    `).run(
+      Date.now(),
+      actionId
+    );
+
+    this.terminal(actionId, "failed");
+  });
+}
   rejectedAdmissions(): string[] {
-    return this.db
-      .prepare(
-        "SELECT tx_hash FROM attempts WHERE json_extract(evidence_json,'$.kind')='expired_admission_rejection' ORDER BY rowid",
-      )
-      .all()
-      .map((r) => String(r["tx_hash"]));
-  }
+  return this.db
+    .prepare(
+      "SELECT tx_hash FROM attempts WHERE json_extract(evidence_json,'$.kind') IN ('expired_admission_rejection','expired_unapplied_command') ORDER BY rowid",
+    )
+    .all()
+    .map((r) => String(r["tx_hash"]));
+}
   lastCustomerDecision(): unknown {
     const row = this.db
       .prepare(

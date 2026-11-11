@@ -121,10 +121,14 @@ export class LivingTownTickRunner {
       );
       // Allocation may have become visible between planning and dispatch. Verify on the next poll.
       return {
-        kind: action.kind === "already_allocated" ? "deferred" : "advanced",
-        tickId,
-        action,
-      };
+  kind:
+    action.kind === "already_allocated" ||
+    action.kind === "stale_checkpoint"
+      ? "deferred"
+      : "advanced",
+  tickId,
+  action,
+};
     } finally {
       this.busy = false;
     }

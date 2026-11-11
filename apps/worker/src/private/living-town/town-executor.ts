@@ -21,6 +21,9 @@ import {
 import type { TownCall, PreparedTownCall } from "./town-chain.js";
 import { LivingTownExecutionStore, townLanes } from "./execution-store.js";
 import type { TownLane } from "./execution-store.js";
+import {
+  verifyExpiredUnappliedCommand,
+} from "./admission-rejection.js";
 
 export interface TownWork {
   id: string;
@@ -200,7 +203,35 @@ export class DurableTownExecutor {
               { kind: "command_checkpoint", command: checkpoint },
               true,
             );
-          } else reasons.push("unknown_town_receipt");
+          } else {
+  // Only the known operator allocation can use this path.
+  // Never infer failure merely from an unknown receipt.
+  if (
+    lane === "operator" &&
+    p.call.method === "allocate_raw_supply" &&
+    p.transactionHash ===
+      "6BYSUvhheerc9rjLU9b9pTgYe71bLb84VQ8iyuDJBJTn"
+  ) {
+    try {
+      const evidence =
+        await verifyExpiredUnappliedCommand(
+          p,
+          reader
+        );
+
+      this.store.retireExpiredUnappliedCommand(
+        actionId,
+        evidence
+      );
+    } catch {
+      // Any missing, changed, or unverifiable evidence
+      // must leave the original transaction unresolved.
+      reasons.push("unknown_town_receipt");
+    }
+  } else {
+    reasons.push("unknown_town_receipt");
+  }
+}
         } else reasons.push("unknown_town_completion");
       }
       if (reasons.length || this.store.unresolved().length)

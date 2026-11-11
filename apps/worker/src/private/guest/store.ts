@@ -27,6 +27,7 @@ export interface GuestActionRow {
   proof_json: string | null; signed_cipher: string | null; tx_hash: string | null;
   dispatch_started: number; result_json: string | null; error_code: string | null; published: number;
 }
+
 export class GuestStore {
   private readonly db: DatabaseSync;
   readonly binding: string;
@@ -83,6 +84,27 @@ export class GuestStore {
       this.db.prepare("SELECT request_id,checked FROM guest_actions LIMIT 1").get();
     } catch (error) { this.db.close(); throw error; }
   }
+  rejectInsufficientBalance(id: string, txHash: string): void {
+  this.write(() => {
+    const guest = this.guest(id);
+
+    guestCheck(
+      guest?.status === "provisioning" &&
+        guest.dispatch_started === 1 &&
+        guest.tx_hash === txHash,
+      "original guest funding transaction required"
+    );
+
+    this.db.prepare(`
+      UPDATE guests
+      SET status = 'failed',
+          error_code = 'guest_insufficient_balance'
+      WHERE id = ?
+    `).run(id);
+
+    // Preserve the signed transaction, hash and funding reservation.
+  });
+}
   private write<T>(work: () => T): T {
     this.verifyWitness();
     this.db.exec("BEGIN IMMEDIATE");
