@@ -75,8 +75,11 @@ export class LivingTownProviderRunner {
     }
   }
   /** Shared ledger limits survive refreshes/restarts and cover all merchants. */
-  canInvoke(currentRequestId?: string): boolean {
-    if (!this.provider || !this.budget || this.store.providerAttempts.pending(currentRequestId)) return false;
+  canInvoke(currentRequestId?: string, merchant?: string): boolean {
+    if (!this.provider || !this.budget) return false;
+    if (merchant
+      ? !this.store.providerAttempts.capacityAvailable(merchant, currentRequestId)
+      : this.pending.size >= 3) return false;
     try {
       const status = this.budget.status(this.now());
       return !status.blocked && (status.totalLimit === undefined ||
@@ -223,9 +226,9 @@ export class LivingTownProviderRunner {
       (cutoff - BigInt(town.block_timestamp_ns)) / 1000000n,
     );
     const deadline = now + Math.max(1, Math.min(this.timeoutMs, remaining));
-    // No pending inference takeover, including another runner in this process.
-    const busy = this.store.providerAttempts.pending();
-    if (busy) throw new ProviderUnavailable("provider_already_pending");
+    // Merchant-scoped capacity, without allowing duplicate provider requests.
+    if (!this.store.providerAttempts.capacityAvailable(context.merchant))
+      throw new ProviderUnavailable("provider_capacity_exhausted");
     this.store.providerAttempts.begin({
       id,
       tickId: context.tickId,
@@ -314,7 +317,7 @@ export class LivingTownProviderRunner {
       );
       // The shared authority reserves the full bounded call against the
       // original lifetime budget, including unresolved billing reservations.
-      if (!this.canInvoke(id)) throw new ProviderUnavailable("provider_busy_or_total_budget_exhausted");
+      if (!this.canInvoke(id, context.merchant)) throw new ProviderUnavailable("provider_busy_or_total_budget_exhausted");
       try {
         this.budget.reserve(id, prepared, now);
       } catch {

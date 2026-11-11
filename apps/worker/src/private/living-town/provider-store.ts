@@ -16,7 +16,7 @@ CREATE TABLE town_provider_attempts(
  started_at INTEGER NOT NULL, deadline INTEGER NOT NULL, dispatched_at INTEGER, finished_at INTEGER,
  late_ignored INTEGER NOT NULL DEFAULT 0 CHECK(late_ignored IN (0,1))
 ) STRICT;
-CREATE UNIQUE INDEX one_town_provider_pending ON town_provider_attempts((1)) WHERE status IN ('prepared','reserved','dispatched');
+CREATE UNIQUE INDEX one_town_provider_pending ON town_provider_attempts(merchant) WHERE status IN ('prepared','reserved','dispatched');
 CREATE TRIGGER bound_town_provider_attempts BEFORE INSERT ON town_provider_attempts
  WHEN (SELECT count(*) FROM town_provider_attempts)>=10000 BEGIN SELECT RAISE(ABORT,'provider audit full'); END;
 `;
@@ -51,6 +51,14 @@ export class TownProviderRepository {
         "SELECT id FROM town_provider_attempts WHERE status IN ('prepared','reserved','dispatched') AND id!=? LIMIT 1",
       )
       .get(exceptId);
+  }
+  /** Bounded, independently admitted provider calls: one per merchant, three total. */
+  capacityAvailable(merchant: string, exceptId = ""): boolean {
+    requireStorage(["rex", "luna", "bolt"].includes(merchant), "invalid provider merchant");
+    const rows = this.db.prepare(
+      "SELECT merchant FROM town_provider_attempts WHERE status IN ('prepared','reserved','dispatched') AND id!=?",
+    ).all(exceptId);
+    return rows.length < 3 && !rows.some(row => row["merchant"] === merchant);
   }
   begin(p: {
     id: string;

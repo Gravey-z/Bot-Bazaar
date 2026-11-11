@@ -207,6 +207,23 @@ export class LivingTownExecutionStore {
           this.db.prepare("PRAGMA foreign_key_check").all().length === 0,
         "execution journal integrity failure",
       );
+      // In-place migration of the provider admission index only. Existing
+      // transaction evidence and unresolved provider reservations are retained.
+      if (this.negotiatedTrading) {
+        this.db.exec("BEGIN IMMEDIATE");
+        try {
+          this.db.exec(`
+            DROP INDEX IF EXISTS one_town_provider_pending;
+            CREATE UNIQUE INDEX one_town_provider_pending
+              ON town_provider_attempts(merchant)
+              WHERE status IN ('prepared','reserved','dispatched');
+          `);
+          this.db.exec("COMMIT");
+        } catch (error) {
+          this.db.exec("ROLLBACK");
+          throw error;
+        }
+      }
       this.db
         .prepare("UPDATE deployment SET feed_generation=?,recovery_required=1")
         .run(this.sessionId);
