@@ -19,3 +19,6 @@ dist/
 *.db-*
 
 /deploy/
+
+/apps/web/public/living-town.json
+!/.env.v2.example

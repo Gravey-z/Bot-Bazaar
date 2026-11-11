@@ -286,7 +286,7 @@ export class DurableCustomerExecutor {
       sequence: (
         BigInt(String(this.store.checkpoint("operator")["last_action_id"])) + 1n
       ).toString(),
-      config_version: "1",
+      config_version: town.deployment.config_version,
       valid_until_ns: (
         BigInt(town.data.genesis_time_ns) +
         (BigInt(town.data.epoch) + 1n) * 60_000_000_000n

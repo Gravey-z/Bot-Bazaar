@@ -92,7 +92,9 @@ function open(path: string, readOnly = true): DatabaseSync {
   try {
     db.exec("PRAGMA trusted_schema=OFF; PRAGMA foreign_keys=ON;");
     requireStorage(
-      db.prepare("PRAGMA user_version").get()!["user_version"] === 5 &&
+      [5, 6].includes(
+        Number(db.prepare("PRAGMA user_version").get()!["user_version"]),
+      ) &&
         db.prepare("PRAGMA integrity_check").get()!["integrity_check"] ===
           "ok" &&
         db.prepare("PRAGMA foreign_key_check").all().length === 0,

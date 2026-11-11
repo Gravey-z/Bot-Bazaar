@@ -16,7 +16,7 @@ test("release candidate binds actual source/config bytes while leaving deploymen
   assert.equal(c.deployment.approved_frontend_origin, null);
   assert.equal(c.deployment.contract_wasm_sha256, null);
   assert.equal(c.versions.projection_sqlite, 5);
-  assert.equal(c.versions.execution_sqlite, 1007);
+  assert.equal(c.versions.execution_sqlite, 1009);
   assert.equal(c.versions.assistant_sqlite, 5005);
   for (const path of [
     "contracts/living-town/src/lib.rs",

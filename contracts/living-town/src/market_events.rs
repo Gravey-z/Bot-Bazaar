@@ -11,7 +11,7 @@ pub(crate) struct MarketEvent {
 }
 impl MarketEvent {
     pub(super) fn view(&self) -> Value {
-        json!({"event_id":self.id.to_string(),"definition_id":"herb_shortage_v1","start_epoch":self.start.to_string(),"end_epoch":self.end.to_string(),"herb_supply_ceiling":"4","revision":self.revision.to_string()})
+        json!({"event_id":self.id.to_string(),"definition_id":"herb_shortage_v1","start_epoch":self.start.to_string(),"end_epoch":self.end.to_string(),"herb_supply_ceiling":"1","revision":self.revision.to_string()})
     }
     pub(super) fn active(&self, epoch: u64) -> bool {
         self.start <= epoch && epoch < self.end
@@ -28,9 +28,9 @@ struct ScheduleArgs {
 impl LivingTown {
     pub(super) fn herb_ceiling(&self, epoch: u64) -> u64 {
         if self.market_events.back().is_some_and(|e| e.active(epoch)) {
-            4
+            1
         } else {
-            8
+            2
         }
     }
 }
@@ -150,7 +150,7 @@ mod tests {
                 json!({"item_id":"herb","epoch":epoch.to_string(),"command":c}),
                 epoch * 60_000_000_000 + 1,
             );
-            let r = t.allocate_raw_supply(Item::Herb, Decimal(epoch), c);
+            let r = t.allocate_raw_supply(Item::Herb, Decimal(epoch), c, None);
             assert_eq!(r["data"]["outcome"]["issued_quantity"], issued.to_string());
         }
         assert_eq!(t.supplied_items[2], 16);

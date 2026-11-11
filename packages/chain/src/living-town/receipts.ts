@@ -24,6 +24,8 @@ export interface LivingTownReceiptProof<C> {
   readonly deployment: LivingTownDeployment;
   readonly call: C;
   readonly referenceBlockHeight: string;
+  /** Explicit bounded runtime gas, when different from the legacy wallet default. */
+  readonly gas?: string;
 }
 export type LivingTownReceiptStatus = LivingTownReceiptStatusOf<
   Awaited<ReturnType<typeof verifyLivingTownEffect>>
@@ -67,6 +69,11 @@ export async function verifyLivingTownReceiptCore<
     signer = accountId(proof.signerId),
     call = normalize(proof.call.method, proof.call.args);
   positiveU64(proof.referenceBlockHeight);
+  const expectedGas = proof.gas ?? call.gas;
+  check(
+    ["30000000000000", "100000000000000"].includes(expectedGas),
+    "unreviewed V2 receipt gas",
+  );
   const r = record(value),
     milestone = r["final_execution_status"];
   if (milestone === "NONE") return { kind: "unknown", transactionHash };
@@ -100,7 +107,7 @@ export async function verifyLivingTownReceiptCore<
   check(
     action["method_name"] === call.method &&
       action["deposit"] === "0" &&
-      rpcU64(action["gas"]) === call.gas &&
+      rpcU64(action["gas"]) === expectedGas &&
       canonicalLivingTownJson(
         normalize(call.method, decodeLivingTownBase64(action["args"])).args,
       ) === canonicalLivingTownJson(call.args),

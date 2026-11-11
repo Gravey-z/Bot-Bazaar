@@ -15,8 +15,30 @@ import {
   assertRuntimePermission,
   maximumRuntimeAllowance,
   runtimeMethods,
+  townMerchantMethods,
+  townTradingMerchantMethods,
   signRestrictedTransaction,
 } from "../dist/private/near-signer.js";
+
+test("peer purchases require the explicit four-method trading scope and never broaden existing keys", async () => {
+  const input = fixture("merchant_purchase");
+  input.accessKey.permission.FunctionCall.method_names = [
+    ...townTradingMerchantMethods,
+  ];
+  input.scope = "town_trading_merchant";
+  await signRestrictedTransaction(input);
+  await assert.rejects(
+    signRestrictedTransaction({ ...input, scope: "town_merchant" }),
+  );
+  input.accessKey.permission.FunctionCall.method_names = [
+    ...townMerchantMethods,
+  ];
+  await assert.rejects(signRestrictedTransaction(input));
+  await assert.rejects(
+    signRestrictedTransaction({ ...input, scope: "town_merchant" }),
+    /allowlist/,
+  );
+});
 
 function fixture(method = "set_listing") {
   const key = KeyPairEd25519.fromRandom();

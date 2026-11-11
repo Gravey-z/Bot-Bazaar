@@ -5,10 +5,26 @@ export type RpcTransport = (
   params: unknown,
 ) => Promise<unknown>;
 export class ChainRpcError extends Error {
-  constructor(public readonly code: string) {
+  constructor(public readonly code: string, public readonly rpcCause?: string,
+    public readonly transactionReason?: string) {
     super(`Chain RPC: ${code}`);
     this.name = "ChainRpcError";
   }
+}
+
+function invalidTransactionReason(error: Record<string, unknown>): string | undefined {
+  const object = (value: unknown): Record<string, unknown> | undefined =>
+    value !== null && typeof value === "object" && !Array.isArray(value)
+      ? value as Record<string, unknown> : undefined;
+  const data = object(error["data"]), execution = object(data?.["TxExecutionError"]);
+  const invalid = execution?.["InvalidTxError"];
+  const allowed = new Set(["InvalidSignature", "CostOverflow", "InvalidChain", "Expired",
+    "InvalidTransactionVersion", "InvalidAccessKeyError", "InvalidSignerId", "SignerDoesNotExist",
+    "InvalidNonce", "NonceTooLarge", "InvalidReceiverId", "NotEnoughBalance", "LackBalanceForState",
+    "TransactionSizeExceeded", "StorageError", "ShardCongested", "ShardStuck", "ActionsValidation"]);
+  const tag = typeof invalid === "string" ? invalid : Object.keys(object(invalid) ?? {})[0];
+  // Never retain arbitrary messages, account data, signed bytes or provider payloads.
+  return tag && allowed.has(tag) ? tag : undefined;
 }
 export function parseTestnetRpcUrl(value: string): string {
   const url = new URL(value);
@@ -16,6 +32,7 @@ export function parseTestnetRpcUrl(value: string): string {
     [
       "https://test.rpc.fastnear.com/",
       "https://archival-rpc.testnet.near.org/",
+      "https://testnet-rpc.intea.rs/",
     ].includes(url.href),
     "unapproved Testnet RPC endpoint",
   );
@@ -41,6 +58,10 @@ export function createRpcTransport(
         body: JSON.stringify({ jsonrpc: "2.0", id, method, params }),
         signal: AbortSignal.timeout(timeoutMs),
       });
+      if (response.status === 429) {
+        await response.body?.cancel();
+        throw new ChainRpcError("RATE_LIMITED");
+      }
       if (!response.ok || !response.body)
         throw new ChainRpcError("UNAVAILABLE");
       const reader = response.body.getReader();
@@ -74,8 +95,13 @@ export function createRpcTransport(
         const cause =
           error["cause"] === undefined ? {} : record(error["cause"]);
         const code = cause["name"];
+        // Keep only a protocol identifier, never provider messages or transaction data.
+        const rpcCause = typeof code === "string" && /^[A-Z][A-Z0-9_]{0,63}$/.test(code)
+          ? code : undefined;
         throw new ChainRpcError(
           code === "UNKNOWN_TRANSACTION" ? code : "REJECTED",
+          rpcCause,
+          code === "INVALID_TRANSACTION" ? invalidTransactionReason(error) : undefined,
         );
       }
       check(Object.hasOwn(envelope, "result"), "missing RPC result");

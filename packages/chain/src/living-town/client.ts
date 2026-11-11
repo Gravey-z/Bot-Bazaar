@@ -2,6 +2,16 @@ import {
   livingTownMarketEventEffect,
   livingTownMarketEventHistory,
 } from "./market-events.js";
+import { livingTownOfferFoundationMethods } from "@bot-bazaar/shared";
+import {
+  livingTownOfferEffect,
+  livingTownMerchantTrade,
+  livingTownOfferLookup,
+  livingTownOfferPage,
+  livingTownOfferPageArgs,
+  livingTownTradingRules,
+  offerMerchants,
+} from "./offers.js";
 import {
   livingTownAssistantPolicy,
   livingTownAssistantPolicyEffect,
@@ -109,29 +119,37 @@ const listingsArgs = object({
   },
 });
 const effect = (v: unknown) =>
-  record(record(v)["outcome"])["kind"] === "assistant_repriced"
-    ? livingTownAssistantRepriceEffect(v)
-    : record(record(v)["outcome"])["kind"] === "assistant_policy_set"
-      ? livingTownAssistantPolicyEffect(v)
-      : record(record(v)["outcome"])["kind"] === "market_event_scheduled"
-        ? livingTownMarketEventEffect(v)
-        : ["raw_supplied", "treasury_swept"].includes(
-              String(record(record(v)["outcome"])["kind"]),
-            )
-          ? livingTownSourceEffect(v)
-          : ["customer_funded", "customer_sale"].includes(
+  [
+    "trade_proposed",
+    "trade_accepted",
+    "trade_rejected",
+    "trade_cancelled",
+    "offers_expired",
+  ].includes(String(record(record(v)["outcome"])["kind"]))
+    ? livingTownOfferEffect(v)
+    : record(record(v)["outcome"])["kind"] === "assistant_repriced"
+      ? livingTownAssistantRepriceEffect(v)
+      : record(record(v)["outcome"])["kind"] === "assistant_policy_set"
+        ? livingTownAssistantPolicyEffect(v)
+        : record(record(v)["outcome"])["kind"] === "market_event_scheduled"
+          ? livingTownMarketEventEffect(v)
+          : ["raw_supplied", "raw_supplies", "treasury_swept"].includes(
                 String(record(record(v)["outcome"])["kind"]),
               )
-            ? livingTownCustomerEffect(v)
-            : ["listing_set", "listing_cancelled"].includes(
+            ? livingTownSourceEffect(v)
+            : ["customer_funded", "customer_sale"].includes(
                   String(record(record(v)["outcome"])["kind"]),
                 )
-              ? livingTownListingEffect(v)
-              : record(record(v)["outcome"])["kind"] === "production_started"
-                ? livingTownProductionEffect(v)
-                : record(record(v)["outcome"])["kind"] === "raw_purchased"
-                  ? livingTownPurchaseEffect(v)
-                  : livingTownOwnershipEffect(v);
+              ? livingTownCustomerEffect(v)
+              : ["listing_set", "listing_cancelled"].includes(
+                    String(record(record(v)["outcome"])["kind"]),
+                  )
+                ? livingTownListingEffect(v)
+                : record(record(v)["outcome"])["kind"] === "production_started"
+                  ? livingTownProductionEffect(v)
+                  : record(record(v)["outcome"])["kind"] === "raw_purchased"
+                    ? livingTownPurchaseEffect(v)
+                    : livingTownOwnershipEffect(v);
 const commandLookup = (v: unknown) => {
   const kind = record(v)["kind"];
   if (kind === "found")
@@ -139,6 +157,11 @@ const commandLookup = (v: unknown) => {
       kind: choice(["found"] as const),
       high_water: positiveU64,
       method: choice([
+        "propose_trade",
+        "accept_trade",
+        "reject_trade",
+        "cancel_trade",
+        "expire_offers",
         "purchase_upgrade",
         "assistant_reprice",
         "set_assistant_permissions",
@@ -154,6 +177,7 @@ const commandLookup = (v: unknown) => {
         "create_shop",
         "rename_shop",
         "buy_from_merchant",
+        "merchant_purchase",
       ] as const),
       payload_sha256: (v: unknown) => {
         check(
@@ -191,7 +215,9 @@ const tradeLookup = (v: unknown) =>
         value: (v: unknown) =>
           record(v)["kind"] === "customer_sale"
             ? livingTownCustomerTrade(v)
-            : livingTownRawTrade(v),
+            : record(v)["kind"] === "merchant_trade"
+              ? livingTownMerchantTrade(v)
+              : livingTownRawTrade(v),
       })(v)
     : object({
         kind: choice(["pruned", "not_found"] as const),
@@ -288,8 +314,177 @@ export class FinalizedLivingTownReader {
   getTown(): Promise<Snapshot<ReturnType<typeof livingTownTown>>> {
     return this.view("get_town", {}, livingTownTown);
   }
-  getFoundation(): Promise<Snapshot<ReturnType<typeof livingTownFoundation>>> {
-    return this.view("get_foundation", {}, livingTownFoundation);
+  async getFoundation(): Promise<
+    Snapshot<ReturnType<typeof livingTownFoundation>>
+  > {
+    const f = await this.view("get_foundation", {}, livingTownFoundation);
+    check(
+      (f.data.supported_methods.join() ===
+        livingTownOfferFoundationMethods.join()) ===
+        (this.identity.deployment.state_schema === "2"),
+      "foundation/state schema capability mismatch",
+    );
+    return f;
+  }
+  async getMerchantTradingRules(): Promise<
+    Snapshot<ReturnType<typeof livingTownTradingRules>>
+  > {
+    const f = await this.getFoundation();
+    check(
+      this.identity.deployment.state_schema === "2" &&
+        f.data.supported_methods.includes("get_merchant_trading_rules"),
+      "merchant offers unavailable",
+    );
+    const result = await this.view(
+      "get_merchant_trading_rules",
+      {},
+      livingTownTradingRules,
+    );
+    return result;
+  }
+  async getOffer(
+    id: string,
+  ): Promise<Snapshot<ReturnType<typeof livingTownOfferLookup>>> {
+    check(
+      this.identity.deployment.state_schema === "2",
+      "merchant offers unavailable",
+    );
+    const r = await this.view(
+      "get_offer",
+      { offer_id: positiveU64(id) },
+      livingTownOfferLookup,
+    );
+    check(
+      (r.data.kind === "found" ? r.data.offer.offer_id : r.data.offer_id) ===
+        id,
+      "offer lookup identity mismatch",
+    );
+    if (r.data.kind === "found")
+      this.offerTime(r.data.offer, r.block_timestamp_ns);
+    return r;
+  }
+  private offerTime(
+    o: ReturnType<typeof import("./offers.js").livingTownOffer>,
+    at: string,
+  ) {
+    check(
+      BigInt(o.created_at_ns) <= BigInt(at) &&
+        (o.closed_at_ns === null || BigInt(o.closed_at_ns) <= BigInt(at)) &&
+        o.expired ===
+          (o.status === "expired" ||
+            (o.status === "pending" && BigInt(at) >= BigInt(o.expires_at_ns))),
+      "offer snapshot time mismatch",
+    );
+  }
+  async getOffers(
+    input: unknown,
+  ): Promise<Snapshot<ReturnType<typeof livingTownOfferPage>>> {
+    check(
+      this.identity.deployment.state_schema === "2",
+      "merchant offers unavailable",
+    );
+    const args = livingTownOfferPageArgs(input),
+      r = await this.view("get_offers", args, livingTownOfferPage);
+    check(
+      r.market_revision === args.expected_market_revision &&
+        r.data.items.length <= Number(args.limit),
+      "offer page revision/bound mismatch",
+    );
+    let last = args.after_id;
+    for (const o of r.data.items) {
+      check(
+        last === null || BigInt(o.offer_id) > BigInt(last),
+        "unordered offer page",
+      );
+      last = o.offer_id;
+    }
+    check(
+      r.data.next_after_id === (r.data.items.at(-1)?.offer_id ?? null) &&
+        (!r.data.has_more || r.data.items.length > 0),
+      "offer page cursor mismatch",
+    );
+    check(
+      r.data.history_gap ===
+        BigInt(r.data.pruned_through) > BigInt(args.after_id ?? "0"),
+      "offer gap watermark mismatch",
+    );
+    for (const o of r.data.items) {
+      this.offerTime(o, r.block_timestamp_ns);
+      check(
+        (args.merchant_id === null ||
+          [o.buyer, o.seller].includes(args.merchant_id)) &&
+          (args.status === "all" ||
+            (args.status === "pending") === (o.status === "pending")),
+        "offer page filter mismatch",
+      );
+    }
+    return r;
+  }
+  async getPendingMerchantOffers(): Promise<{
+    town: Awaited<ReturnType<FinalizedLivingTownReader["getTown"]>>;
+    rules: Awaited<
+      ReturnType<FinalizedLivingTownReader["getMerchantTradingRules"]>
+    >;
+    offers: ReturnType<typeof import("./offers.js").livingTownOffer>[];
+  }> {
+    const rules = await this.getMerchantTradingRules(),
+      town = await this.getTown();
+    const offers: ReturnType<typeof import("./offers.js").livingTownOffer>[] =
+      [];
+    let after: string | null = null;
+    for (let n = 0; n < 3; n++) {
+      const p = await this.getOffers({
+        merchant_id: null,
+        status: "pending",
+        after_id: after,
+        limit: "50",
+        expected_market_revision: town.market_revision,
+      });
+      check(
+        p.market_revision === town.market_revision,
+        "mixed offer checkpoint",
+      );
+      offers.push(...p.data.items);
+      check(
+        offers.length <= 12 &&
+          new Set(offers.map((o) => o.offer_id)).size === offers.length,
+        "pending offer capacity/duplicates",
+      );
+      if (!p.data.has_more) {
+        for (const m of offerMerchants) {
+          const owned = offers.filter((o) => o.buyer === m);
+          const ledger = town.data.npc_ledgers[offerMerchants.indexOf(m)]!;
+          check(
+            offers.filter((o) => o.buyer === m || o.seller === m).length <= 8 &&
+              BigInt(ledger.gold.trade_reserved) ===
+                owned.reduce((s, o) => s + BigInt(o.total_price), 0n),
+            "pending gold/count reconciliation mismatch",
+          );
+          for (const item of [
+            "crystal",
+            "wood",
+            "herb",
+            "iron",
+            "health_potion",
+            "iron_tool",
+          ] as const)
+            check(
+              BigInt(ledger.inventory.trade_inbound_reserved[item]) ===
+                owned
+                  .filter((o) => o.item_id === item)
+                  .reduce((s, o) => s + BigInt(o.quantity), 0n),
+              "pending inbound reconciliation mismatch",
+            );
+        }
+        return { town, rules, offers };
+      }
+      check(
+        p.data.next_after_id !== null && p.data.next_after_id !== after,
+        "offer cursor stalled",
+      );
+      after = p.data.next_after_id;
+    }
+    throw new Error("incomplete pending offer checkpoint");
   }
   async getUpgrade(
     id: string,
@@ -508,17 +703,27 @@ export class FinalizedLivingTownReader {
           d.method ===
             (
               {
+                trade_proposed: "propose_trade",
+                trade_accepted: "accept_trade",
+                trade_rejected: "reject_trade",
+                trade_cancelled: "cancel_trade",
+                offers_expired: "expire_offers",
                 player_registered: "register_player",
                 upgrade_purchased: "purchase_upgrade",
                 assistant_policy_set: "set_assistant_permissions",
                 assistant_repriced: "assistant_reprice",
                 shop_created: "create_shop",
                 shop_renamed: "rename_shop",
-                raw_purchased: "buy_from_merchant",
+                raw_purchased:
+                  d.effect.outcome.kind === "raw_purchased" &&
+                  d.effect.outcome.trade.buyer.kind === "merchant"
+                    ? "merchant_purchase"
+                    : "buy_from_merchant",
                 production_started: "start_production",
                 listing_set: "set_listing",
                 market_event_scheduled: "schedule_market_event",
                 raw_supplied: "allocate_raw_supply",
+                raw_supplies: "allocate_raw_supply",
                 treasury_swept: "sweep_merchant_treasury",
                 customer_funded: "fund_customer_budget",
                 customer_sale: "settle_customer_purchase",
@@ -630,12 +835,22 @@ export class LivingTownClient {
   }
   private async at(block: FinalizedBlock) {
     const r = new FinalizedLivingTownReader(this.rpc, this.identity, block);
-    const account = await r.query("view_account");
+    // Both reads are pinned to this exact finalized block. Finish all identity
+    // checks before exposing the reader to a caller.
+    const identityReads = await Promise.allSettled([
+      r.query("view_account"), r.getFoundation(),
+    ] as const);
+    const identityFailure = identityReads.find(result => result.status === "rejected");
+    if (identityFailure?.status === "rejected") throw identityFailure.reason;
+    const [accountRead, foundationRead] = identityReads;
+    check(accountRead.status === "fulfilled" && foundationRead.status === "fulfilled",
+      "incomplete finalized identity reads");
+    const account = accountRead.value;
     identityCheck(
       account["code_hash"] === this.identity.codeHash,
       "V2 deployed code mismatch",
     );
-    const f = await r.getFoundation(),
+    const f = foundationRead.value,
       d = f.data,
       i = this.identity;
     identityCheck(
@@ -685,7 +900,8 @@ export class LivingTownClient {
       response = await this.rpc("tx", {
         tx_hash: hash32(proof.transactionHash),
         sender_account_id: accountId(proof.signerId),
-        wait_until: "FINAL",
+        // Poll the current milestone; the receipt verifier still requires FINAL.
+        wait_until: "NONE",
       });
     } catch (error) {
       if (
@@ -728,7 +944,8 @@ export class LivingTownClient {
       response = await this.rpc("tx", {
         tx_hash: hash32(proof.transactionHash),
         sender_account_id: accountId(proof.signerId),
-        wait_until: "FINAL",
+        // Avoid waiting for an unknown hash until the transport times out.
+        wait_until: "NONE",
       });
     } catch (e) {
       if (e instanceof ChainRpcError && e.code === "UNKNOWN_TRANSACTION")

@@ -24,47 +24,47 @@
     "materials": {
       "crystal": {
         "supplier": "rex",
-        "seed": "10",
+        "seed": "12",
         "floor": "2",
-        "listed": "8",
+        "listed": "10",
         "price": "4",
         "minPrice": "3",
         "maxPrice": "6",
-        "supply": "4",
-        "target": "10"
+        "supply": "2",
+        "target": "12"
       },
       "wood": {
         "supplier": "bolt",
-        "seed": "10",
+        "seed": "12",
         "floor": "2",
-        "listed": "8",
+        "listed": "10",
         "price": "2",
         "minPrice": "1",
         "maxPrice": "3",
-        "supply": "4",
-        "target": "10"
+        "supply": "2",
+        "target": "12"
       },
       "herb": {
         "supplier": "luna",
-        "seed": "20",
-        "floor": "8",
-        "listed": "12",
+        "seed": "12",
+        "floor": "4",
+        "listed": "8",
         "price": "3",
         "minPrice": "2",
         "maxPrice": "4",
-        "supply": "8",
-        "target": "20"
+        "supply": "2",
+        "target": "12"
       },
       "iron": {
         "supplier": "bolt",
-        "seed": "20",
+        "seed": "12",
         "floor": "4",
-        "listed": "16",
+        "listed": "8",
         "price": "5",
         "minPrice": "3",
         "maxPrice": "6",
-        "supply": "8",
-        "target": "20"
+        "supply": "2",
+        "target": "12"
       }
     },
     "recipes": {
@@ -83,6 +83,33 @@
         },
         "seconds": "180",
         "salePrice": "24"
+      }
+    },
+    "stockSharing": {
+      "backupCap": "7",
+      "peerFloor": "2",
+      "offerQuantityCap": "2",
+      "sourceIntervalEpochs": "5",
+      "sourceQuantity": "2",
+      "startingHoldings": {
+        "rex": {
+          "crystal": "12",
+          "wood": "4",
+          "herb": "7",
+          "iron": "7"
+        },
+        "luna": {
+          "crystal": "4",
+          "wood": "7",
+          "herb": "12",
+          "iron": "4"
+        },
+        "bolt": {
+          "crystal": "7",
+          "wood": "12",
+          "herb": "4",
+          "iron": "12"
+        }
       }
     }
   },

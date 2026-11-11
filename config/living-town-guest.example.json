@@ -1,0 +1,21 @@
+{
+  "profile_file": "/app/config/living-town-testnet.json",
+  "data_dir": "/data/guest-custody",
+  "encryption_key_file": "/run/secrets/guest-encryption.json",
+  "funder_key_file": "/run/secrets/guest-parent.json",
+  "funding_witness_file": "/data/guest-witness/authority.json",
+  "receipt_outbox": "/data/guest-public-receipts",
+  "parent_account_id": "replace-with-dedicated-guest-parent.testnet",
+  "frontend_origin": "https://replace-with-your-frontend.example",
+  "trusted_proxy_ips": [],
+  "port": 3013,
+  "poll_ms": 3000,
+  "session_ttl_seconds": 86400,
+  "guest_funding_yocto": "50000000000000000000000",
+  "creation_fee_reserve_yocto": "10000000000000000000000",
+  "total_funding_cap_yocto": "1000000000000000000000000",
+  "daily_funding_cap_yocto": "300000000000000000000000",
+  "max_guests": 100,
+  "max_guests_per_day": 5,
+  "max_guests_per_ip_day": 2
+}

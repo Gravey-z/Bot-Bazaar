@@ -1,0 +1,84 @@
+{
+  "schema": "distributed-merchant-stock-scenario-v1",
+  "evidence": "Controlled new-world allocation; not a live town or new sandbox receipt",
+  "config": "config/living-town-v1.json",
+  "initial": {
+    "rex": {
+      "crystal": "12",
+      "wood": "4",
+      "herb": "7",
+      "iron": "7"
+    },
+    "luna": {
+      "crystal": "4",
+      "wood": "7",
+      "herb": "12",
+      "iron": "4"
+    },
+    "bolt": {
+      "crystal": "7",
+      "wood": "12",
+      "herb": "4",
+      "iron": "12"
+    }
+  },
+  "crystalScenario": [
+    {
+      "step": "initial",
+      "rex": {
+        "gold": "200",
+        "crystal": "12"
+      },
+      "luna": {
+        "gold": "200",
+        "crystal": "4"
+      },
+      "bolt": {
+        "gold": "200",
+        "crystal": "7"
+      },
+      "player": {
+        "gold": "100",
+        "crystal": "0"
+      }
+    },
+    {
+      "step": "player_buys_8",
+      "rex": {
+        "gold": "232",
+        "crystal": "4"
+      },
+      "luna": {
+        "gold": "200",
+        "crystal": "4"
+      },
+      "bolt": {
+        "gold": "200",
+        "crystal": "7"
+      },
+      "player": {
+        "gold": "68",
+        "crystal": "8"
+      }
+    },
+    {
+      "step": "rex_buys_2_from_luna_at_5",
+      "rex": {
+        "gold": "222",
+        "crystal": "6"
+      },
+      "luna": {
+        "gold": "210",
+        "crystal": "2"
+      },
+      "bolt": {
+        "gold": "200",
+        "crystal": "7"
+      },
+      "player": {
+        "gold": "68",
+        "crystal": "8"
+      }
+    }
+  ]
+}

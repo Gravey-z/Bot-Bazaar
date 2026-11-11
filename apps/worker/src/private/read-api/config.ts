@@ -11,7 +11,7 @@ export interface BoundaryConfig {
 export const defaultBoundary: BoundaryConfig = Object.freeze({
   allowedOrigins: Object.freeze([]),
   trustedProxyIps: Object.freeze([]),
-  clientPerMinute: 60,
+  clientPerMinute: 120,
   globalPerSecond: 10,
 });
 
@@ -82,7 +82,7 @@ export function parseBoundaryConfig(
   return Object.freeze({
     allowedOrigins: Object.freeze([...new Set(allowedOrigins)]),
     trustedProxyIps: Object.freeze([...new Set(trustedProxyIps)]),
-    clientPerMinute: integer("WORKER_READS_PER_MINUTE", 60, 600),
+    clientPerMinute: integer("WORKER_READS_PER_MINUTE", 120, 600),
     globalPerSecond: integer("WORKER_READS_PER_SECOND", 10, 100),
   });
 }

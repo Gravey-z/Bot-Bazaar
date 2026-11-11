@@ -4,6 +4,7 @@ import {
   livingTownTown,
 } from "@bot-bazaar/chain";
 import type { BudgetRepository, PreparedInference } from "../policy/budget.js";
+import { maximumInferenceInputTokens } from "../policy/budget.js";
 import { DefinitiveProviderFailure } from "../retries/provider.js";
 import type { ProviderInvocation } from "../retries/provider.js";
 import { SafetyClock } from "../retries/clock.js";
@@ -17,6 +18,8 @@ import {
   TownProposalDelivery,
 } from "./proposals.js";
 import type { TownProposalContext, TownProposal } from "./proposals.js";
+import { merchantCharacter } from "./merchant-characters.js";
+import { negotiationAvailable } from "./negotiation.js";
 
 export interface TownBudgetBinding {
   projectId: string;
@@ -53,6 +56,7 @@ export class LivingTownProviderRunner {
     private readonly fallbackMode: "policy" | "wait" = "policy",
     clock?: SafetyClock,
     private readonly operations?: TownOperations,
+    private readonly publishPending?: () => Promise<void>,
   ) {
     requireStorage(
       Number.isSafeInteger(timeoutMs) && timeoutMs >= 1 && timeoutMs <= 15000,
@@ -70,7 +74,18 @@ export class LivingTownProviderRunner {
       throw new ProviderUnavailable("clock_unavailable");
     }
   }
+  /** Shared ledger limits survive refreshes/restarts and cover all merchants. */
+  canInvoke(currentRequestId?: string): boolean {
+    if (!this.provider || !this.budget || this.store.providerAttempts.pending(currentRequestId)) return false;
+    try {
+      const status = this.budget.status(this.now());
+      return !status.blocked && (status.totalLimit === undefined ||
+        (status.totalMicro ?? 0) + 1000 <= status.totalLimit);
+    } catch { return false; }
+  }
   requestId(context: TownProposalContext): string {
+    if (context.reaction)
+      return `town-provider:${sha256(canonicalLivingTownJson([this.store.identity, this.store.seed, context.reaction, context.merchant]))}`;
     return `town-provider:${sha256(canonicalLivingTownJson([this.store.identity, this.store.seed, context.tickId, context.merchant]))}`;
   }
   /** Rebase only after the shared accounting authority and economic journal have been reconciled. */
@@ -121,7 +136,9 @@ export class LivingTownProviderRunner {
       context,
       this.policy,
       `rules fallback: ${code}`,
-      wait || this.fallbackMode === "wait",
+      wait ||
+        this.fallbackMode === "wait" ||
+        context.facts.negotiatedTrading === true,
     );
   }
   private async run(
@@ -133,6 +150,10 @@ export class LivingTownProviderRunner {
     const signals = this.policy.evaluate(context.facts),
       town = livingTownSnapshot(livingTownTown)(context.facts.town),
       tick = this.store.ticks.active();
+    requireStorage(
+      !negotiationAvailable(context.facts) || this.store.negotiatedTrading,
+      "negotiation requires the offer execution journal",
+    );
     const next = tick
       ? this.store.ticks
           .actions(String(tick["id"]))
@@ -140,9 +161,17 @@ export class LivingTownProviderRunner {
       : undefined;
     requireStorage(
       context.schemaVersion === "living-town-proposal-v1" &&
-        tick?.["id"] === context.tickId &&
-        next?.["state"] === "planned" &&
-        String(next["arrival"]).startsWith(`merchant:${context.merchant}:`),
+        (context.reaction
+          ? this.store.reactions.modelContext(
+              context.reaction.rootId,
+              context.reaction.stepId,
+              context.merchant,
+            ) && context.tickId === context.reaction.stepId
+          : tick?.["id"] === context.tickId &&
+            next?.["state"] === "planned" &&
+            String(next["arrival"]).startsWith(
+              `merchant:${context.merchant}:`,
+            )),
       "provider requires the current planned merchant opportunity",
     );
     const saved = this.store.providerAttempts.get(id);
@@ -186,11 +215,12 @@ export class LivingTownProviderRunner {
       Number.isSafeInteger(now) && now >= 0,
       "audit clock unavailable",
     );
+    const cutoff = context.reaction
+      ? BigInt(this.store.reactions.work(context.reaction.stepId)!.deadlineNs)
+      : BigInt(town.data.genesis_time_ns) +
+        (BigInt(town.data.epoch) + 1n) * 60000000000n;
     const remaining = Number(
-      (BigInt(town.data.genesis_time_ns) +
-        (BigInt(town.data.epoch) + 1n) * 60000000000n -
-        BigInt(town.block_timestamp_ns)) /
-        1000000n,
+      (cutoff - BigInt(town.block_timestamp_ns)) / 1000000n,
     );
     const deadline = now + Math.max(1, Math.min(this.timeoutMs, remaining));
     // No pending inference takeover, including another runner in this process.
@@ -204,7 +234,21 @@ export class LivingTownProviderRunner {
       model: this.provider?.model ?? "none",
       promptVersion: this.provider?.promptVersion ?? "none",
       ledgerId: this.binding?.ledgerId ?? null,
-      context: { tickId: context.tickId, merchant: context.merchant, signals },
+      context: {
+        tickId: context.tickId,
+        merchant: context.merchant,
+        signals,
+        character: merchantCharacter(context.merchant),
+        character_sha256: sha256(
+          JSON.stringify(merchantCharacter(context.merchant)),
+        ),
+        negotiation_available: negotiationAvailable(context.facts),
+        reaction: context.facts.stockSharingReaction ?? null,
+        checkpoint: context.facts.activityCheckpoint ?? null,
+        incoming_offers: (context.facts.pendingOffers ?? []).filter(
+          (o) => (o as { seller?: string }).seller === context.merchant,
+        ),
+      },
       now,
       deadline,
     });
@@ -260,13 +304,17 @@ export class LivingTownProviderRunner {
       const prepared = Object.freeze({
         ...this.provider.prepare(structuredClone(context)),
       });
+      if (prepared.countTokens(prepared.payload) > maximumInferenceInputTokens)
+        throw new ProviderUnavailable("prompt_too_large");
       requireStorage(
         prepared.provider === this.provider.provider &&
           prepared.model === this.provider.model &&
           prepared.verifiedUntil >= deadline,
         "unverified provider/pricing identity",
       );
-      // Existing rolling money/token/request caps apply across V1, V2 and rehearsals in this exact ledger.
+      // The shared authority reserves the full bounded call against the
+      // original lifetime budget, including unresolved billing reservations.
+      if (!this.canInvoke(id)) throw new ProviderUnavailable("provider_busy_or_total_budget_exhausted");
       try {
         this.budget.reserve(id, prepared, now);
       } catch {
@@ -280,6 +328,7 @@ export class LivingTownProviderRunner {
       if (this.now() >= deadline)
         throw new ProviderUnavailable("request_timeout");
       this.store.providerAttempts.transition(id, "dispatched");
+      await this.publishPending?.();
       const response = Promise.resolve()
         .then(() => {
           if (closed || abort.signal.aborted)
@@ -341,10 +390,11 @@ export class LivingTownProviderRunner {
                 ),
               ) + 1n
             ).toString(),
-            config_version: "1",
-            valid_until_ns: (
-              BigInt(town.data.genesis_time_ns) +
-              (BigInt(town.data.epoch) + 1n) * 60000000000n
+            config_version: town.deployment.config_version,
+            valid_until_ns: (context.reaction
+              ? BigInt(town.block_timestamp_ns) + 60000000000n
+              : BigInt(town.data.genesis_time_ns) +
+                (BigInt(town.data.epoch) + 1n) * 60000000000n
             ).toString(),
           };
           try {
@@ -389,12 +439,21 @@ export class LivingTownProviderRunner {
     } catch (error) {
       closed = true;
       abort.abort();
+      const httpStatus =
+        error instanceof Error &&
+        error.name === "NearAiHttpError" &&
+        "status" in error &&
+        Number.isInteger(error.status)
+          ? Number(error.status)
+          : 0;
       const code =
         error instanceof ProviderUnavailable
           ? error.code
           : error instanceof DefinitiveProviderFailure
             ? "definitive_provider_failure"
-            : "provider_or_admission_unavailable";
+            : httpStatus >= 400 && httpStatus <= 599
+              ? `near_ai_http_${httpStatus}`
+              : "provider_or_admission_unavailable";
       const p = this.fallback(
         context,
         code,

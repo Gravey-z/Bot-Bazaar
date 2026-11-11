@@ -153,6 +153,9 @@ export function readReceiptInbox(
       "method",
       "args",
       "reference_block_height",
+      ...(v !== null && typeof v === "object" && Object.hasOwn(v, "gas")
+        ? ["gas"]
+        : []),
     ]);
     if (
       typeof r["transaction_hash"] !== "string" ||
@@ -164,6 +167,7 @@ export function readReceiptInbox(
       signerId: r["signer_id"],
       deployment: identity.deployment,
       referenceBlockHeight: parseU64(r["reference_block_height"]),
+      ...(r["gas"] !== undefined ? { gas: parseU64(r["gas"]) } : {}),
     };
     return r["method"] === "complete_production"
       ? { ...base, call: createLivingTownCompletionCall(r["args"]) }

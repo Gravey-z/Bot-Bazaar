@@ -800,7 +800,8 @@ globalThis.fetch=async(_url,options)=>{
     child.stderr.on("data", (c) => {
       errors = (errors + c.toString()).slice(-16384);
     });
-    for (let i = 0; i < 100; i++) {
+    // The production reader deliberately spaces RPC calls; allow its complete cold scan.
+    for (let i = 0; i < 800; i++) {
       if (child.exitCode !== null) throw Error("read worker exited: " + errors);
       try {
         const r = await fetch(
@@ -814,7 +815,7 @@ globalThis.fetch=async(_url,options)=>{
       } catch {
         /* Startup can briefly precede the listening socket. */
       }
-      await delay(30);
+      await delay(50);
     }
     throw Error("read worker not ready: " + errors);
   };

@@ -1,0 +1,52 @@
+{
+  "schema": "merchant-stock-sharing-scenario-v1",
+  "source_receipts": "tests/fixtures/chain/living-town-merchant-offers-sandbox.json",
+  "evidence": "Phase 1 actual-WASM controller calls; candidate selection here is controlled policy testing, not live AI",
+  "stages": [
+    {
+      "name": "bootstrap",
+      "state": "controlled config-1 seed reconstruction before backup acquisition",
+      "buyer": "luna",
+      "seller": "rex",
+      "item": "crystal",
+      "kind": "backup_acquisition",
+      "quantity": "2",
+      "unit_price": "4",
+      "rex": { "gold": "200", "crystal": "10", "listed": "8" },
+      "luna": { "gold": "200", "crystal": "0" },
+      "seller_listing_release_to": "6"
+    },
+    {
+      "name": "shortage",
+      "state": "source_receipts.low after the accepted backup trade and six-unit player purchase",
+      "buyer": "rex",
+      "seller": "luna",
+      "item": "crystal",
+      "kind": "emergency_restock",
+      "quantity": "2",
+      "unit_price": "5",
+      "rex": { "gold": "232", "crystal": "2", "listed": "0" },
+      "luna": { "gold": "192", "crystal": "2" },
+      "player": { "gold": "76", "crystal": "6" },
+      "seller_listing_release_to": null
+    },
+    {
+      "name": "after_trade",
+      "state": "source_receipts.after; root follow-up only, so no new negotiation",
+      "rex": { "gold": "222", "crystal": "4", "listed": "0" },
+      "luna": { "gold": "202", "crystal": "0" },
+      "player": { "gold": "76", "crystal": "6" },
+      "root_used_merchants": ["rex", "luna"]
+    }
+  ],
+  "workflow": [
+    "A healthy Rex already owns and lists the crystals; Luna has no initial crystal backup.",
+    "Luna independently proposes buying two crystals at four; her gold and inbound space are reserved.",
+    "Rex independently approves, reduces his listing to six, then accepts the stored offer.",
+    "A player buys the six listed crystals; Rex now has two while Luna owns two backups.",
+    "Rex can propose buying those two backups for five each; Luna separately decides whether to accept.",
+    "Confirmed settlement conserves gold and crystals. A same-root follow-up cannot start another trade.",
+    "Real source replenishment can remove the shortage before a decision completes; revalidate and wait rather than force the trade."
+  ],
+  "live_preparation": "Use ordinary negotiated transfers on a compatible future deployment. Never reseed the public world or assume donors start with free backup goods. Services are owner-started and genuine AI acceptance is a later gate."
+}

@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="132" height="42" viewBox="0 0 132 42" preserveAspectRatio="none" role="img" aria-label="Transparent fantasy button border without text or icon">
+  <defs>
+    <linearGradient id="outline-rim" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#E0B782"/>
+      <stop offset="0.48" stop-color="#A27950"/>
+      <stop offset="1" stop-color="#C8A070"/>
+    </linearGradient>
+  </defs>
+  <!-- No fills: the center is 100% transparent. -->
+  <rect x="2" y="2" width="128" height="38" rx="7" fill="none" stroke="#251810" stroke-width="2"/>
+  <rect x="3.5" y="3.5" width="125" height="35" rx="6" fill="none" stroke="url(#outline-rim)" stroke-width="1.6"/>
+  <rect x="7.5" y="7.5" width="117" height="27" rx="4" fill="none" stroke="#D1A477" stroke-opacity="0.48" stroke-width="0.8"/>
+  <path d="M13 9 H119" fill="none" stroke="#F4CE9F" stroke-opacity="0.35" stroke-width="1"/>
+  <path d="M13 33 H119" fill="none" stroke="#5C3F2A" stroke-opacity="0.52" stroke-width="1"/>
+</svg>

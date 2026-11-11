@@ -1,0 +1,173 @@
+@let e = view();
+<section class="merchant-economy" [attr.aria-label]="e.name + ' economy'">
+  <div class="merchant-funds">
+    <span
+      ><small>Gold available</small><strong>{{ e.gold ?? "—" }}</strong></span
+    >
+    <span
+      ><small>Gold committed</small
+      ><strong>{{ e.committedGold ?? "—" }}</strong></span
+    >
+    @if (e.stale) {
+      <span class="state-note" role="status">Last snapshot</span>
+    }
+  </div>
+  <details class="merchant-goals">
+    <summary>Goals</summary>
+    <ul>
+      @for (goal of e.goals; track goal) {
+        <li>{{ goal }}</li>
+      }
+    </ul>
+  </details>
+  <details class="merchant-stock">
+    <summary>Stock &amp; reserves</summary>
+    @if (e.stock.length) {
+      <div
+        class="stock-scroll"
+        tabindex="0"
+        role="region"
+        [attr.aria-label]="e.name + ' stock table'"
+      >
+        <table>
+          <thead>
+            <tr>
+              <th>Item</th>
+              <th>Held</th>
+              <th>Free</th>
+              <th>Listed</th>
+              <th>Outgoing</th>
+              <th>Incoming</th>
+              <th>Crafting</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (row of e.stock; track row.id) {
+              <tr>
+                <th scope="row">{{ row.name }}</th>
+                <td>{{ row.held }}</td>
+                <td>{{ row.available }}</td>
+                <td>{{ row.listed }}</td>
+                <td>{{ row.outgoing }}</td>
+                <td>{{ row.incoming }}</td>
+                <td>{{ row.production }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    } @else {
+      <p>Stock has not loaded.</p>
+    }
+  </details>
+  <details class="merchant-trades">
+    <summary>
+      Merchant trades <span>{{ e.offers.length }}</span>
+    </summary>
+    @if (!e.offersAvailable) {
+      <p>Merchant trading is unavailable in this snapshot.</p>
+    } @else {
+      @if (e.offersStale) {
+        <p class="state-note">Showing the last recorded offers.</p>
+      }
+      @if (e.historyGap) {
+        <p class="state-note">Earlier offers may be unavailable.</p>
+      }
+      <ol class="economy-list">
+        @for (trade of e.offers; track trade.id) {
+          <li>
+            <div class="entry-heading">
+              <small>{{ trade.direction }} #{{ trade.id }}</small
+              ><span class="state-note">{{ trade.label }}</span>
+            </div>
+            <strong>{{ trade.text }}</strong>
+            <p>{{ trade.price }}</p>
+            @if (trade.reason) {
+              <p class="decision-reason">{{ trade.reason }}</p>
+            }
+            @if (trade.delta) {
+              <p class="trade-delta">{{ trade.delta }}</p>
+            }
+            @if (trade.url) {
+              <a [href]="trade.url" target="_blank" rel="noopener noreferrer"
+                >Transaction</a
+              >
+            }
+            @if (trade.receipt) {
+              <a
+                [href]="trade.receipt"
+                target="_blank"
+                rel="noopener noreferrer"
+                >Receipt</a
+              >
+            }
+          </li>
+        } @empty {
+          <li>No recorded trades yet.</li>
+        }
+      </ol>
+    }
+  </details>
+  <details class="merchant-decisions">
+    <summary>Decision history</summary>
+    <p class="state-note">Latest five decisions. History is retained across restarts.</p>
+    @if (e.activityGap) {
+      <p class="state-note">Earlier activity may be unavailable.</p>
+    }
+    @if (e.activityUnavailable) {
+      <p class="state-note">
+        Live activity unavailable. Retained decisions may be out of date.
+      </p>
+    }
+    <ol class="economy-list">
+      @for (entry of e.decisions; track entry.id) {
+        <li>
+          <div class="entry-heading">
+            <small>{{ entry.origin }}</small
+            ><span class="state-note">{{ entry.label }}</span>
+          </div>
+          <time class="state-note" [attr.datetime]="entry.recordedAt">Recorded {{ entry.recordedLabel }}</time>
+          <p class="decision-reason">{{ entry.reason }}</p>
+          @if (entry.url) {
+            <a [href]="entry.url" target="_blank" rel="noopener noreferrer"
+              >Transaction</a
+            >
+          }
+          @if (entry.receipt) {
+            <a [href]="entry.receipt" target="_blank" rel="noopener noreferrer"
+              >Receipt</a
+            >
+          }
+        </li>
+      } @empty {
+        <li>No retained decisions yet.</li>
+      }
+    </ol>
+  </details>
+  @if (e.sources.length) {
+    <details class="merchant-sources">
+      <summary>Source replenishment</summary>
+      <ol class="economy-list">
+        @for (entry of e.sources; track entry.id) {
+          <li>
+            <strong>{{ entry.text }}</strong>
+            <small>Confirmed source allocation</small>
+            @if (entry.url) {
+              <a [href]="entry.url" target="_blank" rel="noopener noreferrer"
+                >Transaction</a
+              >
+            }
+            @if (entry.receipt) {
+              <a
+                [href]="entry.receipt"
+                target="_blank"
+                rel="noopener noreferrer"
+                >Receipt</a
+              >
+            }
+          </li>
+        }
+      </ol>
+    </details>
+  }
+</section>

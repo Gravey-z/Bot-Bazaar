@@ -26,25 +26,31 @@ export class TownProviderRepository {
     private readonly db: DatabaseSync,
     private readonly write: <T>(fn: () => T) => T,
     private readonly session: string,
+    deferRecovery = false,
   ) {
+    if (!deferRecovery) this.recoverInterrupted();
+  }
+  recoverInterrupted(): void {
     // No old process may redispatch an uncertain provider call. Its shared budget reservation remains charged.
-    this.db
-      .prepare(
-        "UPDATE town_provider_attempts SET status='fallback',code='restart_unknown',finished_at=? WHERE status IN ('prepared','reserved','dispatched') AND session_id!=?",
-      )
-      .run(Date.now(), session);
+    this.write(() =>
+      this.db
+        .prepare(
+          "UPDATE town_provider_attempts SET status='fallback',code='restart_unknown',finished_at=? WHERE status IN ('prepared','reserved','dispatched') AND session_id!=?",
+        )
+        .run(Date.now(), this.session),
+    );
   }
   get(requestId: string): Row | undefined {
     return this.db
       .prepare("SELECT * FROM town_provider_attempts WHERE id=?")
       .get(id(requestId));
   }
-  pending(): boolean {
+  pending(exceptId = ""): boolean {
     return !!this.db
       .prepare(
-        "SELECT id FROM town_provider_attempts WHERE status IN ('prepared','reserved','dispatched') LIMIT 1",
+        "SELECT id FROM town_provider_attempts WHERE status IN ('prepared','reserved','dispatched') AND id!=? LIMIT 1",
       )
-      .get();
+      .get(exceptId);
   }
   begin(p: {
     id: string;

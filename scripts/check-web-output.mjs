@@ -3,14 +3,24 @@ import { readFile, readdir } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { validateReplayCollection } from "./replay-publication.mjs";
+import { isDeepStrictEqual } from "node:util";
+import {
+  validateTownRelease,
+  townDeployment,
+} from "./living-town-web-release.mjs";
 
 import {
   parsePublicConfig,
   parseWebDeployment,
 } from "../packages/shared/dist/index.js";
 
-if (process.argv.length > 3)
-  throw Error("Usage: check-web-output [public-build-directory]");
+if (process.argv.length > 4)
+  throw Error(
+    "Usage: check-web-output [public-build-directory] [v2-local|v2-public|classic]",
+  );
+const mode = process.argv[3] ?? "v2-public";
+if (!["v2-local", "v2-public", "classic"].includes(mode))
+  throw Error("Unknown web release mode");
 const output = process.argv[2]
   ? path.resolve(process.argv[2])
   : fileURLToPath(new URL("../apps/web/dist/browser/", import.meta.url));
@@ -58,6 +68,23 @@ const deployment = parseWebDeployment(
 );
 if (JSON.stringify(config) !== JSON.stringify(deployment.current))
   throw new Error("Published configuration and deployment descriptor disagree");
+if (mode.startsWith("v2-")) {
+  const profile = await validateTownRelease(
+    JSON.parse(await readFile(path.join(output, "living-town.json"), "utf8")),
+    mode.slice(3),
+  );
+  if (
+    !isDeepStrictEqual(profile.public, config) ||
+    !isDeepStrictEqual(deployment, townDeployment(config))
+  )
+    throw Error(
+      "V2 profile, public configuration and deployment descriptor disagree",
+    );
+} else if (
+  files.some((file) => file.isFile() && file.name === "living-town.json")
+) {
+  throw Error("Classic release must not include a V2 profile");
+}
 await validateReplayCollection(path.join(output, "replays"));
 console.info(
   "Public build configuration is valid; no private worker markers or supplied secret values found",

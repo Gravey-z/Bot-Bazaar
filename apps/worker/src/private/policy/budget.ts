@@ -10,6 +10,8 @@ import {
 } from "../storage/validation.js";
 const day = 86400000,
   month = 30 * day;
+// Includes serialized response schemas in the conservative input estimate.
+export const maximumInferenceInputTokens = 8192;
 type Row = Record<string, string | number | bigint | Uint8Array | null>;
 export interface Allocation {
   projectId: string;
@@ -19,6 +21,12 @@ export interface Allocation {
     dailyMicro: number;
     monthlyMicro: number;
   }[];
+}
+export interface BudgetLimits {
+  dailyMicro: number;
+  monthlyMicro: number;
+  lifetimeMicro?: number;
+  lifetimeOnly?: boolean;
 }
 export interface UsageEntry {
   request_id: string;
@@ -62,7 +70,14 @@ export class BudgetRepository {
     private readonly write: <T>(fn: () => T, admission?: boolean) => T,
     private readonly session: () => string,
     private readonly deployment: string,
-  ) {}
+    private readonly limits: BudgetLimits = {
+      dailyMicro: 500000,
+      monthlyMicro: 5000000,
+    },
+  ) {
+    requireStorage(!limits.lifetimeOnly || limits.lifetimeMicro !== undefined,
+      "lifetime-only spending requires a total budget limit");
+  }
   private one(sql: string, ...args: SQLInputValue[]): Row | undefined {
     return this.db.prepare(sql).get(...args);
   }
@@ -74,6 +89,9 @@ export class BudgetRepository {
     monthlyMicro: number;
     dailyLimit: number;
     monthlyLimit: number;
+    totalMicro?: number;
+    totalLimit?: number;
+    rollingLimitsEnabled: boolean;
     warning: boolean;
     blocked: boolean;
   } {
@@ -89,14 +107,28 @@ export class BudgetRepository {
     )!;
     const dailyMicro = Number(usage["daily"]),
       monthlyMicro = Number(usage["monthly"]);
+    const totalMicro =
+      this.limits.lifetimeMicro === undefined
+        ? undefined
+        : Number(
+            this.one(
+              "SELECT coalesce(sum(charged_micro),0) n FROM inference_usage",
+            )!["n"],
+          );
     return {
       dailyMicro,
       monthlyMicro,
-      dailyLimit: lane.dailyMicro,
-      monthlyLimit: lane.monthlyMicro,
+      dailyLimit: this.limits.lifetimeOnly ? this.limits.lifetimeMicro! : lane.dailyMicro,
+      monthlyLimit: this.limits.lifetimeOnly ? this.limits.lifetimeMicro! : lane.monthlyMicro,
+      rollingLimitsEnabled: !this.limits.lifetimeOnly,
+      ...(totalMicro === undefined
+        ? {}
+        : { totalMicro, totalLimit: this.limits.lifetimeMicro! }),
       warning:
-        dailyMicro * 5 >= lane.dailyMicro * 4 ||
-        monthlyMicro * 5 >= lane.monthlyMicro * 4,
+        (!this.limits.lifetimeOnly && (dailyMicro * 5 >= lane.dailyMicro * 4 ||
+        monthlyMicro * 5 >= lane.monthlyMicro * 4)) ||
+        (totalMicro !== undefined &&
+          totalMicro * 5 >= this.limits.lifetimeMicro! * 4),
       blocked:
         state["verified_session"] !== this.session() ||
         Number(state["blocked_until"]) > 0 ||
@@ -130,8 +162,10 @@ export class BudgetRepository {
     requireStorage(
       new Set(portions.map((row) => row.laneId)).size === portions.length &&
         portions.some((row) => row.laneId === value.laneId) &&
-        portions.reduce((s, r) => s + r.dailyMicro, 0) <= 500000 &&
-        portions.reduce((s, r) => s + r.monthlyMicro, 0) <= 5000000,
+        portions.reduce((s, r) => s + r.dailyMicro, 0) <=
+          this.limits.dailyMicro &&
+        portions.reduce((s, r) => s + r.monthlyMicro, 0) <=
+          this.limits.monthlyMicro,
       "project allocation exceeded",
     );
     return { projectId: value.projectId, laneId: value.laneId, portions };
@@ -164,6 +198,38 @@ export class BudgetRepository {
         .prepare("SELECT * FROM inference_usage ORDER BY started_at,request_id")
         .all() as unknown as UsageEntry[],
     };
+  }
+  /** Explicit private operator action: revise limits without replacing identity or usage. */
+  reallocate(value: Allocation, evidenceRef: string, now = Date.now()): void {
+    timestamp(now);
+    id(evidenceRef);
+    const next = this.config(value);
+    this.write(() => {
+      const state = this.state();
+      requireStorage(
+        state && !this.status(now).blocked,
+        "verified shared authority required for budget revision",
+      );
+      const old = JSON.parse(String(state["config_json"])) as Allocation;
+      requireStorage(
+        old.projectId === next.projectId &&
+          old.laneId === next.laneId &&
+          old.portions
+            .map((r) => r.laneId)
+            .sort()
+            .join() ===
+            next.portions
+              .map((r) => r.laneId)
+              .sort()
+              .join(),
+        "budget revision cannot replace project or lanes",
+      );
+      this.db
+        .prepare(
+          "UPDATE usage_state SET config_json=?,high_water_ms=?,evidence_ref=?",
+        )
+        .run(json(next), now, evidenceRef);
+    });
   }
   context(): {
     sessionId: string;
@@ -267,7 +333,7 @@ export class BudgetRepository {
             row.charged_micro <= 1000000000 &&
             Number.isSafeInteger(row.input_bound) &&
             row.input_bound >= 0 &&
-            row.input_bound <= 4096 &&
+            row.input_bound <= maximumInferenceInputTokens &&
             ["reserved", "accounted"].includes(row.status) &&
             (row.status !== "reserved" ||
               row.charged_micro === row.reserved_micro),
@@ -318,7 +384,7 @@ export class BudgetRepository {
     );
     const tokens = prepared.countTokens(prepared.payload);
     requireStorage(
-      Number.isSafeInteger(tokens) && tokens > 0 && tokens <= 4096,
+      Number.isSafeInteger(tokens) && tokens > 0 && tokens <= maximumInferenceInputTokens,
       "prepared request exceeds token budget",
     );
     for (const rate of [
@@ -346,9 +412,10 @@ export class BudgetRepository {
         "provider usage requires reconciliation",
       );
       // Only a verified, monotonic session can age usage out of every protected window.
-      this.db
-        .prepare("DELETE FROM inference_usage WHERE started_at<=?")
-        .run(now - month);
+      if (this.limits.lifetimeMicro === undefined)
+        this.db
+          .prepare("DELETE FROM inference_usage WHERE started_at<=?")
+          .run(now - month);
       const config = JSON.parse(String(state["config_json"])) as Allocation,
         lane = config.portions.find((row) => row.laneId === config.laneId)!;
       const usage = this.one(
@@ -356,6 +423,7 @@ export class BudgetRepository {
         now - day,
         now - month,
       )!;
+      if (!this.limits.lifetimeOnly) {
       const counts = this.one(
         "SELECT coalesce(sum(started_at>?),0) AS hourly,coalesce(sum(started_at>?),0) AS daily FROM inference_usage",
         now - 3600000,
@@ -370,6 +438,18 @@ export class BudgetRepository {
           Number(usage["monthly"]) + reserve <= lane.monthlyMicro,
         "rolling model spend cap reached",
       );
+      }
+      if (this.limits.lifetimeMicro !== undefined) {
+        const total = Number(
+          this.one(
+            "SELECT coalesce(sum(charged_micro),0) n FROM inference_usage",
+          )!["n"],
+        );
+        requireStorage(
+          total + reserve <= this.limits.lifetimeMicro,
+          "total hackathon model spend cap reached",
+        );
+      }
       this.db
         .prepare(
           "INSERT INTO inference_usage VALUES(?,?,?,?,?,?,?,?, 'reserved',NULL)",

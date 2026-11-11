@@ -18,6 +18,18 @@ export const townMerchantMethods = [
   "start_production",
   "complete_production",
 ] as const;
+export const townTradingMerchantMethods = [
+  ...townMerchantMethods,
+  "merchant_purchase",
+] as const;
+export const townNegotiatingMerchantMethods = [
+  ...townMerchantMethods,
+  "propose_trade",
+  "accept_trade",
+  "reject_trade",
+  "cancel_trade",
+  "expire_offers",
+] as const;
 export const townSourceMethods = [
   "allocate_raw_supply",
   "sweep_merchant_treasury",
@@ -27,17 +39,27 @@ export const townOperatorMethods = [
   "assistant_reprice",
 ] as const;
 type RuntimeScope =
-  "merchant" | "customer" | "town_merchant" | "town_source" | "town_operator";
+  | "merchant"
+  | "customer"
+  | "town_merchant"
+  | "town_trading_merchant"
+  | "town_negotiating_merchant"
+  | "town_source"
+  | "town_operator";
 function methods(scope: RuntimeScope = "merchant"): readonly string[] {
-  return scope === "town_merchant"
-    ? townMerchantMethods
-    : scope === "town_operator"
-      ? townOperatorMethods
-      : scope === "town_source"
-        ? townSourceMethods
-        : scope === "customer"
-          ? customerRuntimeMethods
-          : runtimeMethods;
+  return scope === "town_negotiating_merchant"
+    ? townNegotiatingMerchantMethods
+    : scope === "town_trading_merchant"
+      ? townTradingMerchantMethods
+      : scope === "town_merchant"
+        ? townMerchantMethods
+        : scope === "town_operator"
+          ? townOperatorMethods
+          : scope === "town_source"
+            ? townSourceMethods
+            : scope === "customer"
+              ? customerRuntimeMethods
+              : runtimeMethods;
 }
 export const maximumRuntimeAllowance = 100_000_000_000_000_000_000_000n;
 export const customerRuntimeMethods = [
@@ -94,6 +116,8 @@ export function assertRuntimePermission(
     throw new Error(
       scope === "town_source" ||
         scope === "town_merchant" ||
+        scope === "town_trading_merchant" ||
+        scope === "town_negotiating_merchant" ||
         scope === "town_operator"
         ? "Runtime key must allow exactly the selected V2 runtime methods"
         : scope === "customer"

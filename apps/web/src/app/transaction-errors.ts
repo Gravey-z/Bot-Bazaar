@@ -24,3 +24,19 @@ export function isMeteorRejection(value: unknown): boolean {
     Array.isArray(tags) && tags.length === 1 && tags[0] === "USER_CANCELLED"
   );
 }
+export class WalletConnectionError extends Error {
+  constructor(readonly stage: "setup" | "network" | "handoff" | "cancelled") {
+    super(
+      {
+        setup:
+          "The wallet adapter could not load. Check browser storage and blocked scripts, then try again.",
+        network:
+          "The Testnet connection could not be verified. The wallet has not opened. Check your connection and try again.",
+        handoff:
+          "Meteor could not open or complete sign-in. Check blocked popups and wallet scripts, then try again.",
+        cancelled:
+          "Wallet connection was cancelled. You can try again anytime.",
+      }[stage],
+    );
+  }
+}

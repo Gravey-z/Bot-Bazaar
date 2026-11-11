@@ -1,7 +1,11 @@
 import { readFileSync, existsSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { KeyPairEd25519 } from "near-api-js";
-import { livingTownCommandDigest } from "../../../../packages/chain/dist/index.js";
+import { createHash } from "node:crypto";
+import {
+  canonicalLivingTownJson,
+  livingTownCommandDigest,
+} from "../../../../packages/chain/dist/index.js";
 import { LivingTownExecutionStore } from "../../dist/private/living-town/execution-store.js";
 import { TownChainAdapter } from "../../dist/private/living-town/town-chain.js";
 import { LivingTownMerchantPolicy } from "../../dist/private/living-town/merchant-policy.js";
@@ -10,6 +14,7 @@ import { LivingTownCustomerDemand } from "../../dist/private/living-town/custome
 import { LivingTownSimulationAdapter } from "../../dist/private/living-town/simulation-adapter.js";
 import {
   townMerchantMethods,
+  townNegotiatingMerchantMethods,
   townSourceMethods,
   townOperatorMethods,
 } from "../../dist/private/near-signer.js";
@@ -20,6 +25,16 @@ const read = (p) => JSON.parse(readFileSync(p, "utf8")),
   clone = structuredClone;
 const capture = read("tests/fixtures/chain/living-town-races-sandbox.json"),
   config = read("config/living-town-v1.json");
+// Controlled snapshots use the current fresh-demo config; archived files are untouched.
+const currentConfigDigest = createHash("sha256")
+  .update(canonicalLivingTownJson(config))
+  .digest("hex");
+function bindConfig(value) {
+  if (!value || typeof value !== "object") return;
+  if (value.deployment) value.deployment.config_sha256 = currentConfigDigest;
+  for (const child of Object.values(value)) bindConfig(child);
+}
+bindConfig(capture);
 const f = capture.setup[0].foundation;
 export const identity = {
   deployment: f.deployment,
@@ -28,6 +43,7 @@ export const identity = {
   operatorId: f.data.operator_account_id,
   controllers: f.data.merchant_controllers,
 };
+const baseIdentity = identity;
 const names = ["rex", "luna", "bolt"],
   lanes = [...names, "operator"],
   items = ["crystal", "wood", "herb", "iron", "health_potion", "iron_tool"];
@@ -49,13 +65,19 @@ export async function adapterFixture(
   dir,
   {
     propose,
+    negotiated = false,
     assistant,
     crashAt,
     realCustomers = false,
     seed = "42",
     operations,
+    continuityFactory,
+    simulationOptions,
+    fundOnlyWhenNeeded = false,
   } = {},
 ) {
+  const identity = clone(baseIdentity);
+  if (negotiated) identity.deployment.state_schema = "2";
   const path = join(dir, "model.json");
   const state = existsSync(path)
     ? read(path)
@@ -78,6 +100,41 @@ export async function adapterFixture(
       };
   if (!existsSync(path)) {
     const t = state.town;
+    t.deployment = clone(identity.deployment);
+    if (negotiated) {
+      state.offers = [];
+      state.externalPurchases = [];
+      state.trades = [];
+      for (const [index, m] of names.entries()) {
+        const l = t.data.npc_ledgers[index];
+        l.revision = "1";
+        l.gold = {
+          held: "200",
+          available: "200",
+          trade_reserved: "0",
+          trade_inbound_reserved: "0",
+        };
+        for (const item of items) {
+          const h =
+              config.economy.stockSharing.startingHoldings[m][item] ?? "0",
+            listed =
+              config.economy.materials[item]?.supplier === m
+                ? config.economy.materials[item].listed
+                : "0";
+          for (const key of Object.keys(l.inventory))
+            l.inventory[key][item] =
+              key === "held"
+                ? h
+                : key === "listing_reserved"
+                  ? listed
+                  : key === "available"
+                    ? String(BigInt(h) - BigInt(listed))
+                    : "0";
+        }
+      }
+      t.data.next_offer_id = "1";
+      t.data.next_trade_id = "1";
+    }
     t.block_timestamp_ns = (
       BigInt(t.data.genesis_time_ns) + 65000000000n
     ).toString();
@@ -105,6 +162,9 @@ export async function adapterFixture(
   );
   if (!openStores.has(dir)) openStores.set(dir, []);
   openStores.get(dir).push(store);
+  const verifyContinuity = continuityFactory
+    ? continuityFactory(store)
+    : continuity;
   const stats = { sign: 0, send: 0, model: 0 },
     adapters = {};
   let mode = "success";
@@ -129,10 +189,148 @@ export async function adapterFixture(
         ) ?? null,
       ),
     })),
-    trades: [],
+    trades: clone(state.trades ?? []),
+    ...(negotiated
+      ? {
+          negotiatedTrading: true,
+          pendingOffers: clone(
+            (state.offers ?? [])
+              .filter((o) => o.status === "pending")
+              .map((o) => ({
+                ...o,
+                expired:
+                  BigInt(state.town.block_timestamp_ns) >=
+                  BigInt(o.expires_at_ns),
+              })),
+          ),
+          externalPurchases: clone(state.externalPurchases ?? []),
+        }
+      : {}),
     fresh: true,
     historyComplete: true,
   });
+  function settleOffer(lane, a, method, revision) {
+    const ledger = (m) => state.town.data.npc_ledgers[names.indexOf(m)],
+      bump = (l) => {
+        l.revision = String(BigInt(l.revision) + 1n);
+      };
+    let o;
+    if (method === "propose_trade") {
+      o = {
+        offer_id: state.town.data.next_offer_id,
+        proposer: a.buyer_merchant_id,
+        buyer: a.buyer_merchant_id,
+        seller: a.seller_merchant_id,
+        item_id: a.item_id,
+        quantity: a.quantity,
+        unit_price: a.unit_price,
+        total_price: String(BigInt(a.quantity) * BigInt(a.unit_price)),
+        created_at_ns: state.town.block_timestamp_ns,
+        expires_at_ns: a.expires_at_ns,
+        status: "pending",
+        expired: false,
+        revision: "1",
+        trade_id: null,
+        proposal_command_sequence: a.command.sequence,
+        closed_at_ns: null,
+        closing_principal: null,
+        closing_command_sequence: null,
+      };
+      state.offers.push(o);
+      state.town.data.next_offer_id = String(BigInt(o.offer_id) + 1n);
+      const b = ledger(o.buyer);
+      b.gold.trade_reserved = String(
+        BigInt(b.gold.trade_reserved) + BigInt(o.total_price),
+      );
+      b.gold.available = String(
+        BigInt(b.gold.available) - BigInt(o.total_price),
+      );
+      b.inventory.trade_inbound_reserved[o.item_id] = String(
+        BigInt(b.inventory.trade_inbound_reserved[o.item_id]) +
+          BigInt(o.quantity),
+      );
+      bump(b);
+      return { kind: "trade_proposed", offer: clone(o), buyer: clone(b) };
+    }
+    o = state.offers.find(
+      (o) => o.offer_id === (a.offer_id ?? a.offer_ids?.[0]),
+    );
+    const b = ledger(o.buyer),
+      s = ledger(o.seller),
+      q = BigInt(o.quantity),
+      cost = BigInt(o.total_price);
+    b.gold.trade_reserved = String(BigInt(b.gold.trade_reserved) - cost);
+    b.inventory.trade_inbound_reserved[o.item_id] = String(
+      BigInt(b.inventory.trade_inbound_reserved[o.item_id]) - q,
+    );
+    o.status =
+      method === "accept_trade"
+        ? "accepted"
+        : method === "reject_trade"
+          ? "rejected"
+          : "expired";
+    o.revision = "2";
+    o.expired = o.status === "expired";
+    o.closed_at_ns = state.town.block_timestamp_ns;
+    o.closing_principal = "merchant:" + lane;
+    o.closing_command_sequence = a.command.sequence;
+    if (method === "accept_trade") {
+      b.gold.held = String(BigInt(b.gold.held) - cost);
+      b.inventory.held[o.item_id] = String(
+        BigInt(b.inventory.held[o.item_id]) + q,
+      );
+      b.inventory.available[o.item_id] = String(
+        BigInt(b.inventory.available[o.item_id]) + q,
+      );
+      s.gold.held = s.gold.available = String(BigInt(s.gold.held) + cost);
+      s.inventory.held[o.item_id] = String(
+        BigInt(s.inventory.held[o.item_id]) - q,
+      );
+      s.inventory.available[o.item_id] = String(
+        BigInt(s.inventory.available[o.item_id]) - q,
+      );
+      bump(b);
+      bump(s);
+      const trade = {
+        trade_id: state.town.data.next_trade_id,
+        kind: "merchant_trade",
+        buyer: clone(b.actor),
+        seller: clone(s.actor),
+        customer_pool_id: null,
+        item_id: o.item_id,
+        quantity: o.quantity,
+        unit_price: o.unit_price,
+        total_price: o.total_price,
+        listing_id: null,
+        offer_id: o.offer_id,
+        consumed_quantity: "0",
+        settled_at_ns: o.closed_at_ns,
+        command_principal: o.closing_principal,
+        command_sequence: o.closing_command_sequence,
+        event_sequence: revision,
+      };
+      o.trade_id = trade.trade_id;
+      state.trades.push(trade);
+      state.town.data.next_trade_id = String(BigInt(trade.trade_id) + 1n);
+      return {
+        kind: "trade_accepted",
+        offer: clone(o),
+        buyer: clone(b),
+        seller: clone(s),
+        trade: clone(trade),
+      };
+    }
+    b.gold.available = String(BigInt(b.gold.available) + cost);
+    bump(b);
+    return method === "expire_offers"
+      ? {
+          kind: "offers_expired",
+          offers: [clone(o)],
+          skipped_offer_ids: [],
+          ledgers: [clone(b)],
+        }
+      : { kind: "trade_rejected", offer: clone(o), buyer: clone(b) };
+  }
   async function send(lane) {
     const row = store.unresolved()[0];
     if (!row || row.status !== "unknown")
@@ -148,7 +346,16 @@ export async function adapterFixture(
         ? `account:${identity.operatorId}`
         : `merchant:${lane}`;
     let outcome;
-    if (method === "assistant_reprice") {
+    if (
+      [
+        "propose_trade",
+        "accept_trade",
+        "reject_trade",
+        "expire_offers",
+      ].includes(method)
+    ) {
+      outcome = settleOffer(lane, a, method, rev);
+    } else if (method === "assistant_reprice") {
       const listing = state.assistantListing;
       if (
         state.assistantPolicy.mode !== "auto_reprice" ||
@@ -176,15 +383,20 @@ export async function adapterFixture(
       if (method === "allocate_raw_supply") {
         const r = config.economy.materials[a.item_id],
           held = BigInt(ledger.inventory.held[a.item_id]),
+          promised =
+            held +
+            BigInt(ledger.inventory.production_output_reserved[a.item_id]) +
+            BigInt(ledger.inventory.trade_inbound_reserved[a.item_id]),
           amount = [
+            BigInt(a.epoch) % 5n === 0n ? 2n : 0n,
             a.item_id === "herb" &&
             state.town.data.market_event &&
             BigInt(a.epoch) >=
               BigInt(state.town.data.market_event.start_epoch) &&
             BigInt(a.epoch) < BigInt(state.town.data.market_event.end_epoch)
-              ? 4n
+              ? 1n
               : BigInt(r.supply),
-            BigInt(r.target) > held ? BigInt(r.target) - held : 0n,
+            BigInt(r.target) > promised ? BigInt(r.target) - promised : 0n,
             1000n -
               held -
               BigInt(ledger.inventory.production_output_reserved[a.item_id]) -
@@ -384,6 +596,56 @@ export async function adapterFixture(
         timestampNs: state.town.block_timestamp_ns,
       },
       getTown: async () => clone(state.town),
+      getFoundation: async () =>
+        pin({
+          ...f.data,
+          supported_methods: negotiated
+            ? [
+                ...f.data.supported_methods.filter(
+                  (m) => m !== "merchant_purchase",
+                ),
+                "propose_trade",
+                "accept_trade",
+                "reject_trade",
+                "cancel_trade",
+                "expire_offers",
+                "get_offer",
+                "get_offers",
+                "get_merchant_trading_rules",
+              ]
+            : f.data.supported_methods,
+        }),
+      getPendingMerchantOffers: async () => ({
+        town: clone(state.town),
+        offers: clone(
+          (state.offers ?? [])
+            .filter((o) => o.status === "pending")
+            .map((o) => ({
+              ...o,
+              expired:
+                BigInt(state.town.block_timestamp_ns) >=
+                BigInt(o.expires_at_ns),
+            })),
+        ),
+      }),
+      getOffer: async (id) => {
+        const offer = (state.offers ?? []).find((o) => o.offer_id === id);
+        return pin(
+          offer
+            ? {
+                kind: "found",
+                offer: {
+                  ...offer,
+                  expired:
+                    offer.status === "expired" ||
+                    (offer.status === "pending" &&
+                      BigInt(state.town.block_timestamp_ns) >=
+                        BigInt(offer.expires_at_ns)),
+                },
+              }
+            : { kind: "not_found", offer_id: id },
+        );
+      },
       getShop: async () => pin(state.assistantShop),
       getShopInventory: async () => pin(state.assistantLedger),
       getAssistantPolicy: async () => pin(state.assistantPolicy),
@@ -397,21 +659,29 @@ export async function adapterFixture(
             : [],
           pruned_through: "0",
         }),
-      getAccessKey: async () => ({
-        nonce: state.nonce[lane],
-        permission: {
-          FunctionCall: {
-            receiver_id: identity.deployment.contract_id,
-            allowance: "10000000000000000000000",
-            method_names:
-              lane === "operator"
-                ? [...(assistant ? townOperatorMethods : townSourceMethods)]
-                : [...townMerchantMethods],
+      getAccessKey: async (account) => {
+        const keyLane =
+          names.find((m) => identity.controllers[m] === account) ?? "operator";
+        return {
+          nonce: state.nonce[keyLane],
+          permission: {
+            FunctionCall: {
+              receiver_id: identity.deployment.contract_id,
+              allowance: "10000000000000000000000",
+              method_names:
+                keyLane === "operator"
+                  ? [...(assistant ? townOperatorMethods : townSourceMethods)]
+                  : [
+                      ...(negotiated
+                        ? townNegotiatingMerchantMethods
+                        : townMerchantMethods),
+                    ],
+            },
           },
-        },
-        block_hash: capture.setup[0].block.header.hash,
-        block_height: state.town.block_height,
-      }),
+          block_hash: capture.setup[0].block.header.hash,
+          block_height: state.town.block_height,
+        };
+      },
       getCommand: async (principal, seq) => {
         const l = principal.startsWith("merchant:")
             ? principal.slice(9)
@@ -462,6 +732,7 @@ export async function adapterFixture(
       store,
       new LivingTownCustomerDemand(config),
       30000,
+      fundOnlyWhenNeeded,
     );
   let customerRunner = { poll: async () => ({ kind: "idle" }) },
     customers = {
@@ -488,7 +759,7 @@ export async function adapterFixture(
       store,
       new LivingTownCustomerDemand(config),
       customerAdapter,
-      continuity,
+      verifyContinuity,
     );
     customerRunner = new LivingTownTickRunner(
       store,
@@ -513,7 +784,7 @@ export async function adapterFixture(
     adapters,
     policy,
     collect,
-    continuity,
+    verifyContinuity,
     propose
       ? async (c) => {
           stats.model++;
@@ -522,6 +793,7 @@ export async function adapterFixture(
       : undefined,
     assistant,
     operations,
+    simulationOptions,
   );
   return {
     store,

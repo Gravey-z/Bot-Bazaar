@@ -18,9 +18,10 @@
             "index": "src/index.html",
             "tsConfig": "tsconfig.json",
             "styles": ["src/styles.css"],
-            "allowedCommonJsDependencies": ["@hot-labs/near-connect"],
+            "allowedCommonJsDependencies": ["@hot-labs/near-connect", "phaser"],
             "outputPath": "dist",
             "assets": [
+              { "glob": "favicon.svg", "input": "public", "output": "/" },
               { "glob": "config.json", "input": "public", "output": "/" },
               { "glob": "living-town.json", "input": "public", "output": "/" },
               { "glob": "deployment.json", "input": "public", "output": "/" },
@@ -40,6 +41,11 @@
                 "glob": "LICENSE.txt",
                 "input": "public/art/living-town",
                 "output": "/art/living-town/"
+              },
+              {
+                "glob": "**/*",
+                "input": "public/art/living-town/game",
+                "output": "/art/living-town/game/"
               }
             ]
           },

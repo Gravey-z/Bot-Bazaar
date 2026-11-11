@@ -129,6 +129,43 @@ test("browser validates identity, resumes from its last delivered cursor and fal
   await until(() => sources.length === 2);
   assert.equal(new URL(sources[1].url).searchParams.get("after"), cursor(3));
 });
+test("merchant economy SSE frames reach the spectator feed with receipt identity intact", async (t) => {
+  const states = [],
+    source = new Source();
+  const feed = new LivingTownLiveFeed(
+    identity,
+    "http://127.0.0.1:3011/api/events/stream",
+    async () => page([]),
+    (v) => states.push(v),
+    () => source,
+    () => 0,
+    20,
+  );
+  t.after(() => feed.stop());
+  feed.start();
+  await until(() => states.at(-1)?.mode === "polling");
+  source.send("ready", page([]));
+  await until(() => states.at(-1)?.mode === "live");
+  const e = {
+    ...event(1),
+    type: "merchant_economy",
+    source: "confirmed",
+    data: {
+      merchant: "rex",
+      kind: "source",
+      offer: null,
+      item_id: "crystal",
+      quantity: "1",
+      trade_id: null,
+      transaction_hash: s.block.header.hash,
+      receipt_id: s.block.header.hash,
+    },
+  };
+  source.send("merchant_economy", e, cursor(1));
+  assert.deepEqual(states.at(-1).events, [e]);
+  assert.match(townActivityText(e), /Source refill/);
+});
+
 test("an explicit retention gap resets the cursor, reports missing history and keeps confirmed rows deduplicated", async (t) => {
   let calls = 0;
   const states = [],

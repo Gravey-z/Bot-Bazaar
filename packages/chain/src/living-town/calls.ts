@@ -3,6 +3,14 @@ import {
   rawSourceItem,
   sourceMerchant,
 } from "./sources.js";
+import { array } from "../wire.js";
+import {
+  livingTownOfferEffect,
+  offerMerchant,
+  offerItem,
+  isLivingTownOfferMethod,
+  offerMaterialRules,
+} from "./offers.js";
 import { livingTownMarketEventEffect } from "./market-events.js";
 import {
   livingTownAssistantPolicyEffect,
@@ -23,6 +31,7 @@ import {
   positiveU64,
   nullable,
   parseU64,
+  record,
 } from "../wire.js";
 import {
   livingTownSnapshot,
@@ -48,6 +57,51 @@ const name = (v: unknown): string => {
   return v;
 };
 export const livingTownCallArguments = {
+  propose_trade: object({
+    buyer_merchant_id: offerMerchant,
+    seller_merchant_id: offerMerchant,
+    item_id: offerItem,
+    quantity: bounded(1n, 2n),
+    unit_price: bounded(1n, 6n),
+    expires_at_ns: positiveU64,
+    expected_buyer_ledger_revision: positiveU64,
+    expected_seller_ledger_revision: positiveU64,
+    command: livingTownCommand,
+  }),
+  accept_trade: object({
+    merchant_id: offerMerchant,
+    offer_id: positiveU64,
+    expected_offer_revision: bounded(1n, 1n),
+    expected_buyer_ledger_revision: positiveU64,
+    expected_seller_ledger_revision: positiveU64,
+    command: livingTownCommand,
+  }),
+  reject_trade: object({
+    merchant_id: offerMerchant,
+    offer_id: positiveU64,
+    expected_offer_revision: bounded(1n, 1n),
+    command: livingTownCommand,
+  }),
+  cancel_trade: object({
+    merchant_id: offerMerchant,
+    offer_id: positiveU64,
+    expected_offer_revision: bounded(1n, 1n),
+    command: livingTownCommand,
+  }),
+  expire_offers: object({
+    merchant_id: offerMerchant,
+    offer_ids: array(positiveU64, 24),
+    command: livingTownCommand,
+  }),
+  merchant_purchase: object({
+    buyer_merchant_id: choice(["rex", "luna", "bolt"] as const),
+    merchant_id: choice(["rex", "luna", "bolt"] as const),
+    item_id: rawSourceItem,
+    quantity: bounded(1n, 2n),
+    expected_listing_revision: positiveU64,
+    max_total_price: bounded(1n, 10000n),
+    command: livingTownCommand,
+  }),
   purchase_upgrade: object({
     shop_id: positiveU64,
     upgrade_id: literal("second_slot"),
@@ -73,11 +127,10 @@ export const livingTownCallArguments = {
     start_epoch: positiveU64,
     command: livingTownCommand,
   }),
-  allocate_raw_supply: object({
-    item_id: rawSourceItem,
-    epoch: parseU64,
-    command: livingTownCommand,
-  }),
+  allocate_raw_supply: (value: unknown) => "all_eligible" in record(value)
+    ? object({ item_id: rawSourceItem, epoch: parseU64, command: livingTownCommand,
+        all_eligible: (v: unknown) => { check(v === true, "batch supply flag must be true"); return true as const; } })(value)
+    : object({ item_id: rawSourceItem, epoch: parseU64, command: livingTownCommand })(value),
   sweep_merchant_treasury: object({
     merchant_id: sourceMerchant,
     epoch: parseU64,
@@ -140,6 +193,26 @@ export function createLivingTownCall(
     "unsupported V2 mutation",
   );
   const args = livingTownCallArguments[method](input);
+  if (method === "propose_trade") {
+    const a = livingTownCallArguments.propose_trade(args),
+      cfg = offerMaterialRules[a.item_id];
+    check(
+      a.buyer_merchant_id !== a.seller_merchant_id &&
+        (a.buyer_merchant_id === cfg.supplier) !==
+          (a.seller_merchant_id === cfg.supplier) &&
+        BigInt(a.unit_price) >= BigInt(cfg.min_price) &&
+        BigInt(a.unit_price) <= BigInt(cfg.max_price),
+      "invalid proposal direction/price",
+    );
+  }
+  if (method === "expire_offers") {
+    const a = livingTownCallArguments.expire_offers(args);
+    check(
+      a.offer_ids.length > 0 &&
+        new Set(a.offer_ids).size === a.offer_ids.length,
+      "invalid expiry batch",
+    );
+  }
   // Return a detached deeply frozen public request, never a mutable caller object.
   const freeze = (v: unknown): void => {
     if (v && typeof v === "object") {
@@ -173,6 +246,7 @@ export type LivingTownResult = ReturnType<
       | ReturnType<typeof livingTownMarketEventEffect>
       | ReturnType<typeof livingTownAssistantPolicyEffect>
       | ReturnType<typeof livingTownAssistantRepriceEffect>
+      | ReturnType<typeof livingTownOfferEffect>
     >
   >
 >;
@@ -201,6 +275,10 @@ export async function livingTownCommandDigest(
   const d = parseLivingTownDeployment(deployment),
     actor = accountId(predecessor),
     c = createLivingTownCall(call.method, call.args);
+  check(
+    !isLivingTownOfferMethod(c.method) || d.state_schema === "2",
+    "offer commands require schema 2",
+  );
   return livingTownJsonDigest({
     domain: "bot-bazaar:living-town:command:1",
     network_id: d.network_id,
@@ -268,25 +346,28 @@ export function decodeLivingTownResult(
   deployment: unknown,
 ): LivingTownResult {
   return decodeLivingTownSnapshot(value, deployment, (v) =>
-    method === "assistant_reprice"
-      ? livingTownAssistantRepriceEffect(v)
-      : method === "set_assistant_permissions"
-        ? livingTownAssistantPolicyEffect(v)
-        : method === "schedule_market_event"
-          ? livingTownMarketEventEffect(v)
-          : method === "allocate_raw_supply" ||
-              method === "sweep_merchant_treasury"
-            ? livingTownSourceEffect(v)
-            : method === "fund_customer_budget" ||
-                method === "settle_customer_purchase"
-              ? livingTownCustomerEffect(v)
-              : method === "set_listing" || method === "cancel_listing"
-                ? livingTownListingEffect(v)
-                : method === "start_production"
-                  ? livingTownProductionEffect(v)
-                  : method === "buy_from_merchant"
-                    ? livingTownPurchaseEffect(v)
-                    : livingTownOwnershipEffect(v),
+    isLivingTownOfferMethod(method)
+      ? livingTownOfferEffect(v)
+      : method === "assistant_reprice"
+        ? livingTownAssistantRepriceEffect(v)
+        : method === "set_assistant_permissions"
+          ? livingTownAssistantPolicyEffect(v)
+          : method === "schedule_market_event"
+            ? livingTownMarketEventEffect(v)
+            : method === "allocate_raw_supply" ||
+                method === "sweep_merchant_treasury"
+              ? livingTownSourceEffect(v)
+              : method === "fund_customer_budget" ||
+                  method === "settle_customer_purchase"
+                ? livingTownCustomerEffect(v)
+                : method === "set_listing" || method === "cancel_listing"
+                  ? livingTownListingEffect(v)
+                  : method === "start_production"
+                    ? livingTownProductionEffect(v)
+                    : method === "buy_from_merchant" ||
+                        method === "merchant_purchase"
+                      ? livingTownPurchaseEffect(v)
+                      : livingTownOwnershipEffect(v),
   );
 }
 export async function verifyLivingTownEffect(
@@ -316,6 +397,75 @@ export async function verifyLivingTownEffect(
     "V2 command effect binding mismatch",
   );
   const outcome = effect.outcome;
+  if (isLivingTownOfferMethod(call.method)) {
+    check(
+      parseLivingTownDeployment(deployment).state_schema === "2",
+      "offer effect requires schema 2",
+    );
+    const o = livingTownOfferEffect(effect).outcome;
+    const expected = {
+      propose_trade: "trade_proposed",
+      accept_trade: "trade_accepted",
+      reject_trade: "trade_rejected",
+      cancel_trade: "trade_cancelled",
+      expire_offers: "offers_expired",
+    } as const;
+    check(o.kind === expected[call.method], "offer method/outcome mismatch");
+    if (o.kind !== "offers_expired") {
+      const v = o.offer;
+      if (call.method === "propose_trade")
+        check(
+          v.buyer === args["buyer_merchant_id"] &&
+            v.seller === args["seller_merchant_id"] &&
+            v.item_id === args["item_id"] &&
+            v.quantity === args["quantity"] &&
+            v.unit_price === args["unit_price"] &&
+            v.expires_at_ns === args["expires_at_ns"] &&
+            BigInt(o.buyer.revision) ===
+              BigInt(String(args["expected_buyer_ledger_revision"])) + 1n,
+          "proposal reviewed terms mismatch",
+        );
+      else
+        check(
+          v.offer_id === args["offer_id"] &&
+            BigInt(v.revision) ===
+              BigInt(String(args["expected_offer_revision"])) + 1n,
+          "closed offer identity/revision mismatch",
+        );
+      if (o.kind === "trade_accepted")
+        check(
+          BigInt(o.buyer.revision) ===
+            BigInt(String(args["expected_buyer_ledger_revision"])) + 1n &&
+            BigInt(o.seller.revision) ===
+              BigInt(String(args["expected_seller_ledger_revision"])) + 1n,
+          "settlement ledger revision mismatch",
+        );
+      if (!effect.replayed)
+        check(
+          (o.kind === "trade_proposed" ? v.created_at_ns : v.closed_at_ns) ===
+            result.block_timestamp_ns,
+          "offer effect time mismatch",
+        );
+    } else {
+      const ids = [
+        ...o.offers.map((v) => v.offer_id),
+        ...o.skipped_offer_ids,
+      ].sort((a, b) => (BigInt(a) < BigInt(b) ? -1 : 1));
+      check(
+        ids.join() ===
+          (args["offer_ids"] as string[])
+            .slice()
+            .sort((a, b) => (BigInt(a) < BigInt(b) ? -1 : 1))
+            .join(),
+        "expiry batch terms mismatch",
+      );
+      if (!effect.replayed)
+        check(
+          o.offers.every((v) => v.closed_at_ns === result.block_timestamp_ns),
+          "expiry effect time mismatch",
+        );
+    }
+  }
   if (call.method === "purchase_upgrade")
     check(
       outcome.kind === "upgrade_purchased" &&
@@ -370,8 +520,10 @@ export async function verifyLivingTownEffect(
     );
   if (call.method === "allocate_raw_supply")
     check(
-      outcome.kind === "raw_supplied" &&
-        outcome.item_id === args["item_id"] &&
+      (outcome.kind === "raw_supplies" || outcome.kind === "raw_supplied") &&
+      (args["all_eligible"] === true
+        ? outcome.kind === "raw_supplies" && outcome.trigger_item_id === args["item_id"]
+        : outcome.kind === "raw_supplied" && outcome.item_id === args["item_id"]) &&
         outcome.epoch === args["epoch"],
       "raw supply reviewed terms mismatch",
     );
@@ -459,8 +611,19 @@ export async function verifyLivingTownEffect(
       "V2 shop terms mismatch",
     );
   }
-  if (call.method === "buy_from_merchant") {
+  if (
+    call.method === "buy_from_merchant" ||
+    call.method === "merchant_purchase"
+  ) {
     check(outcome.kind === "raw_purchased", "V2 purchase effect mismatch");
+    check(
+      call.method === "merchant_purchase"
+        ? outcome.trade.buyer.kind === "merchant" &&
+            outcome.trade.buyer.merchant_id === args["buyer_merchant_id"]
+        : outcome.trade.buyer.kind === "player" &&
+            outcome.trade.buyer.account_id === signer,
+      "V2 purchase buyer mismatch",
+    );
     check(
       outcome.trade.seller.merchant_id === args["merchant_id"] &&
         outcome.trade.item_id === args["item_id"] &&
@@ -517,6 +680,10 @@ export function livingTownCallPrincipal(
     return cancelPrincipal;
   }
   const args = call.args as Record<string, unknown>;
+  if (isLivingTownOfferMethod(call.method))
+    return `merchant:${args[call.method === "propose_trade" ? "buyer_merchant_id" : "merchant_id"]}`;
+  if (call.method === "merchant_purchase")
+    return `merchant:${args["buyer_merchant_id"]}`;
   const id = BigInt(String(args["shop_id"] ?? "0"));
   return (call.method === "start_production" ||
     call.method === "set_listing") &&

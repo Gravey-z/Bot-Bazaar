@@ -12,7 +12,12 @@ import type {
 } from "@bot-bazaar/chain";
 import type { ContinuityVerifier } from "../recovery/types.js";
 import { requireStorage, sha256 } from "../storage/validation.js";
-import { TownChainAdapter, readTownPrepared, townCall } from "./town-chain.js";
+import {
+  TownChainAdapter,
+  readTownPrepared,
+  townCall,
+  validateTownOfferCall,
+} from "./town-chain.js";
 import type { TownCall, PreparedTownCall } from "./town-chain.js";
 import { LivingTownExecutionStore, townLanes } from "./execution-store.js";
 import type { TownLane } from "./execution-store.js";
@@ -34,6 +39,20 @@ export type TownSubmission = {
   transactionHash?: string;
 };
 class StaleTownStep extends Error {}
+/** Only deterministic shelf reconciliation may outlive its scheduling epoch.
+ * Economic proposals, source allocations and customer demand remain epoch-bound.
+ * The selected listing is still recompiled and compared before every signature.
+ */
+function shelfMaintenance(work: TownWork): boolean {
+  const d = work.decision as Record<string, unknown> | null;
+  if (!d || typeof d !== "object") return false;
+  const proposal = d["proposal"] as { action?: { type?: string } } | undefined;
+  return /^merchant:(rex|luna|bolt):shelf:[0-9]+$/.test(work.arrival) &&
+    work.arrival.split(":")[1] === work.lane &&
+    d["kind"] === "proposal" && d["origin"] === "rules" &&
+    d["inferenceRef"] === undefined &&
+    d["merchant"] === work.lane && proposal?.action?.type === "restock";
+}
 /** Uses the original shared journal. The refresh callback is deterministic, never inference/signing. */
 export class DurableTownExecutor {
   private busy = false;
@@ -120,9 +139,17 @@ export class DurableTownExecutor {
             p.call.method === row["method"],
           "town recovery signed mismatch",
         );
-        const status = await (p.call.method === "complete_production"
-          ? adapter.client.completionReceipt(p as LivingTownCompletionProof)
-          : adapter.client.receipt(p as LivingTownProof));
+        let status;
+        try {
+          status = await (p.call.method === "complete_production"
+            ? adapter.client.completionReceipt(p as LivingTownCompletionProof)
+            : adapter.client.receipt(p as LivingTownProof));
+        } catch {
+          status = {
+            kind: "unknown" as const,
+            transactionHash: p.transactionHash,
+          };
+        }
         if (status.kind === "succeeded") {
           await (p.call.method === "complete_production"
             ? verifyLivingTownCompletionEffect(
@@ -183,7 +210,9 @@ export class DurableTownExecutor {
           TownLane,
           { sequence: string; digest: string | null }
         >;
-      for (const lane of townLanes) {
+      if (this.store.negotiatedTrading)
+        await this.store.offers.reconcile(reader);
+      const commandResults = await Promise.allSettled(townLanes.map(async lane => {
         const old = this.store.checkpoint(lane)["last_action_id"],
           c = await reader.getCommand(
             lane === "operator"
@@ -191,10 +220,16 @@ export class DurableTownExecutor {
               : `merchant:${lane}`,
             old === null || old === "0" ? "1" : String(old),
           );
-        checkpoints[lane] = {
+        return { lane, checkpoint: {
           sequence: c.data.high_water,
           digest: c.data.kind === "found" ? c.data.payload_sha256 : null,
-        };
+        } };
+      }));
+      const commandFailure = commandResults.find(r => r.status === "rejected");
+      if (commandFailure?.status === "rejected") throw commandFailure.reason;
+      for (const result of commandResults) {
+        requireStorage(result.status === "fulfilled", "incomplete command reads");
+        checkpoints[result.value.lane] = result.value.checkpoint;
       }
       this.store.recovered(checkpoints);
       return { kind: "ready", reasons: [] };
@@ -204,7 +239,15 @@ export class DurableTownExecutor {
     requireStorage(this.authorized, "verified town recovery required");
     const reader = await this.adapters[work.lane].client.finalized(),
       town = await reader.getTown();
-    if (town.data.epoch !== work.tick)
+    const reaction = this.store.reactions.work(work.id);
+    if (
+      reaction &&
+      reaction.role !== "cleanup" &&
+      BigInt(town.block_timestamp_ns) >= BigInt(reaction.deadlineNs)
+    )
+      throw new StaleTownStep("reaction deadline expired");
+    const shelf = shelfMaintenance(work) && call.method === "set_listing";
+    if (!reaction && !shelf && town.data.epoch !== work.tick)
       throw new StaleTownStep("town opportunity epoch expired");
     if ("command" in call.args) {
       if (
@@ -212,24 +255,25 @@ export class DurableTownExecutor {
         BigInt(town.block_timestamp_ns)
       )
         throw new StaleTownStep("town command expired");
-      const c = await reader.getCommand(
-        work.lane === "operator"
-          ? this.store.identity.operatorId
-          : `merchant:${work.lane}`,
-        call.args.command.sequence,
-      );
-      requireStorage(
-        c.data.kind === "not_applied" &&
-          c.data.next_sequence === call.args.command.sequence,
-        "town command high-water changed",
-      );
     }
-    const current = await this.refresh(
-      work.decision,
-      work.lane,
-      reader,
-      "command" in call.args ? call.args.command : null,
-    );
+    // Independent checks share this exact finalized block and the bounded RPC
+    // read pool. Finish every check before signing or reporting a failure.
+    const checks = await Promise.allSettled([
+      "command" in call.args
+        ? reader.getCommand(work.lane === "operator" ? this.store.identity.operatorId : `merchant:${work.lane}`,
+            call.args.command.sequence).then(c => {
+            requireStorage("command" in call.args && c.data.kind === "not_applied" &&
+              c.data.next_sequence === call.args.command.sequence, "town command high-water changed");
+          })
+        : Promise.resolve(),
+      validateTownOfferCall(reader, call),
+      this.refresh(work.decision, work.lane, reader, "command" in call.args ? call.args.command : null),
+    ] as const);
+    const failure = checks.find(check => check.status === "rejected");
+    if (failure?.status === "rejected") throw failure.reason;
+    const refreshed = checks[2];
+    requireStorage(refreshed.status === "fulfilled", "incomplete town policy checks");
+    const current = refreshed.value;
     if (
       !current ||
       canonicalLivingTownJson(current) !== canonicalLivingTownJson(call)
@@ -243,19 +287,31 @@ export class DurableTownExecutor {
       if (this.store.get(work.id)) return { kind: "no_op", actionId: work.id };
       const reader = await this.adapters[work.lane].client.finalized(),
         town = await reader.getTown();
-      requireStorage(
-        town.data.epoch === work.tick,
-        "town action epoch changed",
-      );
+      const reaction = this.store.reactions.work(work.id);
+      const shelf = shelfMaintenance(work);
+      if (!reaction && !shelf && town.data.epoch !== work.tick) {
+        this.store.ticks.reconcile({
+          town,
+          block: reader.block,
+          codeHash: reader.identity.codeHash,
+        });
+        return { kind: "expired", actionId: work.id };
+      }
       const command = {
         sequence: (
           BigInt(String(this.store.checkpoint(work.lane)["last_action_id"])) +
           1n
         ).toString(),
-        config_version: "1",
-        valid_until_ns: (
-          BigInt(town.data.genesis_time_ns) +
-          (BigInt(work.tick) + 1n) * 60000000000n
+        config_version: town.deployment.config_version,
+        valid_until_ns: (reaction
+          ? reaction.role === "cleanup" ||
+            BigInt(reaction.deadlineNs) >
+              BigInt(town.block_timestamp_ns) + 60000000000n
+            ? BigInt(town.block_timestamp_ns) + 60000000000n
+            : BigInt(reaction.deadlineNs)
+          : shelf ? BigInt(town.block_timestamp_ns) + 120000000000n
+          : BigInt(town.data.genesis_time_ns) +
+            (BigInt(work.tick) + 1n) * 60000000000n
         ).toString(),
       };
       const proposed = await this.refresh(
@@ -264,7 +320,7 @@ export class DurableTownExecutor {
           reader,
           command,
         ),
-        call = proposed
+        call = proposed && (!shelf || proposed.method === "set_listing")
           ? townCall(proposed.method, proposed.args, work.lane)
           : null;
       const digest = call
@@ -276,7 +332,7 @@ export class DurableTownExecutor {
             )
           : sha256(canonicalLivingTownJson(call))
         : null;
-      this.store.prepareTown({ ...work, call, digest }, Date.now() + 60000);
+      this.store.prepareTown({ ...work, call, digest }, Date.now() + (shelf ? 120000 : 60000));
       if (!call) return { kind: "no_op", actionId: work.id };
       return this.signAndSubmit(work, call);
     });

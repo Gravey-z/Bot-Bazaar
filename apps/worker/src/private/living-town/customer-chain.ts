@@ -127,7 +127,7 @@ export class CustomerChainAdapter {
       PublicKey.fromString(this.credential.publicKey),
       this.identity.deployment.contract_id,
       BigInt(key.nonce) + 1n,
-      [actions.functionCall(call.method, call.args, 100000000000000n, 0n)],
+      [actions.functionCall(call.method, call.args, 30000000000000n, 0n)],
       baseDecode(reader.block.hash),
     );
     const secretKey = await this.credential.loadSecretKey();
@@ -168,7 +168,7 @@ export class CustomerChainAdapter {
       referenceBlockHeight: reader.block.height,
       publicKey: this.credential.publicKey,
       nonce: tx.nonce.toString(),
-      gas: "100000000000000",
+      gas: "30000000000000",
       signedTransactionBase64: Buffer.from(
         signed.signedTransaction.encode(),
       ).toString("base64"),
@@ -179,7 +179,7 @@ export class CustomerChainAdapter {
     try {
       const response = await this.rpc("send_tx", {
         signed_tx_base64: p.signedTransactionBase64,
-        wait_until: "NONE",
+        wait_until: "INCLUDED",
       });
       const returned = response as { transaction?: { hash?: unknown } };
       requireStorage(

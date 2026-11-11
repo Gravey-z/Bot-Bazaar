@@ -43,6 +43,7 @@ export class LivingTownSalesComponent {
   protected readonly price = signal("18");
   protected readonly review = signal<ListingReview | null>(null);
   protected readonly cancellation = signal<TownListing | null>(null);
+  protected readonly editing = signal(false);
   protected readonly products = [
     { id: "health_potion", name: "Health potions" },
     { id: "iron_tool", name: "Iron tools" },
@@ -75,7 +76,7 @@ export class LivingTownSalesComponent {
     (this.state().market?.items ?? [])
       .filter(
         (l) =>
-          l.active && l.owner.kind === "player" && l.item_id === this.product(),
+          l.active && l.owner.kind === "player" && l.owner.account_id !== this.state().accountId && l.item_id === this.product(),
       )
       .sort((a, b) =>
         BigInt(a.unit_price) < BigInt(b.unit_price)
@@ -100,6 +101,7 @@ export class LivingTownSalesComponent {
       scope = key;
       untracked(() => {
         this.review.set(null);
+        this.editing.set(false);
         this.cancellation.set(null);
         this.quantity.set("1");
         this.price.set("18");
@@ -140,6 +142,7 @@ export class LivingTownSalesComponent {
     );
   }
   protected edit(item: string): void {
+    this.editing.set(true);
     const current = this.owned(item);
     this.product.set(item);
     this.quantity.set(current?.active ? current.remaining_quantity : "1");
@@ -160,6 +163,7 @@ export class LivingTownSalesComponent {
     const r = this.review();
     if (!r || !this.canEdit() || !this.reviewCurrent()) return;
     this.review.set(null);
+    this.editing.set(false);
     void this.controller().act("set_listing", {
       shop_id: r.shopId,
       item_id: r.itemId,
@@ -170,6 +174,7 @@ export class LivingTownSalesComponent {
   }
   protected reviewCancellation(listing: TownListing): void {
     if (this.canCancel() && listing.active) {
+      this.editing.set(false);
       this.cancellation.set({ ...listing });
       this.review.set(null);
     }

@@ -41,6 +41,21 @@ export const livingTownFoundationMethods = [
   "assistant_reprice",
   "get_upgrade",
   "purchase_upgrade",
+  "merchant_purchase",
+] as const;
+export const livingTownOfferMethods = [
+  "propose_trade",
+  "accept_trade",
+  "reject_trade",
+  "cancel_trade",
+  "expire_offers",
+] as const;
+export const livingTownOfferFoundationMethods = [
+  ...livingTownFoundationMethods.slice(0, -1),
+  ...livingTownOfferMethods,
+  "get_offer",
+  "get_offers",
+  "get_merchant_trading_rules",
 ] as const;
 export const livingTownRecipeIds = ["health_potion", "iron_tool"] as const;
 export type LivingTownRecipeId = (typeof livingTownRecipeIds)[number];
@@ -56,7 +71,7 @@ export interface LivingTownDeployment {
   readonly genesis_hash: string;
   readonly contract_id: string;
   readonly api_version: "2.0.0";
-  readonly state_schema: "1";
+  readonly state_schema: "1" | "2";
   readonly command_schema: "1";
   readonly config_version: "1";
   readonly config_sha256: string;

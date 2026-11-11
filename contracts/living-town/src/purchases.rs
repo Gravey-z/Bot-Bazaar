@@ -63,12 +63,16 @@ fn listing_view(index: usize, item: Item, listing: &Listing) -> Value {
 pub(crate) enum Trade {
     Raw(RawTrade),
     Customer(super::customers::SaleTrade),
+    Merchant(super::merchant_trading::MerchantTrade),
+    Negotiated(super::offers::NegotiatedTrade),
 }
 impl Trade {
     fn view(&self) -> Value {
         match self {
             Self::Raw(t) => t.view(),
             Self::Customer(t) => t.view(),
+            Self::Merchant(t) => t.view(),
+            Self::Negotiated(t) => t.view(),
         }
     }
 }
@@ -136,7 +140,7 @@ struct InventoryArgs {
     shop_id: Decimal,
 }
 
-// Validate promises and floors on copies; no economic write precedes validation.
+// Validate promises on copies; no economic write precedes validation.
 fn settle(
     buyer: &mut Player,
     seller: &mut Npc,
@@ -151,20 +155,12 @@ fn settle(
         .clone()
         .unwrap_or_else(|| env::panic_str("LT:E_INVALID_ARGUMENT"));
     require!(listing.revision == revision, "LT:E_STALE_LISTING");
-    let floor: u64 = config()["economy"]["materials"][ITEM_IDS[slot]]["floor"]
-        .as_str()
-        .expect("floor")
-        .parse()
-        .expect("integer");
     let free_after_trade = seller.held.quantities[slot]
         .checked_sub(seller.reservations.trade.quantities[slot])
         .unwrap_or_else(|| env::panic_str("LT:E_INSUFFICIENT_AVAILABLE_STOCK"));
     require!(
         quantity <= listing.quantity
-            && listing.quantity <= free_after_trade
-            && free_after_trade
-                .checked_sub(quantity)
-                .is_some_and(|v| v >= floor),
+            && listing.quantity <= free_after_trade,
         "LT:E_INSUFFICIENT_AVAILABLE_STOCK"
     );
     let total = quantity
@@ -529,14 +525,15 @@ mod tests {
         )
     }
     #[test]
-    fn settlement_releases_listing_reservations_and_preserves_the_floor() {
+    fn settlement_releases_listing_reservations_and_allows_selling_out() {
         let (mut buyer, mut seller) = fixture();
+        seller.held.quantities[0] = 8;
         let listing = settle(&mut buyer, &mut seller, 0, 8, 1, 32);
         assert_eq!(listing.quantity, 0);
         assert_eq!(listing.revision, 2);
         assert_eq!(buyer.gold, 68);
         assert_eq!(seller.gold, 232);
-        assert_eq!(seller.held.quantities[0], 2);
+        assert_eq!(seller.held.quantities[0], 0);
         assert_eq!(buyer.inventory.quantities[0], 8);
         assert_eq!(
             npc_ledger(0, &seller)["inventory"]["listing_reserved"]["crystal"],
@@ -544,11 +541,11 @@ mod tests {
         );
         assert_eq!(
             npc_ledger(0, &seller)["inventory"]["available"]["crystal"],
-            "2"
+            "0"
         );
     }
     #[test]
-    fn promised_gold_items_and_floors_cannot_be_spent_or_overfilled() {
+    fn promised_gold_and_items_cannot_be_spent_or_overfilled() {
         for case in 0..11 {
             let (mut buyer, mut seller) = fixture();
             match case {
@@ -557,7 +554,7 @@ mod tests {
                 2 => buyer.reservations.inbound.quantities[0] = 1000,
                 3 => seller.reservations.gold_inbound = 999_800,
                 4 => seller.reservations.trade.quantities[0] = 3,
-                5 => seller.held.quantities[0] = 2,
+                5 => seller.held.quantities[0] = 0,
                 6 => buyer.gold = 3,
                 7 => buyer.inventory.quantities[0] = 1000,
                 8 => {

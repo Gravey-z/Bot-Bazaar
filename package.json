@@ -8,6 +8,12 @@
   },
   "scripts": {
     "build": "corepack pnpm -r build",
+    "build:demo": "node scripts/build-web-release.mjs v2-local",
+    "build:demo:public": "node scripts/build-web-release.mjs v2-public",
+    "start:demo": "node scripts/living-town-local-web.mjs",
+    "setup:reader": "node scripts/write-living-town-reader-config.mjs",
+    "setup:runtime": "node scripts/write-living-town-runtime-config.mjs",
+    "release:candidate": "node scripts/living-town-release.mjs create",
     "build:packages": "corepack pnpm --filter @bot-bazaar/shared --filter @bot-bazaar/chain build",
     "build:contract": "node scripts/rust-toolchain.mjs build",
     "build:contract:v2": "node scripts/rust-toolchain.mjs build-v2",
@@ -27,7 +33,8 @@
     "check:web-output": "node scripts/check-web-output.mjs",
     "dev": "corepack pnpm dev:web",
     "dev:rehearsal": "node scripts/local-rehearsal.mjs",
-    "dev:web": "corepack pnpm build:packages && corepack pnpm --filter @bot-bazaar/web dev",
+    "dev:web": "corepack pnpm build:packages && node scripts/dev-stack.mjs",
+    "dev:web:only": "corepack pnpm build:packages && corepack pnpm --filter @bot-bazaar/web dev",
     "dev:worker": "corepack pnpm build:packages && corepack pnpm --filter @bot-bazaar/worker build && corepack pnpm --filter @bot-bazaar/worker start",
     "test:config": "node --test tests/configuration/*.test.mjs",
     "lint": "corepack pnpm build:packages && eslint apps packages scripts tests eslint.config.mjs --max-warnings 0",
@@ -35,7 +42,14 @@
     "format:check": "prettier --check .",
     "check:boundaries": "eslint apps/web/src packages/shared/src packages/chain/src --max-warnings 0",
     "test:boundaries": "node --test tests/boundaries/*.test.mjs",
-    "test:simulation": "corepack pnpm build:packages && corepack pnpm --filter @bot-bazaar/worker build && node --test apps/worker/test/living-town-replay.test.mjs apps/worker/test/living-town-catchup.test.mjs apps/worker/test/living-town-adapter.test.mjs apps/worker/test/living-town-provider.test.mjs apps/worker/test/living-town-ticks.test.mjs apps/worker/test/living-town-market-event.test.mjs apps/worker/test/living-town-feed.test.mjs apps/worker/test/living-town-stream.test.mjs tests/configuration/living-town-live.test.mjs tests/scenarios/living-town-soak.test.mjs"
+    "test:simulation": "corepack pnpm build:packages && corepack pnpm --filter @bot-bazaar/worker build && node --test apps/worker/test/living-town-replay.test.mjs apps/worker/test/living-town-catchup.test.mjs apps/worker/test/living-town-adapter.test.mjs apps/worker/test/living-town-provider.test.mjs apps/worker/test/living-town-ticks.test.mjs apps/worker/test/living-town-market-event.test.mjs apps/worker/test/living-town-feed.test.mjs apps/worker/test/living-town-stream.test.mjs tests/configuration/living-town-live.test.mjs tests/scenarios/living-town-soak.test.mjs",
+    "build:web:v2:local": "node scripts/build-web-release.mjs v2-local",
+    "build:web:v2:public": "node scripts/build-web-release.mjs v2-public",
+    "build:web:classic": "node scripts/build-web-release.mjs classic",
+    "start:web:v2:local": "node scripts/living-town-local-web.mjs",
+    "check:web-output:local": "node scripts/check-web-output.mjs apps/web/dist/browser v2-local",
+    "check:web-output:classic": "node scripts/check-web-output.mjs apps/web/dist/browser classic",
+    "start:runtime:v2": "corepack pnpm --filter @bot-bazaar/worker start:runtime"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",

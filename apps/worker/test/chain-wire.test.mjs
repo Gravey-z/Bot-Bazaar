@@ -285,3 +285,17 @@ test("transport bounds responses, validates RPC identity and sanitizes errors", 
     );
   }
 });
+
+test("RPC diagnostics retain protocol causes without provider messages or payloads", async () => {
+  for (const name of ["INVALID_TRANSACTION", "secret canary"]) {
+    const rpc = createRpcTransport("https://test.rpc.fastnear.com", async (_url, options) =>
+      new Response(JSON.stringify({ jsonrpc: "2.0", id: JSON.parse(options.body).id,
+        error: { message: "secret canary", cause: { name, info: { signed_tx_base64: "secret canary" } } } })));
+    await assert.rejects(rpc("send_tx", {}), error => {
+      assert.equal(error.code, "REJECTED");
+      assert.equal(error.rpcCause, name === "INVALID_TRANSACTION" ? name : undefined);
+      assert.equal(JSON.stringify(error).includes("canary"), false);
+      return true;
+    });
+  }
+});

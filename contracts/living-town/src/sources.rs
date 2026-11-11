@@ -12,6 +12,19 @@ pub(crate) struct Allocation {
     npc: Npc,
 }
 
+#[near(serializers = [borsh])]
+#[derive(Clone)]
+pub(crate) struct BatchAllocation {
+    trigger: Item,
+    epoch: u64,
+    allocations: Vec<Allocation>,
+}
+impl BatchAllocation {
+    pub(super) fn view(&self) -> Value {
+        json!({"kind":"raw_supplies","trigger_item_id":self.trigger,"epoch":self.epoch.to_string(),"allocations":self.allocations.iter().map(Allocation::view).collect::<Vec<_>>()})
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -30,7 +43,7 @@ mod tests {
             json!({"item_id":item,"epoch":e.to_string(),"command":c}),
             e * 60_000_000_000 + 1,
         );
-        t.allocate_raw_supply(item, Decimal(e), c)
+        t.allocate_raw_supply(item, Decimal(e), c, None)
     }
     #[test]
     fn source_epochs_zero_replay_pruning_and_long_downtime_are_persistent() {
@@ -134,6 +147,8 @@ struct RawArgs {
     item_id: Item,
     epoch: Decimal,
     command: Command,
+    #[serde(default)]
+    all_eligible: Option<bool>,
 }
 #[derive(Deserialize)]
 #[serde(crate = "near_sdk::serde", deny_unknown_fields)]
@@ -155,63 +170,147 @@ impl LivingTown {
         item_id: Item,
         epoch: Decimal,
         command: Command,
+        all_eligible: Option<bool>,
     ) -> Value {
-        let p: RawArgs = args(&["item_id", "epoch", "command"]);
+        let p: RawArgs = if all_eligible.is_some() {
+            args(&["item_id", "epoch", "command", "all_eligible"])
+        } else {
+            args(&["item_id", "epoch", "command"])
+        };
         require!(
-            p.item_id == item_id && p.epoch == epoch && p.command == command,
+            p.item_id == item_id
+                && p.epoch == epoch
+                && p.command == command
+                && p.all_eligible == all_eligible,
+            "LT:E_INVALID_ARGUMENT"
+        );
+        require!(
+            all_eligible.is_none() || all_eligible == Some(true),
             "LT:E_INVALID_ARGUMENT"
         );
         let actor = env::predecessor_account_id();
         require!(actor == self.operator, "LT:E_UNAUTHORIZED");
-        let (digest, replay) = self.command_check(
-            &actor,
-            "allocate_raw_supply",
-            json!({"item_id":item_id,"epoch":epoch,"command":command}),
-            &command,
-        );
+        let mut payload = json!({"item_id":item_id,"epoch":epoch,"command":command});
+        if all_eligible.is_some() {
+            payload["all_eligible"] = json!(true);
+        }
+        let (digest, replay) = self.command_check(&actor, "allocate_raw_supply", payload, &command);
         if let Some(result) = replay {
             return result;
         }
         let slot = item_id as usize;
         require!(slot < 4, "LT:E_RAW_ONLY");
         require!(epoch.0 == self.customer_epoch(), "LT:E_EPOCH_MISMATCH");
+        if all_eligible == Some(true) {
+            require!(epoch.0.is_multiple_of(5), "LT:E_EPOCH_MISMATCH");
+            let mut npcs = self.npcs.clone();
+            let mut totals = self.supplied_items;
+            let mut epochs = self.raw_epochs;
+            let mut allocations = Vec::new();
+            for (i, item) in [Item::Crystal, Item::Wood, Item::Herb, Item::Iron]
+                .into_iter()
+                .enumerate()
+            {
+                if epochs[i] / 20 >= epoch.0 / 20 {
+                    continue;
+                }
+                let merchant = [0, 2, 1, 2][i];
+                let allocation = self.plan_raw_supply(item, epoch.0, &npcs[merchant]);
+                if allocation.amount == 0 {
+                    continue;
+                }
+                totals[i] = totals[i]
+                    .checked_add(u128::from(allocation.amount))
+                    .unwrap_or_else(|| env::panic_str("LT:E_ARITHMETIC_OVERFLOW"));
+                npcs[merchant] = allocation.npc.clone();
+                epochs[i] = epoch.0;
+                allocations.push(allocation);
+            }
+            require!(
+                allocations.iter().any(|a| a.item == Some(item_id)),
+                "LT:E_EPOCH_ALLOCATED"
+            );
+            self.npcs = npcs;
+            self.supplied_items = totals;
+            self.raw_epochs = epochs;
+            return self.commit(
+                actor,
+                command,
+                digest,
+                Outcome::SourceBatch(Box::new(BatchAllocation {
+                    trigger: item_id,
+                    epoch: epoch.0,
+                    allocations,
+                })),
+            );
+        }
         require!(epoch.0 > self.raw_epochs[slot], "LT:E_EPOCH_ALLOCATED");
-        let (merchant, target, ceiling) = [
-            (MerchantId::Rex, 10u64, 4u64),
-            (MerchantId::Bolt, 10, 4),
-            (MerchantId::Luna, 20, self.herb_ceiling(epoch.0)),
-            (MerchantId::Bolt, 20, 8),
-        ][slot];
-        let mut npc = self.npcs[merchant as usize].clone();
-        let held = npc.held.quantities[slot];
-        let capacity = 1000u64
-            .checked_sub(held)
-            .and_then(|n| n.checked_sub(npc.reservations.output.quantities[slot]))
-            .and_then(|n| n.checked_sub(npc.reservations.inbound.quantities[slot]))
-            .unwrap_or_else(|| env::panic_str("LT:E_BALANCE_CAP"));
-        let amount = ceiling.min(target.saturating_sub(held)).min(capacity);
+        let merchant = [0, 2, 1, 2][slot];
+        let allocation = self.plan_raw_supply(item_id, epoch.0, &self.npcs[merchant]);
         let total = self.supplied_items[slot]
-            .checked_add(u128::from(amount))
+            .checked_add(u128::from(allocation.amount))
             .unwrap_or_else(|| env::panic_str("LT:E_ARITHMETIC_OVERFLOW"));
-        npc.held.quantities[slot] += amount;
-        npc.ledger_revision = next(npc.ledger_revision);
-        self.npcs[merchant as usize] = npc.clone();
+        self.npcs[merchant] = allocation.npc.clone();
         self.raw_epochs[slot] = epoch.0;
         self.supplied_items[slot] = total;
         self.commit(
             actor,
             command,
             digest,
-            Outcome::Source(Box::new(Allocation {
-                item: Some(item_id),
-                event: self.market_events.back().cloned(),
-                merchant,
-                epoch: epoch.0,
-                amount,
-                npc,
-            })),
+            Outcome::Source(Box::new(allocation)),
         )
     }
+}
+impl LivingTown {
+    fn plan_raw_supply(&self, item_id: Item, epoch: u64, current: &Npc) -> Allocation {
+        let slot = item_id as usize;
+        let merchant = [
+            MerchantId::Rex,
+            MerchantId::Bolt,
+            MerchantId::Luna,
+            MerchantId::Bolt,
+        ][slot];
+        let ceiling = if item_id == Item::Herb {
+            self.herb_ceiling(epoch)
+        } else {
+            2
+        };
+        let mut npc = current.clone();
+        let held = npc.held.quantities[slot];
+        let capacity = 1000u64
+            .checked_sub(held)
+            .and_then(|n| n.checked_sub(npc.reservations.output.quantities[slot]))
+            .and_then(|n| n.checked_sub(npc.reservations.inbound.quantities[slot]))
+            .unwrap_or_else(|| env::panic_str("LT:E_BALANCE_CAP"));
+        let promised = held
+            .checked_add(npc.reservations.inbound.quantities[slot])
+            .and_then(|n| n.checked_add(npc.reservations.output.quantities[slot]))
+            .unwrap_or_else(|| env::panic_str("LT:E_ARITHMETIC_OVERFLOW"));
+        // Distributed towns replenish slowly, only at five-epoch boundaries.
+        // Missed periods never accumulate; incoming trades retain target headroom.
+        let (target, ceiling) = (
+            12u64,
+            if epoch.is_multiple_of(5) {
+                ceiling.min(2)
+            } else {
+                0
+            },
+        );
+        let amount = ceiling.min(target.saturating_sub(promised)).min(capacity);
+        npc.held.quantities[slot] += amount;
+        npc.ledger_revision = next(npc.ledger_revision);
+        Allocation {
+            item: Some(item_id),
+            event: self.market_events.back().cloned(),
+            merchant,
+            epoch,
+            amount,
+            npc,
+        }
+    }
+}
+#[near]
+impl LivingTown {
     pub fn sweep_merchant_treasury(
         &mut self,
         merchant_id: MerchantId,

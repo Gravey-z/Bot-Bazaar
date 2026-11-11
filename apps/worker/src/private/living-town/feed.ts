@@ -6,6 +6,7 @@ import {
   livingTownActivityPage,
   townAgentInput,
   townActivityCursor,
+  livingTownListing,
 } from "@bot-bazaar/chain";
 import type {
   LivingTownIdentity,
@@ -227,6 +228,7 @@ export class TownActivityFeed {
           o.data.proposal_type === a.data.proposal_type &&
           o.data.reason === a.data.reason &&
           o.data.validation === a.data.validation &&
+          (o.data.offer_id == null || o.data.offer_id === a.data.offer_id) &&
           json(o.data.signals) === json(a.data.signals) &&
           o.data.command_digest === a.data.command_digest,
         "agent correlation changed",
@@ -275,9 +277,22 @@ export class TownActivityFeed {
         ? ["set_listing"]
         : agent.data.proposal_type === "restock"
           ? ["set_listing", "start_production", "complete_production"]
-          : [];
+          : agent.data.proposal_type === "propose_trade"
+            ? ["propose_trade"]
+            : agent.data.proposal_type === "accept_trade"
+              ? [
+                  agent.data.validation === "seller_listing_release"
+                    ? "set_listing"
+                    : "accept_trade",
+                ]
+              : agent.data.proposal_type === "reject_trade"
+                ? ["reject_trade"]
+                : [];
     requireStorage(
       permitted.includes(s.method) &&
+        (agent.data.offer_id == null ||
+          s.offerId == null ||
+          agent.data.offer_id === s.offerId) &&
         (s.method !== "complete_production" ||
           agent.transaction_hint === s.hash),
       "agent settlement method/transaction mismatch",
@@ -297,7 +312,44 @@ export class TownActivityFeed {
       ),
     );
   }
-  receipt(indexed: Indexed): void {
+  /** Reuse only receipts already verified and archived by this projection. */
+  seedRecentReceipts(checkpoint: Checkpoint): void {
+    const rows = this.db.prepare(`SELECT e.payload,r.request FROM projection_events e
+      JOIN projection_receipts r ON r.receipt_id=e.receipt_id
+      WHERE r.status='succeeded'
+      ORDER BY length(e.event_sequence) DESC,e.event_sequence DESC LIMIT 30`).all();
+    for (const row of rows.reverse()) {
+      const archived = JSON.parse(String(row["payload"])) as {
+        result: Extract<Indexed["status"], { kind: "succeeded" }>["result"];
+        block: Extract<Indexed["status"], { kind: "succeeded" }>["block"];
+        receiptId: string; event: unknown; logIndex: string;
+      };
+      const proof = JSON.parse(String(row["request"])) as Indexed["proof"];
+      this.receipt({ proof, status: { kind: "succeeded", transactionHash: proof.transactionHash,
+        result: archived.result, executionReceiptId: archived.receiptId, block: archived.block },
+        event: archived.event, logIndex: archived.logIndex } as Indexed);
+    }
+    this.flush(checkpoint);
+  }
+  private previousListingPrice(indexed: Indexed, listing: ReturnType<typeof livingTownListing>,
+    previous?: ReturnType<typeof livingTownListing>): string | null {
+    const args = indexed.proof.call.args;
+    if (!("expected_listing_revision" in args) || args.expected_listing_revision === null) return null;
+    const expected = args.expected_listing_revision;
+    if (previous?.listing_id === listing.listing_id && previous.revision === expected)
+      return previous.unit_price;
+    // Receipt arrival can be out of order. Require the exact preceding listing
+    // revision, rather than comparing against a possibly newer market snapshot.
+    const row = this.db.prepare(`SELECT e.payload FROM projection_events e
+      WHERE json_extract(e.payload,'$.result.data.outcome.listing.listing_id')=?
+        AND json_extract(e.payload,'$.result.data.outcome.listing.revision')=?
+      LIMIT 1`).get(listing.listing_id, expected);
+    if (!row) return null;
+    const archived = JSON.parse(String(row["payload"])) as { result: { data: { outcome: { listing: unknown } } } };
+    const old = livingTownListing(archived.result.data.outcome.listing);
+    return old.unit_price;
+  }
+  receipt(indexed: Indexed, previousListing?: ReturnType<typeof livingTownListing>): void {
     const status = indexed.status;
     if (status.kind !== "succeeded" || status.result.data.replayed) return;
     const result = status.result,
@@ -311,6 +363,97 @@ export class TownActivityFeed {
       },
       hash = indexed.proof.transactionHash,
       receipt = status.executionReceiptId;
+    const name = (id: string): string => {
+      const account = id.replace(/^account:/, "").replace(/^merchant:/, "");
+      const guest = /^g-([a-f0-9]{16})\./.exec(account);
+      if (guest) return `Guest-${guest[1]!.slice(0, 6)}`;
+      return ["rex", "luna", "bolt"].includes(account)
+        ? account[0]!.toUpperCase() + account.slice(1) : account;
+    };
+    const actor = name(result.data.principal ?? indexed.proof.signerId);
+    const item = (id: string): string => id.replaceAll("_", " ");
+    let title: string | undefined;
+    switch (o.kind) {
+      case "player_registered": title = `${actor} registered`; break;
+      case "shop_created": title = `${actor} created ${o.shop.name}`; break;
+      case "shop_renamed": title = `${actor} renamed their shop to ${o.shop.name}`; break;
+      case "listing_set":
+      case "assistant_repriced": {
+        const previousPrice = this.previousListingPrice(indexed, o.listing, previousListing);
+        const seller = name(o.listing.owner.kind === "merchant" ? o.listing.owner.merchant_id : o.listing.owner.account_id);
+        title = previousPrice !== null && previousPrice !== o.listing.unit_price
+          ? `${seller} changed ${item(o.listing.item_id)} price from ${previousPrice} to ${o.listing.unit_price} gold`
+          : `${seller} listed ${o.listing.remaining_quantity} ${item(o.listing.item_id)} at ${o.listing.unit_price} gold each`;
+        if (previousPrice === null && o.kind === "assistant_repriced")
+          title = `${seller} set ${item(o.listing.item_id)} price to ${o.listing.unit_price} gold`;
+        break;
+      }
+      case "listing_cancelled": title = `${actor} removed a ${item(o.listing.item_id)} listing`; break;
+      case "raw_purchased": title = `${actor} bought ${o.trade.quantity} ${item(o.trade.item_id)} from ${name(o.trade.seller.merchant_id)}`; break;
+      case "customer_sale": title = `${name(o.trade.seller.account_id)} sold ${o.trade.quantity} ${item(o.trade.item_id)} to a customer`; break;
+      case "trade_proposed": title = `${name(o.offer.buyer)} offered to buy ${o.offer.quantity} ${item(o.offer.item_id)} from ${name(o.offer.seller)}`; break;
+      case "trade_accepted": title = `${name(o.offer.buyer)} bought ${o.offer.quantity} ${item(o.offer.item_id)} from ${name(o.offer.seller)}`; break;
+      case "production_started": title = `${actor} started a production batch`; break;
+      case "production_completed": title = `${name(o.ledger.actor.kind === "player" ? o.ledger.actor.account_id : o.ledger.actor.merchant_id)} completed a production batch`; break;
+      case "upgrade_purchased": title = `${actor} upgraded their shop`; break;
+      case "raw_supplied": title = `${name(o.merchant_id)} restocked ${item(o.item_id)}`; break;
+      case "raw_supplies": title = o.allocations.map(a => `${name(a.merchant_id)} restocked ${a.issued_quantity} ${item(a.item_id)}`).join("; "); break;
+    }
+    if (title) this.queue(this.event("transaction_confirmed", hash, "confirmed", cp,
+      { title, transaction_hash: hash, receipt_id: receipt }));
+    for (const allocation of o.kind === "raw_supplies" ? o.allocations : o.kind === "raw_supplied" ? [o] : [])
+      this.queue(
+        this.event(
+          "merchant_economy",
+          o.kind === "raw_supplies"
+            ? `source:${result.data.effect_event_sequence}:${allocation.item_id}`
+            : `source:${result.data.effect_event_sequence}`,
+          "confirmed",
+          cp,
+          {
+            merchant: allocation.merchant_id,
+            kind: "source",
+            offer: null,
+            item_id: allocation.item_id,
+            quantity: allocation.issued_quantity,
+            trade_id: null,
+            transaction_hash: hash,
+            receipt_id: receipt,
+          },
+        ),
+      );
+    if (
+      [
+        "trade_proposed",
+        "trade_accepted",
+        "trade_rejected",
+        "trade_cancelled",
+        "offers_expired",
+      ].includes(o.kind)
+    ) {
+      const changed =
+        o.kind === "offers_expired" ? o.offers : "offer" in o ? [o.offer] : [];
+      for (const offer of changed)
+        for (const merchant of [offer.buyer, offer.seller])
+          this.queue(
+            this.event(
+              "merchant_economy",
+              `${offer.offer_id}:${offer.status}:${merchant}`,
+              "confirmed",
+              cp,
+              {
+                merchant,
+                kind: offer.status === "pending" ? "proposed" : offer.status,
+                offer,
+                item_id: offer.item_id,
+                quantity: offer.quantity,
+                trade_id: offer.trade_id,
+                transaction_hash: hash,
+                receipt_id: receipt,
+              },
+            ),
+          );
+    }
     if (o.kind === "raw_purchased" || o.kind === "customer_sale") {
       const t = o.trade;
       this.queue(
@@ -360,6 +503,7 @@ export class TownActivityFeed {
     ) {
       const s: Settlement = {
         principal,
+        offerId: "offer" in o ? o.offer.offer_id : null,
         method: indexed.proof.call.method,
         checkpoint: cp,
         hash,
@@ -441,6 +585,7 @@ export class TownActivityFeed {
   }
 }
 interface Settlement {
+  offerId?: string | null;
   principal: string;
   method: string;
   checkpoint: {

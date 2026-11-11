@@ -2,6 +2,12 @@ import {
   townMarketEventSchema,
   TownMarketEventObserver,
 } from "./market-events.js";
+import { TownOfferRepository, townOfferSchema } from "./offer-store.js";
+import { TownReactionRepository, reactionSchema } from "./reactions.js";
+import {
+  livingTownOfferEffect,
+  isLivingTownOfferMethod,
+} from "@bot-bazaar/chain";
 import {
   townProviderSchema,
   TownProviderRepository,
@@ -28,6 +34,7 @@ import {
   livingTownCustomerEffect,
   livingTownSourceEffect,
   livingTownProductionEffect,
+  livingTownPurchaseEffect,
   livingTownListingEffect,
   livingTownAssistantRepriceEffect,
   livingTownProductionJob,
@@ -44,6 +51,8 @@ import { id, json, requireStorage, sha256 } from "../storage/validation.js";
 import { readCustomerPrepared, customerCall } from "./customer-chain.js";
 import type { PreparedCustomerCall, CustomerCall } from "./customer-chain.js";
 import { tickSchema, TownTickRepository } from "./ticks.js";
+import { isVerifiedAdmissionRejection } from "./admission-rejection.js";
+import type { ExpiredAdmissionRejection } from "./admission-rejection.js";
 
 export const townLanes = ["rex", "luna", "bolt", "operator"] as const;
 export type TownLane = (typeof townLanes)[number];
@@ -64,11 +73,15 @@ const townJournalSchema = schema
   )
   .replace(
     "'cancel_trade','expire_offers'))",
-    "'cancel_trade','expire_offers','fund_customer_budget','settle_customer_purchase','start_production','complete_production','allocate_raw_supply','sweep_merchant_treasury','assistant_reprice'))",
+    "'cancel_trade','expire_offers','reject_trade','fund_customer_budget','settle_customer_purchase','start_production','complete_production','allocate_raw_supply','sweep_merchant_treasury','assistant_reprice','merchant_purchase'))",
   );
 
 /** One exclusive execution database for all V2 actors; never a customer-only side journal. */
 export class LivingTownExecutionStore {
+  readonly reactions: TownReactionRepository;
+  readonly merchantTrading: boolean;
+  readonly negotiatedTrading: boolean;
+  readonly offers: TownOfferRepository;
   private readonly db: DatabaseSync;
   private readonly journal: RuntimeJournal;
   readonly ticks: TownTickRepository;
@@ -80,11 +93,13 @@ export class LivingTownExecutionStore {
   readonly identityHash: string;
   private stopped = false;
   private ready = false;
+  private mutationObserver?: () => void;
   constructor(
     readonly dataDir: string,
     identity: unknown,
     readonly seed: string,
     create = false,
+    deferProviderRecovery = false,
   ) {
     const parsedIdentity = parseLivingTownIdentity(identity);
     this.identity = Object.freeze({
@@ -129,11 +144,13 @@ export class LivingTownExecutionStore {
               tickSchema +
               townProviderSchema +
               townMarketEventSchema +
+              townOfferSchema +
+              reactionSchema +
               `
             CREATE TABLE town_runtime(singleton INTEGER PRIMARY KEY CHECK(singleton=1), seed TEXT NOT NULL, epoch TEXT, next_arrival INTEGER NOT NULL DEFAULT 0 CHECK(next_arrival BETWEEN 0 AND 4)) STRICT;
             CREATE TABLE customer_actions(id TEXT PRIMARY KEY REFERENCES jobs(id), tick TEXT NOT NULL, arrival TEXT NOT NULL, decision_json TEXT NOT NULL CHECK(length(CAST(decision_json AS BLOB))<=65536), UNIQUE(tick,arrival)) STRICT;
             CREATE TRIGGER bound_customer_actions BEFORE INSERT ON customer_actions WHEN (SELECT count(*) FROM customer_actions)>=10000 BEGIN SELECT RAISE(ABORT,'customer action journal full'); END;
-            PRAGMA user_version=1007;`,
+            PRAGMA user_version=1009;`,
           );
           this.db
             .prepare(
@@ -160,9 +177,16 @@ export class LivingTownExecutionStore {
           throw error;
         }
       }
+      const schemaVersion = this.db.prepare("PRAGMA user_version").get()?.[
+        "user_version"
+      ];
+      this.merchantTrading = schemaVersion === 1008 || schemaVersion === 1009;
+      this.negotiatedTrading =
+        schemaVersion === 1009 && this.identity.deployment.state_schema === "2";
       requireStorage(
-        this.db.prepare("PRAGMA user_version").get()?.["user_version"] ===
-          1007 &&
+        (schemaVersion === 1007 ||
+          schemaVersion === 1008 ||
+          schemaVersion === 1009) &&
           this.db.prepare("SELECT identity FROM deployment").get()?.[
             "identity"
           ] === identityJson &&
@@ -188,6 +212,7 @@ export class LivingTownExecutionStore {
       this.db,
       (fn) => this.write(fn),
       this.sessionId,
+      deferProviderRecovery,
     );
     this.marketEvents = new TownMarketEventObserver(
       this.db,
@@ -196,6 +221,17 @@ export class LivingTownExecutionStore {
         return this.write(fn);
       },
       this.identity,
+    );
+    this.offers = new TownOfferRepository(
+      this.db,
+      this.negotiatedTrading,
+      (fn) => this.write(fn),
+    );
+    this.reactions = new TownReactionRepository(
+      this.db,
+      (fn) => this.write(fn),
+      () => this.gate(),
+      this.identity.deployment,
     );
     this.ticks = new TownTickRepository(
       this.db,
@@ -220,6 +256,7 @@ export class LivingTownExecutionStore {
     try {
       const result = fn();
       this.db.exec("COMMIT");
+      this.mutationObserver?.();
       return result;
     } catch (error) {
       try {
@@ -239,6 +276,169 @@ export class LivingTownExecutionStore {
   }
   invalidate(): void {
     this.ready = false;
+  }
+  /** Private executable continuity seam; called after durable commits, before callers may sign/send. */
+  observeMutations(observer: () => void): void {
+    requireStorage(
+      !this.mutationObserver,
+      "execution witness already attached",
+    );
+    this.mutationObserver = observer;
+  }
+  continuityDigest(): string {
+    const tables = this.db
+      .prepare(
+        "SELECT name FROM sqlite_schema WHERE type='table' AND name NOT LIKE 'sqlite_%' ORDER BY name",
+      )
+      .all();
+    const state = tables.map((t) => {
+      const name = String(t["name"]);
+      requireStorage(/^[a-z_]+$/.test(name), "unexpected execution table");
+      const rows = this.db
+        .prepare(`SELECT * FROM ${name} ORDER BY rowid`)
+        .all();
+      if (name === "deployment")
+        for (const row of rows) {
+          delete row["feed_generation"];
+          delete row["recovery_required"];
+        }
+      return [name, rows];
+    });
+    return sha256(JSON.stringify(state));
+  }
+  rulesOnlyHistory(): boolean {
+    return (
+      this.db.prepare("SELECT count(*) n FROM town_provider_attempts").get()![
+        "n"
+      ] === 0
+    );
+  }
+  providerHistory(): {
+    id: string;
+    ledger_id: string | null;
+    status: string;
+  }[] {
+    return this.db
+      .prepare(
+        "SELECT id,ledger_id,status FROM town_provider_attempts ORDER BY rowid",
+      )
+      .all() as { id: string; ledger_id: string | null; status: string }[];
+  }
+  latestModelAction(): unknown {
+    return (
+      this.db
+        .prepare(
+          "SELECT c.id AS action_id,i.status,i.method,a.tx_hash AS transaction_hash,json_extract(c.decision_json,'$.inferenceRef') AS inference_ref FROM customer_actions c JOIN intents i ON i.id=c.id LEFT JOIN attempts a ON a.intent_id=i.id WHERE json_extract(c.decision_json,'$.origin')='model_proposal' ORDER BY c.rowid DESC LIMIT 1",
+        )
+        .get() ?? null
+    );
+  }
+  merchantPricingHistory(): { merchant: "rex" | "luna" | "bolt"; item: "crystal" | "wood" | "herb" | "iron"; unitPrice: string; changedAtNs: string }[] {
+    const history = new Map<string, ReturnType<LivingTownExecutionStore["merchantPricingHistory"]>[number]>();
+    const rows = this.db.prepare(`SELECT i.merchant_id,a.signed_json,a.evidence_json,a.updated_at
+      FROM attempts a JOIN intents i ON i.id=a.intent_id
+      WHERE i.status='confirmed' AND i.method='set_listing' AND i.merchant_id IN ('rex','luna','bolt')
+      ORDER BY a.rowid`).all();
+    for (const row of rows) {
+      const prepared = JSON.parse(String(row["signed_json"])) as PreparedTownCall;
+      const args = prepared.call.args;
+      if (prepared.call.method !== "set_listing" || !("item_id" in args) || !("unit_price" in args)) continue;
+      const item = args.item_id;
+      if (item !== "crystal" && item !== "wood" && item !== "herb" && item !== "iron") continue;
+      const merchant = String(row["merchant_id"]) as "rex" | "luna" | "bolt";
+      const key = `${merchant}:${item}`, previous = history.get(key);
+      if (previous?.unitPrice === args.unit_price) continue;
+      const evidence = JSON.parse(String(row["evidence_json"])) as {
+        result?: { block_timestamp_ns?: string }; command?: { block_timestamp_ns?: string } };
+      const changedAtNs = evidence.result?.block_timestamp_ns ?? evidence.command?.block_timestamp_ns ??
+        (BigInt(Number(row["updated_at"])) * 1000000n).toString();
+      history.set(key, { merchant, item, unitPrice: args.unit_price, changedAtNs });
+    }
+    return [...history.values()];
+  }
+  receiptProofs(): {
+    transaction_hash: string;
+    signer_id: string;
+    method: string;
+    args: unknown;
+    reference_block_height: string;
+    gas?: string;
+  }[] {
+    return this.db
+      .prepare(
+        "SELECT a.signed_json FROM attempts a JOIN intents i ON i.id=a.intent_id WHERE i.status IN ('submitted','unknown','confirmed','failed') AND coalesce(json_extract(a.evidence_json,'$.kind'),'')!='expired_admission_rejection' ORDER BY a.rowid",
+      )
+      .all()
+      .map((row) => {
+        const p = JSON.parse(String(row["signed_json"])) as PreparedTownCall;
+        return {
+          transaction_hash: p.transactionHash,
+          signer_id: p.signerId,
+          method: p.call.method,
+          args: p.call.args,
+          reference_block_height: p.referenceBlockHeight,
+          ...(p.gas !== "100000000000000" ? { gas: p.gas } : {}),
+        };
+      });
+  }
+  resolveRejectedAdmission(
+    actionId: string,
+    evidence: ExpiredAdmissionRejection,
+  ): void {
+    requireStorage(
+      isVerifiedAdmissionRejection(evidence),
+      "verified expired admission rejection required",
+    );
+    this.write(() => {
+      const row = this.get(actionId);
+      requireStorage(
+        row?.["status"] === "unknown" &&
+          row["tx_hash"] === evidence.transactionHash,
+        "original unknown transaction required",
+      );
+      this.db
+        .prepare(
+          "UPDATE attempts SET evidence_json=?,updated_at=? WHERE intent_id=?",
+        )
+        .run(json(evidence), Date.now(), actionId);
+      this.db
+        .prepare("UPDATE intents SET status='failed',updated_at=? WHERE id=?")
+        .run(Date.now(), actionId);
+      this.terminal(actionId, "failed");
+    });
+  }
+  rejectedAdmissions(): string[] {
+    return this.db
+      .prepare(
+        "SELECT tx_hash FROM attempts WHERE json_extract(evidence_json,'$.kind')='expired_admission_rejection' ORDER BY rowid",
+      )
+      .all()
+      .map((r) => String(r["tx_hash"]));
+  }
+  lastCustomerDecision(): unknown {
+    const row = this.db
+      .prepare(
+        "SELECT c.id,c.tick,c.decision_json FROM customer_actions c WHERE c.arrival IN ('0','1','2','3') ORDER BY c.rowid DESC LIMIT 1",
+      )
+      .get();
+    if (!row) return null;
+    const decision = JSON.parse(String(row["decision_json"])) as Record<
+      string,
+      unknown
+    >;
+    return {
+      action_id: row["id"],
+      tick: row["tick"],
+      kind: decision["kind"],
+      reason: decision["reason"],
+      item: decision["itemId"],
+    };
+  }
+  lastCompletedTurnWasCustomer(): boolean {
+    const row = this.db.prepare(
+      "SELECT c.arrival FROM customer_actions c JOIN jobs j ON j.id=c.id WHERE j.status IN ('completed','failed','expired') ORDER BY c.rowid DESC LIMIT 1",
+    ).get();
+    return !!row && /^[0-3]$/.test(String(row["arrival"]));
   }
   publicActivity(
     after: string | null = null,
@@ -260,7 +460,7 @@ export class LivingTownExecutionStore {
     );
     const rows = this.db
       .prepare(
-        "SELECT c.rowid AS n,c.id,c.decision_json,ta.tick_id,ta.arrival,t.checkpoint_json,j.status AS job_status,i.status,i.method,i.args_digest,a.tx_hash FROM customer_actions c JOIN town_tick_actions ta ON ta.action_id=c.id JOIN town_ticks t ON t.id=ta.tick_id JOIN jobs j ON j.id=c.id LEFT JOIN intents i ON i.id=c.id LEFT JOIN attempts a ON a.intent_id=i.id WHERE c.rowid>? AND ta.arrival LIKE 'merchant:%' ORDER BY c.rowid LIMIT ?",
+        "SELECT c.rowid AS n,c.id,c.decision_json,COALESCE(ta.tick_id,rs.id) AS tick_id,c.arrival,t.checkpoint_json,j.status AS job_status,i.status,i.method,i.args_digest,i.offer_id,a.tx_hash FROM customer_actions c LEFT JOIN town_tick_actions ta ON ta.action_id=c.id LEFT JOIN town_ticks t ON t.id=ta.tick_id LEFT JOIN reaction_steps rs ON rs.id=c.id JOIN jobs j ON j.id=c.id LEFT JOIN intents i ON i.id=c.id LEFT JOIN attempts a ON a.intent_id=i.id WHERE c.rowid>? AND c.arrival LIKE 'merchant:%' AND (t.id IS NOT NULL OR json_extract(c.decision_json,'$.checkpoint') IS NOT NULL) ORDER BY c.rowid LIMIT ?",
       )
       .all(cursor, limit + 1);
     const records = rows.slice(0, limit).map((r) => {
@@ -291,6 +491,13 @@ export class LivingTownExecutionStore {
           action_id: r["id"],
           tick_id: r["tick_id"],
           merchant: String(r["arrival"]).split(":")[1],
+          offer_id:
+            r["offer_id"] ??
+            (
+              d["tradeApproval"] as
+                { offer?: { offer_id?: string } } | undefined
+            )?.offer?.offer_id ??
+            null,
           proposal_type: p?.action.type ?? "wait",
           reason: p?.reason ?? String(d["reason"] ?? "deterministic no-op"),
           validation: d["validation"] ?? d["reason"] ?? "no_op",
@@ -299,9 +506,15 @@ export class LivingTownExecutionStore {
               ? "expired"
               : r["job_status"] === "failed"
                 ? "rejected"
-                : r["status"] !== null
-                  ? "awaiting_confirmation"
-                  : "local_no_op",
+                : r["status"] === "unknown"
+                  ? "unknown"
+                  : r["status"] === "submitted"
+                    ? "submitted"
+                    : ["prepared", "signed"].includes(String(r["status"]))
+                      ? "proposal"
+                      : r["status"] !== null
+                        ? "awaiting_confirmation"
+                        : "local_no_op",
           command_digest:
             r["method"] === "complete_production"
               ? null
@@ -313,6 +526,41 @@ export class LivingTownExecutionStore {
         },
       });
     });
+    if (rows.length <= limit) {
+      for (const pending of this.db
+        .prepare(
+          "SELECT * FROM town_provider_attempts WHERE status='dispatched'",
+        )
+        .all()) {
+        const c = JSON.parse(String(pending.context_json)) as {
+          tickId: string;
+          merchant: string;
+          checkpoint: unknown;
+        };
+        if (!c.checkpoint) continue;
+        records.push(
+          townAgentInput({
+            source: "model_proposal",
+            transaction_hint: null,
+            checkpoint: c.checkpoint,
+            data: {
+              action_id: sha256(String(pending.id) + ":thinking"),
+              tick_id: c.tickId,
+              merchant: c.merchant,
+              proposal_type: "wait",
+              reason: "Considering current stock and trade options.",
+              validation: "provider_pending",
+              outcome: "thinking",
+              command_digest: null,
+              inference_ref: pending.id,
+              signals: [],
+              transaction_hash: null,
+              receipt_id: null,
+            },
+          }),
+        );
+      }
+    }
     return {
       schema: "living-town-agent-inbox-v1",
       identity: this.identity,
@@ -323,7 +571,7 @@ export class LivingTownExecutionStore {
   get(actionId: string): Row | undefined {
     return this.db
       .prepare(
-        "SELECT j.status AS job_status,c.*,i.merchant_id AS lane,i.method,i.args_json,i.args_digest,i.status,i.action_id,a.tx_hash,a.signed_json FROM customer_actions c JOIN jobs j ON j.id=c.id LEFT JOIN intents i ON i.id=c.id LEFT JOIN attempts a ON a.intent_id=i.id WHERE c.id=?",
+        "SELECT j.status AS job_status,c.*,i.merchant_id AS lane,i.method,i.args_json,i.args_digest,i.status,i.action_id,i.offer_id,a.tx_hash,a.signed_json FROM customer_actions c JOIN jobs j ON j.id=c.id LEFT JOIN intents i ON i.id=c.id LEFT JOIN attempts a ON a.intent_id=i.id WHERE c.id=?",
       )
       .get(id(actionId));
   }
@@ -505,11 +753,14 @@ export class LivingTownExecutionStore {
       "tick action lane mismatch",
     );
     requireStorage(
-      !!this.ticks.active() && townLanes.includes(action.lane),
+      (!!this.ticks.active() || !!this.reactions.work(action.id)) &&
+        townLanes.includes(action.lane),
       "persisted tick required for town actions",
     );
     this.write(() => {
-      this.ticks.bind(action);
+      if (this.reactions.work(action.id))
+        this.reactions.bind(action, !!action.call);
+      else this.ticks.bind(action);
       this.claim(action.id, [action.lane], deadline);
       this.db
         .prepare("INSERT INTO customer_actions VALUES(?,?,?,?)")
@@ -558,10 +809,11 @@ export class LivingTownExecutionStore {
           actionId: sequence,
           argsJson: canonicalLivingTownJson(call.args),
           digest: action.digest,
-          offerId: null,
+          offerId: "offer_id" in call.args ? String(call.args.offer_id) : null,
         },
         Date.now(),
       );
+      this.offers.bind(action.id, call);
     });
   }
   saveTownSigned(actionId: string, value: PreparedTownCall): void {
@@ -617,16 +869,19 @@ export class LivingTownExecutionStore {
           e.kind === "command_checkpoint"
             ? e.command?.data.effect
             : e.result?.data;
-        const effect = [
-          "allocate_raw_supply",
-          "sweep_merchant_treasury",
-        ].includes(String(row["method"]))
-          ? livingTownSourceEffect(data)
-          : row["method"] === "start_production"
-            ? livingTownProductionEffect(data)
-            : row["method"] === "assistant_reprice"
-              ? livingTownAssistantRepriceEffect(data)
-              : livingTownListingEffect(data);
+        const effect = isLivingTownOfferMethod(String(row["method"]))
+          ? livingTownOfferEffect(data)
+          : ["allocate_raw_supply", "sweep_merchant_treasury"].includes(
+                String(row["method"]),
+              )
+            ? livingTownSourceEffect(data)
+            : row["method"] === "start_production"
+              ? livingTownProductionEffect(data)
+              : row["method"] === "assistant_reprice"
+                ? livingTownAssistantRepriceEffect(data)
+                : row["method"] === "merchant_purchase"
+                  ? livingTownPurchaseEffect(data)
+                  : livingTownListingEffect(data);
         const principal =
           row["lane"] === "operator"
             ? `account:${this.identity.operatorId}`
@@ -637,6 +892,8 @@ export class LivingTownExecutionStore {
             effect.payload_sha256 === row["args_digest"],
           "town command evidence terms mismatch",
         );
+        if (isLivingTownOfferMethod(String(row["method"])))
+          this.offers.confirm(actionId, data);
         this.db
           .prepare(
             "UPDATE merchants SET last_action_id=?,last_action_digest=? WHERE merchant_id=?",
@@ -808,6 +1065,7 @@ export class LivingTownExecutionStore {
       .prepare("UPDATE jobs SET status=?,updated_at=? WHERE id=?")
       .run(status, Date.now(), jobId);
     this.ticks.settled(jobId, status);
+    this.reactions.settled(jobId, status);
   }
   completeRuntimeJob(jobId: string): void {
     this.gate();

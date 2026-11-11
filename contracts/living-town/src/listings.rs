@@ -178,41 +178,32 @@ impl LivingTown {
             old.as_ref().map(|l| Decimal(l.revision)) == expected_listing_revision,
             "LT:E_STALE_LISTING"
         );
-        let (held, trade, floor) = match &owner {
+        let (held, trade) = match &owner {
             Owner::Player(id) => {
                 require!(slot >= 4, "LT:E_PLAYER_PRODUCTS_ONLY");
                 let p = self.players.get(id).expect("player");
                 (
                     p.inventory.quantities[slot],
                     p.reservations.trade.quantities[slot],
-                    0,
                 )
             }
             Owner::Merchant(i) => {
                 let npc = &self.npcs[*i as usize];
-                let floor = if slot < 4 {
+                if slot < 4 {
                     let cfg = config();
                     let row = &cfg["economy"]["materials"][ITEM_IDS[slot]];
                     let lo = row["minPrice"].as_str().unwrap().parse::<u64>().unwrap();
                     let hi = row["maxPrice"].as_str().unwrap().parse::<u64>().unwrap();
                     require!((lo..=hi).contains(&unit_price.0), "LT:E_PRICE_BAND");
-                    row["floor"].as_str().unwrap().parse::<u64>().unwrap()
-                } else {
-                    0
-                };
+                }
                 (
                     npc.held.quantities[slot],
                     npc.reservations.trade.quantities[slot],
-                    floor,
                 )
             }
         };
         require!(
-            quantity.0
-                <= held
-                    .checked_sub(trade)
-                    .and_then(|n| n.checked_sub(floor))
-                    .unwrap_or(0),
+            quantity.0 <= held.checked_sub(trade).unwrap_or(0),
             "LT:E_INSUFFICIENT_AVAILABLE_STOCK"
         );
         let listing = if let Some(old) = old {
@@ -481,11 +472,11 @@ mod tests {
         assert_eq!(state(&t), before);
     }
     #[test]
-    fn npc_prices_floors_and_authority_share_the_persistent_merchant_lane() {
+    fn npc_prices_stock_and_authority_share_the_persistent_merchant_lane() {
         let mut t = town();
         for (actor, q, price) in [
             ("other.testnet", 1, 4),
-            ("rex.testnet", 9, 4),
+            ("rex.testnet", 11, 4),
             ("rex.testnet", 1, 2),
             ("rex.testnet", 1, 7),
         ] {

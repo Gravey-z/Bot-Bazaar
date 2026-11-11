@@ -1,101 +1,92 @@
-<a
-  class="skip-link"
-  href="#your-shop"
-  (click)="$event.preventDefault(); openManager()"
-  >Open shop manager</a
+@if (purchaseToast()) {
+  <aside #purchaseProgressToast popover="manual" class="game-toast guest-progress-toast"
+    role="status" aria-live="polite" aria-atomic="true">
+    @if (purchaseToastPending()) { <span class="guest-progress-spinner" aria-hidden="true"></span> }
+    <span>{{ purchaseToast() }}</span>
+    <button type="button" aria-label="Dismiss action notification" (click)="dismissPurchaseToast()">×</button>
+  </aside>
+}
+@if (guestToast() && !purchaseToast()) {
+  <aside #guestProgressToast popover="manual" class="game-toast guest-progress-toast"
+    role="status" aria-live="polite" aria-atomic="true">
+    @if (guestToastPending()) { <span class="guest-progress-spinner" aria-hidden="true"></span> }
+    <span>{{ guestToast() }}</span>
+    <button type="button" aria-label="Dismiss guest notification" (click)="dismissGuestToast()">×</button>
+  </aside>
+}
+<dialog
+  #walletDialog
+  class="wallet-dialog"
+  aria-labelledby="wallet-dialog-title"
+  (close)="walletDialogClosed()"
 >
-<div class="town-page">
-  <header class="topbar">
-    <a class="brand" href="#top" aria-label="Bot Bazaar home"
-      ><span class="brand-stamp" aria-hidden="true">b.</span
-      ><span>BOT BAZAAR<small>LIVING TOWN</small></span></a
-    >
-    <nav aria-label="Town navigation">
-      <a href="#marketplace">Market square</a
-      ><a href="#your-shop" (click)="$event.preventDefault(); openManager()"
-        >Your shop</a
-      >
-      <button class="quiet" type="button" (click)="openManager('production')">
-        Craft
-      </button>
-      <a href="#town-activity">Activity</a>
-      <button class="quiet" type="button" (click)="openHelp()">
-        How to play
-      </button>
-    </nav>
-    <span class="network"
-      ><span aria-hidden="true"></span>{{ modeLabel() }}</span
-    >
-  </header>
-  <main id="top">
-    <section class="intro" aria-labelledby="town-title">
-      <div>
-        <p class="eyebrow">A LITTLE ECONOMY. A PLACE OF YOUR OWN.</p>
-        <h1 id="town-title">
-          Every town starts<br />with <em>a small shop.</em>
-        </h1>
-        <p class="intro-copy">
-          Meet your neighbours, stock your shelves and make a place for yourself
-          in the bazaar.
-        </p>
+  <div class="scene-panel-heading">
+    <h2 id="wallet-dialog-title">Connect</h2>
+    <button class="quiet" type="button" (click)="closeWalletDialog()">Close</button>
+  </div>
+  @if (connectionError()) { <p role="status">{{ connectionError() }}</p> }
+  <div class="connection-choices">
+    <button class="primary" type="button"
+      [disabled]="state().busy || guest().status === 'provisioning'"
+      (click)="playAsGuest()" autofocus>
+      {{ state().busy ? "Connecting…" : "Play as a guest" }}
+    </button>
+    <button class="primary" type="button" [disabled]="state().busy"
+      (click)="connectWallet()">
+      Connect Meteor wallet
+    </button>
+  </div>
+</dialog>
+@if (usePhaser) {
+  <div class="game-shell">
+    <a class="skip-link" href="#town-shop-menu">Skip to town controls</a>
+    <header class="game-hud">
+      <img
+        class="game-wordmark"
+        src="art/living-town/game/wordmark.svg"
+        alt="Bot Bazaar"
+        width="210"
+        height="58"
+      />
+      <div class="game-stat" [attr.aria-busy]="!!state().accountId && hud().available === null">
+        <small>YOUR GOLD</small><strong
+          [title]="state().accountId && hud().available === null ? 'Waiting for your verified gold balance' : 'Available game gold'"
+        >{{ hud().available ?? (state().accountId ? "…" : "--") }}</strong>
       </div>
-      <aside class="welcome">
-        <span class="eyebrow">YOUR CORNER OF THE MARKET</span
-        ><span class="little-shop" aria-hidden="true"><i></i><b></b></span>
-        <p>
-          One owner. One shop.<br /><strong>Your story starts here.</strong>
-        </p>
-      </aside>
-    </section>
-    @if (marketEvent(); as event) {
-      <aside class="session" aria-label="Market event">
-        <div>
-          <strong>Herb shortage: {{ event.status }}</strong>
-          @if (state().observation?.stale) {
-            <p>
-              Last confirmed event. Refresh the town to check current
-              conditions.
-            </p>
-          }
-          <p>{{ event.explanation }}</p>
-          <p>
-            Baseline cap: {{ event.baseline }} herbs per epoch. Current cap:
-            {{ event.current }}. Replenishment depends on stock and free
-            capacity.
-          </p>
-        </div>
-      </aside>
-    }
-    <section class="session" aria-label="Player connection">
-      @if (screen.setup.kind !== "ready") {
-        <div>
-          <strong>{{
-            screen.setup.kind === "unavailable"
-              ? "Town connection unavailable"
-              : "Welcome to your local town preview"
-          }}</strong>
-          <p>
-            No town is connected yet. Explore the layout; saved shops and wallet
-            actions become available when a town is connected.
-          </p>
-        </div>
-        <span class="pill">No saved game in preview</span>
-      } @else {
-        <div>
-          <strong>{{ state().accountId ?? "Spectators welcome" }}</strong>
-          <p>
-            {{
-              state().accountId
-                ? "Your wallet owns your shop. Game gold is separate from NEAR used for wallet fees."
-                : "Browse without a wallet. Connect when you are ready to register and claim your shop."
-            }}
-          </p>
-        </div>
+      <button
+        id="town-shop-menu"
+        class="game-shop-name"
+        type="button"
+        aria-haspopup="dialog"
+        (click)="openManager()"
+      >
+        {{ shop()?.name ?? "Your shop" }} <span aria-hidden="true">⌂</span>
+      </button>
+      @if (
+        !isGuest() &&
+        state().accountId &&
+        state().observation?.accountId === state().accountId &&
+        !state().observation?.player
+      ) {
+        <button
+          class="primary"
+          type="button"
+          [disabled]="!canRegister() && !canRetryRegistration()"
+          (click)="canRetryRegistration() ? retryRegistration() : register()"
+        >
+          {{
+            state().pending?.call?.method === "register_player" &&
+            state().pending?.phase === "unknown"
+              ? "Retry registration"
+              : "Register"
+          }}
+        </button>
+      }
+      @if (screen.setup.kind === "ready") {
         @if (state().accountId) {
           @if (state().accounts.length > 1) {
-            <label class="account-picker"
-              >Player
-              <select
+            <label class="game-account"
+              >Account<select
                 [value]="state().accountId"
                 [disabled]="state().busy"
                 (change)="screen.controller.chooseAccount(text($event))"
@@ -107,10 +98,11 @@
             >
           }
           <button
-            class="quiet"
+            class="game-account-button"
             type="button"
-            [disabled]="state().busy"
+            [disabled]="state().busy || (isGuest() && !!state().pending)"
             (click)="screen.controller.disconnect()"
+            [title]="state().accountId ?? ''"
           >
             Disconnect
           </button>
@@ -118,621 +110,1232 @@
           <button
             class="primary"
             type="button"
-            [disabled]="state().busy"
-            (click)="screen.controller.connect()"
+            aria-haspopup="dialog"
+            [disabled]="state().busy || guest().status === 'provisioning'"
+            (click)="openWalletDialog()"
           >
-            {{ state().busy ? "Connecting…" : "Connect wallet" }}
+            {{ guest().status === "provisioning" ? "Creating guest…" : state().busy ? "Connecting…" : "Connect" }}
           </button>
         }
       }
-    </section>
-    @if (state().message) {
-      <p class="notice" role="status">{{ state().message }}</p>
-    }
-    @if (state().observation?.stale) {
-      <p class="notice warning" role="status">
-        This is a previous snapshot. Balances may have changed; refresh before
-        taking an action.
-      </p>
-    }
-    @if (state().observation?.town?.paused) {
-      <p class="notice warning">
-        The town is paused. Your confirmed shop and inventory remain visible.
-      </p>
-    }
-    <section
-      class="economy-hud"
-      aria-label="Town economy snapshot"
-      [class.snapshot-old]="!hud().fresh"
-    >
-      <div class="hud-heading">
-        <strong>{{ shop()?.name ?? "Your place in the town" }}</strong
-        ><span>{{
-          hud().fresh
-            ? "Current observed snapshot"
-            : screen.setup.kind === "ready"
-              ? "Previous or unavailable snapshot"
-              : "No live balances in preview"
-        }}</span>
-      </div>
-      <dl>
-        <div>
-          <dt>Available game gold</dt>
-          <dd>{{ hud().available ?? "Unavailable" }}</dd>
-        </div>
-        <div>
-          <dt>Reserved game gold</dt>
-          <dd>{{ hud().reserved ?? "Unavailable" }}</dd>
-        </div>
-        <div>
-          <dt>Production slots used</dt>
-          <dd>{{ hud().slots ?? "Unavailable" }}</dd>
-        </div>
-        <div>
-          <dt>
-            <app-town-art kind="customer" class="hud-token" />Town customer
-            budget
-          </dt>
-          <dd>{{ hud().customers ?? "Unavailable" }}</dd>
-        </div>
-      </dl>
-      <small
-        >Game gold is separate from native NEAR fees. Customer budget is shared
-        town demand, not your earnings. Only confirmed History proves a
-        sale.</small
-      >
-    </section>
-    <aside class="next-action" aria-labelledby="next-action-title">
-      <div>
-        <p class="eyebrow">YOUR NEXT MOVE</p>
-        <h2 id="next-action-title">{{ nextAction().title }}</h2>
-        <p>{{ nextAction().detail }}</p>
-      </div>
-      <button
-        class="primary"
-        type="button"
-        [disabled]="state().busy"
-        (click)="followNextAction()"
-      >
-        {{
-          nextAction().target === "connect"
-            ? "Connect wallet"
-            : nextAction().target === "refresh"
-              ? "Refresh confirmed data"
-              : nextAction().target === "market"
-                ? "Review suppliers"
-                : "Open " + nextAction().tab
-        }}
-      </button>
-    </aside>
-    <section class="town-feedback" aria-labelledby="feedback-title">
-      <div class="workshop-heading">
-        <h2 id="feedback-title">Confirmed shop updates</h2>
-        <button
-          class="quiet"
-          type="button"
-          [attr.aria-pressed]="soundEnabled()"
-          (click)="toggleFeedbackSound()"
-        >
-          {{ soundEnabled() ? "Mute feedback sound" : "Enable feedback sound" }}
-        </button>
-      </div>
-      <p class="muted">
-        Sound starts muted each visit. Recent net changes compare finalized
-        observations; History records individual receipts. Older or reconnect
-        activity is not replayed as a new notification.
-      </p>
-      @if (soundMessage()) {
-        <p role="status">{{ soundMessage() }}</p>
+      @if (isGuest() && state().accountId) {
+        <span class="game-guest-status" role="status" [title]="guest().message">
+          {{ guest().status === "provisioning" ? "Creating guest…" : guest().status === "failed" ? "Guest setup failed" : guest().status === "unavailable" ? "Guest unavailable" : (guest().displayId ?? "Guest") }}
+        </span>
       }
+      <button class="quiet game-help" type="button" (click)="openHelp()">
+        How to play
+      </button>
+    </header>
+    <aside class="town-recent-activity" aria-labelledby="recent-activity-heading">
+      <div class="recent-activity-heading">
+        <h2 id="recent-activity-heading">Town activity</h2>
+        <button type="button" [attr.aria-expanded]="activityPanelOpen()"
+          aria-controls="recent-activity-list" [attr.aria-label]="activityPanelOpen() ? 'Collapse recent activity' : 'Expand recent activity'"
+          (click)="activityPanelOpen.set(!activityPanelOpen())">{{ activityPanelOpen() ? '−' : '+' }}</button>
+      </div>
+      @if (activityPanelOpen()) {
+        <div id="recent-activity-list">
+          <ol aria-live="polite" aria-relevant="additions" aria-label="Latest confirmed transactions">
+            @for (entry of recentTownActivity(); track entry.id) {
+              <li>
+                <div class="recent-activity-entry-heading">
+                  <strong>{{ entry.category }}</strong>
+                  <time [attr.datetime]="entry.dateTime" [title]="entry.time | date: 'medium'">{{ activityAge(entry.time) }}</time>
+                </div>
+                <div class="recent-activity-description">
+                  <p>{{ entry.description }}</p>
+                  <a [href]="entry.url" target="_blank" rel="noopener noreferrer"
+                    [attr.aria-label]="'View transaction: ' + entry.title">tx ↗</a>
+                </div>
+              </li>
+            } @empty {
+              <li class="recent-activity-empty">{{ state().activity.mode === 'unavailable' ? 'Activity is temporarily unavailable.' : 'Waiting for confirmed town activity…' }}</li>
+            }
+          </ol>
+          @if (state().activity.mode === 'unavailable' && recentTownActivity().length) {
+            <p class="recent-activity-paused">Updates temporarily paused</p>
+          }
+        </div>
+      }
+    </aside>
+    <main class="game-main" id="top">
+      <section
+        id="marketplace"
+        class="game-world"
+        aria-label="Living Town market square"
+      >
+        <app-town-game
+          [snapshot]="visualSnapshot()"
+          (selection)="openLocation($event)"
+        />
+      </section>
       <p
-        class="feedback-announcement"
-        [attr.aria-live]="managerVisible() ? 'off' : 'polite'"
+        class="game-feedback"
+        [hidden]="!feedbackAnnouncement()"
+        aria-live="polite"
         aria-atomic="true"
       >
         {{ feedbackAnnouncement() }}
       </p>
-      @if (feedback().length) {
-        <ol class="feedback-list">
-          @for (event of feedback(); track event.id) {
-            <li>{{ event.text }}</li>
+      @if (soundMessage()) {
+        <p class="game-message" role="status">{{ soundMessage() }}</p>
+      }
+      <dialog
+        #sceneDialog
+        class="scene-panel"
+        [class.merchant-panel]="
+          scenePanel() === 'rex' ||
+          scenePanel() === 'luna' ||
+          scenePanel() === 'bolt'
+        "
+        aria-labelledby="scene-panel-title"
+        (close)="scenePanelClosed()"
+      >
+        @if (
+          scenePanel() === "rex" ||
+          scenePanel() === "luna" ||
+          scenePanel() === "bolt"
+        ) {
+          <img
+            class="merchant-portrait"
+            [src]="'art/living-town/game/' + scenePanel() + '.png'"
+            alt=""
+            width="180"
+            height="340"
+          />
+        }
+        <div class="scene-panel-content">
+          <div class="scene-panel-heading">
+            @for (p of profiles; track p.id) {
+              @if (scenePanel() === p.id) {
+                <h1 id="scene-panel-title">{{ p.name }}<span>.</span></h1>
+              }
+            }
+            <button
+              class="quiet"
+              type="button"
+              (click)="closeScenePanel()"
+              autofocus
+            >
+              Close <span aria-hidden="true">×</span>
+            </button>
+          </div>
+          @if (
+            scenePanel() === "rex" ||
+            scenePanel() === "luna" ||
+            scenePanel() === "bolt"
+          ) {
+            @for (p of profiles; track p.id) {
+              @if (scenePanel() === p.id) {
+                <div class="merchant-intro">
+                  <div>
+                    <p class="eyebrow">{{ p.specialty }}</p>
+                    <p>
+                      {{
+                        p.id === "rex"
+                          ? "A keen eye for opportunity."
+                          : p.id === "luna"
+                            ? "A little kindness. Well-stocked shelves."
+                            : "Good materials. Honest work."
+                      }}
+                    </p>
+                  </div>
+                </div>
+                <div class="shelves-heading">
+                  <h2>On the shelves</h2>
+                </div>
+                @if (!hud().fresh) {
+                  <p class="notice warning">
+                    Stock is updating. Purchases will be available when it is ready.
+                  </p>
+                }
+                @if (offers(p.id).length) {
+                  <ul class="offers">
+                    @for (listing of offers(p.id); track listing.listing_id) {
+                      <li>
+                        <div>
+                          <strong>{{ itemName(listing.item_id) }}</strong
+                          ><span
+                            >{{ listing.remaining_quantity }} available ·
+                            {{ listing.unit_price }}g each</span
+                          >
+                        </div>
+                        <button
+                          class="primary"
+                          type="button"
+                          [disabled]="
+                            !canAct() ||
+                            !state().observation?.player ||
+                            listing.remaining_quantity === '0'
+                          "
+                          (click)="selectOffer(listing)"
+                        >
+                          Review purchase
+                        </button>
+                      </li>
+                    }
+                  </ul>
+                } @else if (!state().observation || !hud().fresh) {
+                  <p>Shop stock has not loaded from a current snapshot yet.</p>
+                } @else {
+                  <p>
+                    This shop has no active offers in the current town snapshot.
+                  </p>
+                }
+                @if (!state().accountId) {
+                  <button
+                    class="primary"
+                    type="button"
+                    [disabled]="state().busy || screen.setup.kind !== 'ready'"
+                    (click)="openWalletDialog()"
+                  >
+                    Connect
+                  </button>
+                } @else if (!state().observation?.player) {
+                  <button class="primary" type="button" (click)="openManager()">
+                    Open player registration
+                  </button>
+                }
+                <app-merchant-economy [view]="merchantEconomies()[p.id]" />
+              }
+            }
+          } @else if (scenePanel() === "notice") {
+            <h1 id="scene-panel-title">Town notice board</h1>
+            <p>
+              <app-town-art kind="customer" class="hud-token" />Town customer
+              budget: {{ hud().customers ?? "--" }} game gold. This is shared
+              demand, not your earnings.
+            </p>
+            @if (marketEvent(); as event) {
+              <h2>Herb shortage · {{ event.status }}</h2>
+              <p>{{ event.explanation }}</p>
+              <p>
+                Current source cap: {{ event.current }} herbs per epoch.
+                Baseline: {{ event.baseline }}. Actual replenishment depends on
+                available capacity and the town runtime.
+              </p>
+            } @else {
+              <p>No confirmed market notice is available.</p>
+            }
+            <p>{{ nextAction().detail }}</p>
+            <button
+              class="primary"
+              type="button"
+              (click)="closeScenePanel(); openHelp()"
+            >
+              Open the player guide
+            </button>
+          } @else {
+            <h1 id="scene-panel-title">Around the bazaar</h1>
+            <p>
+              Confirmed effects, model proposals and rules decisions keep their
+              original labels. Only confirmed History proves a sale.
+            </p>
+            @if (state().activity.gap) {
+              <p class="notice warning">
+                Some earlier activity is unavailable. Showing retained updates.
+              </p>
+            }
+            <ol class="journal-events">
+              @for (entry of state().activity.events; track entry.event_id) {
+                <li>{{ activityText(entry) }}</li>
+              } @empty {
+                <li>No retained town activity is available yet.</li>
+              }
+            </ol>
+            <button
+              class="primary"
+              type="button"
+              (click)="openManager('history')"
+            >
+              Your sales & accounting
+            </button>
+            <h2>Player shops</h2>
+            <p>
+              Read-only directory. Player-to-player purchases are not available.
+            </p>
+            <button
+              class="quiet"
+              type="button"
+              [disabled]="
+                screen.setup.kind !== 'ready' || state().directoryBusy
+              "
+              (click)="screen.controller.browseShops(true)"
+            >
+              Browse player shops
+            </button>
+            @if (state().directoryMessage) {
+              <p role="status">{{ state().directoryMessage }}</p>
+            }
+            @if (state().directory; as directory) {
+              <ul>
+                @for (other of directory.shops; track other.shop_id) {
+                  <li>{{ other.name }} · Shop #{{ other.shop_id }}</li>
+                }
+              </ul>
+              @if (directory.nextCursor) {
+                <button
+                  class="quiet"
+                  type="button"
+                  [disabled]="state().directoryBusy"
+                  (click)="screen.controller.browseShops()"
+                >
+                  More shops
+                </button>
+              }
+            }
+          }
+        </div>
+      </dialog>
+      <dialog
+        #helpDialog
+        class="help-dialog"
+        aria-labelledby="how-to-play-title"
+        (close)="helpClosed()"
+      >
+        <div class="workshop-heading">
+          <h2 id="how-to-play-title">How to play Living Town</h2>
+          <button type="button" class="quiet" (click)="closeHelp()">
+            Close guide
+          </button>
+        </div>
+        <p>
+          Register, claim your shop, buy ingredients, craft and claim output,
+          list a product, confirm a sale, then earn a second production slot.
+          Every wallet approval shows the exact request; the guide never signs
+          for you.
+        </p>
+        <ol class="help-steps">
+          @for (step of tutorial().steps; track step.id) {
+            <li>
+              <h3>{{ step.title }}</h3>
+              <p>{{ step.detail }}</p>
+              <small>{{ step.evidence }}</small>
+            </li>
           }
         </ol>
-      } @else {
+        <h3>Game gold and native NEAR</h3>
         <p>
-          No new confirmed updates this visit. Current balances and past
-          receipts remain in your manager.
+          Game gold is non-redeemable and stays in the town economy. Native
+          Testnet NEAR pays wallet/network fees separately; a failed transaction
+          can still burn native gas. History separates grants, purchases,
+          upgrade burns and realized trading profit.
         </p>
-      }
-      @if (state().pending) {
+        <h3>Waiting, unsold goods and restocking</h3>
         <p>
-          Original wallet request: {{ pendingSummary() }}. These updates do not
-          resolve an unknown transaction.
+          Production inputs are consumed at Start. The whole batch becomes
+          claimable after its pinned network time; there is no cancellation or
+          refund. A browser countdown is an estimate: refresh for finalized
+          readiness.
         </p>
-        <button class="quiet" type="button" (click)="openManager()">
-          Open original request
-        </button>
-      }
-    </section>
-    <section class="first-loop" aria-labelledby="first-loop-title">
-      <div class="workshop-heading">
-        <div>
-          <p class="eyebrow">YOUR FIRST LOOP</p>
-          <h2 id="first-loop-title">From first stock to a second slot</h2>
-        </div>
-        <button class="quiet" type="button" (click)="openHelp()">
-          How to play
-        </button>
-      </div>
-      @if (tutorial().scope) {
         <p>
-          {{ tutorial().completed }} of {{ tutorial().steps.length }} milestones
-          confirmed.
-          {{
-            tutorial().fresh
-              ? "Progress uses confirmed state and receipt history."
-              : "Previous observations; refresh before acting."
-          }}
+          Listed goods stay reserved. Overpriced goods have no baseline customer
+          demand. Affordable goods can still wait for shared budgets, quotas and
+          competing offers. Compare prices or cancel/relist through the normal
+          owner review; only confirmed History proves a sale.
         </p>
-      } @else {
         <p>
-          Connect a player to load confirmed progress. Preview does not create
-          or save a game.
+          Suppliers restock through bounded town supply. Stock, capacity, market
+          events and the town worker affect replenishment. Empty shelves can
+          persist; refresh and compare other recipes instead of assuming another
+          click creates stock.
         </p>
-      }
-      <ol class="tutorial-steps">
-        @for (step of tutorial().steps; track step.id; let n = $index) {
-          <li
-            [class.confirmed]="step.status === 'confirmed'"
-            [attr.aria-current]="
-              tutorial().current?.id === step.id ? 'step' : null
-            "
+        <h3>Pending or unknown wallet outcome</h3>
+        <p>
+          Closing a wallet or refreshing the page does not prove failure. Open
+          the saved original request in your manager, check its transaction or
+          verify its original hash. Do not create a replacement while the
+          outcome is unknown. Cancelling a prepared request applies only before
+          wallet handoff.
+        </p>
+        <h3>Returning to your shop</h3>
+        <p>
+          Reconnect the same account and town. Progress is rebuilt from
+          finalized shop facts and confirmed receipt history, not a local
+          completion flag. Load more History when older proof is missing. A
+          confirmed later production, listing, sale or upgrade can establish
+          earlier workflow prerequisites without asking you to buy twice.
+        </p>
+      </dialog>
+      <dialog
+        #purchaseDialog
+        class="purchase-dialog"
+        aria-labelledby="purchase-title"
+        (close)="purchaseClosed()"
+      >
+        @if (selected(); as listing) {
+          <section
+            class="purchase-review"
+            id="purchase-review"
+            tabindex="-1"
+            aria-labelledby="purchase-title"
           >
-            <span aria-hidden="true">{{
-              step.status === "confirmed" ? "✓" : n + 1
-            }}</span
-            ><strong>{{ step.title }}</strong
-            ><small>{{
-              step.status === "confirmed"
-                ? "Confirmed"
-                : step.status === "unknown"
-                  ? "History not yet established"
-                  : "Awaiting confirmed state"
-            }}</small>
-          </li>
-        }
-      </ol>
-      @if (tutorial().current; as goal) {
-        <p>
-          <strong>Goal: {{ goal.title }}.</strong> {{ goal.detail }}
-        </p>
-        @if (goal.status === "unknown") {
-          <p class="muted">{{ goal.evidence }}</p>
-        }
-      } @else {
-        <p>
-          Your second slot is confirmed. Continue with two independent batches
-          and track your realized profit in History.
-        </p>
-      }
-      <p class="muted">
-        Steps advance after finalized state or confirmed history, never from a
-        button click. Reconnect to restore these facts; missing history is not a
-        reason to repeat a purchase.
-      </p>
-      @if (goalNotice()) {
-        <p class="notice" role="status" aria-live="polite">
-          {{ goalNotice() }}
-        </p>
-      }
-    </section>
-    <section id="marketplace" class="market" aria-labelledby="market-title">
-      <div class="section-heading">
-        <div>
-          <p class="eyebrow">THE NEIGHBOURHOOD</p>
-          <h2 id="market-title">Market square<span>.</span></h2>
-        </div>
-        <p>Three familiar faces.<br />One space reserved for you.</p>
-      </div>
-      <div class="storefronts">
-        @for (p of profiles; track p.id) {
-          <article
-            [class]="'storefront ' + p.color"
-            [attr.aria-labelledby]="p.id + '-title'"
-          >
-            <div class="awning" aria-hidden="true"></div>
-            <div class="merchant-top">
-              <img
-                [src]="'art/' + p.id + '.png'"
-                alt=""
-                width="1024"
-                height="1536"
-              /><span class="shop-tag">{{ p.specialty }}</span>
+            <div>
+              <p class="eyebrow">REVIEW YOUR PURCHASE</p>
+              <h2 id="purchase-title">{{ itemName(listing.item_id) }}</h2>
+              <p>
+                {{ listing.unit_price }}g each. The reviewed price and
+                stock are checked again on-chain.
+              </p>
             </div>
-            <div class="storefront-body">
-              <h3 [id]="p.id + '-title'">{{ p.name }}<span>.</span></h3>
-              <p class="muted">Your neighbourhood supplier</p>
-              @if (offers(p.id).length) {
-                <ul class="offers">
-                  @for (listing of offers(p.id); track listing.listing_id) {
-                    <li>
-                      <div>
-                        <strong>{{ itemName(listing.item_id) }}</strong
-                        ><span
-                          >{{ listing.remaining_quantity }} for sale ·
-                          {{ listing.unit_price }} gold each</span
-                        >
-                      </div>
-                      <button
-                        type="button"
-                        class="small-button"
-                        [disabled]="!canAct() || !state().observation?.player"
-                        (click)="selectOffer(listing)"
-                      >
-                        Review
-                      </button>
-                    </li>
+            <form (submit)="$event.preventDefault(); buy()">
+              <label
+                >Quantity
+                <input
+                  inputmode="numeric"
+                  type="text"
+                  maxlength="3"
+                  [value]="quantity()"
+                  (input)="quantity.set(text($event))" /></label
+              ><strong>{{
+                quote()
+                  ? quote()!.total + " game gold"
+                  : "Enter an available quantity"
+              }}</strong
+              ><button
+                class="primary"
+                type="submit"
+                [disabled]="!canAct() || !quote() || !canAfford()"
+              >
+                {{
+                  canAfford()
+                    ? "Buy reviewed materials"
+                    : "Not enough available gold"
+                }}</button
+              ><button class="quiet" type="button" (click)="closePurchase()">
+                Close
+              </button>
+            </form>
+          </section>
+        }
+      </dialog>
+      <dialog
+        #managerDialog
+        class="manager-drawer"
+        aria-labelledby="manager-title"
+        (close)="managerClosed()"
+      >
+        <section id="your-shop" class="manager" aria-labelledby="manager-title">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">YOUR OWN LITTLE BUSINESS</p>
+              <h2 id="manager-title">
+                {{ shop()?.name ?? "Your shop manager" }}<span>.</span>
+              </h2>
+            </div>
+            <button
+              class="quiet"
+              type="button"
+              [disabled]="screen.setup.kind !== 'ready' || state().busy"
+              (click)="screen.controller.refresh()"
+            >
+              Refresh confirmed data
+            </button>
+            <button class="quiet" type="button" (click)="openHelp()">
+              How to play
+            </button>
+            <button
+              type="button"
+              class="quiet close-manager"
+              (click)="closeManager()"
+            >
+              Close manager
+            </button>
+          </div>
+
+<section class="town-feedback"
+            aria-label="Recent confirmed shop updates"
+          >
+            <p
+              class="feedback-announcement"
+              [attr.aria-live]="managerVisible() ? 'polite' : 'off'"
+              aria-atomic="true"
+            >
+              {{ feedbackAnnouncement() }}
+            </p>
+            @if (feedback().length) {
+              <details>
+                <summary>
+                  Recent confirmed shop updates ({{ feedback().length }})
+                </summary>
+                <ol class="feedback-list">
+                  @for (event of feedback(); track event.id) {
+                    <li>{{ event.text }}</li>
                   }
-                </ul>
-              } @else {
-                <p class="stock-empty">
+                </ol>
+              </details>
+            }
+            <button
+              class="quiet"
+              type="button"
+              [attr.aria-pressed]="soundEnabled()"
+              (click)="toggleFeedbackSound()"
+            >
+              {{
+                soundEnabled() ? "Mute feedback sound" : "Enable feedback sound"
+              }}
+            </button>
+            @if (soundMessage()) {
+              <p role="status">{{ soundMessage() }}</p>
+            }
+          </section>
+          @if (state().observation; as observation) {
+            <p class="freshness">
+              {{
+                observation.source === "chain"
+                  ? "Finalized on-chain"
+                  : "Read-only town view"
+              }}
+              · Observed {{ observation.receivedAt | date: "shortTime"
+              }}{{ observation.stale ? " · Previous snapshot" : "" }}
+            </p>
+          }
+          @if (!isGuest() ? state().pending : null; as pending) {
+            <section class="pending" aria-labelledby="pending-title">
+              <div>
+                <p class="eyebrow">ORIGINAL WALLET ATTEMPT</p>
+                <h2 id="pending-title">
                   {{
-                    screen.setup.kind === "ready"
-                      ? "Connect or refresh for confirmed offers."
-                      : "Live stock appears when a town is connected."
+                    pending.phase === "prepared"
+                      ? "Prepared for your review"
+                      : "Waiting for a confirmed outcome"
                   }}
+                </h2>
+                <p class="pending-terms">{{ pendingSummary() }}</p>
+                <p>
+                  Saved for {{ pending.accountId }}. Refreshing or closing this
+                  page will not resend it.
+                </p>
+                @if (pendingUrl(); as url) {
+                  <a [href]="url" target="_blank" rel="noopener noreferrer"
+                    >View submitted transaction ↗</a
+                  >
+                }
+              </div>
+              <div class="pending-actions">
+                @if (
+                  pending.call.method === "register_player" &&
+                  pending.phase === "unknown" &&
+                  !pending.transactionHash
+                ) {
+                  <button
+                    class="primary"
+                    type="button"
+                    [disabled]="!canRetryRegistration()"
+                    (click)="retryRegistration()"
+                  >
+                    Retry registration
+                  </button>
+                }
+                @if (pending.phase === "prepared") {
+                  <button
+                    class="primary"
+                    type="button"
+                    [disabled]="
+                      state().busy || pending.accountId !== state().accountId
+                    "
+                    (click)="screen.controller.resumePrepared()"
+                  >
+                    Submit prepared request
+                  </button>
+                  <button
+                    class="quiet"
+                    type="button"
+                    [disabled]="state().busy"
+                    (click)="screen.controller.discardPrepared()"
+                  >
+                    Cancel unsubmitted request
+                  </button>
+                }
+                <button
+                  class="primary"
+                  type="button"
+                  [disabled]="state().busy"
+                  [hidden]="isGuest()"
+                  (click)="screen.controller.checkTransaction()"
+                >
+                  Check original transaction
+                </button>
+                <form [hidden]="isGuest()"
+                  (submit)="
+                    $event.preventDefault();
+                    screen.controller.recover(recoveryHash())
+                  "
+                >
+                  <label for="recover-hash">Original transaction hash</label
+                  ><input
+                    id="recover-hash"
+                    maxlength="44"
+                    autocomplete="off"
+                    [value]="recoveryHash()"
+                    (input)="recoveryHash.set(text($event))"
+                  /><button
+                    class="quiet"
+                    type="submit"
+                    [disabled]="state().busy || !recoveryHash()"
+                  >
+                    Verify hash
+                  </button>
+                </form>
+              </div>
+            </section>
+          }
+
+          @if (pendingPurchase(); as purchase) {
+            <section class="purchase-in-progress" role="status" aria-live="polite">
+              <strong>Buying {{ purchase.quantity }} {{ itemName(purchase.item).toLowerCase() }}…</strong>
+              <span>Waiting for confirmation. Your inventory will update once confirmed.</span>
+              <progress aria-label="Purchase awaiting confirmation"></progress>
+            </section>
+          }
+          <div
+            class="manager-tabs"
+            role="tablist"
+            aria-label="Shop manager sections"
+          >
+            @for (t of tabs; track t.id; let index = $index) {
+              <button
+                type="button"
+                role="tab"
+                [id]="'shop-tab-' + t.id"
+                [attr.aria-controls]="'shop-panel-' + t.id"
+                [attr.aria-selected]="tab() === t.id"
+                [attr.tabindex]="tab() === t.id ? 0 : -1"
+                (click)="tab.set(t.id)"
+                (keydown)="moveTab($event, index)"
+              >
+                {{ t.name }}
+              </button>
+            }
+          </div>
+          @if (tab() === "activity" && isGuest()) {
+            <div role="tabpanel" id="shop-panel-activity" aria-labelledby="shop-tab-activity"
+              tabindex="0" class="manager-panel">
+              <app-guest-activity
+                [guest]="guest()" [town]="state()" [explorer]="explorer"
+                (refresh)="screen.controller.refreshGuestActivity()"
+                (more)="screen.controller.refreshGuestActivity(true)"
+                (openMerchant)="visitGuestMerchant($event)"
+                (openManager)="openManager($event)"
+              />
+            </div>
+          } @else if (tab() === "assistant") {
+            <div
+              role="tabpanel"
+              id="shop-panel-assistant"
+              aria-labelledby="shop-tab-assistant"
+              tabindex="0"
+              class="manager-panel"
+            >
+              <app-town-assistant
+                [state]="state()"
+                [controller]="screen.controller"
+                [elapsedMs]="elapsedMs()"
+              />
+            </div>
+          } @else if (!shop() && tab() === "overview") {
+            <div
+              class="onboarding"
+              role="tabpanel"
+              id="shop-panel-overview"
+              aria-labelledby="shop-tab-overview"
+              tabindex="0"
+            >
+              <div class="onboarding-copy">
+                <span class="onboarding-symbol" aria-hidden="true">✧</span>
+                <h3>Make yourself at home.</h3>
+                <p>
+                  Registration and shop creation are two separate wallet
+                  approvals. Register once for 100 game gold, then give your
+                  shop a name. Creating a shop does not issue another grant.
+                </p>
+              </div>
+              <ol class="setup-steps">
+                <li [class.complete]="!!state().observation?.player">
+                  <span class="step-number">01</span>
+                  <div>
+                    <h4>Register your player</h4>
+                    <p>
+                      {{
+                        state().observation?.player
+                          ? "Registered. Your current balance is " +
+                            state().observation!.player!.ledger.gold.held +
+                            " game gold."
+                          : "Your once-only starter grant goes to your player inventory."
+                      }}
+                    </p>
+                  </div>
+                  <button
+                    class="primary"
+                    type="button"
+                    [disabled]="!canRegister()"
+                    (click)="register()"
+                  >
+                    {{
+                      state().observation?.player
+                        ? "Registered"
+                        : "Register player"
+                    }}
+                  </button>
+                </li>
+                <li>
+                  <span class="step-number">02</span>
+                  <div>
+                    <h4>Name your shop</h4>
+                    <label class="sr-only" for="new-shop-name"
+                      >New shop name</label
+                    ><input
+                      id="new-shop-name"
+                      maxlength="32"
+                      autocomplete="off"
+                      [disabled]="!state().observation?.player || state().busy"
+                      placeholder="A name for your corner of town"
+                      [value]="shopName()"
+                      (input)="shopName.set(text($event))"
+                      aria-describedby="shop-name-help"
+                    />
+                    <p id="shop-name-help">
+                      1–32 letters, numbers, spaces, _ or -. Start with a letter
+                      or number.
+                    </p>
+                  </div>
+                  <button
+                    class="primary"
+                    type="button"
+                    [disabled]="
+                      !canAct() || !state().observation?.player || !nameValid()
+                    "
+                    (click)="create()"
+                  >
+                    Create shop
+                  </button>
+                </li>
+              </ol>
+              @if (reserved()) {
+                <p class="notice warning">
+                  This is a town management account. Connect a separate player
+                  wallet to create a shop.
+                </p>
+              }
+              @if (state().phase === "unavailable") {
+                <p class="notice">
+                  Ownership could not be confirmed. Refresh to check your
+                  existing shop.
+                </p>
+              }
+              @if (screen.setup.kind !== "ready") {
+                <p class="preview-footnote">
+                  Preview only: no registration, gold or ownership has been
+                  created.
                 </p>
               }
             </div>
-          </article>
-        }
-        <article class="storefront personal" aria-labelledby="your-storefront">
-          <div class="awning" aria-hidden="true"></div>
-          <div class="personal-art" aria-hidden="true">
-            <app-town-art kind="storefront" class="facade-art" />
-          </div>
-          <div class="storefront-body">
-            <span class="shop-tag">{{
-              shop() ? "PLAYER OWNED" : "RESERVED FOR YOU"
-            }}</span>
-            <h3 id="your-storefront">
-              {{ shop()?.name ?? "Your shop" }}<span>.</span>
-            </h3>
-            <p class="muted">
-              {{
-                shop()
-                  ? "Your shelves. Your next move."
-                  : "A little space with a lot of possibility."
-              }}
-            </p>
-            @if (shop(); as ownShop) {
-              <p class="facade-state">
-                Shop #{{ ownShop.shop_id }} ·
-                {{ ownShop.production_slots }} production slots<br />Owner:
-                {{ state().accountId }}
+          } @else if (!shop()) {
+            <div
+              role="tabpanel"
+              [id]="'shop-panel-' + tab()"
+              [attr.aria-labelledby]="'shop-tab-' + tab()"
+              tabindex="0"
+              class="manager-panel"
+            >
+              <div class="coming-later">
+                @switch (tab()) {
+                  @case ("inventory") {
+                    <h3>Your shelves are waiting.</h3>
+                    <p>
+                      Create your shop to see its confirmed held, available and
+                      reserved inventory. No balances are loaded in preview.
+                    </p>
+                  }
+                  @case ("production") {
+                    <h3>Your workshop begins with a shop.</h3>
+                    <p>
+                      Create your shop to load confirmed recipes, inputs and
+                      your production queue.
+                    </p>
+                    <p>{{ productionPolicy }}</p>
+                  }
+                  @case ("history") {
+                    <h3>Your story starts with ownership.</h3>
+                    <p>
+                      A verified ownership transaction will appear after your
+                      shop is created. Confirmed trading history becomes
+                      available in your manager.
+                    </p>
+                  }
+                  @case ("listings") {
+                    <h3>Your storefront needs a shop.</h3>
+                    <p>
+                      Create your shop to reserve stock, set prices and compare
+                      confirmed market offers.
+                    </p>
+                  }
+                }
+              </div>
+            </div>
+          } @else {
+            <div
+              role="tabpanel"
+              [id]="'shop-panel-' + tab()"
+              [attr.aria-labelledby]="'shop-tab-' + tab()"
+              tabindex="0"
+              class="manager-panel"
+            >
+              @switch (tab()) {
+                @case ("overview") {
+                  <div class="overview">
+                    <div>
+                      <span class="pill">
+                        @if (shop()!.production_slots === "2") {
+                          <app-town-art kind="upgrade" />
+                        }
+                        {{ level() }} ·
+                        {{ shop()!.production_slots }} production slot</span
+                      >
+                      <h3>A shop to call your own.</h3>
+                      <p>
+                        Stock up with raw materials from your neighbours. Your
+                        confirmed inventory stays with your player account.
+                      </p>
+                      <dl class="shop-facts">
+                        <div>
+                          <dt>Owner</dt>
+                          <dd>{{ state().accountId }}</dd>
+                        </div>
+                        <div>
+                          <dt>Shop</dt>
+                          <dd>#{{ shop()!.shop_id }}</dd>
+                        </div>
+                      </dl>
+                      @if (state().ownershipUrl; as url) {
+                        <a
+                          [href]="url"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          class="proof-link"
+                          >View ownership transaction ↗</a
+                        >
+                      } @else {
+                        <p class="muted">
+                          Ownership is confirmed on-chain. Its creation
+                          transaction link is not available right now.
+                        </p>
+                      }
+                    </div>
+                    @if (state().observation?.ledger; as ledger) {
+                      <div class="gold-card">
+                        <span class="eyebrow">GAME GOLD</span
+                        ><strong>{{ ledger.gold.held }}</strong>
+                        <dl>
+                          <div>
+                            <dt>Available</dt>
+                            <dd>{{ ledger.gold.available }}</dd>
+                          </div>
+                          <div>
+                            <dt>Reserved</dt>
+                            <dd>{{ ledger.gold.trade_reserved }}</dd>
+                          </div>
+                        </dl>
+                        <small
+                          >Virtual game currency. Separate from native
+                          NEAR.</small
+                        >
+                      </div>
+                    }
+                  </div>
+                  <form
+                    class="rename"
+                    (submit)="$event.preventDefault(); rename()"
+                  >
+                    <label for="rename-shop"
+                      >Rename your shop
+                      <input
+                        id="rename-shop"
+                        maxlength="32"
+                        [placeholder]="shop()!.name"
+                        [value]="renameName()"
+                        (input)="renameName.set(text($event))"
+                        [disabled]="state().busy" /></label
+                    ><button
+                      class="quiet"
+                      type="submit"
+                      [disabled]="!canAct() || !renameValid()"
+                    >
+                      Save name
+                    </button>
+                  </form>
+                }
+                @case ("inventory") {
+                  <div class="inventory-heading">
+                    <div>
+                      <h3>Everything on your shelves.</h3>
+                      <p>
+                        Held includes your available items and items reserved
+                        for listings or trades.
+                      </p>
+                    </div>
+                  </div>
+                  <div class="inventory-scroll">
+                    <table>
+                      <caption class="sr-only">
+                        Confirmed player inventory
+                      </caption>
+                      <thead>
+                        <tr>
+                          <th scope="col">Item</th>
+                          <th scope="col">Held</th>
+                          <th scope="col">Available</th>
+                          <th scope="col">Reserved</th>
+                          <th scope="col">Incoming capacity</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        @for (row of items(); track row.id) {
+                          <tr>
+                            <th scope="row">
+                              <app-town-art
+                                class="small-icon"
+                                [kind]="row.id"
+                              />
+                              {{ row.name }}
+                              @if (pendingPurchase()?.item === row.id) { <small class="inventory-purchase-pending">Buying +{{ pendingPurchase()!.quantity }}…</small> }
+                            </th>
+                            <td>{{ row.held }}</td>
+                            <td>{{ row.available }}</td>
+                            <td>{{ row.reserved }}</td>
+                            <td>{{ row.incoming }}</td>
+                          </tr>
+                        }
+                      </tbody>
+                    </table>
+                  </div>
+                  <p class="muted">
+                    Incoming capacity is promised space for production or trade
+                    deliveries. It is not an item you already hold.
+                  </p>
+                }
+                @case ("listings") {
+                  <app-town-sales
+                    [elapsedMs]="elapsedMs()"
+                    mode="listings"
+                    [state]="state()"
+                    [controller]="screen.controller"
+                    [explorer]="explorer"
+                    [canEdit]="canAct()"
+                    [canCancel]="screen.controller.canClaim && !reserved()"
+                  />
+                }
+                @case ("production") {
+                  <section class="workshop" aria-labelledby="workshop-title">
+                    <div class="workshop-heading">
+                      <div><h3 id="workshop-title">Your workshop</h3>
+                        <p class="workshop-intro">Turn materials into something worth selling.</p></div>
+                      <span class="workshop-capacity">{{ activeBatches().length }} / {{ shop()?.production_slots }} slots in use</span>
+                    </div>
+                    <label class="batch-quantity" for="batch-quantity">Batch size
+                      <input id="batch-quantity" type="number" min="1" max="10" step="1" inputmode="numeric"
+                        [value]="batchQuantity()" (input)="batchQuantity.set(text($event)); productionReview.set(null)"
+                        [disabled]="state().busy" />
+                      <span>Up to 10 at a time</span>
+                    </label>
+                    <div class="recipe-grid">
+                      @for (card of recipeCards(); track card.recipe.recipe_id) {
+                        <article class="recipe-card">
+                          <div class="recipe-heading"><app-town-art [kind]="card.recipe.output_item" />
+                            <h4>{{ itemName(card.recipe.output_item) }}</h4></div>
+                          @if (card.review; as quote) {
+                            <p class="recipe-summary">Makes {{ quote.output }} &middot; {{ durationText(quote.durationSeconds) }}</p>
+                            <ul class="recipe-inputs">
+                              @for (input of quote.inputs; track input.id) {
+                                <li><span>{{ input.required }} {{ itemName(input.id).toLowerCase() }}</span>
+                                  <span class="ingredient-available" [class.insufficient]="+input.available < +input.required">{{ input.available }} available</span></li>
+                              }
+                            </ul>
+                          } @else {
+                            <p class="recipe-summary">{{ durationText(card.recipe.duration_seconds) }} per item</p>
+                          }
+                          @if (card.reason) { <p class="recipe-reason">{{ card.reason }}</p> }
+                          <button type="button" class="primary" [disabled]="!canAct() || !!card.reason || !card.review"
+                            (click)="reviewRecipe(card.recipe)">Craft {{ itemName(card.recipe.output_item).toLowerCase() }}</button>
+                        </article>
+                      } @empty { <p class="muted">Recipes are loading&hellip;</p> }
+                    </div>
+                    @if (productionReview(); as review) {
+                      <section class="production-review" aria-labelledby="production-review-title" tabindex="0">
+                        <h4 id="production-review-title">Ready to craft?</h4>
+                        <p>{{ review.output }} {{ itemName(review.recipe.output_item).toLowerCase() }} &middot; {{ durationText(review.durationSeconds) }}</p>
+                        <p class="muted">Uses @for (input of review.inputs; track input.id; let last = $last) {
+                          {{ input.required }} {{ itemName(input.id).toLowerCase() }}{{ last ? '.' : ' + ' }}
+                        }</p>
+                        <p class="crafting-note">Materials are used when crafting starts. Batches cannot be cancelled.</p>
+                        @if (!isGuest()) { <p class="crafting-note">Your wallet will ask you to approve the network fee.</p> }
+                        @if (!reviewCurrent()) { <p class="recipe-reason" role="status">Your stock changed. Choose the recipe again.</p> }
+                        <div class="workshop-actions">
+                          <button class="primary" type="button" [disabled]="!canAct() || !reviewCurrent()" (click)="startBatch()">Start crafting</button>
+                          <button class="quiet" type="button" (click)="productionReview.set(null)">Go back</button>
+                        </div>
+                      </section>
+                    }
+                    <h4 class="queue-title">In progress</h4>
+                    @if (queued()) {
+                      <article class="production-job queued" role="status">Updating your batch&hellip; Waiting for confirmation.</article>
+                    }
+                    @if (productionFailure(); as failed) {
+                      <p class="recipe-reason" role="status">{{ failed.call.method === 'start_production' ? 'Crafting could not start. Check your materials and try again.' : 'Your items could not be collected. Please try again.' }}</p>
+                    }
+                    @if (state().observation?.production; as production) {
+                      <div class="production-jobs">
+                        @for (job of activeBatches(); track job.job_id) {
+                          <article class="production-job">
+                            <div class="recipe-heading"><app-town-art [kind]="job.output_item" />
+                              <h4>{{ job.output_quantity }} {{ itemName(job.output_item).toLowerCase() }}</h4></div>
+                            <p>{{ jobCountdown(job) }}</p>
+                            <button type="button" class="primary" [disabled]="!canClaim(job)" (click)="claim(job.job_id)">
+                              {{ isReady(job) ? 'Collect items' : 'Crafting...' }}
+                            </button>
+                          </article>
+                        } @empty { @if (!queued()) { <p class="workshop-empty">Your workbench is free. Choose a recipe to start crafting.</p> } }
+                      </div>
+                      @if (completedBatches().length) {
+                        <details class="workshop-details">
+                          <summary>Completed batches <span>{{ completedBatches().length }}</span></summary>
+                          <ul class="completed-batches">
+                            @for (job of completedBatches(); track job.job_id) {
+                              <li><span>{{ job.output_quantity }} {{ itemName(job.output_item).toLowerCase() }}</span><span>Collected</span></li>
+                            }
+                          </ul>
+                          @if (production.historyGap) { <p class="muted">Some older batches are no longer available.</p> }
+                        </details>
+                      }
+                    } @else { <p class="muted">Loading your batches&hellip;</p> }
+                    @if (state().observation?.upgrade; as upgrade) {
+                      @if (upgrade.production_slots === '1') {
+                        <details class="workshop-details">
+                          <summary>Upgrade your workshop</summary>
+                          <p>Craft two batches at once. Craft and sell both products to unlock the upgrade.</p>
+                          <p class="crafting-note">Costs 150g. You need at least 30g left after upgrading.</p>
+                          <button type="button" class="primary" [disabled]="!canAct() || !upgrade.eligible" (click)="purchaseUpgrade()">Unlock second slot &middot; 150g</button>
+                        </details>
+                      }
+                    }
+                  </section>
+                }
+                @case ("history") {
+                  <app-town-sales
+                    [elapsedMs]="elapsedMs()"
+                    mode="history"
+                    [state]="state()"
+                    [controller]="screen.controller"
+                    [explorer]="explorer"
+                  />
+                }
+              }
+            </div>
+          }
+        </section>
+      </dialog>
+    </main>
+  </div>
+} @else {
+  <a
+    class="skip-link"
+    href="#your-shop"
+    (click)="$event.preventDefault(); openManager()"
+    >Open shop manager</a
+  >
+  <div class="town-page">
+    <header class="topbar">
+      <a class="brand" href="#top" aria-label="Bot Bazaar home"
+        ><span class="brand-stamp" aria-hidden="true">b.</span
+        ><span>BOT BAZAAR<small>LIVING TOWN</small></span></a
+      >
+      <nav aria-label="Town navigation">
+        <a href="#marketplace">Market square</a
+        ><a href="#your-shop" (click)="$event.preventDefault(); openManager()"
+          >Your shop</a
+        >
+        <button class="quiet" type="button" (click)="openManager('production')">
+          Craft
+        </button>
+        <a href="#town-activity">Activity</a>
+        <button class="quiet" type="button" (click)="openHelp()">
+          How to play
+        </button>
+      </nav>
+      <span class="network"
+        ><span aria-hidden="true"></span>{{ modeLabel() }}</span
+      >
+    </header>
+    <main id="top">
+      <section class="intro" aria-labelledby="town-title">
+        <div>
+          <p class="eyebrow">A LITTLE ECONOMY. A PLACE OF YOUR OWN.</p>
+          <h1 id="town-title">
+            Every town starts<br />with <em>a small shop.</em>
+          </h1>
+          <p class="intro-copy">
+            Meet your neighbours, stock your shelves and make a place for
+            yourself in the bazaar.
+          </p>
+        </div>
+        <aside class="welcome">
+          <span class="eyebrow">YOUR CORNER OF THE MARKET</span
+          ><span class="little-shop" aria-hidden="true"><i></i><b></b></span>
+          <p>
+            One owner. One shop.<br /><strong>Your story starts here.</strong>
+          </p>
+        </aside>
+      </section>
+      @if (marketEvent(); as event) {
+        <aside class="session" aria-label="Market event">
+          <div>
+            <strong>Herb shortage: {{ event.status }}</strong>
+            @if (state().observation?.stale) {
+              <p>
+                Last confirmed event. Refresh the town to check current
+                conditions.
               </p>
             }
-            <a
-              class="shop-link"
-              href="#your-shop"
-              (click)="$event.preventDefault(); openManager()"
-              >{{ shop() ? "Open your manager" : "Start your shop" }}
-              <span aria-hidden="true">↗</span></a
-            >
+            <p>{{ event.explanation }}</p>
+            <p>
+              Baseline cap: {{ event.baseline }} herbs per epoch. Current cap:
+              {{ event.current }}. Replenishment depends on stock and free
+              capacity.
+            </p>
           </div>
-        </article>
-      </div>
-    </section>
-    <section class="market-comparison" aria-labelledby="comparison-title">
-      <div class="workshop-heading">
-        <div>
-          <p class="eyebrow">BEFORE YOU SET A PRICE</p>
-          <h2 id="comparison-title">Product offers at a glance</h2>
-        </div>
-        <button
-          class="quiet"
-          type="button"
-          [disabled]="screen.setup.kind !== 'ready' || state().marketBusy"
-          (click)="screen.controller.loadMarket()"
-        >
-          Refresh comparisons
-        </button>
-      </div>
-      <div class="comparison-grid">
-        @for (comparison of comparisons(); track comparison.item) {
-          <article>
-            <h3>{{ itemName(comparison.item) }}</h3>
-            @if (comparison.ownKnown && !comparison.ownFresh) {
-              <small>Your price is from a previous snapshot.</small>
+        </aside>
+      }
+      <section class="session" aria-label="Player connection">
+        @if (screen.setup.kind !== "ready") {
+          <div>
+            <strong>{{
+              screen.setup.kind === "unavailable"
+                ? "Town connection unavailable"
+                : "Welcome to your local town preview"
+            }}</strong>
+            <p>
+              No town is connected yet. Explore the layout; saved shops and
+              wallet actions become available when a town is connected.
+            </p>
+          </div>
+          <span class="pill">No saved game in preview</span>
+        } @else {
+          <div>
+            <strong>{{ state().accountId ?? "Spectators welcome" }}</strong>
+            <p>
+              {{
+                state().accountId
+                  ? (isGuest() ? "Guest progress is temporary. Keep this browser session." : "Your wallet owns your shop. Game gold is separate from NEAR used for wallet fees.")
+                  : "Browse without a wallet. Connect when you are ready to register and claim your shop."
+              }}
+            </p>
+          </div>
+          @if (state().accountId) {
+            @if (state().accounts.length > 1) {
+              <label class="account-picker"
+                >Player
+                <select
+                  [value]="state().accountId"
+                  [disabled]="state().busy"
+                  (change)="screen.controller.chooseAccount(text($event))"
+                >
+                  @for (account of state().accounts; track account) {
+                    <option [value]="account">{{ account }}</option>
+                  }
+                </select></label
+              >
             }
-            <p>
-              Your listed price:
-              <strong>{{
-                !comparison.ownKnown
-                  ? "Unavailable"
-                  : comparison.own === null
-                    ? "Not listed"
-                    : comparison.own + " gold"
-              }}</strong>
-            </p>
-            <p>
-              Lowest loaded player offer:
-              <strong>{{
-                !comparison.loaded
-                  ? "Unavailable"
-                  : comparison.lowest === null
-                    ? "No loaded offers"
-                    : comparison.lowest + " gold"
-              }}</strong>
-            </p>
-            <small
-              >{{
-                comparison.fresh
-                  ? "Observed offers"
-                  : "Previous or unavailable offers"
-              }}{{
-                comparison.partial ? " · More market pages available" : ""
-              }}</small
+            <button
+              class="quiet"
+              type="button"
+              [disabled]="state().busy || (isGuest() && !!state().pending)"
+              (click)="screen.controller.disconnect()"
             >
-          </article>
+              Disconnect
+            </button>
+          } @else {
+            <button
+              class="primary"
+              type="button"
+              aria-haspopup="dialog"
+              [disabled]="state().busy || guest().status === 'provisioning'"
+              (click)="openWalletDialog()"
+            >
+              {{ guest().status === "provisioning" ? "Creating guest…" : state().busy ? "Connecting…" : "Connect" }}
+            </button>
+          }
         }
-      </div>
-      <p class="muted">
-        Comparisons cover loaded market pages and can change. A listed price or
-        customer animation is not a settled sale.
-      </p>
-      <button type="button" class="quiet" (click)="openManager('listings')">
-        Open Listings and compare stock
-      </button>
-    </section>
-    <section
-      class="shop-directory"
-      aria-labelledby="directory-title"
-      [attr.aria-busy]="state().directoryBusy"
-    >
-      <div class="section-heading">
+      </section>
+      <section
+        class="economy-hud"
+        aria-label="Town economy snapshot"
+        [class.snapshot-old]="!hud().fresh"
+      >
+        <div class="hud-heading">
+          <strong>{{ shop()?.name ?? "Your place in the town" }}</strong
+          ><span>{{
+            hud().fresh
+              ? "Current observed snapshot"
+              : screen.setup.kind === "ready"
+                ? "Previous or unavailable snapshot"
+                : "No live balances in preview"
+          }}</span>
+        </div>
+        <dl>
+          <div>
+            <dt>Available game gold</dt>
+            <dd>{{ hud().available ?? "Unavailable" }}</dd>
+          </div>
+          <div>
+            <dt>Reserved game gold</dt>
+            <dd>{{ hud().reserved ?? "Unavailable" }}</dd>
+          </div>
+          <div>
+            <dt>Production slots used</dt>
+            <dd>{{ hud().slots ?? "Unavailable" }}</dd>
+          </div>
+          <div>
+            <dt>
+              <app-town-art kind="customer" class="hud-token" />Town customer
+              budget
+            </dt>
+            <dd>{{ hud().customers ?? "Unavailable" }}</dd>
+          </div>
+        </dl>
+        <small
+          >Game gold is separate from native NEAR fees. Customer budget is
+          shared town demand, not your earnings. Only confirmed History proves a
+          sale.</small
+        >
+      </section>
+      <aside class="next-action" aria-labelledby="next-action-title">
         <div>
-          <p class="eyebrow">BEYOND THE SQUARE</p>
-          <h2 id="directory-title">Player shops<span>.</span></h2>
-          <p>
-            Every player's shop has a place here. Browsing does not change your
-            manager.
-          </p>
+          <p class="eyebrow">YOUR NEXT MOVE</p>
+          <h2 id="next-action-title">{{ nextAction().title }}</h2>
+          <p>{{ nextAction().detail }}</p>
         </div>
         <button
-          class="quiet"
+          class="primary"
           type="button"
-          [disabled]="
-            screen.setup.kind !== 'ready' ||
-            state().directoryBusy ||
-            state().phase === 'loading'
-          "
-          (click)="screen.controller.browseShops(true)"
+          [disabled]="state().busy"
+          (click)="followNextAction()"
         >
           {{
-            state().directoryBusy
-              ? "Loading shops..."
-              : state().directory
-                ? "Start again"
-                : "Browse player shops"
+            nextAction().target === "connect"
+              ? "Connect"
+              : nextAction().target === "refresh"
+                ? "Refresh confirmed data"
+                : nextAction().target === "market"
+                  ? "Review suppliers"
+                  : "Open " + nextAction().tab
           }}
         </button>
-      </div>
-      @if (state().directoryMessage) {
-        <p role="status">{{ state().directoryMessage }}</p>
-      }
-      @if (state().directory; as directory) {
-        <p class="muted">
-          Read-only snapshot from
-          {{ directory.receivedAt | date: "shortTime" }}. Each page checks up to
-          12 shop IDs.
-        </p>
-        <ul class="directory-shops">
-          @for (other of directory.shops; track other.shop_id) {
-            <li>
-              <strong>{{ other.name }}</strong
-              ><span>Shop #{{ other.shop_id }}</span>
-              @if (other.owner.kind === "player") {
-                <span>{{ other.owner.account_id }}</span>
-              }
-            </li>
-          } @empty {
-            <li>No player shops in this page.</li>
-          }
-        </ul>
-        @if (directory.nextCursor) {
-          <button
-            class="quiet"
-            type="button"
-            [disabled]="state().directoryBusy"
-            (click)="screen.controller.browseShops()"
-          >
-            Next page
-          </button>
-        } @else {
-          <p class="muted">End of this snapshot.</p>
-        }
-      } @else if (screen.setup.kind !== "ready") {
-        <p class="muted">Player shops appear when a town is connected.</p>
-      }
-    </section>
-    <dialog
-      #helpDialog
-      class="help-dialog"
-      aria-labelledby="how-to-play-title"
-      (close)="helpClosed()"
-    >
-      <div class="workshop-heading">
-        <h2 id="how-to-play-title">How to play Living Town</h2>
-        <button type="button" class="quiet" (click)="closeHelp()">
-          Close guide
-        </button>
-      </div>
-      <p>
-        Register, claim your shop, buy ingredients, craft and claim output, list
-        a product, confirm a sale, then earn a second production slot. Every
-        wallet approval shows the exact request; the guide never signs for you.
-      </p>
-      <ol class="help-steps">
-        @for (step of tutorial().steps; track step.id) {
-          <li>
-            <h3>{{ step.title }}</h3>
-            <p>{{ step.detail }}</p>
-            <small>{{ step.evidence }}</small>
-          </li>
-        }
-      </ol>
-      <h3>Game gold and native NEAR</h3>
-      <p>
-        Game gold is non-redeemable and stays in the town economy. Native
-        Testnet NEAR pays wallet/network fees separately; a failed transaction
-        can still burn native gas. History separates grants, purchases, upgrade
-        burns and realized trading profit.
-      </p>
-      <h3>Waiting, unsold goods and restocking</h3>
-      <p>
-        Production inputs are consumed at Start. The whole batch becomes
-        claimable after its pinned network time; there is no cancellation or
-        refund. A browser countdown is an estimate: refresh for finalized
-        readiness.
-      </p>
-      <p>
-        Listed goods stay reserved. Overpriced goods have no baseline customer
-        demand. Affordable goods can still wait for shared budgets, quotas and
-        competing offers. Compare prices or cancel/relist through the normal
-        owner review; only confirmed History proves a sale.
-      </p>
-      <p>
-        Suppliers restock through bounded town supply. Stock, capacity, market
-        events and the town worker affect replenishment. Empty shelves can
-        persist; refresh and compare other recipes instead of assuming another
-        click creates stock.
-      </p>
-      <h3>Pending or unknown wallet outcome</h3>
-      <p>
-        Closing a wallet or refreshing the page does not prove failure. Open the
-        saved original request in your manager, check its transaction or verify
-        its original hash. Do not create a replacement while the outcome is
-        unknown. Cancelling a prepared request applies only before wallet
-        handoff.
-      </p>
-      <h3>Returning to your shop</h3>
-      <p>
-        Reconnect the same account and town. Progress is rebuilt from finalized
-        shop facts and confirmed receipt history, not a local completion flag.
-        Load more History when older proof is missing. A confirmed later
-        production, listing, sale or upgrade can establish earlier workflow
-        prerequisites without asking you to buy twice.
-      </p>
-    </dialog>
-    <dialog
-      #purchaseDialog
-      class="purchase-dialog"
-      aria-labelledby="purchase-title"
-      (close)="purchaseClosed()"
-    >
-      @if (selected(); as listing) {
-        <section
-          class="purchase-review"
-          id="purchase-review"
-          tabindex="-1"
-          aria-labelledby="purchase-title"
-        >
-          <div>
-            <p class="eyebrow">REVIEW YOUR PURCHASE</p>
-            <h2 id="purchase-title">{{ itemName(listing.item_id) }}</h2>
-            <p>
-              {{ listing.unit_price }} game gold each. The reviewed price and
-              stock are checked again on-chain.
-            </p>
-          </div>
-          <form (submit)="$event.preventDefault(); buy()">
-            <label
-              >Quantity
-              <input
-                inputmode="numeric"
-                type="text"
-                maxlength="3"
-                [value]="quantity()"
-                (input)="quantity.set(text($event))" /></label
-            ><strong>{{
-              quote()
-                ? quote()!.total + " game gold"
-                : "Enter an available quantity"
-            }}</strong
-            ><button
-              class="primary"
-              type="submit"
-              [disabled]="!canAct() || !quote() || !canAfford()"
-            >
-              {{
-                canAfford()
-                  ? "Buy reviewed materials"
-                  : "Not enough available gold"
-              }}</button
-            ><button class="quiet" type="button" (click)="closePurchase()">
-              Close
-            </button>
-          </form>
-        </section>
-      }
-    </dialog>
-    <dialog
-      #managerDialog
-      class="manager-drawer"
-      aria-labelledby="manager-title"
-      (close)="managerClosed()"
-    >
-      <section id="your-shop" class="manager" aria-labelledby="manager-title">
-        <div class="section-heading">
-          <div>
-            <p class="eyebrow">YOUR OWN LITTLE BUSINESS</p>
-            <h2 id="manager-title">
-              {{ shop()?.name ?? "Your shop manager" }}<span>.</span>
-            </h2>
-          </div>
-          <button
-            class="quiet"
-            type="button"
-            [disabled]="screen.setup.kind !== 'ready' || state().busy"
-            (click)="screen.controller.refresh()"
-          >
-            Refresh confirmed data
-          </button>
-          <button class="quiet" type="button" (click)="openHelp()">
-            How to play
-          </button>
-          <button
-            type="button"
-            class="quiet close-manager"
-            (click)="closeManager()"
-          >
-            Close manager
-          </button>
-        </div>
-        <section
-          class="town-feedback"
-          aria-label="Recent confirmed shop updates"
-        >
-          <p
-            class="feedback-announcement"
-            [attr.aria-live]="managerVisible() ? 'polite' : 'off'"
-            aria-atomic="true"
-          >
-            {{ feedbackAnnouncement() }}
-          </p>
-          @if (feedback().length) {
-            <details>
-              <summary>
-                Recent confirmed shop updates ({{ feedback().length }})
-              </summary>
-              <ol class="feedback-list">
-                @for (event of feedback(); track event.id) {
-                  <li>{{ event.text }}</li>
-                }
-              </ol>
-            </details>
-          }
+      </aside>
+
+<section class="town-feedback" aria-labelledby="feedback-title">
+        <div class="workshop-heading">
+          <h2 id="feedback-title">Confirmed shop updates</h2>
           <button
             class="quiet"
             type="button"
@@ -743,744 +1346,1119 @@
               soundEnabled() ? "Mute feedback sound" : "Enable feedback sound"
             }}
           </button>
-          @if (soundMessage()) {
-            <p role="status">{{ soundMessage() }}</p>
-          }
-        </section>
-        @if (state().observation; as observation) {
-          <p class="freshness">
-            {{
-              observation.source === "chain"
-                ? "Finalized on-chain"
-                : "Read-only town view"
-            }}
-            · Observed {{ observation.receivedAt | date: "shortTime"
-            }}{{ observation.stale ? " · Previous snapshot" : "" }}
+        </div>
+        <p class="muted">
+          Sound starts muted each visit. Older activity is not replayed as a new
+          notification when you reconnect.
+        </p>
+        @if (soundMessage()) {
+          <p role="status">{{ soundMessage() }}</p>
+        }
+        <p
+          class="feedback-announcement"
+          [attr.aria-live]="managerVisible() ? 'off' : 'polite'"
+          aria-atomic="true"
+        >
+          {{ feedbackAnnouncement() }}
+        </p>
+        @if (feedback().length) {
+          <ol class="feedback-list">
+            @for (event of feedback(); track event.id) {
+              <li>{{ event.text }}</li>
+            }
+          </ol>
+        } @else {
+          <p>
+            No new confirmed updates this visit. Current balances and past
+            receipts remain in your manager.
           </p>
         }
-        @if (state().pending; as pending) {
-          <section class="pending" aria-labelledby="pending-title">
-            <div>
-              <p class="eyebrow">ORIGINAL WALLET ATTEMPT</p>
-              <h2 id="pending-title">
-                {{
-                  pending.phase === "prepared"
-                    ? "Prepared for your review"
-                    : "Waiting for a confirmed outcome"
-                }}
-              </h2>
-              <p class="pending-terms">{{ pendingSummary() }}</p>
-              <p>
-                Saved for {{ pending.accountId }}. Refreshing or closing this
-                page will not resend it.
-              </p>
-              @if (pendingUrl(); as url) {
-                <a [href]="url" target="_blank" rel="noopener noreferrer"
-                  >View submitted transaction ↗</a
-                >
-              }
-            </div>
-            <div class="pending-actions">
-              @if (pending.phase === "prepared") {
-                <button
-                  class="primary"
-                  type="button"
-                  [disabled]="
-                    state().busy || pending.accountId !== state().accountId
-                  "
-                  (click)="screen.controller.resumePrepared()"
-                >
-                  Submit prepared request
-                </button>
-                <button
-                  class="quiet"
-                  type="button"
-                  [disabled]="state().busy"
-                  (click)="screen.controller.discardPrepared()"
-                >
-                  Cancel unsubmitted request
-                </button>
-              }
-              <button
-                class="primary"
-                type="button"
-                [disabled]="state().busy"
-                (click)="screen.controller.checkTransaction()"
-              >
-                Check original transaction
-              </button>
-              <form
-                (submit)="
-                  $event.preventDefault();
-                  screen.controller.recover(recoveryHash())
-                "
-              >
-                <label for="recover-hash">Original transaction hash</label
-                ><input
-                  id="recover-hash"
-                  maxlength="44"
-                  autocomplete="off"
-                  [value]="recoveryHash()"
-                  (input)="recoveryHash.set(text($event))"
-                /><button
-                  class="quiet"
-                  type="submit"
-                  [disabled]="state().busy || !recoveryHash()"
-                >
-                  Verify hash
-                </button>
-              </form>
-            </div>
-          </section>
+        @if (!isGuest() && state().pending) {
+          <p>
+            Original wallet request: {{ pendingSummary() }}. These updates do
+            not resolve an unknown transaction.
+          </p>
+          <button class="quiet" type="button" (click)="openManager()">
+            Open original request
+          </button>
         }
-
-        <div
-          class="manager-tabs"
-          role="tablist"
-          aria-label="Shop manager sections"
-        >
-          @for (t of tabs; track t.id; let index = $index) {
-            <button
-              type="button"
-              role="tab"
-              [id]="'shop-tab-' + t.id"
-              [attr.aria-controls]="'shop-panel-' + t.id"
-              [attr.aria-selected]="tab() === t.id"
-              [attr.tabindex]="tab() === t.id ? 0 : -1"
-              (click)="tab.set(t.id)"
-              (keydown)="moveTab($event, index)"
-            >
-              {{ t.name }}
-            </button>
-          }
-        </div>
-        @if (tab() === "assistant") {
-          <div
-            role="tabpanel"
-            id="shop-panel-assistant"
-            aria-labelledby="shop-tab-assistant"
-            tabindex="0"
-            class="manager-panel"
-          >
-            <app-town-assistant
-              [state]="state()"
-              [controller]="screen.controller"
-              [elapsedMs]="elapsedMs()"
-            />
+      </section>
+      <section class="first-loop" aria-labelledby="first-loop-title">
+        <div class="workshop-heading">
+          <div>
+            <p class="eyebrow">YOUR FIRST LOOP</p>
+            <h2 id="first-loop-title">From first stock to a second slot</h2>
           </div>
-        } @else if (!shop() && tab() === "overview") {
-          <div
-            class="onboarding"
-            role="tabpanel"
-            id="shop-panel-overview"
-            aria-labelledby="shop-tab-overview"
-            tabindex="0"
-          >
-            <div class="onboarding-copy">
-              <span class="onboarding-symbol" aria-hidden="true">✧</span>
-              <h3>Make yourself at home.</h3>
-              <p>
-                Registration and shop creation are two separate wallet
-                approvals. Register once for 100 game gold, then give your shop
-                a name. Creating a shop does not issue another grant.
-              </p>
-            </div>
-            <ol class="setup-steps">
-              <li [class.complete]="!!state().observation?.player">
-                <span class="step-number">01</span>
-                <div>
-                  <h4>Register your player</h4>
-                  <p>
+          <button class="quiet" type="button" (click)="openHelp()">
+            How to play
+          </button>
+        </div>
+        @if (tutorial().scope) {
+          <p>
+            {{ tutorial().completed }} of
+            {{ tutorial().steps.length }} milestones confirmed.
+            {{
+              tutorial().fresh
+                ? "Progress uses confirmed state and receipt history."
+                : "Previous observations; refresh before acting."
+            }}
+          </p>
+        } @else {
+          <p>
+            Connect a player to load confirmed progress. Preview does not create
+            or save a game.
+          </p>
+        }
+        <ol class="tutorial-steps">
+          @for (step of tutorial().steps; track step.id; let n = $index) {
+            <li
+              [class.confirmed]="step.status === 'confirmed'"
+              [attr.aria-current]="
+                tutorial().current?.id === step.id ? 'step' : null
+              "
+            >
+              <span aria-hidden="true">{{
+                step.status === "confirmed" ? "✓" : n + 1
+              }}</span
+              ><strong>{{ step.title }}</strong
+              ><small>{{
+                step.status === "confirmed"
+                  ? "Confirmed"
+                  : step.status === "unknown"
+                    ? "History not yet established"
+                    : "Awaiting confirmed state"
+              }}</small>
+            </li>
+          }
+        </ol>
+        @if (tutorial().current; as goal) {
+          <p>
+            <strong>Goal: {{ goal.title }}.</strong> {{ goal.detail }}
+          </p>
+          @if (goal.status === "unknown") {
+            <p class="muted">{{ goal.evidence }}</p>
+          }
+        } @else {
+          <p>
+            Your second slot is confirmed. Continue with two independent batches
+            and track your realized profit in History.
+          </p>
+        }
+        <p class="muted">
+          Steps advance after finalized state or confirmed history, never from a
+          button click. Reconnect to restore these facts; missing history is not
+          a reason to repeat a purchase.
+        </p>
+        @if (goalNotice()) {
+          <p class="notice" role="status" aria-live="polite">
+            {{ goalNotice() }}
+          </p>
+        }
+      </section>
+      <section id="marketplace" class="market" aria-labelledby="market-title">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">THE NEIGHBOURHOOD</p>
+            <h2 id="market-title">Market square<span>.</span></h2>
+          </div>
+          <p>Three familiar faces.<br />One space reserved for you.</p>
+        </div>
+        <div class="storefronts">
+          @for (p of profiles; track p.id) {
+            <article
+              [class]="'storefront ' + p.color"
+              [id]="'merchant-' + p.id"
+              tabindex="-1"
+              [attr.aria-labelledby]="p.id + '-title'"
+            >
+              <div class="awning" aria-hidden="true"></div>
+              <div class="merchant-top">
+                <img
+                  [src]="'art/' + p.id + '.png'"
+                  alt=""
+                  width="1024"
+                  height="1536"
+                /><span class="shop-tag">{{ p.specialty }}</span>
+              </div>
+              <div class="storefront-body">
+                <h3 [id]="p.id + '-title'">{{ p.name }}<span>.</span></h3>
+                <p class="muted">Your neighbourhood supplier</p>
+                <app-merchant-economy [view]="merchantEconomies()[p.id]" />
+                @if (offers(p.id).length) {
+                  <ul class="offers">
+                    @for (listing of offers(p.id); track listing.listing_id) {
+                      <li>
+                        <div>
+                          <strong>{{ itemName(listing.item_id) }}</strong
+                          ><span
+                            >{{ listing.remaining_quantity }} for sale ·
+                            {{ listing.unit_price }}g each</span
+                          >
+                        </div>
+                        <button
+                          type="button"
+                          class="small-button"
+                          [disabled]="!canAct() || !state().observation?.player"
+                          (click)="selectOffer(listing)"
+                        >
+                          Review
+                        </button>
+                      </li>
+                    }
+                  </ul>
+                } @else {
+                  <p class="stock-empty">
                     {{
-                      state().observation?.player
-                        ? "Registered. Your current balance is " +
-                          state().observation!.player!.ledger.gold.held +
-                          " game gold."
-                        : "Your once-only starter grant goes to your player inventory."
+                      screen.setup.kind === "ready"
+                        ? "Connect or refresh for confirmed offers."
+                        : "Live stock appears when a town is connected."
                     }}
                   </p>
-                </div>
-                <button
-                  class="primary"
-                  type="button"
-                  [disabled]="!canRegister()"
-                  (click)="register()"
-                >
-                  {{
-                    state().observation?.player
-                      ? "Registered"
-                      : "Register player"
-                  }}
-                </button>
-              </li>
+                }
+              </div>
+            </article>
+          }
+          <article
+            class="storefront personal"
+            aria-labelledby="your-storefront"
+          >
+            <div class="awning" aria-hidden="true"></div>
+            <div class="personal-art" aria-hidden="true">
+              <app-town-art kind="storefront" class="facade-art" />
+            </div>
+            <div class="storefront-body">
+              <span class="shop-tag">{{
+                shop() ? "PLAYER OWNED" : "RESERVED FOR YOU"
+              }}</span>
+              <h3 id="your-storefront">
+                {{ shop()?.name ?? "Your shop" }}<span>.</span>
+              </h3>
+              <p class="muted">
+                {{
+                  shop()
+                    ? "Your shelves. Your next move."
+                    : "A little space with a lot of possibility."
+                }}
+              </p>
+              @if (shop(); as ownShop) {
+                <p class="facade-state">
+                  Shop #{{ ownShop.shop_id }} ·
+                  {{ ownShop.production_slots }} production slots<br />Owner:
+                  {{ state().accountId }}
+                </p>
+              }
+              <a
+                class="shop-link"
+                href="#your-shop"
+                (click)="$event.preventDefault(); openManager()"
+                >{{ shop() ? "Open your manager" : "Start your shop" }}
+                <span aria-hidden="true">↗</span></a
+              >
+            </div>
+          </article>
+        </div>
+      </section>
+      <section class="market-comparison" aria-labelledby="comparison-title">
+        <div class="workshop-heading">
+          <div>
+            <p class="eyebrow">BEFORE YOU SET A PRICE</p>
+            <h2 id="comparison-title">Product offers at a glance</h2>
+          </div>
+          <button
+            class="quiet"
+            type="button"
+            [disabled]="screen.setup.kind !== 'ready' || state().marketBusy"
+            (click)="screen.controller.loadMarket()"
+          >
+            Refresh comparisons
+          </button>
+        </div>
+        <div class="comparison-grid">
+          @for (comparison of comparisons(); track comparison.item) {
+            <article>
+              <h3>{{ itemName(comparison.item) }}</h3>
+              @if (comparison.ownKnown && !comparison.ownFresh) {
+                <small>Your price is from a previous snapshot.</small>
+              }
+              <p>
+                Your listed price:
+                <strong>{{
+                  !comparison.ownKnown
+                    ? "Unavailable"
+                    : comparison.own === null
+                      ? "Not listed"
+                      : comparison.own + " gold"
+                }}</strong>
+              </p>
+              <p>
+                Lowest loaded player offer:
+                <strong>{{
+                  !comparison.loaded
+                    ? "Unavailable"
+                    : comparison.lowest === null
+                      ? "No loaded offers"
+                      : comparison.lowest + " gold"
+                }}</strong>
+              </p>
+              <small
+                >{{
+                  comparison.fresh
+                    ? "Observed offers"
+                    : "Previous or unavailable offers"
+                }}{{
+                  comparison.partial ? " · More market pages available" : ""
+                }}</small
+              >
+            </article>
+          }
+        </div>
+        <p class="muted">
+          Comparisons cover loaded market pages and can change. A listed price
+          or customer animation is not a settled sale.
+        </p>
+        <button type="button" class="quiet" (click)="openManager('listings')">
+          Open Listings and compare stock
+        </button>
+      </section>
+      <section
+        class="shop-directory"
+        aria-labelledby="directory-title"
+        [attr.aria-busy]="state().directoryBusy"
+      >
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">BEYOND THE SQUARE</p>
+            <h2 id="directory-title">Player shops<span>.</span></h2>
+            <p>
+              Every player's shop has a place here. Browsing does not change
+              your manager.
+            </p>
+          </div>
+          <button
+            class="quiet"
+            type="button"
+            [disabled]="
+              screen.setup.kind !== 'ready' ||
+              state().directoryBusy ||
+              state().phase === 'loading'
+            "
+            (click)="screen.controller.browseShops(true)"
+          >
+            {{
+              state().directoryBusy
+                ? "Loading shops..."
+                : state().directory
+                  ? "Start again"
+                  : "Browse player shops"
+            }}
+          </button>
+        </div>
+        @if (state().directoryMessage) {
+          <p role="status">{{ state().directoryMessage }}</p>
+        }
+        @if (state().directory; as directory) {
+          <p class="muted">
+            Read-only snapshot from
+            {{ directory.receivedAt | date: "shortTime" }}. Each page checks up
+            to 12 shop IDs.
+          </p>
+          <ul class="directory-shops">
+            @for (other of directory.shops; track other.shop_id) {
               <li>
-                <span class="step-number">02</span>
-                <div>
-                  <h4>Name your shop</h4>
-                  <label class="sr-only" for="new-shop-name"
-                    >New shop name</label
-                  ><input
-                    id="new-shop-name"
-                    maxlength="32"
-                    autocomplete="off"
-                    [disabled]="!state().observation?.player || state().busy"
-                    placeholder="A name for your corner of town"
-                    [value]="shopName()"
-                    (input)="shopName.set(text($event))"
-                    aria-describedby="shop-name-help"
-                  />
-                  <p id="shop-name-help">
-                    1–32 letters, numbers, spaces, _ or -. Start with a letter
-                    or number.
-                  </p>
-                </div>
+                <strong>{{ other.name }}</strong
+                ><span>Shop #{{ other.shop_id }}</span>
+                @if (other.owner.kind === "player") {
+                  <span>{{ other.owner.account_id }}</span>
+                }
+              </li>
+            } @empty {
+              <li>No player shops in this page.</li>
+            }
+          </ul>
+          @if (directory.nextCursor) {
+            <button
+              class="quiet"
+              type="button"
+              [disabled]="state().directoryBusy"
+              (click)="screen.controller.browseShops()"
+            >
+              Next page
+            </button>
+          } @else {
+            <p class="muted">End of this snapshot.</p>
+          }
+        } @else if (screen.setup.kind !== "ready") {
+          <p class="muted">Player shops appear when a town is connected.</p>
+        }
+      </section>
+      <dialog
+        #helpDialog
+        class="help-dialog"
+        aria-labelledby="how-to-play-title"
+        (close)="helpClosed()"
+      >
+        <div class="workshop-heading">
+          <h2 id="how-to-play-title">How to play Living Town</h2>
+          <button type="button" class="quiet" (click)="closeHelp()">
+            Close guide
+          </button>
+        </div>
+        <p>
+          Register, claim your shop, buy ingredients, craft and claim output,
+          list a product, confirm a sale, then earn a second production slot.
+          Every wallet approval shows the exact request; the guide never signs
+          for you.
+        </p>
+        <ol class="help-steps">
+          @for (step of tutorial().steps; track step.id) {
+            <li>
+              <h3>{{ step.title }}</h3>
+              <p>{{ step.detail }}</p>
+              <small>{{ step.evidence }}</small>
+            </li>
+          }
+        </ol>
+        <h3>Game gold and native NEAR</h3>
+        <p>
+          Game gold is non-redeemable and stays in the town economy. Native
+          Testnet NEAR pays wallet/network fees separately; a failed transaction
+          can still burn native gas. History separates grants, purchases,
+          upgrade burns and realized trading profit.
+        </p>
+        <h3>Waiting, unsold goods and restocking</h3>
+        <p>
+          Production inputs are consumed at Start. The whole batch becomes
+          claimable after its pinned network time; there is no cancellation or
+          refund. A browser countdown is an estimate: refresh for finalized
+          readiness.
+        </p>
+        <p>
+          Listed goods stay reserved. Overpriced goods have no baseline customer
+          demand. Affordable goods can still wait for shared budgets, quotas and
+          competing offers. Compare prices or cancel/relist through the normal
+          owner review; only confirmed History proves a sale.
+        </p>
+        <p>
+          Suppliers restock through bounded town supply. Stock, capacity, market
+          events and the town worker affect replenishment. Empty shelves can
+          persist; refresh and compare other recipes instead of assuming another
+          click creates stock.
+        </p>
+        <h3>Pending or unknown wallet outcome</h3>
+        <p>
+          Closing a wallet or refreshing the page does not prove failure. Open
+          the saved original request in your manager, check its transaction or
+          verify its original hash. Do not create a replacement while the
+          outcome is unknown. Cancelling a prepared request applies only before
+          wallet handoff.
+        </p>
+        <h3>Returning to your shop</h3>
+        <p>
+          Reconnect the same account and town. Progress is rebuilt from
+          finalized shop facts and confirmed receipt history, not a local
+          completion flag. Load more History when older proof is missing. A
+          confirmed later production, listing, sale or upgrade can establish
+          earlier workflow prerequisites without asking you to buy twice.
+        </p>
+      </dialog>
+      <dialog
+        #purchaseDialog
+        class="purchase-dialog"
+        aria-labelledby="purchase-title"
+        (close)="purchaseClosed()"
+      >
+        @if (selected(); as listing) {
+          <section
+            class="purchase-review"
+            id="purchase-review"
+            tabindex="-1"
+            aria-labelledby="purchase-title"
+          >
+            <div>
+              <p class="eyebrow">REVIEW YOUR PURCHASE</p>
+              <h2 id="purchase-title">{{ itemName(listing.item_id) }}</h2>
+              <p>
+                {{ listing.unit_price }}g each. The reviewed price and
+                stock are checked again on-chain.
+              </p>
+            </div>
+            <form (submit)="$event.preventDefault(); buy()">
+              <label
+                >Quantity
+                <input
+                  inputmode="numeric"
+                  type="text"
+                  maxlength="3"
+                  [value]="quantity()"
+                  (input)="quantity.set(text($event))" /></label
+              ><strong>{{
+                quote()
+                  ? quote()!.total + " game gold"
+                  : "Enter an available quantity"
+              }}</strong
+              ><button
+                class="primary"
+                type="submit"
+                [disabled]="!canAct() || !quote() || !canAfford()"
+              >
+                {{
+                  canAfford()
+                    ? "Buy reviewed materials"
+                    : "Not enough available gold"
+                }}</button
+              ><button class="quiet" type="button" (click)="closePurchase()">
+                Close
+              </button>
+            </form>
+          </section>
+        }
+      </dialog>
+      <dialog
+        #managerDialog
+        class="manager-drawer"
+        aria-labelledby="manager-title"
+        (close)="managerClosed()"
+      >
+        <section id="your-shop" class="manager" aria-labelledby="manager-title">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">YOUR OWN LITTLE BUSINESS</p>
+              <h2 id="manager-title">
+                {{ shop()?.name ?? "Your shop manager" }}<span>.</span>
+              </h2>
+            </div>
+            <button
+              class="quiet"
+              type="button"
+              [disabled]="screen.setup.kind !== 'ready' || state().busy"
+              (click)="screen.controller.refresh()"
+            >
+              Refresh confirmed data
+            </button>
+            <button class="quiet" type="button" (click)="openHelp()">
+              How to play
+            </button>
+            <button
+              type="button"
+              class="quiet close-manager"
+              (click)="closeManager()"
+            >
+              Close manager
+            </button>
+          </div>
+
+<section class="town-feedback"
+            aria-label="Recent confirmed shop updates"
+          >
+            <p
+              class="feedback-announcement"
+              [attr.aria-live]="managerVisible() ? 'polite' : 'off'"
+              aria-atomic="true"
+            >
+              {{ feedbackAnnouncement() }}
+            </p>
+            @if (feedback().length) {
+              <details>
+                <summary>
+                  Recent confirmed shop updates ({{ feedback().length }})
+                </summary>
+                <ol class="feedback-list">
+                  @for (event of feedback(); track event.id) {
+                    <li>{{ event.text }}</li>
+                  }
+                </ol>
+              </details>
+            }
+            <button
+              class="quiet"
+              type="button"
+              [attr.aria-pressed]="soundEnabled()"
+              (click)="toggleFeedbackSound()"
+            >
+              {{
+                soundEnabled() ? "Mute feedback sound" : "Enable feedback sound"
+              }}
+            </button>
+            @if (soundMessage()) {
+              <p role="status">{{ soundMessage() }}</p>
+            }
+          </section>
+          @if (state().observation; as observation) {
+            <p class="freshness">
+              {{
+                observation.source === "chain"
+                  ? "Finalized on-chain"
+                  : "Read-only town view"
+              }}
+              · Observed {{ observation.receivedAt | date: "shortTime"
+              }}{{ observation.stale ? " · Previous snapshot" : "" }}
+            </p>
+          }
+          @if (!isGuest() ? state().pending : null; as pending) {
+            <section class="pending" aria-labelledby="pending-title">
+              <div>
+                <p class="eyebrow">ORIGINAL WALLET ATTEMPT</p>
+                <h2 id="pending-title">
+                  {{
+                    pending.phase === "prepared"
+                      ? "Prepared for your review"
+                      : "Waiting for a confirmed outcome"
+                  }}
+                </h2>
+                <p class="pending-terms">{{ pendingSummary() }}</p>
+                <p>
+                  Saved for {{ pending.accountId }}. Refreshing or closing this
+                  page will not resend it.
+                </p>
+                @if (pendingUrl(); as url) {
+                  <a [href]="url" target="_blank" rel="noopener noreferrer"
+                    >View submitted transaction ↗</a
+                  >
+                }
+              </div>
+              <div class="pending-actions">
+                @if (pending.phase === "prepared") {
+                  <button
+                    class="primary"
+                    type="button"
+                    [disabled]="
+                      state().busy || pending.accountId !== state().accountId
+                    "
+                    (click)="screen.controller.resumePrepared()"
+                  >
+                    Submit prepared request
+                  </button>
+                  <button
+                    class="quiet"
+                    type="button"
+                    [disabled]="state().busy"
+                    (click)="screen.controller.discardPrepared()"
+                  >
+                    Cancel unsubmitted request
+                  </button>
+                }
                 <button
                   class="primary"
                   type="button"
-                  [disabled]="
-                    !canAct() || !state().observation?.player || !nameValid()
-                  "
-                  (click)="create()"
+                  [disabled]="state().busy"
+                  [hidden]="isGuest()"
+                  (click)="screen.controller.checkTransaction()"
                 >
-                  Create shop
+                  Check original transaction
                 </button>
-              </li>
-            </ol>
-            @if (reserved()) {
-              <p class="notice warning">
-                This is a town management account. Connect a separate player
-                wallet to create a shop.
-              </p>
-            }
-            @if (state().phase === "unavailable") {
-              <p class="notice">
-                Ownership could not be confirmed. Refresh to check your existing
-                shop.
-              </p>
-            }
-            @if (screen.setup.kind !== "ready") {
-              <p class="preview-footnote">
-                Preview only: no registration, gold or ownership has been
-                created.
-              </p>
+                <form [hidden]="isGuest()"
+                  (submit)="
+                    $event.preventDefault();
+                    screen.controller.recover(recoveryHash())
+                  "
+                >
+                  <label for="recover-hash">Original transaction hash</label
+                  ><input
+                    id="recover-hash"
+                    maxlength="44"
+                    autocomplete="off"
+                    [value]="recoveryHash()"
+                    (input)="recoveryHash.set(text($event))"
+                  /><button
+                    class="quiet"
+                    type="submit"
+                    [disabled]="state().busy || !recoveryHash()"
+                  >
+                    Verify hash
+                  </button>
+                </form>
+              </div>
+            </section>
+          }
+
+          @if (pendingPurchase(); as purchase) {
+            <section class="purchase-in-progress" role="status" aria-live="polite">
+              <strong>Buying {{ purchase.quantity }} {{ itemName(purchase.item).toLowerCase() }}…</strong>
+              <span>Waiting for confirmation. Your inventory will update once confirmed.</span>
+              <progress aria-label="Purchase awaiting confirmation"></progress>
+            </section>
+          }
+          <div
+            class="manager-tabs"
+            role="tablist"
+            aria-label="Shop manager sections"
+          >
+            @for (t of tabs; track t.id; let index = $index) {
+              <button
+                type="button"
+                role="tab"
+                [id]="'shop-tab-' + t.id"
+                [attr.aria-controls]="'shop-panel-' + t.id"
+                [attr.aria-selected]="tab() === t.id"
+                [attr.tabindex]="tab() === t.id ? 0 : -1"
+                (click)="tab.set(t.id)"
+                (keydown)="moveTab($event, index)"
+              >
+                {{ t.name }}
+              </button>
             }
           </div>
-        } @else if (!shop()) {
-          <div
-            role="tabpanel"
-            [id]="'shop-panel-' + tab()"
-            [attr.aria-labelledby]="'shop-tab-' + tab()"
-            tabindex="0"
-            class="manager-panel"
-          >
-            <div class="coming-later">
+          @if (tab() === "activity" && isGuest()) {
+            <div role="tabpanel" id="shop-panel-activity" aria-labelledby="shop-tab-activity"
+              tabindex="0" class="manager-panel">
+              <app-guest-activity
+                [guest]="guest()" [town]="state()" [explorer]="explorer"
+                (refresh)="screen.controller.refreshGuestActivity()"
+                (more)="screen.controller.refreshGuestActivity(true)"
+                (openMerchant)="visitGuestMerchant($event)"
+                (openManager)="openManager($event)"
+              />
+            </div>
+          } @else if (tab() === "assistant") {
+            <div
+              role="tabpanel"
+              id="shop-panel-assistant"
+              aria-labelledby="shop-tab-assistant"
+              tabindex="0"
+              class="manager-panel"
+            >
+              <app-town-assistant
+                [state]="state()"
+                [controller]="screen.controller"
+                [elapsedMs]="elapsedMs()"
+              />
+            </div>
+          } @else if (!shop() && tab() === "overview") {
+            <div
+              class="onboarding"
+              role="tabpanel"
+              id="shop-panel-overview"
+              aria-labelledby="shop-tab-overview"
+              tabindex="0"
+            >
+              <div class="onboarding-copy">
+                <span class="onboarding-symbol" aria-hidden="true">✧</span>
+                <h3>Make yourself at home.</h3>
+                <p>
+                  Registration and shop creation are two separate wallet
+                  approvals. Register once for 100 game gold, then give your
+                  shop a name. Creating a shop does not issue another grant.
+                </p>
+              </div>
+              <ol class="setup-steps">
+                <li [class.complete]="!!state().observation?.player">
+                  <span class="step-number">01</span>
+                  <div>
+                    <h4>Register your player</h4>
+                    <p>
+                      {{
+                        state().observation?.player
+                          ? "Registered. Your current balance is " +
+                            state().observation!.player!.ledger.gold.held +
+                            " game gold."
+                          : "Your once-only starter grant goes to your player inventory."
+                      }}
+                    </p>
+                  </div>
+                  <button
+                    class="primary"
+                    type="button"
+                    [disabled]="!canRegister()"
+                    (click)="register()"
+                  >
+                    {{
+                      state().observation?.player
+                        ? "Registered"
+                        : "Register player"
+                    }}
+                  </button>
+                </li>
+                <li>
+                  <span class="step-number">02</span>
+                  <div>
+                    <h4>Name your shop</h4>
+                    <label class="sr-only" for="new-shop-name"
+                      >New shop name</label
+                    ><input
+                      id="new-shop-name"
+                      maxlength="32"
+                      autocomplete="off"
+                      [disabled]="!state().observation?.player || state().busy"
+                      placeholder="A name for your corner of town"
+                      [value]="shopName()"
+                      (input)="shopName.set(text($event))"
+                      aria-describedby="shop-name-help"
+                    />
+                    <p id="shop-name-help">
+                      1–32 letters, numbers, spaces, _ or -. Start with a letter
+                      or number.
+                    </p>
+                  </div>
+                  <button
+                    class="primary"
+                    type="button"
+                    [disabled]="
+                      !canAct() || !state().observation?.player || !nameValid()
+                    "
+                    (click)="create()"
+                  >
+                    Create shop
+                  </button>
+                </li>
+              </ol>
+              @if (reserved()) {
+                <p class="notice warning">
+                  This is a town management account. Connect a separate player
+                  wallet to create a shop.
+                </p>
+              }
+              @if (state().phase === "unavailable") {
+                <p class="notice">
+                  Ownership could not be confirmed. Refresh to check your
+                  existing shop.
+                </p>
+              }
+              @if (screen.setup.kind !== "ready") {
+                <p class="preview-footnote">
+                  Preview only: no registration, gold or ownership has been
+                  created.
+                </p>
+              }
+            </div>
+          } @else if (!shop()) {
+            <div
+              role="tabpanel"
+              [id]="'shop-panel-' + tab()"
+              [attr.aria-labelledby]="'shop-tab-' + tab()"
+              tabindex="0"
+              class="manager-panel"
+            >
+              <div class="coming-later">
+                @switch (tab()) {
+                  @case ("inventory") {
+                    <h3>Your shelves are waiting.</h3>
+                    <p>
+                      Create your shop to see its confirmed held, available and
+                      reserved inventory. No balances are loaded in preview.
+                    </p>
+                  }
+                  @case ("production") {
+                    <h3>Your workshop begins with a shop.</h3>
+                    <p>
+                      Create your shop to load confirmed recipes, inputs and
+                      your production queue.
+                    </p>
+                    <p>{{ productionPolicy }}</p>
+                  }
+                  @case ("history") {
+                    <h3>Your story starts with ownership.</h3>
+                    <p>
+                      A verified ownership transaction will appear after your
+                      shop is created. Confirmed trading history becomes
+                      available in your manager.
+                    </p>
+                  }
+                  @case ("listings") {
+                    <h3>Your storefront needs a shop.</h3>
+                    <p>
+                      Create your shop to reserve stock, set prices and compare
+                      confirmed market offers.
+                    </p>
+                  }
+                }
+              </div>
+            </div>
+          } @else {
+            <div
+              role="tabpanel"
+              [id]="'shop-panel-' + tab()"
+              [attr.aria-labelledby]="'shop-tab-' + tab()"
+              tabindex="0"
+              class="manager-panel"
+            >
               @switch (tab()) {
+                @case ("overview") {
+                  <div class="overview">
+                    <div>
+                      <span class="pill">
+                        @if (shop()!.production_slots === "2") {
+                          <app-town-art kind="upgrade" />
+                        }
+                        {{ level() }} ·
+                        {{ shop()!.production_slots }} production slot</span
+                      >
+                      <h3>A shop to call your own.</h3>
+                      <p>
+                        Stock up with raw materials from your neighbours. Your
+                        confirmed inventory stays with your player account.
+                      </p>
+                      <dl class="shop-facts">
+                        <div>
+                          <dt>Owner</dt>
+                          <dd>{{ state().accountId }}</dd>
+                        </div>
+                        <div>
+                          <dt>Shop</dt>
+                          <dd>#{{ shop()!.shop_id }}</dd>
+                        </div>
+                      </dl>
+                      @if (state().ownershipUrl; as url) {
+                        <a
+                          [href]="url"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          class="proof-link"
+                          >View ownership transaction ↗</a
+                        >
+                      } @else {
+                        <p class="muted">
+                          Ownership is confirmed on-chain. Its creation
+                          transaction link is not available right now.
+                        </p>
+                      }
+                    </div>
+                    @if (state().observation?.ledger; as ledger) {
+                      <div class="gold-card">
+                        <span class="eyebrow">GAME GOLD</span
+                        ><strong>{{ ledger.gold.held }}</strong>
+                        <dl>
+                          <div>
+                            <dt>Available</dt>
+                            <dd>{{ ledger.gold.available }}</dd>
+                          </div>
+                          <div>
+                            <dt>Reserved</dt>
+                            <dd>{{ ledger.gold.trade_reserved }}</dd>
+                          </div>
+                        </dl>
+                        <small
+                          >Virtual game currency. Separate from native
+                          NEAR.</small
+                        >
+                      </div>
+                    }
+                  </div>
+                  <form
+                    class="rename"
+                    (submit)="$event.preventDefault(); rename()"
+                  >
+                    <label for="rename-shop"
+                      >Rename your shop
+                      <input
+                        id="rename-shop"
+                        maxlength="32"
+                        [placeholder]="shop()!.name"
+                        [value]="renameName()"
+                        (input)="renameName.set(text($event))"
+                        [disabled]="state().busy" /></label
+                    ><button
+                      class="quiet"
+                      type="submit"
+                      [disabled]="!canAct() || !renameValid()"
+                    >
+                      Save name
+                    </button>
+                  </form>
+                }
                 @case ("inventory") {
-                  <h3>Your shelves are waiting.</h3>
-                  <p>
-                    Create your shop to see its confirmed held, available and
-                    reserved inventory. No balances are loaded in preview.
-                  </p>
-                }
-                @case ("production") {
-                  <h3>Your workshop begins with a shop.</h3>
-                  <p>
-                    Create your shop to load confirmed recipes, inputs and your
-                    production queue.
-                  </p>
-                  <p>{{ productionPolicy }}</p>
-                }
-                @case ("history") {
-                  <h3>Your story starts with ownership.</h3>
-                  <p>
-                    A verified ownership transaction will appear after your shop
-                    is created. Confirmed trading history becomes available in
-                    your manager.
+                  <div class="inventory-heading">
+                    <div>
+                      <h3>Everything on your shelves.</h3>
+                      <p>
+                        Held includes your available items and items reserved
+                        for listings or trades.
+                      </p>
+                    </div>
+                  </div>
+                  <div class="inventory-scroll">
+                    <table>
+                      <caption class="sr-only">
+                        Confirmed player inventory
+                      </caption>
+                      <thead>
+                        <tr>
+                          <th scope="col">Item</th>
+                          <th scope="col">Held</th>
+                          <th scope="col">Available</th>
+                          <th scope="col">Reserved</th>
+                          <th scope="col">Incoming capacity</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        @for (row of items(); track row.id) {
+                          <tr>
+                            <th scope="row">
+                              <app-town-art
+                                class="small-icon"
+                                [kind]="row.id"
+                              />
+                              {{ row.name }}
+                              @if (pendingPurchase()?.item === row.id) { <small class="inventory-purchase-pending">Buying +{{ pendingPurchase()!.quantity }}…</small> }
+                            </th>
+                            <td>{{ row.held }}</td>
+                            <td>{{ row.available }}</td>
+                            <td>{{ row.reserved }}</td>
+                            <td>{{ row.incoming }}</td>
+                          </tr>
+                        }
+                      </tbody>
+                    </table>
+                  </div>
+                  <p class="muted">
+                    Incoming capacity is promised space for production or trade
+                    deliveries. It is not an item you already hold.
                   </p>
                 }
                 @case ("listings") {
-                  <h3>Your storefront needs a shop.</h3>
-                  <p>
-                    Create your shop to reserve stock, set prices and compare
-                    confirmed market offers.
-                  </p>
+                  <app-town-sales
+                    [elapsedMs]="elapsedMs()"
+                    mode="listings"
+                    [state]="state()"
+                    [controller]="screen.controller"
+                    [explorer]="explorer"
+                    [canEdit]="canAct()"
+                    [canCancel]="screen.controller.canClaim && !reserved()"
+                  />
+                }
+                @case ("production") {
+                  <section class="workshop" aria-labelledby="workshop-title">
+                    <div class="workshop-heading">
+                      <div><h3 id="workshop-title">Your workshop</h3>
+                        <p class="workshop-intro">Turn materials into something worth selling.</p></div>
+                      <span class="workshop-capacity">{{ activeBatches().length }} / {{ shop()?.production_slots }} slots in use</span>
+                    </div>
+                    <label class="batch-quantity" for="batch-quantity">Batch size
+                      <input id="batch-quantity" type="number" min="1" max="10" step="1" inputmode="numeric"
+                        [value]="batchQuantity()" (input)="batchQuantity.set(text($event)); productionReview.set(null)"
+                        [disabled]="state().busy" />
+                      <span>Up to 10 at a time</span>
+                    </label>
+                    <div class="recipe-grid">
+                      @for (card of recipeCards(); track card.recipe.recipe_id) {
+                        <article class="recipe-card">
+                          <div class="recipe-heading"><app-town-art [kind]="card.recipe.output_item" />
+                            <h4>{{ itemName(card.recipe.output_item) }}</h4></div>
+                          @if (card.review; as quote) {
+                            <p class="recipe-summary">Makes {{ quote.output }} &middot; {{ durationText(quote.durationSeconds) }}</p>
+                            <ul class="recipe-inputs">
+                              @for (input of quote.inputs; track input.id) {
+                                <li><span>{{ input.required }} {{ itemName(input.id).toLowerCase() }}</span>
+                                  <span class="ingredient-available" [class.insufficient]="+input.available < +input.required">{{ input.available }} available</span></li>
+                              }
+                            </ul>
+                          } @else {
+                            <p class="recipe-summary">{{ durationText(card.recipe.duration_seconds) }} per item</p>
+                          }
+                          @if (card.reason) { <p class="recipe-reason">{{ card.reason }}</p> }
+                          <button type="button" class="primary" [disabled]="!canAct() || !!card.reason || !card.review"
+                            (click)="reviewRecipe(card.recipe)">Craft {{ itemName(card.recipe.output_item).toLowerCase() }}</button>
+                        </article>
+                      } @empty { <p class="muted">Recipes are loading&hellip;</p> }
+                    </div>
+                    @if (productionReview(); as review) {
+                      <section class="production-review" aria-labelledby="production-review-title" tabindex="0">
+                        <h4 id="production-review-title">Ready to craft?</h4>
+                        <p>{{ review.output }} {{ itemName(review.recipe.output_item).toLowerCase() }} &middot; {{ durationText(review.durationSeconds) }}</p>
+                        <p class="muted">Uses @for (input of review.inputs; track input.id; let last = $last) {
+                          {{ input.required }} {{ itemName(input.id).toLowerCase() }}{{ last ? '.' : ' + ' }}
+                        }</p>
+                        <p class="crafting-note">Materials are used when crafting starts. Batches cannot be cancelled.</p>
+                        @if (!isGuest()) { <p class="crafting-note">Your wallet will ask you to approve the network fee.</p> }
+                        @if (!reviewCurrent()) { <p class="recipe-reason" role="status">Your stock changed. Choose the recipe again.</p> }
+                        <div class="workshop-actions">
+                          <button class="primary" type="button" [disabled]="!canAct() || !reviewCurrent()" (click)="startBatch()">Start crafting</button>
+                          <button class="quiet" type="button" (click)="productionReview.set(null)">Go back</button>
+                        </div>
+                      </section>
+                    }
+                    <h4 class="queue-title">In progress</h4>
+                    @if (queued()) {
+                      <article class="production-job queued" role="status">Updating your batch&hellip; Waiting for confirmation.</article>
+                    }
+                    @if (productionFailure(); as failed) {
+                      <p class="recipe-reason" role="status">{{ failed.call.method === 'start_production' ? 'Crafting could not start. Check your materials and try again.' : 'Your items could not be collected. Please try again.' }}</p>
+                    }
+                    @if (state().observation?.production; as production) {
+                      <div class="production-jobs">
+                        @for (job of activeBatches(); track job.job_id) {
+                          <article class="production-job">
+                            <div class="recipe-heading"><app-town-art [kind]="job.output_item" />
+                              <h4>{{ job.output_quantity }} {{ itemName(job.output_item).toLowerCase() }}</h4></div>
+                            <p>{{ jobCountdown(job) }}</p>
+                            <button type="button" class="primary" [disabled]="!canClaim(job)" (click)="claim(job.job_id)">
+                              {{ isReady(job) ? 'Collect items' : 'Crafting...' }}
+                            </button>
+                          </article>
+                        } @empty { @if (!queued()) { <p class="workshop-empty">Your workbench is free. Choose a recipe to start crafting.</p> } }
+                      </div>
+                      @if (completedBatches().length) {
+                        <details class="workshop-details">
+                          <summary>Completed batches <span>{{ completedBatches().length }}</span></summary>
+                          <ul class="completed-batches">
+                            @for (job of completedBatches(); track job.job_id) {
+                              <li><span>{{ job.output_quantity }} {{ itemName(job.output_item).toLowerCase() }}</span><span>Collected</span></li>
+                            }
+                          </ul>
+                          @if (production.historyGap) { <p class="muted">Some older batches are no longer available.</p> }
+                        </details>
+                      }
+                    } @else { <p class="muted">Loading your batches&hellip;</p> }
+                    @if (state().observation?.upgrade; as upgrade) {
+                      @if (upgrade.production_slots === '1') {
+                        <details class="workshop-details">
+                          <summary>Upgrade your workshop</summary>
+                          <p>Craft two batches at once. Craft and sell both products to unlock the upgrade.</p>
+                          <p class="crafting-note">Costs 150g. You need at least 30g left after upgrading.</p>
+                          <button type="button" class="primary" [disabled]="!canAct() || !upgrade.eligible" (click)="purchaseUpgrade()">Unlock second slot &middot; 150g</button>
+                        </details>
+                      }
+                    }
+                  </section>
+                }
+                @case ("history") {
+                  <app-town-sales
+                    [elapsedMs]="elapsedMs()"
+                    mode="history"
+                    [state]="state()"
+                    [controller]="screen.controller"
+                    [explorer]="explorer"
+                  />
                 }
               }
             </div>
-          </div>
-        } @else {
-          <div
-            role="tabpanel"
-            [id]="'shop-panel-' + tab()"
-            [attr.aria-labelledby]="'shop-tab-' + tab()"
-            tabindex="0"
-            class="manager-panel"
-          >
-            @switch (tab()) {
-              @case ("overview") {
-                <div class="overview">
-                  <div>
-                    <span class="pill">
-                      @if (shop()!.production_slots === "2") {
-                        <app-town-art kind="upgrade" />
-                      }
-                      {{ level() }} · {{ shop()!.production_slots }} production
-                      slot</span
-                    >
-                    <h3>A shop to call your own.</h3>
-                    <p>
-                      Stock up with raw materials from your neighbours. Your
-                      confirmed inventory stays with your player account.
-                    </p>
-                    <dl class="shop-facts">
-                      <div>
-                        <dt>Owner</dt>
-                        <dd>{{ state().accountId }}</dd>
-                      </div>
-                      <div>
-                        <dt>Shop</dt>
-                        <dd>#{{ shop()!.shop_id }}</dd>
-                      </div>
-                    </dl>
-                    @if (state().ownershipUrl; as url) {
-                      <a
-                        [href]="url"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        class="proof-link"
-                        >View ownership transaction ↗</a
-                      >
-                    } @else {
-                      <p class="muted">
-                        Ownership is confirmed on-chain. Its creation
-                        transaction link is not available right now.
-                      </p>
-                    }
-                  </div>
-                  @if (state().observation?.ledger; as ledger) {
-                    <div class="gold-card">
-                      <span class="eyebrow">GAME GOLD</span
-                      ><strong>{{ ledger.gold.held }}</strong>
-                      <dl>
-                        <div>
-                          <dt>Available</dt>
-                          <dd>{{ ledger.gold.available }}</dd>
-                        </div>
-                        <div>
-                          <dt>Reserved</dt>
-                          <dd>{{ ledger.gold.trade_reserved }}</dd>
-                        </div>
-                      </dl>
-                      <small
-                        >Virtual game currency. Separate from native
-                        NEAR.</small
-                      >
-                    </div>
-                  }
-                </div>
-                <form
-                  class="rename"
-                  (submit)="$event.preventDefault(); rename()"
-                >
-                  <label for="rename-shop"
-                    >Rename your shop
-                    <input
-                      id="rename-shop"
-                      maxlength="32"
-                      [placeholder]="shop()!.name"
-                      [value]="renameName()"
-                      (input)="renameName.set(text($event))"
-                      [disabled]="state().busy" /></label
-                  ><button
-                    class="quiet"
-                    type="submit"
-                    [disabled]="!canAct() || !renameValid()"
-                  >
-                    Save name
-                  </button>
-                </form>
-              }
-              @case ("inventory") {
-                <div class="inventory-heading">
-                  <div>
-                    <h3>Everything on your shelves.</h3>
-                    <p>
-                      Held includes your available items and items reserved for
-                      listings or trades.
-                    </p>
-                  </div>
-                </div>
-                <div class="inventory-scroll">
-                  <table>
-                    <caption class="sr-only">
-                      Confirmed player inventory
-                    </caption>
-                    <thead>
-                      <tr>
-                        <th scope="col">Item</th>
-                        <th scope="col">Held</th>
-                        <th scope="col">Available</th>
-                        <th scope="col">Reserved</th>
-                        <th scope="col">Incoming capacity</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      @for (row of items(); track row.id) {
-                        <tr>
-                          <th scope="row">
-                            <app-town-art class="small-icon" [kind]="row.id" />
-                            {{ row.name }}
-                          </th>
-                          <td>{{ row.held }}</td>
-                          <td>{{ row.available }}</td>
-                          <td>{{ row.reserved }}</td>
-                          <td>{{ row.incoming }}</td>
-                        </tr>
-                      }
-                    </tbody>
-                  </table>
-                </div>
-                <p class="muted">
-                  Incoming capacity is promised space for production or trade
-                  deliveries. It is not an item you already hold.
-                </p>
-              }
-              @case ("listings") {
-                <app-town-sales
-                  [elapsedMs]="elapsedMs()"
-                  mode="listings"
-                  [state]="state()"
-                  [controller]="screen.controller"
-                  [explorer]="explorer"
-                  [canEdit]="canAct()"
-                  [canCancel]="screen.controller.canClaim && !reserved()"
-                />
-              }
-              @case ("production") {
-                <section class="workshop" aria-labelledby="workshop-title">
-                  <div class="workshop-heading">
-                    <div>
-                      <p class="eyebrow">FROM MATERIALS TO SOMETHING MORE</p>
-                      <h3 id="workshop-title">
-                        <app-town-art kind="workbench" />Your workshop
-                      </h3>
-                    </div>
-                    <button
-                      type="button"
-                      class="quiet"
-                      [disabled]="state().busy"
-                      (click)="refreshProduction()"
-                    >
-                      Refresh production
-                    </button>
-                  </div>
-                  <p>{{ productionPolicy }}</p>
-                  @if (state().observation?.upgrade; as upgrade) {
-                    <section
-                      class="production-review"
-                      aria-label="Second production slot upgrade"
-                    >
-                      @if (upgrade.production_slots === "2") {
-                        <p>
-                          <app-town-art kind="upgrade" />
-                          Second slot unlocked. Two batches can run together;
-                          each keeps its own timing and output.
-                        </p>
-                      } @else {
-                        <h4>Unlock a second production slot</h4>
-                        <p>
-                          Burn 150 game gold and keep at least 30 available.
-                          Complete and sell both products first. Existing
-                          batches keep their original timing and output. Wallet
-                          fees use NEAR separately.
-                        </p>
-                        <p>
-                          Both products completed:
-                          {{ upgrade.completed_both ? "yes" : "still needed" }}
-                          · Both sold:
-                          {{ upgrade.sold_both ? "yes" : "still needed" }}
-                        </p>
-                        <button
-                          type="button"
-                          [disabled]="!canAct() || !upgrade.eligible"
-                          (click)="purchaseUpgrade()"
-                        >
-                          Purchase second slot for 150 game gold
-                        </button>
-                      }
-                    </section>
-                  }
-                  <label class="batch-quantity" for="batch-quantity"
-                    >Batch quantity
-                    <input
-                      id="batch-quantity"
-                      type="number"
-                      min="1"
-                      max="10"
-                      step="1"
-                      inputmode="numeric"
-                      [value]="batchQuantity()"
-                      (input)="
-                        batchQuantity.set(text($event));
-                        productionReview.set(null)
-                      "
-                      [disabled]="state().busy"
-                    />
-                    <span>1-10 units. Time grows with batch size.</span></label
-                  >
-                  <div class="recipe-grid">
-                    @for (card of recipeCards(); track card.recipe.recipe_id) {
-                      <article class="recipe-card">
-                        <app-town-art [kind]="card.recipe.output_item" />
-                        <h4>{{ itemName(card.recipe.output_item) }}</h4>
-                        @if (card.review; as quote) {
-                          <p>
-                            {{ quote.output }} output -
-                            {{ durationText(quote.durationSeconds) }} for the
-                            whole batch
-                          </p>
-                          <ul class="recipe-inputs">
-                            @for (input of quote.inputs; track input.id) {
-                              <li>
-                                <span
-                                  ><span aria-hidden="true">{{
-                                    itemSymbol(input.id)
-                                  }}</span>
-                                  {{ itemName(input.id) }}</span
-                                ><span
-                                  >{{ input.available }} available /
-                                  {{ input.required }} required
-                                  <small>({{ input.held }} held)</small></span
-                                >
-                              </li>
-                            }
-                          </ul>
-                        } @else {
-                          <p>
-                            Per unit:
-                            {{ durationText(card.recipe.duration_seconds) }},
-                            {{ card.recipe.output_per_unit }} output.
-                          </p>
-                        }
-                        @if (card.reason) {
-                          <p class="recipe-reason">{{ card.reason }}</p>
-                        }
-                        <button
-                          type="button"
-                          class="quiet"
-                          [disabled]="
-                            !canAct() || !!card.reason || !card.review
-                          "
-                          (click)="reviewRecipe(card.recipe)"
-                        >
-                          Review {{ itemName(card.recipe.output_item) }}
-                        </button>
-                      </article>
-                    } @empty {
-                      <p>
-                        Recipes are unavailable. Refresh for confirmed workshop
-                        data.
-                      </p>
-                    }
-                  </div>
-                  @if (!canAct()) {
-                    <p class="muted">
-                      Starting requires a fresh connected shop, an unpaused town
-                      and no unresolved wallet request.
-                    </p>
-                  }
-                  @if (productionReview(); as review) {
-                    <section
-                      class="production-review"
-                      aria-labelledby="production-review-title"
-                      tabindex="0"
-                    >
-                      <h4 id="production-review-title">Review your batch</h4>
-                      <p>Shop #{{ review.shopId }} - {{ review.accountId }}</p>
-                      <ul>
-                        @for (input of review.inputs; track input.id) {
-                          <li>
-                            Consume {{ input.required }}
-                            {{ itemName(input.id) }} immediately
-                          </li>
-                        }
-                      </ul>
-                      <p>
-                        Produce {{ review.output }}
-                        {{ itemName(review.recipe.output_item) }} together after
-                        {{ durationText(review.durationSeconds) }}. Recipe
-                        version {{ review.recipe.version }}.
-                      </p>
-                      <p>
-                        No cancellation or input refund. Start and Claim each
-                        require wallet approval and a NEAR network fee. Output
-                        arrives only after finalized Claim.
-                      </p>
-                      @if (!reviewCurrent()) {
-                        <p role="status">
-                          Your shop, inventory or recipe changed. Review a fresh
-                          batch before starting.
-                        </p>
-                      }
-                      <div class="workshop-actions">
-                        <button
-                          class="primary"
-                          type="button"
-                          [disabled]="!canAct() || !reviewCurrent()"
-                          (click)="startBatch()"
-                        >
-                          Approve Start in wallet</button
-                        ><button
-                          class="quiet"
-                          type="button"
-                          (click)="productionReview.set(null)"
-                        >
-                          Back to recipes
-                        </button>
-                      </div>
-                    </section>
-                  }
-                  <h4 class="queue-title">Production queue</h4>
-                  <p class="muted">
-                    Countdowns estimate network readiness. Refresh confirms
-                    readiness; Claim settles the whole batch. Incoming capacity
-                    is not inventory you hold.
-                  </p>
-                  @if (queued(); as pending) {
-                    <article class="production-job queued" role="status">
-                      <strong
-                        >Queued request -
-                        {{
-                          pending.phase === "prepared"
-                            ? "awaiting your approval"
-                            : "awaiting confirmation"
-                        }}</strong
-                      >
-                      <p>
-                        {{ pendingSummary() }} This request is not a confirmed
-                        running job. Use saved transaction recovery below.
-                      </p>
-                    </article>
-                  }
-                  @if (productionFailure(); as failed) {
-                    <article class="production-job failed" role="status">
-                      <strong>{{
-                        failed.call.method === "start_production"
-                          ? "Start failed"
-                          : "Claim failed"
-                      }}</strong>
-                      <p>
-                        The original transaction failed. No output was credited
-                        by this screen; refresh confirmed jobs and inventory
-                        before retrying.
-                      </p>
-                    </article>
-                  }
-                  @if (state().observation?.production; as production) {
-                    <div class="production-jobs">
-                      @for (job of production.items; track job.job_id) {
-                        <article
-                          class="production-job"
-                          [class.completed]="job.status === 'completed'"
-                        >
-                          <div>
-                            <app-town-art [kind]="job.output_item" />
-                            <h4>
-                              Batch #{{ job.job_id }} -
-                              {{ itemName(job.output_item) }} -
-                              {{ job.output_quantity }}
-                            </h4>
-                          </div>
-                          <p>
-                            @if (job.status === "running") {
-                              <app-town-art
-                                kind="progress"
-                                class="status-art"
-                              />
-                            }
-                            {{ jobCountdown(job) }}
-                          </p>
-                          <p class="muted">
-                            Whole batch: {{ jobDuration(job) }} - Recipe version
-                            {{ job.recipe_version }}
-                          </p>
-                          @if (job.status === "running") {
-                            <button
-                              type="button"
-                              class="primary"
-                              [disabled]="!canClaim(job)"
-                              (click)="claim(job.job_id)"
-                            >
-                              Claim batch #{{ job.job_id }}
-                            </button>
-                          }
-                        </article>
-                      } @empty {
-                        <p>
-                          No retained production batches in this finalized
-                          snapshot.
-                        </p>
-                      }
-                    </div>
-                    @if (production.historyGap) {
-                      <p>
-                        Older completed batches have been pruned. This is
-                        retained history, not a complete archive.
-                      </p>
-                    }
-                  } @else {
-                    <p>Production jobs have not been loaded.</p>
-                  }
-                </section>
-              }
-              @case ("history") {
-                <app-town-sales
-                  [elapsedMs]="elapsedMs()"
-                  mode="history"
-                  [state]="state()"
-                  [controller]="screen.controller"
-                  [explorer]="explorer"
-                />
-              }
-            }
-          </div>
-        }
-      </section>
-    </dialog>
-    @if (screen.setup.kind === "ready") {
-      <section
-        id="town-activity"
-        class="session"
-        aria-labelledby="town-activity-title"
-      >
-        <div>
-          <h2 id="town-activity-title">Around the bazaar</h2>
-          <p>
-            {{
-              state().activity.mode === "live"
-                ? "Live town updates"
-                : "Updates refresh periodically while the live connection is unavailable."
-            }}
-          </p>
-          @if (state().activity.gap) {
-            <p>
-              Some earlier updates are unavailable. Showing retained activity.
-            </p>
           }
-          <ol aria-live="polite" aria-relevant="additions">
-            @for (entry of state().activity.events; track entry.event_id) {
-              <li>{{ activityText(entry) }}</li>
-            } @empty {
-              <li>No retained town activity is available yet.</li>
+        </section>
+      </dialog>
+      @if (screen.setup.kind === "ready") {
+        <section
+          id="town-activity"
+          class="session"
+          aria-labelledby="town-activity-title"
+        >
+          <div>
+            <h2 id="town-activity-title">Around the bazaar</h2>
+            <p>
+              {{
+                state().activity.mode === "live"
+                  ? "Live town updates"
+                  : "Updates refresh periodically while the live connection is unavailable."
+              }}
+            </p>
+            @if (state().activity.gap) {
+              <p>
+                Some earlier updates are unavailable. Showing retained activity.
+              </p>
             }
-          </ol>
-        </div>
-      </section>
-    }
-  </main>
-  <footer>
-    <span>Bot Bazaar · Living Town</span
-    ><span>A small shop. A growing story.</span
-    ><a href="?view=replay">Historical replay ↗</a>
-  </footer>
-</div>
+            <ol aria-live="polite" aria-relevant="additions">
+              @for (entry of state().activity.events; track entry.event_id) {
+                <li>{{ activityText(entry) }}</li>
+              } @empty {
+                <li>No retained town activity is available yet.</li>
+              }
+            </ol>
+          </div>
+        </section>
+      }
+    </main>
+    <footer>
+      <span>Bot Bazaar · Living Town</span
+      ><span>A small shop. A growing story.</span
+      ><a href="?view=replay">Historical replay ↗</a>
+    </footer>
+  </div>
+}

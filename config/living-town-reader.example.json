@@ -3,36 +3,39 @@
   "identity": {
     "deployment": {
       "network_id": "testnet",
-      "genesis_hash": "11111111111111111111111111111111",
-      "contract_id": "replace-with-reviewed-v2.testnet",
+      "genesis_hash": "FWJ9kR6KFWoyMoNjpLXXGHeuiy7tEY6GmoFeCA5yuc6b",
+      "contract_id": "contract.bb-demo-171aea0e7c.testnet",
       "api_version": "2.0.0",
-      "state_schema": "1",
+      "state_schema": "2",
       "command_schema": "1",
       "config_version": "1",
-      "config_sha256": "a932efb48c70a73ce46472cd754288649541b34604e2ea49a4093961e71a2d10"
+      "config_sha256": "50258b219f22de134bbcc3bcaea873ef2ec513e433d190a1a1247b0209f643a9"
     },
-    "codeHash": "59FebaVDedsj5YQqUkH5UXArjSGPzsw9viDVwT1iymgg",
-    "ownerId": "replace-with-reviewed-owner.testnet",
-    "operatorId": "replace-with-reviewed-operator.testnet",
+    "codeHash": "EFHfse8NoN69a8qiCLYoQbu4NctUppmMpvny7uv2xQXB",
+    "ownerId": "bb-demo-171aea0e7c.testnet",
+    "operatorId": "operator.bb-demo-171aea0e7c.testnet",
     "controllers": {
-      "rex": "replace-with-reviewed-rex.testnet",
-      "luna": "replace-with-reviewed-luna.testnet",
-      "bolt": "replace-with-reviewed-bolt.testnet"
+      "rex": "rex.bb-demo-171aea0e7c.testnet",
+      "luna": "luna.bb-demo-171aea0e7c.testnet",
+      "bolt": "bolt.bb-demo-171aea0e7c.testnet"
     }
   },
   "public": {
     "networkId": "testnet",
-    "contractId": "replace-with-reviewed-v2.testnet",
+    "contractId": "contract.bb-demo-171aea0e7c.testnet",
     "rpcUrl": "https://test.rpc.fastnear.com",
     "explorerUrl": "https://testnet.nearblocks.io",
     "workerUrl": "http://127.0.0.1:3011"
   },
-  "data_dir": "/absolute/path/to/dedicated-v2-projection",
+  "data_dir": "/absolute/path/to/contract.bb-demo-171aea0e7c.testnet/projection",
   "receipt_inbox": null,
   "backup_directory": null,
   "agent_activity_inbox": null,
   "trusted_proxy_ips": [],
   "port": "3011",
   "poll_ms": "3000",
-  "allowed_origins": ["http://127.0.0.1:4201"]
+  "allowed_origins": [
+    "http://127.0.0.1:4200",
+    "http://127.0.0.1:4201"
+  ]
 }

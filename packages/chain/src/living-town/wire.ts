@@ -2,6 +2,7 @@ import {
   livingTownItemIds,
   livingTownVersions,
   livingTownFoundationMethods,
+  livingTownOfferFoundationMethods,
 } from "@bot-bazaar/shared";
 import type { LivingTownSix } from "@bot-bazaar/shared";
 import {
@@ -89,9 +90,9 @@ export const parseLivingTownDeployment = object({
   genesis_hash: hash32,
   contract_id: accountId,
   api_version: literal(livingTownVersions.api_version),
-  state_schema: literal(livingTownVersions.state_schema),
+  state_schema: choice(["1", "2"] as const),
   command_schema: literal(livingTownVersions.command_schema),
-  config_version: literal(livingTownVersions.config_version),
+  config_version: literal("1"),
   config_sha256: livingTownDigest,
 });
 export const livingTownCommand = object({
@@ -184,7 +185,14 @@ export function livingTownListing(
 const rawTradeShape = object({
   trade_id: positiveU64,
   kind: literal("raw_purchase"),
-  buyer: object({ kind: literal("player"), account_id: accountId }),
+  buyer: (value: unknown) => {
+    const actor = livingTownActor(value);
+    check(
+      actor.kind === "player" || actor.kind === "merchant",
+      "V2 raw buyer required",
+    );
+    return actor;
+  },
   customer_pool_id: exactNull,
   seller: object({ kind: literal("merchant"), merchant_id: merchant }),
   item_id: rawItem,
@@ -197,10 +205,12 @@ const rawTradeShape = object({
   settled_at_ns: parseU64,
   command_principal: (v: unknown) => {
     check(
-      typeof v === "string" && v.startsWith("account:"),
+      typeof v === "string" &&
+        (v.startsWith("account:") ||
+          ["merchant:rex", "merchant:luna", "merchant:bolt"].includes(v)),
       "V2 purchase principal required",
     );
-    accountId(v.slice(8));
+    if (v.startsWith("account:")) accountId(v.slice(8));
     return v;
   },
   command_sequence: positiveU64,
@@ -211,9 +221,20 @@ export function livingTownRawTrade(
 ): ReturnType<typeof rawTradeShape> {
   const result = rawTradeShape(value);
   check(
+    result.buyer.kind !== "merchant" || BigInt(result.quantity) <= 2n,
+    "V2 merchant purchase bound exceeded",
+  );
+  check(
     BigInt(result.quantity) * BigInt(result.unit_price) ===
       BigInt(result.total_price) &&
-      result.command_principal === `account:${result.buyer.account_id}`,
+      result.command_principal ===
+        (result.buyer.kind === "player"
+          ? `account:${result.buyer.account_id}`
+          : `merchant:${result.buyer.merchant_id}`) &&
+      !(
+        result.buyer.kind === "merchant" &&
+        result.buyer.merchant_id === result.seller.merchant_id
+      ),
     "V2 trade arithmetic/identity mismatch",
   );
   return result;
@@ -249,8 +270,11 @@ export function livingTownPurchaseEffect(
     "V2 purchase effect mismatch",
   );
   check(
-    buyer.actor.kind === "player" &&
-      buyer.actor.account_id === trade.buyer.account_id &&
+    (trade.buyer.kind === "player"
+      ? buyer.actor.kind === "player" &&
+        buyer.actor.account_id === trade.buyer.account_id
+      : buyer.actor.kind === "merchant" &&
+        buyer.actor.merchant_id === trade.buyer.merchant_id) &&
       seller.actor.kind === "merchant" &&
       seller.actor.merchant_id === trade.seller.merchant_id &&
       listing.owner.kind === "merchant" &&
@@ -416,8 +440,11 @@ const foundationShape = object({
   }),
   item_ids: array(livingTownItem, 6),
   supported_methods: array(
-    choice(livingTownFoundationMethods),
-    livingTownFoundationMethods.length,
+    choice([
+      ...livingTownFoundationMethods,
+      ...livingTownOfferFoundationMethods,
+    ]),
+    livingTownOfferFoundationMethods.length,
   ),
 });
 export function livingTownFoundation(
@@ -428,13 +455,18 @@ export function livingTownFoundation(
   // Live readers still pin the reviewed artifact hash; partial profiles reject.
   check(
     result.item_ids.join() === livingTownItemIds.join() &&
-      (result.supported_methods.join() === livingTownFoundationMethods.join() ||
+      (result.supported_methods.join() ===
+        livingTownOfferFoundationMethods.join() ||
         result.supported_methods.join() ===
-          livingTownFoundationMethods.slice(0, -2).join() ||
+          livingTownFoundationMethods.join() ||
+        result.supported_methods.join() ===
+          livingTownFoundationMethods.slice(0, -1).join() ||
         result.supported_methods.join() ===
           livingTownFoundationMethods.slice(0, -3).join() ||
         result.supported_methods.join() ===
-          livingTownFoundationMethods.slice(0, -5).join()),
+          livingTownFoundationMethods.slice(0, -4).join() ||
+        result.supported_methods.join() ===
+          livingTownFoundationMethods.slice(0, -6).join()),
     "V2 foundation capabilities/items mismatch",
   );
   const roles = [
@@ -483,7 +515,7 @@ const marketEventShape = object({
   definition_id: literal("herb_shortage_v1"),
   start_epoch: positiveU64,
   end_epoch: positiveU64,
-  herb_supply_ceiling: literal("4"),
+  herb_supply_ceiling: literal("1"),
   revision: positiveU64,
 });
 export function livingTownMarketEvent(

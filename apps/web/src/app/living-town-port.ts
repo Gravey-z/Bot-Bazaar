@@ -1,11 +1,10 @@
 import { LivingTownLiveFeed, TownActivityReset } from "./living-town-live";
+import { WalletConnectionError } from "./transaction-errors";
 import { AssistantSession } from "./assistant-session";
 import { verifyAssistantReview, assistantCallMatches } from "@bot-bazaar/chain";
 import type { TownLiveState } from "./living-town-live";
 import {
   LivingTownClient,
-  FinalizedLivingTownReader,
-  createRpcTransport,
   livingTownReadEnvelope,
   livingTownTown,
   canonicalLivingTownJson,
@@ -13,13 +12,13 @@ import {
   createLivingTownCall,
   livingTownSalesHistoryRead,
   livingTownMarketListingsRead,
+  livingTownOffer,
+  livingTownGameView,
+  livingTownShopDirectory,
 } from "@bot-bazaar/chain";
 import type {
   LivingTownProof,
-  LivingTownIdentity,
   LivingTownCall,
-  LivingTownAssistantPolicy,
-  livingTownProductionJob,
 } from "@bot-bazaar/chain";
 import type { LivingTownProfile } from "./living-town-profile";
 import type {
@@ -31,6 +30,7 @@ import type {
 import type { WalletStorage } from "./wallet-context";
 import { createWalletPort } from "./wallet-adapter";
 import { LivingTownTransactions } from "./living-town-transactions";
+import { createTownRpc } from "./town-rpc";
 
 type PortWallet = Awaited<ReturnType<typeof createWalletPort>>;
 export function townTransactionUrl(
@@ -88,7 +88,7 @@ export function createLivingTownPort(
   loadWallet: () => Promise<PortWallet> = () =>
     createWalletPort(profile.public, storage),
 ): TownPort {
-  const rpc = createRpcTransport(profile.public.rpcUrl, fetcher),
+  const rpc = createTownRpc(profile.public.rpcUrl, fetcher),
     client = new LivingTownClient(profile.identity, rpc);
   // One immutable deployment per port/document. A new profile gets a new port
   // and its own journal; outstanding work never changes signing targets.
@@ -158,6 +158,11 @@ export function createLivingTownPort(
     },
   );
   const prefix = `bot-bazaar:living-town:ownership:1:${profile.identity.deployment.genesis_hash}:${profile.identity.deployment.contract_id}:`;
+  const handoffReceipts = receiptHandoff(
+    journal,
+    profile.public.workerUrl,
+    fetcher,
+  );
   async function syncAssistantAudit(): Promise<void> {
     const session = privateSession,
       account = privateAccount;
@@ -184,57 +189,11 @@ export function createLivingTownPort(
       }
     }
   }
-  const sessionProofs = new Map<string, LivingTownProof>(),
-    verified = new Map<string, string>();
+  const verified = new Map<string, string>();
   const key = (account: string, shop: TownShop): string =>
     `${prefix}${account}:${shop.shop_id}:${shop.ownership_command_sequence}`;
-  async function ownership(
-    account: string,
-    shop: TownShop,
-    proofClient = client,
-  ): Promise<string | null> {
-    const k = key(account, shop);
-    if (verified.has(k)) return verified.get(k)!;
-    try {
-      let proof = sessionProofs.get(k);
-      if (!proof) {
-        const raw = storage.getItem(k);
-        if (!raw || raw.length > 8192) return null;
-        const parsed = parseLivingTownJson(raw) as {
-          identity: LivingTownIdentity;
-          proof: LivingTownProof;
-        };
-        if (
-          !parsed ||
-          Object.keys(parsed).sort().join() !== "identity,proof" ||
-          canonicalLivingTownJson(parsed.identity) !==
-            canonicalLivingTownJson(profile.identity)
-        )
-          return null;
-        proof = parsed.proof;
-      }
-      if (
-        proof.signerId !== account ||
-        proof.call.method !== "create_shop" ||
-        proof.call.args.command.sequence !== shop.ownership_command_sequence
-      )
-        return null;
-      const status = await proofClient.receipt(proof);
-      if (
-        status.kind !== "succeeded" ||
-        status.result.data.outcome.kind !== "shop_created" ||
-        status.result.data.outcome.shop.shop_id !== shop.shop_id
-      )
-        return null;
-      const url = townTransactionUrl(
-        profile.public.explorerUrl,
-        proof.transactionHash,
-      );
-      if (url) verified.set(k, url);
-      return url;
-    } catch {
-      return null;
-    }
+  function ownership(account: string, shop: TownShop): string | null {
+    return verified.get(key(account, shop)) ?? null;
   }
   async function salesPage<T>(
     path: string,
@@ -269,7 +228,7 @@ export function createLivingTownPort(
     };
   }
   let unsubscribe: (() => void) | undefined;
-  let changed: (() => void) | undefined;
+  let changed: ((reason?: "focus" | "wallet") => void) | undefined;
   let privateSession: AssistantSession | undefined;
   let privateAccount: string | null = null;
   let privateVersion = 0;
@@ -280,25 +239,14 @@ export function createLivingTownPort(
   };
   const notify = (): void => {
     invalidatePrivate();
-    changed?.();
+    changed?.("wallet");
   };
   const initializeWallet = async (): Promise<PortWallet> => {
     const w = await getWallet();
     if (!unsubscribe && changed) unsubscribe = w.subscribe(notify);
     return w;
   };
-  let directory:
-    | {
-        reader: Awaited<ReturnType<LivingTownClient["finalized"]>>;
-        nextId: bigint;
-        upperId: bigint;
-        revision: string;
-        startedAt: number;
-        cursor: string | null;
-        sessionId: string;
-      }
-    | undefined;
-  let directoryEpoch = 0;
+
   return {
     assistant: {
       async authenticate(accountId, shopId) {
@@ -458,7 +406,13 @@ export function createLivingTownPort(
       }
     },
     async connect() {
-      return (await initializeWallet()).connect();
+      let wallet;
+      try {
+        wallet = await initializeWallet();
+      } catch {
+        throw new WalletConnectionError("setup");
+      }
+      return wallet.connect();
     },
     async disconnect() {
       invalidatePrivate();
@@ -466,20 +420,22 @@ export function createLivingTownPort(
     },
     subscribe(callback) {
       changed = callback;
+      const onFocus = (): void => changed?.("focus");
       const onStorage = (event: StorageEvent): void => {
         if (
           event.key === null ||
           event.key === "meteor-wallet:meteor-account-data" ||
-          event.key.startsWith("bot-bazaar:living-town:journal:") ||
           event.key.startsWith("bot-bazaar:wallet:")
         )
           notify();
+        else if (event.key.startsWith("bot-bazaar:living-town:journal:"))
+          changed?.("focus");
       };
-      globalThis.window?.addEventListener("focus", callback);
+      globalThis.window?.addEventListener("focus", onFocus);
       globalThis.window?.addEventListener("storage", onStorage);
       return () => {
         invalidatePrivate();
-        globalThis.window?.removeEventListener("focus", callback);
+        globalThis.window?.removeEventListener("focus", onFocus);
         globalThis.window?.removeEventListener("storage", onStorage);
         unsubscribe?.();
         unsubscribe = undefined;
@@ -487,11 +443,36 @@ export function createLivingTownPort(
       };
     },
     async read(account, signal): Promise<TownObservation> {
+      void handoffReceipts();
       const readFetch = scopedFetch(signal);
-      const readClient = new LivingTownClient(
-        profile.identity,
-        createRpcTransport(profile.public.rpcUrl, readFetch),
-      );
+      if (account !== null) {
+        const url = new URL("/api/game-view", profile.public.workerUrl);
+        url.searchParams.set("account", account);
+        const envelope = livingTownReadEnvelope(livingTownGameView)(await readProjection(url, readFetch));
+        if (canonicalLivingTownJson(envelope.deployment) !== canonicalLivingTownJson(profile.identity.deployment) ||
+          envelope.checkpoint.verified_code_hash !== profile.identity.codeHash ||
+          envelope.snapshot.data.account !== account)
+          throw new Error("Player view identity mismatch");
+        const view = envelope.snapshot.data;
+        const observed = Number(envelope.observed_at_ms);
+        if (!Number.isSafeInteger(observed)) throw new Error("Invalid view observation time");
+        return {
+          accountId: account, town: view.town, player: view.player, shop: view.shop,
+          ledger: view.ledger, listings: view.listings, ownListings: view.ownListings,
+          production: view.production, recipes: view.recipes,
+          merchantOffers: { available: true, items: view.offers,
+            stale: envelope.stale, historyGap: view.offersHistoryGap },
+          ...(view.upgrade ? { upgrade: view.upgrade } : {}),
+          ...(view.assistantPolicy ? { assistantPolicy: view.assistantPolicy,
+            assistantOperatorId: profile.identity.operatorId,
+            assistantRepriceAvailable: view.assistantRepriceAvailable } : {}),
+          chainTimestampNs: envelope.snapshot.block_timestamp_ns,
+          receivedAt: observed, stale: envelope.stale || observed > Date.now() ||
+            Date.now() - observed > 30000 ||
+            Math.abs(Date.now() - Number(BigInt(envelope.snapshot.block_timestamp_ns) / 1000000n)) > 30000,
+          ownershipKnown: true, source: "projection", ownershipUrl: view.shop ? ownership(account, view.shop) : null,
+        };
+      }
       if (account === null) {
         try {
           const r = livingTownReadEnvelope(livingTownTown)(
@@ -512,216 +493,128 @@ export function createLivingTownPort(
             !Number.isFinite(new Date(observed).getTime())
           )
             throw new Error("Invalid observation time");
+          // The town projection contains no stock. Read the actual listings from
+          // the same checkpoint instead of treating missing stock as an empty shop.
+          const listings: TownObservation["listings"] = [];
+          const seen = new Set<string>();
+          let cursor: string | null = null;
+          let receivedAt = observed;
+          let stale = r.stale;
+          do {
+            const url = new URL(
+              "/api/market/listings",
+              profile.public.workerUrl,
+            );
+            url.searchParams.set("limit", "50");
+            if (cursor) url.searchParams.set("after", cursor);
+            const page = livingTownReadEnvelope(livingTownMarketListingsRead)(
+              await readProjection(url, readFetch),
+            );
+            if (
+              canonicalLivingTownJson(page.deployment) !==
+                canonicalLivingTownJson(r.deployment) ||
+              canonicalLivingTownJson(page.checkpoint) !==
+                canonicalLivingTownJson(r.checkpoint)
+            )
+              throw new Error("Town stock snapshot changed");
+            const pageTime = Number(page.observed_at_ms);
+            if (
+              !Number.isSafeInteger(pageTime) ||
+              !Number.isFinite(new Date(pageTime).getTime())
+            )
+              throw new Error("Invalid stock observation time");
+            stale ||= page.stale || pageTime > Date.now();
+            receivedAt = Math.min(receivedAt, pageTime);
+            for (const listing of page.snapshot.data.items) {
+              if (seen.has(listing.listing_id) || seen.size >= 2018)
+                throw new Error("Invalid stock pagination");
+              seen.add(listing.listing_id);
+              if (listing.active && BigInt(listing.remaining_quantity) > 0n)
+                listings.push(listing);
+            }
+            cursor = page.snapshot.data.next_cursor;
+            if (page.snapshot.data.has_more !== (cursor !== null))
+              throw new Error("Invalid stock cursor");
+            if (cursor && page.snapshot.data.items.length === 0)
+              throw new Error("Empty stock page with cursor");
+          } while (cursor);
+          let merchantOffers: TownObservation["merchantOffers"] = {
+            available: false,
+            items: [],
+            stale: true,
+            historyGap: false,
+          };
+          if (profile.identity.deployment.state_schema === "2")
+            try {
+              const page = livingTownReadEnvelope((v: unknown) => {
+                if (!Array.isArray(v) || v.length > 140)
+                  throw Error("Offer bound");
+                return v.map(livingTownOffer);
+              })(
+                await readProjection(
+                  new URL("/api/merchant-offers", profile.public.workerUrl),
+                  readFetch,
+                ),
+              );
+              if (
+                canonicalLivingTownJson(page.deployment) !==
+                  canonicalLivingTownJson(r.deployment) ||
+                canonicalLivingTownJson(page.checkpoint) !==
+                  canonicalLivingTownJson(r.checkpoint)
+              )
+                throw Error("Offer snapshot changed");
+              const observed = Number(page.observed_at_ms);
+              merchantOffers = {
+                available: true,
+                items: page.snapshot.data,
+                stale:
+                  page.stale ||
+                  !page.history_complete ||
+                  !Number.isFinite(observed) ||
+                  observed > Date.now() ||
+                  Date.now() - observed > 30000,
+                historyGap: !page.history_complete,
+              };
+            } catch {
+              /* Keep independently verified stock readable while offer reads are unavailable. */
+            }
           return {
             accountId: null,
             town: r.snapshot.data,
             player: null,
             shop: null,
             ledger: null,
-            listings: [],
-            receivedAt: observed,
-            stale: r.stale,
+            listings,
+            merchantOffers,
+            chainTimestampNs: r.snapshot.block_timestamp_ns,
+            receivedAt,
+            stale:
+              stale ||
+              receivedAt > Date.now() ||
+              Date.now() - receivedAt > 30000,
             ownershipKnown: false,
             source: "projection",
             ownershipUrl: null,
           };
         } catch {
-          /* A configured spectator can also use verified finalized public chain reads. */
+          throw new Error("Town reader unavailable");
         }
       }
-      const reader = await readClient.finalized(),
-        town = await reader.getTown(),
-        player = account ? await reader.getPlayer(account) : null;
-      const recipes = await reader.getRecipes({
-        after_id: null,
-        limit: "50",
-        expected_market_revision: town.market_revision,
-      });
-      if (recipes.data.has_more || recipes.data.items.length !== 2)
-        throw new Error("Recipe catalogue unavailable");
-      const listings = await reader.getListings({
-        shop_id: null,
-        item_id: null,
-        active_only: true,
-        after_id: null,
-        limit: "50",
-        expected_market_revision: town.market_revision,
-      });
-      let ownListings:
-        ReturnType<typeof livingTownMarketListingsRead>["items"] | undefined;
-      let shop: TownShop | null = null,
-        ledger = player?.data?.ledger ?? null;
-      let assistantPolicy: LivingTownAssistantPolicy | undefined;
-      let upgrade: TownObservation["upgrade"];
-      const production: {
-        items: ReturnType<typeof livingTownProductionJob>[];
-        historyGap: boolean;
-      } = { items: [], historyGap: false };
-      if (player?.data?.shop_id) {
-        const s = await reader.getShop(player.data.shop_id);
-        if (
-          (await reader.getFoundation()).data.supported_methods.includes(
-            "get_upgrade",
-          )
-        )
-          upgrade = (await reader.getUpgrade(player.data.shop_id)).data;
-        if (
-          !s.data ||
-          s.data.owner.kind !== "player" ||
-          s.data.owner.account_id !== account ||
-          s.market_revision !== town.market_revision
-        )
-          throw new Error("Shop owner mismatch");
-        shop = s.data;
-        if (
-          (await reader.getFoundation()).data.supported_methods.includes(
-            "get_assistant_policy",
-          )
-        ) {
-          assistantPolicy = (await reader.getAssistantPolicy(shop.shop_id))
-            .data;
-        }
-        const owned = await reader.getListings({
-          shop_id: shop.shop_id,
-          item_id: null,
-          active_only: false,
-          after_id: null,
-          limit: "50",
-          expected_market_revision: town.market_revision,
-        });
-        if (
-          owned.data.has_more ||
-          owned.data.items.length > 2 ||
-          owned.data.items.some(
-            (l) => l.owner.kind !== "player" || l.owner.account_id !== account,
-          )
-        )
-          throw new Error("Owned listings unavailable");
-        ownListings = owned.data.items;
-        const inv = await reader.getShopInventory(s.data.shop_id);
-        if (inv.market_revision !== town.market_revision)
-          throw new Error("Shop inventory revision mismatch");
-        ledger = inv.data;
-        let after: string | null = null;
-        for (let n = 0; n < 6; n++) {
-          const page = await reader.getProductionJobs({
-            shop_id: shop.shop_id,
-            status: "all",
-            after_id: after,
-            limit: "50",
-            expected_market_revision: town.market_revision,
-          });
-          production.items.push(...page.data.items);
-          production.historyGap ||= page.data.history_gap;
-          if (!page.data.has_more) break;
-          if (
-            n === 5 ||
-            page.data.next_after_id === null ||
-            BigInt(page.data.next_after_id) <= BigInt(after ?? "0")
-          )
-            throw new Error("Production page bound exceeded");
-          after = page.data.next_after_id;
-        }
-      }
-      if (player && player.market_revision !== town.market_revision)
-        throw new Error("Player revision mismatch");
-      return {
-        accountId: account,
-        town: town.data,
-        player: player?.data ?? null,
-        shop,
-        ...(upgrade ? { upgrade } : {}),
-        ...(assistantPolicy ? { assistantPolicy } : {}),
-        ...(assistantPolicy
-          ? {
-              assistantOperatorId: profile.identity.operatorId,
-              assistantRepriceAvailable: (
-                await reader.getFoundation()
-              ).data.supported_methods.includes("assistant_reprice"),
-            }
-          : {}),
-        ledger,
-        listings: listings.data.items,
-        ...(ownListings ? { ownListings } : {}),
-        receivedAt: Date.now(),
-        stale: false,
-        ownershipKnown: account !== null,
-        production,
-        recipes: recipes.data.items.map((r) => r.recipe),
-        chainTimestampNs: reader.block.timestampNs,
-        source: "chain",
-        ownershipUrl:
-          account && shop ? await ownership(account, shop, readClient) : null,
-      };
+      throw new Error("Town reader unavailable");
     },
     async browse(cursor, signal): Promise<TownShopPage> {
-      const epoch = ++directoryEpoch;
-      const browseRpc = createRpcTransport(
-        profile.public.rpcUrl,
-        scopedFetch(signal),
-      );
-      let session = directory;
-      if (cursor === null) {
-        const reader = await new LivingTownClient(
-          profile.identity,
-          browseRpc,
-        ).finalized();
-        const town = await reader.getTown();
-        const upperId = BigInt(town.data.next_shop_id);
-        if (upperId > BigInt(town.data.limits.max_players) + 4n)
-          throw new Error("Shop directory capacity mismatch");
-        session = {
-          reader,
-          nextId: 1n,
-          upperId,
-          revision: town.market_revision,
-          startedAt: Date.now(),
-          cursor: null,
-          sessionId: crypto.randomUUID(),
-        };
-      } else if (!session || cursor !== session.cursor) {
-        throw new Error("Shop directory cursor mismatch");
+      if (profile.public.workerUrl) {
+        const url = new URL("/api/shops", profile.public.workerUrl);
+        url.searchParams.set("limit", "12");
+        if (cursor) url.searchParams.set("after", cursor);
+        const page = livingTownReadEnvelope(livingTownShopDirectory)(await readProjection(url, scopedFetch(signal)));
+        if (canonicalLivingTownJson(page.deployment) !== canonicalLivingTownJson(profile.identity.deployment) ||
+          page.checkpoint.verified_code_hash !== profile.identity.codeHash || page.stale)
+          throw new Error("Shop directory unavailable");
+        return { shops: page.snapshot.data.shops, nextCursor: page.snapshot.data.next_cursor,
+          receivedAt: Number(page.observed_at_ms) };
       }
-      if (
-        !session ||
-        Date.now() < session.startedAt ||
-        Date.now() - session.startedAt > 30000
-      )
-        throw new Error("Shop directory snapshot expired");
-      // Reuse the admitted finalized block with a new cancellable transport.
-      const reader = new FinalizedLivingTownReader(
-        browseRpc,
-        profile.identity,
-        session.reader.block,
-      );
-      const end =
-        session.nextId + 12n < session.upperId
-          ? session.nextId + 12n
-          : session.upperId;
-      const ids: string[] = [];
-      for (let id = session.nextId; id < end; id++) ids.push(id.toString());
-      const rows = await Promise.all(ids.map((id) => reader.getShop(id)));
-      if (
-        signal?.aborted ||
-        epoch !== directoryEpoch ||
-        Date.now() < session.startedAt ||
-        Date.now() - session.startedAt > 30000
-      )
-        throw new Error("Shop directory cancelled or expired");
-      if (rows.some((row) => row.market_revision !== session.revision))
-        throw new Error("Shop directory revision mismatch");
-      const nextCursor =
-        end < session.upperId
-          ? `${session.sessionId}:${reader.block.hash}:${end}`
-          : null;
-      directory = { ...session, nextId: end, cursor: nextCursor };
-      return {
-        shops: rows.flatMap((row) =>
-          row.data?.owner.kind === "player" ? [row.data] : [],
-        ),
-        nextCursor,
-        receivedAt: session.startedAt,
-      };
+      throw new Error("Shop directory reader unavailable");
     },
     async prepare(account, method, args, assistantReview) {
       if (method === "complete_production")
@@ -749,16 +642,22 @@ export function createLivingTownPort(
     },
     async submit(id) {
       await journal.submit(id);
+      await handoffReceipts();
       await syncAssistantAudit();
     },
+    retryRegistration: (id) => journal.retryRegistration(id),
     pending: () => journal.read(),
     restore: () => journal.restore(),
     last: () => journal.last(),
-    recoverHash: (id, hash) => journal.recoverHash(id, hash),
+    async recoverHash(id, hash) {
+      await journal.recoverHash(id, hash);
+      await handoffReceipts();
+    },
     discardPrepared: (id) => journal.discardPrepared(id),
     async reconcile() {
       const attempt = await journal.read();
       const status = await journal.refresh();
+      void handoffReceipts();
       await syncAssistantAudit();
       if (
         attempt &&
@@ -782,7 +681,6 @@ export function createLivingTownPort(
             referenceBlockHeight: attempt.referenceBlockHeight,
           };
           const k = key(attempt.accountId, shop);
-          sessionProofs.set(k, proof);
           const url = townTransactionUrl(
             profile.public.explorerUrl,
             status.transactionHash,
@@ -802,3 +700,4 @@ export function createLivingTownPort(
     },
   };
 }
+import { receiptHandoff } from "./living-town-receipt-handoff";

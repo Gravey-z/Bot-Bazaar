@@ -48,6 +48,9 @@ export interface RuntimeOperations {
   rejectedActions: number;
 }
 export interface BudgetOperations {
+  rollingLimitsEnabled?: boolean;
+  totalMicro?: number;
+  totalLimit?: number;
   dailyMicro: number;
   monthlyMicro: number;
   dailyLimit: number;
@@ -256,12 +259,14 @@ export class TownOperations {
     )
       alerts.add("provider_stale");
     if (budget?.warning) alerts.add("budget_warning");
-    const dailyRemaining = budget
+    const totalRemaining = budget?.rollingLimitsEnabled === false && budget.totalLimit !== undefined
+      ? Math.max(0, budget.totalLimit - (budget.totalMicro ?? 0)) : null;
+    const dailyRemaining = totalRemaining ?? (budget
       ? Math.max(0, budget.dailyLimit - budget.dailyMicro)
-      : null;
-    const monthlyRemaining = budget
+      : null);
+    const monthlyRemaining = totalRemaining ?? (budget
       ? Math.max(0, budget.monthlyLimit - budget.monthlyMicro)
-      : null;
+      : null);
     if (
       budget &&
       (budget.blocked || dailyRemaining === 0 || monthlyRemaining === 0)

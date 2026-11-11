@@ -58,7 +58,7 @@ const verified = await Promise.all(
 const result = await build({
   stdin: {
     contents:
-      "export * from './apps/web/src/app/living-town-controller.ts'; export * from './apps/web/src/app/living-town-port.ts'; export * from './apps/web/src/app/living-town-profile.ts'; export * from './apps/web/src/app/living-town-transactions.ts'; export {LivingTownIdentityError} from './packages/chain/dist/index.js';",
+      "export * from './apps/web/src/app/living-town-controller.ts'; export * from './apps/web/src/app/living-town-port.ts'; export * from './apps/web/src/app/living-town-profile.ts'; export * from './apps/web/src/app/living-town-transactions.ts'; export {LivingTownIdentityError} from './packages/chain/dist/index.js'; export {WalletRejectedError} from './apps/web/src/app/transaction-errors.ts';",
     resolveDir: process.cwd(),
   },
   bundle: true,
@@ -96,6 +96,7 @@ const {
   townTransactionUrl,
   LivingTownIdentityError,
   LivingTownTransactions,
+  WalletRejectedError,
 } = await import(
   `data:text/javascript;base64,${Buffer.from(result.outputFiles[0].contents).toString("base64")}`
 );
@@ -487,6 +488,42 @@ test("unconfigured storefront remains a spectator preview with no balances, owne
   assert.equal(c.state.ownershipUrl, null);
   assert.equal(c.canTransact, false);
   c.stop();
+});
+
+test("guest setup reports missing configuration instead of silently skipping the request", async () => {
+  const c = new LivingTownController(null, () => {});
+  assert.equal(await c.playAsGuest(), true);
+  assert.match(c.state.message, /town configuration could not be loaded/);
+  c.stop();
+  assert.equal(await c.playAsGuest(), false);
+});
+
+test("guest setup preserves errors raised before switching out of wallet mode", async () => {
+  const h = harness();
+  h.port.guest = {
+    start: async () => { throw new Error("Resolve your original wallet request before switching"); },
+    isGuest: () => false,
+  };
+  await h.c.start();
+  assert.equal(await h.c.playAsGuest(), true);
+  assert.equal(h.c.state.message, "Resolve your original wallet request before switching");
+  assert.equal(h.calls.sent.length, 0);
+  h.c.stop();
+});
+
+test("a second guest click during setup is ignored without reporting another failure", async () => {
+  const h = harness();
+  let release, starts = 0;
+  const pending = new Promise(resolve => { release = resolve; });
+  h.port.guest = { start: async () => { starts++; await pending; }, isGuest: () => true };
+  await h.c.start();
+  const first = h.c.playAsGuest();
+  assert.equal(await h.c.playAsGuest(), false);
+  assert.equal(h.c.state.message, "");
+  release();
+  assert.equal(await first, true);
+  assert.equal(starts, 1);
+  h.c.stop();
 });
 
 test("onboarding requires separate explicit registration and shop approvals before confirmed ownership", async () => {
@@ -1075,6 +1112,201 @@ const noWallet = async () => {
   throw Error("Unexpected wallet request");
 };
 
+test("a failed background refresh does not replace the wallet connection failure notice", async () => {
+  const h = harness();
+  await h.c.start();
+  h.port.connect = async () => {
+    throw Error("Wallet could not open");
+  };
+  h.port.read = async () => {
+    throw Error("Town unavailable");
+  };
+  await h.c.connect();
+  assert.equal(h.c.state.message, "Wallet connection was not completed.");
+  assert.equal(h.c.state.busy, false);
+  h.c.stop();
+});
+
+test("spectator stock loads every matching projection page without a wallet and falls back on invalid stock", async () => {
+  for (const mode of [
+    "fresh",
+    "stale",
+    "changed",
+    "duplicate",
+    "unavailable",
+  ]) {
+    const town = copy(f.final_views.get_town);
+    const checkpoint = {
+      network_id: identity.deployment.network_id,
+      genesis_hash: identity.deployment.genesis_hash,
+      contract_id: identity.deployment.contract_id,
+      projection_schema_version: "1",
+      verified_code_hash: identity.codeHash,
+      config_sha256: identity.deployment.config_sha256,
+      baseline_event_sequence: town.event_sequence,
+      through_event_sequence: town.event_sequence,
+      through_market_revision: town.market_revision,
+      finalized_block_hash: f.steps[4].block.header.hash,
+      finalized_block_height: town.block_height,
+      last_receipt_id: null,
+      last_log_index: null,
+      history_complete: false,
+      gap_from_sequence: "1",
+      feed_generation: "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee",
+    };
+    const envelope = (snapshot) => ({
+      schema: "living-town-read-v1",
+      deployment: identity.deployment,
+      source: "confirmed_projection",
+      snapshot,
+      checkpoint: copy(checkpoint),
+      observed_at_ms: String(Date.now()),
+      stale: false,
+      history_complete: false,
+    });
+    const listing = copy(body(f.steps[3]).data.outcome.listing);
+    const second = {
+      ...listing,
+      listing_id: mode === "duplicate" ? listing.listing_id : "2",
+      shop_id: "2",
+      owner: { kind: "merchant", merchant_id: "luna" },
+      item_id: "herb",
+    };
+    const requests = [];
+    const rpc = receiptRpc();
+    const port = createLivingTownPort(
+      sandboxProfile(),
+      memoryStorage(),
+      async (input, init) => {
+        const url = new URL(input);
+        if (url.origin !== "http://127.0.0.1:3011") return rpc(input, init);
+        requests.push(url.pathname + url.search);
+        if (url.pathname === "/api/town") return Response.json(envelope(town));
+        assert.equal(url.pathname, "/api/market/listings");
+        assert.equal(url.searchParams.get("limit"), "50");
+        if (mode === "unavailable") return new Response("", { status: 503 });
+        const after = url.searchParams.get("after");
+        const page = envelope({
+          ...town,
+          data: {
+            items: [after ? second : listing],
+            next_cursor: after ? null : "next",
+            has_more: !after,
+          },
+        });
+        if (mode === "stale") {
+          page.observed_at_ms = String(Date.now() - 31000);
+          page.stale = true;
+        }
+        if (mode === "changed")
+          page.checkpoint.feed_generation =
+            "bbbbbbbb-bbbb-4ccc-8ddd-eeeeeeeeeeee";
+        return Response.json(page);
+      },
+      noWallet,
+    );
+    const observation = await port.read(null);
+    assert.equal(observation.accountId, null);
+    assert.equal(observation.player, null);
+    assert.equal(observation.ownershipKnown, false);
+    if (["fresh", "stale"].includes(mode)) {
+      assert.equal(observation.source, "projection");
+      assert.deepEqual(observation.listings, [listing, second]);
+      assert.equal(observation.stale, mode === "stale");
+      assert.equal(requests.length, 3);
+    } else {
+      assert.equal(observation.source, "chain", mode);
+      assert.deepEqual(observation.listings, [listing]);
+    }
+  }
+});
+
+test("spectator merchant offers share the stock checkpoint and failures do not hide shelves or request a wallet", async () => {
+  const cap = JSON.parse(
+    readFileSync(
+      "tests/fixtures/chain/living-town-merchant-offers-sandbox.json",
+      "utf8",
+    ),
+  );
+  for (const mode of ["fresh", "stale", "changed", "unavailable"]) {
+    const town = copy(cap.low),
+      dep = town.deployment;
+    const profile = sandboxProfile();
+    profile.public.contractId = dep.contract_id;
+    profile.identity = {
+      deployment: dep,
+      codeHash: cap.steps[0].account.code_hash,
+      ownerId: cap.foundation.data.owner_account_id,
+      operatorId: cap.foundation.data.operator_account_id,
+      controllers: cap.foundation.data.merchant_controllers,
+    };
+    const checkpoint = {
+      network_id: dep.network_id,
+      genesis_hash: dep.genesis_hash,
+      contract_id: dep.contract_id,
+      projection_schema_version: "1",
+      verified_code_hash: profile.identity.codeHash,
+      config_sha256: dep.config_sha256,
+      baseline_event_sequence: "0",
+      through_event_sequence: town.event_sequence,
+      through_market_revision: town.market_revision,
+      finalized_block_hash: cap.steps[0].block.header.hash,
+      finalized_block_height: town.block_height,
+      last_receipt_id: cap.steps[0].transaction_hash,
+      last_log_index: "0",
+      history_complete: true,
+      gap_from_sequence: null,
+      feed_generation: "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee",
+    };
+    const envelope = (data) => ({
+      schema: "living-town-read-v1",
+      deployment: dep,
+      source: "confirmed_projection",
+      snapshot: { ...town, data },
+      checkpoint: copy(checkpoint),
+      observed_at_ms: String(Date.now()),
+      stale: false,
+      history_complete: true,
+    });
+    const requests = [];
+    const port = createLivingTownPort(
+      profile,
+      memoryStorage(),
+      async (input, init) => {
+        assert(!init?.method || init.method === "GET");
+        const url = new URL(input);
+        requests.push(url.pathname);
+        if (url.pathname === "/api/town")
+          return Response.json(envelope(town.data));
+        if (url.pathname === "/api/market/listings")
+          return Response.json(
+            envelope({ items: [], next_cursor: null, has_more: false }),
+          );
+        assert.equal(url.pathname, "/api/merchant-offers");
+        if (mode === "unavailable") return new Response("", { status: 503 });
+        const page = envelope([]);
+        if (mode === "changed")
+          page.checkpoint.feed_generation =
+            "bbbbbbbb-bbbb-4ccc-8ddd-eeeeeeeeeeee";
+        if (mode === "stale") page.observed_at_ms = String(Date.now() - 31000);
+        return Response.json(page);
+      },
+      noWallet,
+    );
+    const o = await port.read(null);
+    assert.equal(o.source, "projection");
+    assert.equal(o.player, null);
+    assert.equal(o.chainTimestampNs, town.block_timestamp_ns);
+    assert.equal(o.merchantOffers.available, ["fresh", "stale"].includes(mode));
+    assert.equal(o.merchantOffers.stale, mode !== "fresh");
+    assert.deepEqual(requests, [
+      "/api/town",
+      "/api/market/listings",
+      "/api/merchant-offers",
+    ]);
+  }
+});
+
 test("reconnect and fresh controller restore the same finalized shop without signing or granting again", async () => {
   const h = harness();
   h.setStage(4);
@@ -1116,6 +1348,39 @@ test("wallet events clear the old manager immediately and the newest account che
   await first;
   assert.equal(h.c.state.accountId, "other.testnet");
   assert.equal(h.c.state.observation.shop, null);
+  h.c.stop();
+});
+
+test("background account checks keep the connected identity visible without enabling unverified actions", async () => {
+  const h = harness();
+  h.setStage(4);
+  h.setAccounts([f.player_id]);
+  await h.c.start();
+  const before = h.c.state.observation,
+    wait = deferred();
+  let checks = 0;
+  h.port.accounts = () => {
+    checks++;
+    return wait.promise;
+  };
+  const checking = h.c.syncAccounts(true);
+  assert.equal(h.c.state.accountId, f.player_id);
+  assert.equal(h.c.state.observation, before);
+  assert.equal(h.c.canTransact, false);
+  await h.c.syncAccounts(true);
+  assert.equal(checks, 1, "overlapping focus checks are coalesced");
+  wait.resolve([{ accountId: f.player_id }]);
+  await checking;
+  assert.equal(h.c.state.accountId, f.player_id);
+  assert.equal(h.c.canTransact, true);
+  const changed = deferred();
+  h.port.accounts = () => changed.promise;
+  const rechecking = h.c.syncAccounts(true);
+  changed.resolve([{ accountId: "other.testnet" }]);
+  await rechecking;
+  assert.equal(h.c.state.accountId, "other.testnet");
+  assert.equal(h.c.state.observation.shop, null);
+  assert.equal(h.c.state.observation.ledger, null);
   h.c.stop();
 });
 
@@ -1537,6 +1802,7 @@ test("focus and wallet/journal storage events request revalidation and unsubscri
   let changed = 0,
     unsubscribed = 0,
     walletChanged;
+  const reasons = [];
   try {
     const port = createLivingTownPort(
       sandboxProfile(),
@@ -1552,8 +1818,9 @@ test("focus and wallet/journal storage events request revalidation and unsubscri
         },
       }),
     );
-    const stop = port.subscribe(() => {
+    const stop = port.subscribe((reason) => {
       changed++;
+      reasons.push(reason);
     });
     await port.accounts();
     target.dispatchEvent(new Event("focus"));
@@ -1564,6 +1831,7 @@ test("focus and wallet/journal storage events request revalidation and unsubscri
     storage("bot-bazaar:living-town:journal:1:testnet:example");
     storage("unrelated-preference");
     assert.equal(changed, 4);
+    assert.deepEqual(reasons, ["focus", "wallet", "wallet", "focus"]);
     stop();
     target.dispatchEvent(new Event("focus"));
     storage(null);
@@ -1667,4 +1935,166 @@ test("real journal plus controller survives an unknown wallet handoff, account s
   assert.equal(restored.state.observation.ledger.gold.held, "100");
   assert.equal(signatures, 1);
   restored.stop();
+});
+
+function registrationRetryHarness(stepIndex = 0) {
+  const step = f.steps[stepIndex],
+    storage = memoryStorage(),
+    sends = [];
+  let now = BigInt(step.args.command.valid_until_ns) - 500_000_000_000n;
+  let lookup = {
+    kind: "not_applied",
+    next_sequence: step.args.command.sequence,
+  };
+  let failure = new Error("Wallet closed without a hash");
+  const client = {
+    identity,
+    finalized: async () => ({
+      block: {
+        height: String(step.reference_block_height),
+        timestampNs: String(now),
+      },
+      getCommand: async () => ({ data: lookup }),
+    }),
+    receipt: async () => ({ kind: "pending" }),
+  };
+  const journal = new LivingTownTransactions(
+    client,
+    storage,
+    async (account, call) => {
+      sends.push({ account, call: copy(call) });
+      if (failure) throw failure;
+      return { transaction: { hash: step.transaction_hash } };
+    },
+    async (_key, work) => work(),
+    () => id,
+  );
+  return {
+    journal,
+    step,
+    sends,
+    client,
+    storage,
+    setTime: (v) => {
+      now = v;
+    },
+    setLookup: (v) => {
+      lookup = v;
+    },
+    setFailure: (v) => {
+      failure = v;
+    },
+  };
+}
+
+test("closed registration can explicitly retry only its original command after fresh admission", async () => {
+  const h = registrationRetryHarness();
+  const a = await h.journal.prepare(f.player_id, h.step.method, h.step.args);
+  await h.journal.submit(a.id);
+  assert.equal((await h.journal.read()).phase, "unknown");
+  await h.journal.retryRegistration(a.id);
+  assert.equal(h.sends.length, 2);
+  assert.deepEqual(h.sends[0], h.sends[1]);
+  assert.equal((await h.journal.read()).digest, a.digest);
+  h.setLookup({ kind: "found" });
+  await assert.rejects(h.journal.retryRegistration(a.id));
+  assert.equal(h.sends.length, 2);
+  h.setLookup({
+    kind: "not_applied",
+    next_sequence: h.step.args.command.sequence,
+  });
+  h.setTime(BigInt(h.step.args.command.valid_until_ns));
+  await assert.rejects(h.journal.retryRegistration(a.id));
+  assert.equal(h.sends.length, 2);
+});
+
+test("explicit wallet rejection releases registration while ambiguous closes preserve it", async () => {
+  const h = registrationRetryHarness();
+  const a = await h.journal.prepare(f.player_id, h.step.method, h.step.args);
+  h.setFailure(new WalletRejectedError());
+  await h.journal.submit(a.id);
+  assert.equal(await h.journal.read(), null);
+  assert.equal((await h.journal.last()).phase, "not_submitted");
+  const unknown = registrationRetryHarness();
+  const original = await unknown.journal.prepare(
+    f.player_id,
+    unknown.step.method,
+    unknown.step.args,
+  );
+  await unknown.journal.submit(original.id);
+  unknown.setFailure(new WalletRejectedError());
+  await unknown.journal.retryRegistration(original.id);
+  assert.equal((await unknown.journal.read()).phase, "unknown");
+  assert.equal((await unknown.journal.read()).digest, original.digest);
+});
+
+test("expired hashless registration unlocks only with finalized proof of its unused sequence", async () => {
+  const h = registrationRetryHarness();
+  const a = await h.journal.prepare(f.player_id, h.step.method, h.step.args);
+  await h.journal.submit(a.id);
+  await h.journal.refresh();
+  assert.equal((await h.journal.read()).id, a.id);
+  h.setTime(BigInt(h.step.args.command.valid_until_ns));
+  h.setLookup({ kind: "pruned" });
+  await h.journal.refresh();
+  assert.equal((await h.journal.read()).id, a.id);
+  h.setLookup({ kind: "not_applied", next_sequence: "2" });
+  await h.journal.refresh();
+  assert.equal((await h.journal.read()).id, a.id);
+  h.setLookup({
+    kind: "not_applied",
+    next_sequence: h.step.args.command.sequence,
+  });
+  await h.journal.refresh();
+  assert.equal(await h.journal.read(), null);
+  assert.equal((await h.journal.last()).phase, "not_submitted");
+  assert.equal(h.sends.length, 1);
+});
+
+test("registration recovery cannot retry another method or retire an attempt with a transaction hash", async () => {
+  const other = registrationRetryHarness(1);
+  const a = await other.journal.prepare(
+    f.player_id,
+    other.step.method,
+    other.step.args,
+  );
+  await other.journal.submit(a.id);
+  await assert.rejects(other.journal.retryRegistration(a.id));
+  other.setTime(BigInt(other.step.args.command.valid_until_ns));
+  await other.journal.refresh();
+  assert.equal((await other.journal.read()).id, a.id);
+  const h = registrationRetryHarness();
+  h.setFailure(null);
+  const b = await h.journal.prepare(f.player_id, h.step.method, h.step.args);
+  await h.journal.submit(b.id);
+  await assert.rejects(h.journal.retryRegistration(b.id));
+  h.setTime(BigInt(h.step.args.command.valid_until_ns));
+  await h.journal.refresh();
+  assert.equal(
+    (await h.journal.read()).transactionHash,
+    h.step.transaction_hash,
+  );
+});
+
+test("a nonresponsive wallet releases the busy journal after ninety seconds without discarding intent", async (t) => {
+  t.mock.timers.enable({ apis: ["setTimeout"] });
+  const h = registrationRetryHarness(),
+    opened = deferred();
+  const journal = new LivingTownTransactions(
+    h.client,
+    h.storage,
+    async () => {
+      opened.resolve();
+      return new Promise(() => {});
+    },
+    async (_key, work) => work(),
+    () => id,
+  );
+  const a = await journal.prepare(f.player_id, h.step.method, h.step.args);
+  const submitting = journal.submit(a.id);
+  await opened.promise;
+  t.mock.timers.tick(90000);
+  await submitting;
+  assert.equal((await journal.read()).phase, "unknown");
+  assert.equal((await journal.read()).digest, a.digest);
 });

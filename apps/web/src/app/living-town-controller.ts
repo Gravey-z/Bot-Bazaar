@@ -1,4 +1,5 @@
 import type { TownLiveState } from "./living-town-live";
+import { WalletConnectionError } from "./transaction-errors";
 import { listingQuote } from "./living-town-sales-ui";
 import type { TownMarketPage, TownHistoryPage } from "./living-town-sales-ui";
 import type { LivingTownAttempt } from "./living-town-transactions";
@@ -34,6 +35,12 @@ export interface TownShopPage {
   receivedAt: number;
 }
 export interface TownObservation {
+  merchantOffers?: {
+    available: boolean;
+    items: ReturnType<typeof import("@bot-bazaar/chain").livingTownOffer>[];
+    stale: boolean;
+    historyGap: boolean;
+  };
   upgrade?: ReturnType<typeof import("@bot-bazaar/chain").livingTownUpgrade>;
   accountId: string | null;
   town: ReturnType<typeof livingTownTown>;
@@ -58,6 +65,7 @@ export interface TownObservation {
   assistantRepriceAvailable?: boolean;
 }
 export interface TownPort {
+  guest?: { start(): Promise<void>; retry(): Promise<void>; isGuest(): boolean; refreshActivity(more?: boolean): Promise<void> };
   assistant?: {
     authenticate(accountId: string, shopId: string): Promise<void>;
     scope(shopId: string): Promise<unknown>;
@@ -93,7 +101,7 @@ export interface TownPort {
   accounts(): Promise<readonly { accountId: string }[]>;
   connect(): Promise<readonly { accountId: string }[]>;
   disconnect(): Promise<void>;
-  subscribe(changed: () => void): () => void;
+  subscribe(changed: (reason?: "focus" | "wallet") => void): () => void;
   read(account: string | null, signal?: AbortSignal): Promise<TownObservation>;
   browse(cursor: string | null, signal?: AbortSignal): Promise<TownShopPage>;
   prepare(
@@ -103,6 +111,7 @@ export interface TownPort {
     assistantReview?: AssistantManualReview,
   ): Promise<LivingTownAttempt>;
   submit(id: string): Promise<void>;
+  retryRegistration?(id: string): Promise<void>;
   pending(): Promise<LivingTownAttempt | null>;
   restore(): Promise<LivingTownAttempt | null>;
   last?(): Promise<LivingTownAttempt | null>;
@@ -171,7 +180,7 @@ export function describeTownAttempt(a: LivingTownAttempt): string {
     "item_id" in args &&
     "unit_price" in args
   )
-    return `Set ${args.item_id} remaining stock to ${args.quantity} at ${args.unit_price} gold each.`;
+    return `Set ${args.item_id} remaining stock to ${args.quantity} at ${args.unit_price}g each.`;
   if (a.call.method === "cancel_listing" && "listing_id" in args)
     return `Cancel listing #${args.listing_id} and release its remaining stock.`;
   if (a.call.method === "set_assistant_permissions" && "policy" in args)
@@ -201,6 +210,7 @@ export class LivingTownController {
   private browseAbort: AbortController | undefined;
   private unsubscribe?: () => void;
   private stopActivity: (() => void) | undefined;
+  private displayTimer: ReturnType<typeof setInterval> | undefined;
   constructor(
     private readonly port: TownPort | null,
     private readonly changed: (state: TownState) => void,
@@ -248,14 +258,18 @@ export class LivingTownController {
   async start(): Promise<void> {
     if (!this.port || this.stopped || this.started) return;
     this.started = true;
+    this.displayTimer = setInterval(() => {
+      if (globalThis.document?.visibilityState !== "hidden" && this.value.accountId)
+        void this.refresh();
+    }, 3000);
     this.publish({ phase: "loading" });
     this.stopActivity = this.port.watchActivity?.((activity) => {
       const last = this.value.activity.events[0]?.event_id;
       this.publish({ activity });
       if (activity.events[0]?.event_id !== last) void this.refresh();
     });
-    this.unsubscribe = this.port.subscribe(() => {
-      void this.syncAccounts();
+    this.unsubscribe = this.port.subscribe((reason) => {
+      void this.syncAccounts(reason === "focus");
     });
     try {
       const pending = await this.port.restore();
@@ -341,10 +355,15 @@ export class LivingTownController {
         "The town network or deployment could not be verified. Reconnect to the configured town before taking an action.",
     });
   }
-  async syncAccounts(): Promise<void> {
+  async syncAccounts(background = false): Promise<void> {
     if (!this.port || this.stopped) return;
+    if (background && (this.value.busy || this.checkingAccounts)) return;
     const preferred = this.value.accountId ?? this.preferredAccount,
-      request = this.beginAccountCheck();
+      request = background ? ++this.accountEpoch : this.beginAccountCheck();
+    if (background) {
+      this.checkingAccounts = true;
+      this.publish({});
+    }
     try {
       const accounts = (await this.port.accounts()).map((a) => a.accountId);
       if (this.stopped || request !== this.accountEpoch) return;
@@ -353,10 +372,14 @@ export class LivingTownController {
         accounts,
       );
       try {
-        const pending = await this.port.pending();
+        // A failed startup restore must be recoverable. Revalidate the original
+        // journal before enabling actions again; never discard a pending intent.
+        const pending = this.value.transactionAvailable
+          ? await this.port.pending()
+          : await this.port.restore();
         const lastAttempt = (await this.port.last?.()) ?? null;
         if (request === this.accountEpoch)
-          this.publish({ pending, lastAttempt });
+          this.publish({ pending, lastAttempt, transactionAvailable: true });
       } catch {
         if (request === this.accountEpoch)
           this.publish({
@@ -375,7 +398,7 @@ export class LivingTownController {
         accountId: null,
         accounts: [],
         message:
-          "Wallet connection could not be checked. Refresh to try again.",
+          this.port.guest?.isGuest() ? "Guest session could not be restored. Your request is retained." : "Wallet connection could not be checked. Refresh to try again.",
       });
     } finally {
       if (request === this.accountEpoch) {
@@ -387,6 +410,7 @@ export class LivingTownController {
   async connect(): Promise<void> {
     if (!this.port || this.value.busy || this.stopped) return;
     const request = this.beginAccountCheck();
+    let connectionFailure: string | undefined;
     this.publish({ busy: true, message: "" });
     try {
       const rows = await this.port.connect();
@@ -395,14 +419,64 @@ export class LivingTownController {
         rows[0]?.accountId ?? null,
         rows.map((a) => a.accountId),
       );
-    } catch {
-      if (request === this.accountEpoch)
-        this.publish({ message: "Wallet connection was not completed." });
+      try {
+        const pending = await this.port.restore();
+        const lastAttempt = (await this.port.last?.()) ?? null;
+        if (request === this.accountEpoch && !this.stopped)
+          this.publish({ pending, lastAttempt, transactionAvailable: true });
+      } catch {
+        if (request === this.accountEpoch)
+          this.publish({ transactionAvailable: false,
+            message: "Saved transaction details are unavailable. New actions remain blocked." });
+      }
+    } catch (error) {
+      if (request === this.accountEpoch) {
+        connectionFailure =
+          error instanceof WalletConnectionError
+            ? error.message
+            : "Wallet connection was not completed.";
+        this.publish({
+          message: connectionFailure,
+        });
+      }
     } finally {
       if (request === this.accountEpoch) this.checkingAccounts = false;
       this.publish({ busy: false });
       await this.refresh();
+      if (connectionFailure && request === this.accountEpoch && !this.stopped)
+        this.publish({ message: connectionFailure });
     }
+  }
+  async playAsGuest(): Promise<boolean> {
+    if (this.value.busy || this.stopped) return false;
+    if (!this.port?.guest) {
+      this.publish({ message: "Guest play is unavailable because the town configuration could not be loaded. Reload the page to try again." });
+      return true;
+    }
+    this.beginAccountCheck(); this.publish({ busy: true, message: "" });
+    let guestFailure: string | undefined;
+    try { await this.port.guest.start(); }
+    catch (error) {
+      guestFailure = error instanceof Error ? error.message : "Guest connection unavailable";
+      this.publish({ message: guestFailure });
+    }
+    finally {
+      this.checkingAccounts = false; this.publish({ busy: false }); await this.syncAccounts();
+      if (guestFailure && !this.stopped)
+        this.publish({ message: guestFailure });
+    }
+    return true;
+  }
+  async retryGuestRequest(): Promise<void> {
+    if (!this.port?.guest?.isGuest() || this.value.busy || this.stopped) return;
+    this.publish({ busy: true });
+    try { await this.port.guest.retry(); }
+    catch { this.publish({ message: "Guest request retained. Restore the guest session and try the same request again." }); }
+    finally { this.publish({ busy: false }); await this.checkTransaction(); }
+  }
+  async refreshGuestActivity(more = false): Promise<void> {
+    if (this.stopped || !this.port?.guest?.isGuest()) return;
+    await this.port.guest.refreshActivity(more);
   }
   async disconnect(): Promise<void> {
     if (!this.port || this.value.busy || this.stopped) return;
@@ -420,7 +494,7 @@ export class LivingTownController {
     try {
       await this.port.disconnect();
     } catch {
-      this.publish({ message: "Wallet disconnect could not be completed." });
+      this.publish({ message: this.port.guest?.isGuest() ? "Resolve the guest request before ending the session." : "Wallet disconnect could not be completed." });
     } finally {
       this.publish({ busy: false });
     }
@@ -737,6 +811,7 @@ export class LivingTownController {
   private canAct(claim = false): boolean {
     return (
       !this.stopped &&
+      !this.checkingAccounts &&
       !!this.port &&
       this.value.transactionAvailable &&
       !!this.value.accountId &&
@@ -923,12 +998,22 @@ export class LivingTownController {
       else if (this.value.pending)
         this.publish({
           message:
-            "The outcome is still unresolved. Keep this attempt and check again.",
+            this.port.guest?.isGuest() ? "Guest action pending. The server will check the original transaction; no wallet popup is needed." : this.value.pending.call.method === "register_player" &&
+            !this.value.pending.transactionHash
+              ? "Registration was not confirmed. Close the old wallet window, then choose Retry registration to reopen the same request."
+              : "The outcome is still unresolved. Keep this attempt and check again.",
+        });
+      else if (this.value.lastAttempt?.phase === "not_submitted")
+        this.publish({
+          message:
+            this.port.guest?.isGuest() ? "Guest action was not submitted. Refresh and review the current terms before trying again." : "The wallet request was cancelled or expired without execution. You can try again.",
         });
     } catch {
       this.publish({
         message:
-          "Could not verify the original transaction. No replacement was sent.",
+          this.port.guest?.isGuest()
+            ? "Guest registration or action could not be checked yet. The original request is saved; no replacement was created. Open recovery to check again."
+            : "Could not verify the original transaction. No replacement was sent.",
       });
     } finally {
       this.publish({ busy: false });
@@ -979,6 +1064,46 @@ export class LivingTownController {
     }
     await this.checkTransaction();
   }
+  async retryRegistration(): Promise<void> {
+    const a = this.value.pending,
+      o = this.value.observation;
+    if (
+      !this.port?.retryRegistration ||
+      this.stopped ||
+      this.value.busy ||
+      !this.value.transactionAvailable ||
+      !a ||
+      a.phase !== "unknown" ||
+      a.transactionHash ||
+      a.call.method !== "register_player" ||
+      a.accountId !== this.value.accountId ||
+      o?.accountId !== a.accountId ||
+      o.player ||
+      o.stale ||
+      !o.ownershipKnown ||
+      o.town.paused ||
+      this.now() < o.receivedAt ||
+      this.now() - o.receivedAt > 30000
+    )
+      return;
+    this.publish({ busy: true, message: "" });
+    try {
+      await this.port.retryRegistration(a.id);
+    } catch {
+      this.publish({
+        message:
+          "Registration could not reopen. Check the original request; it may already be applied or expired.",
+      });
+    } finally {
+      this.publish({ busy: false });
+      try {
+        this.publish({ pending: await this.port.pending() });
+      } catch {
+        this.publish({ phase: "unavailable", transactionAvailable: false });
+      }
+    }
+    await this.checkTransaction();
+  }
   async discardPrepared(): Promise<void> {
     const a = this.value.pending;
     if (!this.port || !a || a.phase !== "prepared" || this.value.busy) return;
@@ -994,6 +1119,7 @@ export class LivingTownController {
     }
   }
   stop(): void {
+    if (this.displayTimer) clearInterval(this.displayTimer);
     this.stopped = true;
     this.accountEpoch++;
     this.invalidateReads();

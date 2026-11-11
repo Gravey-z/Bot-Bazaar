@@ -1,0 +1,113 @@
+:host {
+  display: block;
+  min-width: 0;
+}
+.merchant-economy {
+  font-size: 13px;
+  color: inherit;
+}
+.merchant-funds {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  flex-wrap: wrap;
+  margin: 12px 0;
+}
+.merchant-funds > span {
+  display: grid;
+  gap: 3px;
+}
+.merchant-funds small {
+  font-size: 11px;
+}
+.merchant-funds strong {
+  font-family: Georgia, serif;
+  font-size: 24px;
+}
+details {
+  border-top: 1px solid #84673a44;
+  padding: 10px 0;
+}
+summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+summary span {
+  font-weight: 400;
+  margin-left: 6px;
+}
+.state-note {
+  font-size: 11px;
+  font-weight: 400;
+  color: #64563c;
+}
+.stock-scroll {
+  overflow-x: auto;
+  max-width: 100%;
+  margin-top: 8px;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11px;
+}
+th,
+td {
+  text-align: right;
+  padding: 6px 5px;
+  white-space: nowrap;
+  border-bottom: 1px solid #84673a22;
+}
+th:first-child {
+  text-align: left;
+}
+thead th {
+  font-weight: 500;
+}
+.economy-list {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+}
+.economy-list li {
+  padding: 8px 0;
+  border-bottom: 1px solid #84673a22;
+  overflow-wrap: anywhere;
+}
+.entry-heading {
+  display: flex;
+  gap: 10px;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 4px;
+}
+p {
+  margin: 4px 0;
+  line-height: 1.45;
+}
+.decision-reason {
+  font-style: italic;
+}
+.trade-delta {
+  color: #31533e;
+  font-weight: 600;
+}
+a {
+  color: #34553e;
+  margin-right: 12px;
+  font-size: 12px;
+  text-underline-offset: 3px;
+}
+ul {
+  padding-left: 18px;
+  line-height: 1.5;
+}
+@media (max-width: 540px) {
+  .merchant-funds {
+    gap: 16px;
+  }
+  .entry-heading {
+    flex-wrap: wrap;
+    gap: 3px 8px;
+  }
+}

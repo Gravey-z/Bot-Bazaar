@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="132" height="42" viewBox="0 0 132 42" preserveAspectRatio="none" role="img" aria-label="Decorative gold display button background, no text or icon">
+  <defs>
+    <linearGradient id="wood" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#C59B53"/>
+      <stop offset="0.48" stop-color="#9A6F35"/>
+      <stop offset="1" stop-color="#67451F"/>
+    </linearGradient>
+    <linearGradient id="rim" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFE1A0"/>
+      <stop offset="0.5" stop-color="#AF8344"/>
+      <stop offset="1" stop-color="#DFB66E"/>
+    </linearGradient>
+  </defs>
+  <path d="M9 2 H123 Q130 2 130 10 V32 Q130 40 123 40 H9 Q2 40 2 32 V10 Q2 2 9 2 Z" fill="#382412"/>
+  <rect x="3.5" y="3.5" width="125" height="35" rx="6" fill="url(#wood)" stroke="url(#rim)" stroke-width="1.6"/>
+  <rect x="7.5" y="7.5" width="117" height="27" rx="4" fill="none" stroke="#FFE1A3" stroke-opacity="0.33" stroke-width="0.8"/>
+  <path d="M13 9 H119" stroke="#FFF1BD" stroke-opacity="0.22" stroke-width="1"/>
+  <path d="M13 33 H119" stroke="#3B2610" stroke-opacity="0.45" stroke-width="1"/>
+</svg>

@@ -1,0 +1,80 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="470" height="675" viewBox="0 0 470 675" role="img" aria-label="Empty ornate parchment merchant dialog panel">
+  <defs>
+    <linearGradient id="paper" x1="0" x2="1" y1="0" y2="0.1">
+      <stop offset="0" stop-color="#E4BA83"/>
+      <stop offset="0.035" stop-color="#F7DAAC"/>
+      <stop offset="0.18" stop-color="#FBE8C7"/>
+      <stop offset="0.52" stop-color="#F6DDB7"/>
+      <stop offset="0.85" stop-color="#FCE7C8"/>
+      <stop offset="0.965" stop-color="#F5D5A2"/>
+      <stop offset="1" stop-color="#CA9A64"/>
+    </linearGradient>
+    <linearGradient id="edge" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#F8DA97"/>
+      <stop offset="0.23" stop-color="#B67A34"/>
+      <stop offset="0.52" stop-color="#6B3F24"/>
+      <stop offset="0.75" stop-color="#C58D49"/>
+      <stop offset="1" stop-color="#F0C579"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFF0B7"/>
+      <stop offset="0.35" stop-color="#DAA95B"/>
+      <stop offset="0.7" stop-color="#96632E"/>
+      <stop offset="1" stop-color="#EAC784"/>
+    </linearGradient>
+    <pattern id="flecks" width="61" height="47" patternUnits="userSpaceOnUse">
+      <path d="M4 16l3-1m25 6l2 1M50 37l4-2M19 42l2-1" stroke="#9B6537" stroke-width=".65" opacity=".2"/>
+      <circle cx="9" cy="39" r=".7" fill="#A76C3A" opacity=".28"/>
+      <circle cx="42" cy="8" r=".7" fill="#FFF6D6" opacity=".8"/>
+      <circle cx="29" cy="29" r=".5" fill="#B9874C" opacity=".4"/>
+    </pattern>
+    <filter id="shadow" x="-15%" y="-10%" width="130%" height="125%">
+      <feGaussianBlur stdDeviation="3.2"/>
+    </filter>
+    <g id="corner" fill="none" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M0 38C1 22 8 8 30 8M2 28C15 29 12 17 23 16C35 15 33 4 43 4" stroke="#643A24" stroke-width="4"/>
+      <path d="M0 38C1 22 8 8 30 8M2 28C15 29 12 17 23 16C35 15 33 4 43 4" stroke="url(#gold)" stroke-width="2.4"/>
+      <path d="M15 22C11 14 20 11 24 16C28 23 19 27 15 22ZM27 11c4 0 7-3 7-6M12 32c-1-5-6-6-10-5" stroke="#86532B" stroke-width="1.4"/>
+      <path d="M20 16l3 5 3-5M5 16l3-3 3 3M32 4l3-3 3 3" stroke="#E9BD71" stroke-width="1.2"/>
+      <circle cx="32" cy="12" r="2.4" fill="#F2C76D" stroke="#714322" stroke-width=".9"/>
+    </g>
+    <g id="edge-ornament" fill="none" stroke-linecap="round">
+      <path d="M-25 0c8-9 17-9 25 0 8 9 17 9 25 0" stroke="#8C5B30" stroke-width="1.35"/>
+      <path d="M-18 0c6-5 12-5 18 0 6 5 12 5 18 0" stroke="#E2B876" stroke-width=".9"/>
+      <path d="M0-6l5 6-5 6-5-6z" fill="#E8B96B" stroke="#7F4A25" stroke-width=".9"/>
+    </g>
+  </defs>
+
+  <!-- Soft outer silhouette; all pixels outside it remain transparent. -->
+  <path d="M23 12H447Q459 12 459 27V640Q459 651 447 654L443 663H27L24 657Q11 657 11 643V28Q11 15 23 12Z" fill="#28170D" opacity=".34" transform="translate(2 3)" filter="url(#shadow)"/>
+  <path d="M22 11H448L455 18V648L446 658H26L15 649V22Z" fill="#704025" stroke="#39231A" stroke-width="4" stroke-linejoin="round"/>
+  <path d="M22 13H447L453 21V645L445 656H28L17 647V24Z" fill="url(#edge)" stroke="#F3CB84" stroke-width="2.2" stroke-linejoin="round"/>
+  <path d="M27 21H441L446 27V637L439 647H32L24 639V29Z" fill="#A66C38" stroke="#59351E" stroke-width="2" stroke-linejoin="round"/>
+  <path d="M33 27H435L440 32V634L434 641H36L30 634V33Z" fill="url(#paper)" stroke="#F7DC9E" stroke-width="2.5"/>
+  <path d="M33 27H435L440 32V634L434 641H36L30 634V33Z" fill="url(#flecks)"/>
+
+  <!-- Fine inner gilded outlines, left deliberately empty for HTML and SVG content. -->
+  <path d="M42 39H425M42 627H425M42 39V626M425 39V626" fill="none" stroke="#98602D" stroke-width="1.2" opacity=".66"/>
+  <path d="M46 43H421M46 622H421M46 43V622M421 43V622" fill="none" stroke="#FFEDC8" stroke-width="1" opacity=".75"/>
+  <path d="M52 51H415M52 615H415" fill="none" stroke="#C99B61" stroke-width=".8" opacity=".4"/>
+  <path d="M37 44Q42 47 46 45M421 45Q426 47 431 44M37 620Q42 617 46 619M421 619Q426 617 431 620" fill="none" stroke="#C28645" stroke-width="1.1"/>
+
+  <!-- Four symmetrical carved corners. -->
+  <g transform="translate(24 21)"><use href="#corner"/></g>
+  <g transform="translate(446 21) scale(-1 1)"><use href="#corner"/></g>
+  <g transform="translate(24 642) scale(1 -1)"><use href="#corner"/></g>
+  <g transform="translate(446 642) scale(-1 -1)"><use href="#corner"/></g>
+
+  <!-- Metal studs and subtle scrollwork. -->
+  <g fill="#D6A25C" stroke="#674123" stroke-width="1">
+    <circle cx="22" cy="335" r="2.2"/><circle cx="448" cy="335" r="2.2"/>
+    <circle cx="234" cy="17" r="2.3"/><circle cx="234" cy="652" r="2.3"/>
+  </g>
+  <g opacity=".85">
+    <use href="#edge-ornament" transform="translate(234 28)"/>
+    <use href="#edge-ornament" transform="translate(234 640)"/>
+  </g>
+  <g fill="none" stroke="#E0B16B" stroke-width="1.1" opacity=".7">
+    <path d="M20 161q9 10 0 20m0 302q9 10 0 20M450 161q-9 10 0 20m0 302q-9 10 0 20"/>
+  </g>
+</svg>

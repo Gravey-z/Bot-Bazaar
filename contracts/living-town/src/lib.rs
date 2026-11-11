@@ -7,6 +7,9 @@ mod assistant;
 mod customers;
 mod listings;
 mod market_events;
+mod merchant_trading;
+mod migration;
+mod offers;
 mod ownership;
 mod production;
 mod purchases;
@@ -215,11 +218,17 @@ pub struct LivingTown {
     treasury_burns: u128,
     next_market_event_id: u64,
     market_events: std::collections::VecDeque<market_events::MarketEvent>,
+    next_offer_id: u64,
+    offers: LookupMap<u64, offers::Offer>,
+    pending_offers: Vec<u64>,
+    closed_offers: std::collections::VecDeque<u64>,
+    pruned_offer_through: u64,
+    pending_offer_counts: [u8; 3],
 }
 impl LivingTown {
     fn assert_versions(&self) {
         require!(
-            self.state_schema == 1 && self.config_version == 1,
+            self.state_schema == 2 && self.config_version == 1,
             "LT:E_UNSUPPORTED_VERSION"
         );
         require!(self.config_sha256 == config_digest(), "LT:E_CONFIG_CHANGED");
@@ -238,7 +247,7 @@ impl LivingTown {
             shops.push(json!({"shop_id":(index+1).to_string(),"owner":owner,"name":(["Rex","Luna","Bolt"][index]),"revision":npc.production_revision.to_string(),"production_slots":"1","policy_revision":"1","created_at_ns":self.genesis_time_ns.to_string(),"ownership_command_sequence":null}));
             ledgers.push(purchases::npc_ledger(index, npc));
         }
-        json!({"paused":self.paused,"registered_player_count":self.registered_player_count.to_string(),"epoch":((env::block_timestamp()-self.genesis_time_ns)/60_000_000_000).to_string(),"genesis_time_ns":self.genesis_time_ns.to_string(),"npc_shops":shops,"npc_ledgers":ledgers,"customer_pool":self.customer_pool.view(self.customer_epoch()),"totals":{"initial_gold":"700","player_grants":self.issued_grants.to_string(),"customer_topups":self.customer_topups.to_string(),"upgrade_burns":self.upgrade_burns.to_string(),"treasury_burns":self.treasury_burns.to_string(),"seed_items":Inventory::new([10,10,20,20,0,0]).view(),"supplied_items":Value::Object(ITEM_IDS.iter().zip(self.supplied_items).map(|(k,v)|((*k).to_owned(),json!(v.to_string()))).collect()),"recipe_inputs_consumed":Value::Object(ITEM_IDS.iter().zip(self.recipe_inputs_consumed).map(|(k,v)|((*k).to_owned(),json!(v.to_string()))).collect()),"completed_outputs":Value::Object(ITEM_IDS.iter().zip(self.completed_outputs).map(|(k,v)|((*k).to_owned(),json!(v.to_string()))).collect()),"customer_consumed":Value::Object(ITEM_IDS.iter().zip(self.customer_consumed).map(|(k,v)|((*k).to_owned(),json!(v.to_string()))).collect())},"market_event":self.market_events.back().map(market_events::MarketEvent::view),"next_shop_id":self.next_shop_id.to_string(),"next_listing_id":self.next_listing_id.to_string(),"next_job_id":self.next_job_id.to_string(),"next_offer_id":"1","next_trade_id":self.next_trade_id.to_string(),"next_market_event_id":self.next_market_event_id.to_string(),"retained_events_from":"1","limits":config()["limits"]})
+        json!({"paused":self.paused,"registered_player_count":self.registered_player_count.to_string(),"epoch":((env::block_timestamp()-self.genesis_time_ns)/60_000_000_000).to_string(),"genesis_time_ns":self.genesis_time_ns.to_string(),"npc_shops":shops,"npc_ledgers":ledgers,"customer_pool":self.customer_pool.view(self.customer_epoch()),"totals":{"initial_gold":"700","player_grants":self.issued_grants.to_string(),"customer_topups":self.customer_topups.to_string(),"upgrade_burns":self.upgrade_burns.to_string(),"treasury_burns":self.treasury_burns.to_string(),"seed_items":Inventory::new([23,23,23,23,0,0]).view(),"supplied_items":Value::Object(ITEM_IDS.iter().zip(self.supplied_items).map(|(k,v)|((*k).to_owned(),json!(v.to_string()))).collect()),"recipe_inputs_consumed":Value::Object(ITEM_IDS.iter().zip(self.recipe_inputs_consumed).map(|(k,v)|((*k).to_owned(),json!(v.to_string()))).collect()),"completed_outputs":Value::Object(ITEM_IDS.iter().zip(self.completed_outputs).map(|(k,v)|((*k).to_owned(),json!(v.to_string()))).collect()),"customer_consumed":Value::Object(ITEM_IDS.iter().zip(self.customer_consumed).map(|(k,v)|((*k).to_owned(),json!(v.to_string()))).collect())},"market_event":self.market_events.back().map(market_events::MarketEvent::view),"next_shop_id":self.next_shop_id.to_string(),"next_listing_id":self.next_listing_id.to_string(),"next_job_id":self.next_job_id.to_string(),"next_offer_id":self.next_offer_id.to_string(),"next_trade_id":self.next_trade_id.to_string(),"next_market_event_id":self.next_market_event_id.to_string(),"retained_events_from":"1","limits":config()["limits"]})
     }
 }
 #[near]
@@ -292,12 +301,15 @@ impl LivingTown {
             let mut listings: [Option<Listing>; 6] = std::array::from_fn(|_| None);
             for (slot, item) in ITEM_IDS[..4].iter().enumerate() {
                 let row = &cfg["economy"]["materials"][item];
-                if row["supplier"] == MERCHANTS[index] {
-                    held[slot] = row["seed"]
+                {
+                    held[slot] = cfg["economy"]["stockSharing"]["startingHoldings"]
+                        [MERCHANTS[index]][*item]
                         .as_str()
                         .expect("seed")
                         .parse()
                         .expect("seed integer");
+                }
+                if row["supplier"] == MERCHANTS[index] {
                     listings[slot] = Some(Listing {
                         id: slot as u64 + 1,
                         quantity: row["listed"]
@@ -324,7 +336,7 @@ impl LivingTown {
             }
         });
         let mut contract = Self {
-            state_schema: 1,
+            state_schema: 2,
             config_version: 1,
             config_sha256,
             genesis_hash: network_genesis_hash,
@@ -365,6 +377,12 @@ impl LivingTown {
             listing_slots: LookupMap::new(b"lt:v2:listing-slots:".to_vec()),
             listing_index: LookupMap::new(b"lt:v2:listing-index:".to_vec()),
             player_listings: LookupMap::new(b"lt:v2:player-listings:".to_vec()),
+            next_offer_id: 1,
+            offers: LookupMap::new(b"lt:v2:merchant-offers:1:".to_vec()),
+            pending_offers: Vec::new(),
+            closed_offers: std::collections::VecDeque::new(),
+            pruned_offer_through: 0,
+            pending_offer_counts: [0; 3],
         };
         for index in 0..3 {
             for slot in 0..6 {
@@ -390,7 +408,7 @@ impl LivingTown {
     pub fn get_foundation(&self) -> Value {
         let _: EmptyArgs = input();
         self.assert_versions();
-        self.snapshot(json!({"owner_account_id":self.owner,"operator_account_id":self.operator,"merchant_controllers":{"rex":self.controllers[0],"luna":self.controllers[1],"bolt":self.controllers[2]},"item_ids":ITEM_IDS,"supported_methods":["initialize_town","get_foundation","get_town","register_player","create_shop","rename_shop","get_player","get_shop","get_player_shops","get_command","buy_from_merchant","get_listings","get_trade","get_shop_inventory","get_recipes","start_production","get_production_jobs","complete_production","set_listing","cancel_listing","get_source_state","get_market_events","schedule_market_event","allocate_raw_supply","sweep_merchant_treasury","fund_customer_budget","settle_customer_purchase","get_assistant_policy","set_assistant_permissions","assistant_reprice","get_upgrade","purchase_upgrade"]}))
+        self.snapshot(json!({"owner_account_id":self.owner,"operator_account_id":self.operator,"merchant_controllers":{"rex":self.controllers[0],"luna":self.controllers[1],"bolt":self.controllers[2]},"item_ids":ITEM_IDS,"supported_methods":["initialize_town","get_foundation","get_town","register_player","create_shop","rename_shop","get_player","get_shop","get_player_shops","get_command","buy_from_merchant","get_listings","get_trade","get_shop_inventory","get_recipes","start_production","get_production_jobs","complete_production","set_listing","cancel_listing","get_source_state","get_market_events","schedule_market_event","allocate_raw_supply","sweep_merchant_treasury","fund_customer_budget","settle_customer_purchase","get_assistant_policy","set_assistant_permissions","assistant_reprice","get_upgrade","purchase_upgrade","propose_trade","accept_trade","reject_trade","cancel_trade","expire_offers","get_offer","get_offers","get_merchant_trading_rules"]}))
     }
 }
 

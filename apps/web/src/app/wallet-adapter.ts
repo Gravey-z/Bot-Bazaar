@@ -23,7 +23,11 @@ import {
 import { isTestnetAccount } from "./wallet-context";
 import { createMarketCall } from "@bot-bazaar/chain";
 import { purchaseGas, PurchaseNotOpenedError } from "./registration-reader";
-import { isMeteorRejection, WalletRejectedError } from "./transaction-errors";
+import {
+  isMeteorRejection,
+  WalletRejectedError,
+  WalletConnectionError,
+} from "./transaction-errors";
 
 export const meteorExecutorCommit = "911f9d645b912fadbb1af0d0953cba44b005c82f";
 export const meteorManifest: WalletManifest = {
@@ -77,8 +81,10 @@ export async function createWalletPort(
   }
 > {
   if (config.networkId !== "testnet") throw new Error("Testnet required");
-  const { NearConnector, SandboxWallet } =
-    await import("@hot-labs/near-connect");
+  // Angular's split browser bundle exposes this CommonJS package as a default
+  // export. Other bundlers may expose named exports instead.
+  const imported = await import("@hot-labs/near-connect");
+  const { NearConnector, SandboxWallet } = imported.default ?? imported;
   const connector = new NearConnector({
     network: "testnet",
     autoConnect: false,
@@ -98,6 +104,48 @@ export async function createWalletPort(
   const wallet = new SandboxWallet(connector, structuredClone(meteorManifest));
   const rpc = createRpcTransport(config.rpcUrl);
   const hint = `bot-bazaar:wallet:${config.networkId}:${config.contractId}`;
+  const accountDataKey = "meteor-wallet:meteor-account-data";
+  type Accounts = Awaited<ReturnType<typeof wallet.getAccounts>>;
+  let session: { accounts: Accounts; fingerprint: string | null } | undefined;
+  let accountRead: Promise<Accounts> | undefined;
+  let sessionVersion = 0;
+  const copyAccounts = (accounts: Accounts): Accounts =>
+    accounts.map((a) => ({ ...a }));
+  function invalidateSession(): void {
+    sessionVersion++;
+    session = undefined;
+    accountRead = undefined;
+  }
+  function remember(accounts: Accounts): void {
+    session = {
+      accounts: copyAccounts(accounts),
+      fingerprint: storage.getItem(accountDataKey),
+    };
+  }
+  async function sessionAccounts(): Promise<Accounts> {
+    if (connector.network !== "testnet") throw new Error("Testnet required");
+    if (session && session.fingerprint === storage.getItem(accountDataKey))
+      return copyAccounts(session.accounts);
+    if (session) invalidateSession();
+    if (!accountRead) {
+      const version = sessionVersion;
+      const pending = (async () => {
+        await verifyNetwork();
+        const accounts = await wallet.getAccounts({ network: "testnet" });
+        if (version !== sessionVersion)
+          throw new Error("Wallet session changed");
+        remember(accounts);
+        return accounts;
+      })();
+      accountRead = pending;
+      void pending
+        .finally(() => {
+          if (accountRead === pending) accountRead = undefined;
+        })
+        .catch(() => {});
+    }
+    return copyAccounts(await accountRead);
+  }
   async function verifyNetwork(): Promise<void> {
     if (connector.network !== "testnet") throw new Error("Testnet required");
     const status = (await rpc("status", [])) as {
@@ -112,9 +160,7 @@ export async function createWalletPort(
     const accounts = await wallet.getAccounts({ network: "testnet" });
     // The pinned Meteor executor uses its stored active identifier rather
     // than the optional signerId argument. Check that public identifier too.
-    const active = JSON.parse(
-      storage.getItem("meteor-wallet:meteor-account-data") ?? "null",
-    ) as {
+    const active = JSON.parse(storage.getItem(accountDataKey) ?? "null") as {
       account?: { accountId?: string };
       identifier?: {
         accountId?: string;
@@ -131,6 +177,7 @@ export async function createWalletPort(
       active.identifier.blockchain !== "near"
     )
       throw new Error("Active wallet account changed");
+    remember(accounts);
   }
   function rejectWallet(error: unknown): never {
     if (isMeteorRejection(error)) throw new WalletRejectedError();
@@ -164,17 +211,41 @@ export async function createWalletPort(
       return signed;
     },
     async accounts() {
-      await verifyNetwork();
-      return wallet.getAccounts({ network: "testnet" });
+      return sessionAccounts();
     },
     async connect() {
-      await verifyNetwork();
+      invalidateSession();
+      const version = sessionVersion;
+      try {
+        await verifyNetwork();
+      } catch {
+        throw new WalletConnectionError("network");
+      }
       storage.setItem(hint, "meteor-wallet");
-      return wallet.signIn({ network: "testnet" });
+      try {
+        const accounts = await wallet.signIn({ network: "testnet" });
+        if (version !== sessionVersion)
+          throw new Error("Wallet session changed");
+        remember(accounts);
+        return copyAccounts(accounts);
+      } catch (error) {
+        throw new WalletConnectionError(
+          isMeteorRejection(error) ||
+            (error instanceof Error && error.message === "Wallet closed")
+            ? "cancelled"
+            : "handoff",
+        );
+      }
     },
     async disconnect() {
+      invalidateSession();
       storage.removeItem(hint);
-      await wallet.signOut({ network: "testnet" });
+      try {
+        await wallet.signOut({ network: "testnet" });
+      } finally {
+        invalidateSession();
+        remember([]);
+      }
     },
     async register(accountId) {
       try {
@@ -259,8 +330,14 @@ export async function createWalletPort(
         .catch(rejectWallet);
     },
     subscribe(changed) {
-      const signIn = (): void => changed();
-      const signOut = (): void => changed();
+      const signIn = (): void => {
+        invalidateSession();
+        changed();
+      };
+      const signOut = (): void => {
+        invalidateSession();
+        changed();
+      };
       connector.on("wallet:signIn", signIn);
       connector.on("wallet:signOut", signOut);
       return () => {

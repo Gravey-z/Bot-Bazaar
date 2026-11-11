@@ -1,5 +1,8 @@
 :host {
   display: block;
+  --town-panel-paper: linear-gradient(96deg, #e4ba83 0%, #f7daac 3.5%, #fbe8c7 18%, #f6ddb7 52%, #fce7c8 85%, #f5d5a2 96.5%, #ca9a64 100%);
+  --town-panel-ink: #59351e;
+  --town-panel-edge: #a66c38;
 }
 .first-loop {
   margin: 0 0 28px;
@@ -519,15 +522,14 @@ select:focus-visible,
 }
 .notice {
   padding: 12px 18px;
-  border-left: 3px solid #829665;
-  background: #edf0df;
+  border-left: 3px solid var(--town-panel-edge);
+  color: var(--town-panel-ink);
   font-size: 12px;
   line-height: 1.7;
   overflow-wrap: anywhere;
 }
 .notice.warning {
-  background: #f3e9d4;
-  border-color: #b08645;
+  border-color: #86532b;
 }
 .section-heading {
   display: flex;
@@ -1485,4 +1487,587 @@ footer a {
 .production-job.failed {
   border-color: #ae6856;
   background: #fff4ec;
+}
+
+/* Fixed town presentation. Existing transactional dialog styles above are retained. */
+.workshop { color: #513823; }
+.workshop .workshop-heading h3 { margin: 0 0 5px; font-size: 23px; }
+.workshop-intro { margin: 0; font-size: 12px; color: #85715a; }
+.workshop-capacity { padding: 6px 10px; border: 1px solid #ccb18a; border-radius: 20px; font-size: 11px; color: #796147; }
+.workshop .batch-quantity { margin: 20px 0 16px; font-size: 12px; }
+.workshop .batch-quantity input { width: 68px; border-color: #c3a479; background: #fff9ef; padding: 8px; }
+.workshop .batch-quantity span { color: #85715a; font-size: 11px; }
+.workshop .recipe-grid, .workshop .production-jobs { gap: 14px; }
+.workshop .recipe-card, .workshop .production-job, .workshop .production-review { padding: 16px; border: 1px solid #cbb08a; border-radius: 10px; background: rgba(255, 249, 237, .65); }
+.recipe-heading { display: flex; align-items: center; gap: 10px; }
+.workshop .recipe-heading h4 { margin: 0; font-size: 17px; }
+.workshop .recipe-summary { margin: 10px 0 0; color: #796147; font-size: 12px; }
+.workshop .recipe-inputs { margin: 12px 0 16px; }
+.workshop .recipe-inputs li { border-color: #ddcbb1; font-size: 12px; padding: 8px 0; }
+.ingredient-available { color: #85715a; font-size: 11px; }
+.ingredient-available.insufficient { color: #9a4a30; }
+.workshop .recipe-reason, .crafting-note { font-size: 11px; line-height: 1.6; }
+.workshop .workshop-actions { justify-content: flex-start; gap: 10px; margin-top: 14px; }
+.workshop .production-review { border-color: #a47b42; background: #f8e8c9; }
+.workshop .production-review h4, .workshop .queue-title { font-size: 17px; margin-bottom: 12px; }
+.workshop .production-review p { margin: 8px 0; font-size: 12px; }
+.workshop .production-job { margin: 0; }
+.workshop .production-job p { font-size: 12px; color: #796147; margin: 12px 0; }
+.workshop-empty { padding: 18px; margin: 0; border: 1px dashed #cbb08a; border-radius: 8px; font-size: 12px; color: #85715a; }
+.workshop-details { margin-top: 18px; padding-top: 14px; border-top: 1px solid #d6bf9c; font-size: 12px; }
+.workshop-details summary { cursor: pointer; color: #795735; font-size: 12px; }
+.workshop-details summary span { margin-left: 8px; color: #968169; }
+.completed-batches { list-style: none; padding: 0; margin: 12px 0 0; }
+.completed-batches li { display: flex; justify-content: space-between; gap: 12px; padding: 9px 0; border-bottom: 1px solid #e1cfb3; }
+.completed-batches li span:last-child { color: #968169; font-size: 11px; }
+:host:has(.game-shell) {
+  height: 100dvh;
+  min-height: 360px;
+  background: #23372c;
+  color: #ffedca;
+}
+.game-shell {
+  position: relative;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: radial-gradient(ellipse at top, #526c47, #1d3027 85%);
+}
+.game-hud {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  flex-shrink: 0;
+  min-height: 72px;
+  padding: 0 26px;
+  background: #263a2b url("/art/living-town/game/navbar-bg.svg") center/100%
+    100%;
+  border-bottom: 1px solid #a58851;
+  box-shadow: 0 4px 18px #0004;
+  z-index: 2;
+}
+.game-wordmark {
+  width: 190px;
+  height: 52px;
+  object-fit: contain;
+  margin-right: auto;
+}
+.game-stat {
+  display: grid;
+  gap: 2px;
+  min-width: 60px;
+}
+.game-stat small {
+  font-size: 9px;
+  letter-spacing: 1.4px;
+  color: #d3d4ad;
+}
+.game-stat strong {
+  font:
+    24px Georgia,
+    serif;
+  color: #ffde95;
+}
+.game-hud button {
+  white-space: nowrap;
+}
+.game-shop-name,
+.game-account-button {
+  background: transparent;
+  border: 0;
+  color: #fff0d1;
+  cursor: pointer;
+  font-size: 12px;
+  max-width: 190px;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  min-height: 42px;
+}
+.game-shop-name span {
+  font-size: 23px;
+  margin-left: 10px;
+}
+.game-account {
+  font-size: 10px;
+}
+.game-account select {
+  max-width: 130px;
+  background: #2c4432;
+  color: #fff0cc;
+  border: 1px solid #ac915d;
+  padding: 6px;
+}
+.game-main {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  position: relative;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  gap: 8px;
+}
+.town-recent-activity {
+  position: absolute;
+  top: 92px;
+  left: 18px;
+  z-index: 2;
+  width: min(270px, calc(100vw - 36px));
+  box-sizing: border-box;
+  padding: 13px 15px;
+  border: 1px solid var(--town-panel-edge);
+  border-radius: 10px;
+  background: var(--town-panel-paper);
+  color: var(--town-panel-ink);
+  box-shadow: 0 8px 24px #28170d44, inset 0 0 0 1px #ffedc899;
+}
+.recent-activity-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.recent-activity-heading h2 { margin: 0; font: 19px Georgia, serif; color: #6b3f24; }
+.recent-activity-heading button { color: #6b3f24; background: transparent; border: 1px solid #98602d66; border-radius: 5px; width: 30px; height: 30px; cursor: pointer; font-size: 19px; }
+.town-recent-activity ol { list-style: none; padding: 0; margin: 8px 0 0; }
+.town-recent-activity li { padding: 10px 0; border-top: 1px solid #98602d44; }
+.town-recent-activity li:last-child { padding-bottom: 0; }
+.recent-activity-entry-heading { display: flex; align-items: baseline; flex-wrap: wrap; gap: 6px; margin-bottom: 5px; }
+.recent-activity-entry-heading strong { color: #6b3f24; font-size: 12px; font-weight: 600; }
+.recent-activity-entry-heading time { margin-left: auto; text-align: right; color: #635c5399; font-size: 10px; font-weight: 400; white-space: nowrap; }
+.recent-activity-description { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.town-recent-activity li p { margin: 0; font-size: 11px; line-height: 1.5; overflow-wrap: anywhere; }
+.recent-activity-description p { flex: 1; min-width: 0; white-space: pre-line; }
+.recent-activity-description a { flex: none; color: #714322; font-size: 11px; padding: 3px 0 3px 4px; border: 0; background: transparent; box-shadow: none; text-decoration: none; white-space: nowrap; }
+.recent-activity-description a:hover { color: #39231a; text-decoration: underline; text-underline-offset: 3px; }
+.recent-activity-description a:focus-visible { outline: 2px solid #96632e; outline-offset: 3px; border-radius: 2px; }
+.recent-activity-empty, .recent-activity-paused { color: #78624d; font-size: 11px; line-height: 1.5; }
+@media (max-width: 600px) {
+  .town-recent-activity { top: 128px; left: 12px; width: 225px; padding: 10px 12px; }
+  .recent-activity-heading h2 { font-size: 16px; }
+  .town-recent-activity li { padding: 8px 0; }
+  .town-recent-activity li p { font-size: 11px; }
+}
+.game-world {
+  position: absolute;
+  inset: 0;
+  display: block;
+}
+.game-world app-town-game {
+  height: 100%;
+}
+.game-feedback {
+  position: absolute;
+  bottom: 16px;
+  left: 24px;
+  z-index: 1;
+  max-width: min(65ch, calc(100% - 48px));
+  padding: 7px 12px;
+  border-radius: 5px;
+  background: #21362be6;
+  flex-shrink: 0;
+  margin: 0;
+  min-height: 17px;
+  font-size: 11px;
+  color: #d1d3b6;
+  text-align: center;
+  line-height: 1.5;
+}
+.game-shell :focus-visible,
+.wallet-dialog .connection-choices button:focus-visible {
+  outline: 3px solid #ffdb8d;
+  outline-offset: 3px;
+}
+.game-shell button:disabled,
+.wallet-dialog .connection-choices button:disabled {
+  cursor: default;
+  opacity: 0.55;
+}
+.game-shell .primary,
+.wallet-dialog .connection-choices .primary {
+  color: #352717;
+  background: #e4b96e url("/art/living-town/game/button-gold.svg") center/100%
+    100%;
+  border: 0;
+  border-radius: 6px;
+  padding: 12px 18px;
+  min-height: 42px;
+  cursor: pointer;
+  font-weight: 650;
+}
+.game-shell .quiet {
+  color: #f5dfb1;
+  background: #344f39;
+  border: 1px solid #8e8655;
+  border-radius: 6px;
+  min-height: 36px;
+  padding: 8px 13px;
+  cursor: pointer;
+}
+.game-shell dialog,
+.wallet-dialog {
+  color: #293d30;
+  background: #f4e5c7;
+  border: 2px solid #a88950;
+  border-radius: 12px;
+  box-shadow: 0 24px 90px #0008;
+}
+.game-shell dialog::backdrop,
+.wallet-dialog::backdrop {
+  background: #13231e99;
+}
+.game-toast {
+  position: fixed;
+  inset: auto 20px 20px auto;
+  margin: 0;
+  box-sizing: border-box;
+  width: min(380px, calc(100vw - 32px));
+  padding: 14px 16px;
+  border: 1px solid var(--town-panel-edge);
+  border-radius: 10px;
+  background: var(--town-panel-paper);
+  color: var(--town-panel-ink);
+  box-shadow: 0 8px 28px #28170d55, inset 0 0 0 1px #ffedc899;
+  font-size: 13px;
+  line-height: 1.5;
+}
+.game-toast:popover-open {
+  display: flex;
+  align-items: start;
+  gap: 12px;
+}
+.game-toast::backdrop {
+  background: transparent;
+  pointer-events: none;
+}
+.guest-progress-toast {
+  inset: auto auto max(20px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+}
+.guest-progress-toast > span:not(.guest-progress-spinner) {
+  flex: 1;
+}
+.guest-progress-spinner {
+  flex: 0 0 16px;
+  width: 16px;
+  height: 16px;
+  margin-top: 3px;
+  border: 2px solid #96632e44;
+  border-top-color: #96632e;
+  border-radius: 50%;
+  animation: guest-progress-spin 1s linear infinite;
+}
+.purchase-in-progress {
+  display: grid;
+  gap: 8px;
+  padding: 13px 16px;
+  margin: 14px 0;
+  border: 1px solid #ad925c;
+  border-radius: 8px;
+  background: #fff4d8;
+  color: #293d30;
+  font-size: 12px;
+}
+.purchase-in-progress span { font-size: 11px; }
+.purchase-in-progress progress { width: 100%; height: 7px; accent-color: #b58a38; }
+.inventory-purchase-pending { display: block; margin-top: 5px; color: #856022; font-size: 10px; }
+@keyframes guest-progress-spin {
+  to { transform: rotate(360deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .guest-progress-spinner { animation: none; }
+}
+.game-toast button {
+  color: inherit;
+  background: transparent;
+  border: 0;
+  padding: 4px;
+  cursor: pointer;
+}
+.wallet-dialog {
+  width: min(400px, calc(100vw - 32px));
+  box-sizing: border-box;
+  padding: 24px;
+}
+.connection-choices {
+  display: grid;
+  gap: 12px;
+  margin-top: 20px;
+}
+.wallet-dialog .scene-panel-heading {
+  justify-content: space-between;
+}
+.game-shell dialog .quiet {
+  background: #e7d5ae;
+  color: #263d2e;
+  border-color: #a68b56;
+}
+.game-shell dialog .primary {
+  color: #352717;
+}
+.game-shell dialog h1,
+.game-shell dialog h2 {
+  font-family: Georgia, serif;
+  font-weight: 400;
+}
+.game-shell dialog h1 {
+  font-size: 32px;
+  line-height: 1.15;
+}
+.game-shell dialog h2 {
+  font-size: 22px;
+}
+.game-shell dialog p {
+  line-height: 1.65;
+  font-size: 13px;
+}
+.game-shell .scene-panel {
+  width: min(520px, calc(100vw - 24px));
+  max-height: calc(100dvh - 38px);
+  box-sizing: border-box;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  filter: drop-shadow(0 18px 32px #0009);
+  overflow: visible;
+}
+.game-shell .scene-panel.merchant-panel {
+  width: min(900px, calc(100vw - 24px));
+}
+.scene-panel.merchant-panel[open] {
+  display: grid;
+  grid-template-columns: clamp(160px, 30vw, 320px) minmax(0, 1fr);
+  align-items: center;
+  gap: 20px;
+}
+.scene-panel-content {
+  min-width: 0;
+  max-height: calc(100dvh - 38px);
+  box-sizing: border-box;
+  padding: 12px 16px 20px;
+  overscroll-behavior: contain;
+  border: 32px solid transparent;
+  border-image: url("/art/living-town/game/merchant-dialog-panel.svg") 55 fill /
+    32px / 0 stretch;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  overflow-y: auto;
+}
+.merchant-portrait {
+  width: 100%;
+  height: min(540px, calc(100dvh - 48px));
+  object-fit: contain;
+  pointer-events: none;
+}
+.scene-panel-heading {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 10px;
+}
+.merchant-intro {
+  margin: 8px 0 16px;
+}
+.scene-panel-heading h1 {
+  font-size: 42px !important;
+  margin: 0 auto 0 0;
+}
+.scene-panel-heading h1 span {
+  color: #a5753a;
+}
+.merchant-intro .eyebrow {
+  font-size: 11px;
+}
+.merchant-intro p {
+  margin: 0;
+}
+.shelves-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 20px 0 12px;
+}
+.shelves-heading h2 {
+  margin: 0;
+}
+.shelves-heading button {
+  flex-shrink: 0;
+}
+.scene-panel .offers {
+  list-style: none;
+  padding: 0;
+}
+.scene-panel .offers li {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  justify-content: space-between;
+  border-block-end: 1px solid #c4b08a;
+  padding: 16px 0;
+}
+.scene-panel .offers strong,
+.scene-panel .offers span {
+  display: block;
+}
+.scene-panel .offers span {
+  font-size: 12px;
+  margin-top: 6px;
+}
+.panel-fine-print {
+  font-size: 11px !important;
+  color: #5a604a;
+}
+.journal-events {
+  padding-left: 20px;
+  max-height: 45dvh;
+  overflow: auto;
+}
+.journal-events li {
+  padding: 10px 0;
+  font-size: 13px;
+  line-height: 1.6;
+  border-bottom: 1px solid #cab790;
+}
+.game-shell .manager-drawer {
+  inset: 16px 16px 16px auto;
+  height: calc(100dvh - 32px);
+  max-height: calc(100dvh - 32px);
+  width: min(760px, calc(100vw - 32px));
+  padding: 24px;
+}
+.game-shell .manager-tabs {
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.game-shell .manager-tabs button {
+  padding: 9px;
+  font-size: 12px;
+}
+.game-shell .manager-panel {
+  background: #faf0db;
+  padding: 20px;
+  border-radius: 8px;
+}
+.game-shell .manager .section-heading {
+  margin-bottom: 22px;
+}
+.game-shell .manager .section-heading h2 {
+  font-size: 27px;
+}
+.game-shell .manager .section-heading > div {
+  flex-basis: 240px;
+}
+.game-shell .manager-drawer .shop-hud {
+  color: #203e35;
+}
+.game-shell dialog input {
+  background: #fff9e9;
+}
+.game-shell .help-dialog {
+  background: #f4e5c7;
+}
+.game-shell .help-dialog .workshop-heading {
+  background: #f4e5c7;
+}
+@media (max-width: 1000px) {
+  .game-hud {
+    gap: 12px;
+    padding: 4px 16px;
+  }
+  .game-wordmark {
+    width: 150px;
+  }
+  .game-help {
+    display: none;
+  }
+  .game-main {
+    width: 100%;
+  }
+  .game-shop-name {
+    max-width: 120px;
+  }
+}
+@media (max-width: 600px) {
+  :host:has(.game-shell) {
+    min-height: 360px;
+  }
+  .game-hud {
+    gap: 8px;
+    min-height: 62px;
+    flex-wrap: wrap;
+    padding: 7px 12px;
+  }
+  .game-wordmark {
+    width: 128px;
+    height: 38px;
+  }
+  .game-stat {
+    min-width: 44px;
+  }
+  .game-stat strong {
+    font-size: 21px;
+  }
+  .game-shop-name {
+    display: block;
+    max-width: 110px;
+    font-size: 12px;
+  }
+  .game-hud .primary {
+    padding: 9px 11px;
+    font-size: 11px;
+  }
+  .game-account-button {
+    font-size: 11px;
+    max-width: 85px;
+  }
+  .game-account {
+    max-width: 95px;
+  }
+  .game-main {
+    width: 100%;
+    padding: 0;
+  }
+  .game-feedback {
+    font-size: 10px;
+    bottom: 16px;
+    left: 10px;
+    max-width: calc(100% - 20px);
+  }
+  .game-shell .manager-drawer {
+    inset: 8px 8px 8px auto;
+    width: calc(100vw - 16px);
+    height: calc(100dvh - 16px);
+    max-height: calc(100dvh - 16px);
+    padding: 17px;
+  }
+  .scene-panel-content {
+    border-width: 24px;
+    border-image-width: 24px;
+    padding: 10px;
+  }
+  .merchant-intro {
+    margin: 8px 0 12px;
+  }
+  .scene-panel.merchant-panel[open] {
+    grid-template-columns: 90px minmax(0, 1fr);
+    gap: 6px;
+  }
+  .merchant-portrait {
+    height: min(260px, calc(100dvh - 48px));
+  }
+  .scene-panel-heading h1 {
+    font-size: 34px !important;
+  }
+  .scene-panel .offers li {
+    gap: 8px;
+  }
+  .scene-panel .offers .primary {
+    padding: 10px;
+    font-size: 12px;
+  }
 }

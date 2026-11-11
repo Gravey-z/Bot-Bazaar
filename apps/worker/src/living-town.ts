@@ -1,7 +1,10 @@
+import { boundedTownRpc, resilientTownRpc } from "./private/living-town/runtime-rpc.js";
 import { mkdirSync } from "node:fs";
+import { lstat } from "node:fs/promises";
+import { drainRuntimeOutbox } from "./private/living-town/runtime-outbox.js";
 import { TownOperations } from "./private/living-town/operations.js";
 import { verifyTownBackup } from "./private/living-town/backup.js";
-import { LivingTownClient, createRpcTransport } from "@bot-bazaar/chain";
+import { LivingTownClient } from "@bot-bazaar/chain";
 import {
   readBoundedFile,
   parseLivingTownWorkerConfig,
@@ -13,8 +16,11 @@ import { LivingTownProjector } from "./private/living-town/projector.js";
 import { readLivingTownHealth } from "./private/living-town/health.js";
 import { createReadServer } from "./private/read-api/server.js";
 import { ReadApiError } from "./private/activity/repository.js";
+import { PlayerReceipts } from "./private/living-town/player-receipts.js";
+import { LivingTownGameViews } from "./private/living-town/game-views.js";
+import { playerReceiptHandler } from "./private/living-town/player-receipt-handler.js";
 
-// Separate read-only V2 process: no signer, inference, scheduler or runtime env.
+// Projection and untrusted receipt hints only: no signer, inference, scheduler or runtime env.
 const args = process.argv.slice(2),
   initialize = args.length === 3 && args[2] === "--initialize";
 if (args[0] !== "--config" || !args[1] || (args.length !== 2 && !initialize))
@@ -23,7 +29,7 @@ if (args[0] !== "--config" || !args[1] || (args.length !== 2 && !initialize))
   );
 const config = parseLivingTownWorkerConfig(readBoundedFile(args[1], 32768));
 const operations = new TownOperations("read_projection");
-const rpc = createRpcTransport(config.public.rpcUrl);
+const rpc = boundedTownRpc(resilientTownRpc(config.public.rpcUrl));
 if (initialize) mkdirSync(config.dataDir, { recursive: true, mode: 0o700 });
 const store = new LivingTownProjectionStore(
     config.dataDir,
@@ -34,6 +40,9 @@ const store = new LivingTownProjectionStore(
     operations.measure("chain", () => rpc(method, params)),
   ),
   projector = new LivingTownProjector(client, store);
+const playerReceipts = new PlayerReceipts(config.dataDir, config.identity);
+const gameViews = new LivingTownGameViews(config.dataDir, config.identity, store);
+projector.observeReceipts(receipt => gameViews.applyReceipt(receipt));
 let stopping = false,
   running: Promise<void> | undefined;
 let backupCheckAt = 0,
@@ -45,10 +54,15 @@ const cycle = (): Promise<void> => {
     const started = performance.now();
     let failed = false;
     try {
-      if (!store.cursor()) await projector.sync();
-      if (config.inbox)
-        for (const proof of readReceiptInbox(config.inbox, config.identity))
-          await projector.ingest(proof);
+      if (!store.cursor() || store.town().stale) await projector.sync();
+      await playerReceipts.drain(projector);
+      if (config.inbox) {
+        if ((await lstat(config.inbox)).isDirectory())
+          await drainRuntimeOutbox(config.inbox, config.identity, projector);
+        else
+          for (const proof of readReceiptInbox(config.inbox, config.identity))
+            await projector.ingest(proof);
+      }
       await projector.sync();
       if (config.activityInbox)
         store.agentActivity(
@@ -59,13 +73,20 @@ const cycle = (): Promise<void> => {
         Number(town.observed_at_ms),
         town.snapshot.block_timestamp_ns,
       );
-    } catch {
+    } catch (error) {
       failed = true;
       store.invalidate();
       if (Date.now() - lastSyncDiagnosticAt >= 60000) {
         console.error(
           "V2 projection sync failed; inspect the private operations report",
         );
+        if (
+          error instanceof Error &&
+          ["ChainRpcError", "ChainValidationError", "StorageError"].includes(
+            error.name,
+          )
+        )
+          console.error(error.message);
         lastSyncDiagnosticAt = Date.now();
       }
     } finally {
@@ -111,6 +132,10 @@ const server = createReadServer(
       events: (after: string | null, limit: number) =>
         store.events(after, limit),
       town: () => store.town(),
+      gameView: (account: string) => gameViews.read(account),
+      merchantContext: () => store.merchantContext(),
+      directory: (after: string | null, limit: number) => store.directory(after, limit),
+      offers: () => store.offers(),
       listings: (after: string | null, limit: number) =>
         store.listings(after, limit),
       history: (id: string, after: string | null, limit: number) =>
@@ -123,6 +148,7 @@ const server = createReadServer(
   },
   config.boundary,
   (duration, status) => operations.record("api", duration, status >= 400),
+  playerReceiptHandler(playerReceipts, config.boundary),
 );
 server.listen(config.port, "127.0.0.1");
 let timer: NodeJS.Timeout | undefined;
@@ -135,12 +161,35 @@ const poll = async (): Promise<void> => {
     }, config.pollMs);
 };
 void poll();
+// Display collection cannot hold up receipt confirmation or the public projection.
+let viewTimer: NodeJS.Timeout | undefined;
+let viewRunning: Promise<void> | undefined;
+let lastViewDiagnostic = 0;
+const pollViews = async (): Promise<void> => {
+  if (stopping) return;
+  viewRunning = gameViews.sync(client).catch(() => {
+    if (Date.now() - lastViewDiagnostic > 60000) {
+      console.error("Player display sync delayed; retained snapshots will be marked stale.");
+      lastViewDiagnostic = Date.now();
+    }
+  });
+  await viewRunning;
+  if (!stopping) viewTimer = setTimeout(() => { void pollViews(); }, 2500);
+};
+void pollViews();
 const stop = async (): Promise<void> => {
   if (stopping) return;
   stopping = true;
   if (timer) clearTimeout(timer);
-  await new Promise<void>((resolve) => server.close(() => resolve()));
+  if (viewTimer) clearTimeout(viewTimer);
+  await new Promise<void>((resolve) => {
+    server.close(() => resolve());
+    server.closeAllConnections();
+  });
   await running;
+  await viewRunning;
+  playerReceipts.close();
+  gameViews.close();
   store.close();
 };
 process.once("SIGINT", () => {
@@ -149,3 +198,9 @@ process.once("SIGINT", () => {
 process.once("SIGTERM", () => {
   void stop();
 });
+const managedStop = (): void => {
+  void stop().finally(() => { if (process.connected) process.disconnect(); });
+};
+process.on("message", message => { if (message === "bazaar:stop") managedStop(); });
+process.once("disconnect", managedStop);
+process.channel?.unref();

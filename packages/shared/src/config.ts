@@ -87,6 +87,7 @@ export function parsePublicConfig(value: unknown): PublicConfig {
     ![
       "https://test.rpc.fastnear.com/",
       "https://archival-rpc.testnet.near.org/",
+      "https://testnet-rpc.intea.rs/",
     ].includes(rpc.href)
   ) {
     throw new ConfigurationError(

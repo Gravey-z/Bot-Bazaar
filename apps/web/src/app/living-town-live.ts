@@ -43,12 +43,12 @@ export class LivingTownLiveFeed {
     private readonly createSource: (url: string) => TownEventSource = (url) =>
       new EventSource(url, { withCredentials: false }),
     private readonly now = Date.now,
-    private readonly pollMs = 15000,
+    private readonly pollMs = 3000,
   ) {}
   private emit(): void {
     if (!this.stopped)
       this.publish({
-        events: [...this.rows.values()].slice(-20).reverse(),
+        events: [...this.rows.values()].slice(-100).reverse(),
         mode: this.mode,
         gap: this.gap,
       });
@@ -119,7 +119,7 @@ export class LivingTownLiveFeed {
     this.source?.close();
     this.source = null;
     const token = ++this.connection;
-    this.retryAt = this.now() + 30000;
+    this.retryAt = this.now() + 3000;
     try {
       const url = new URL(this.url);
       if (this.cursor) url.searchParams.set("after", this.cursor);
@@ -159,6 +159,8 @@ export class LivingTownLiveFeed {
         "sale_confirmed",
         "production_ready",
         "agent_action",
+        "merchant_economy",
+        "transaction_confirmed",
       ])
         source.addEventListener(type, ((raw: MessageEvent) => {
           if (!current()) return;
@@ -210,6 +212,11 @@ export class LivingTownLiveFeed {
   }
 }
 export function townActivityText(event: TownActivity): string {
+  if (event.type === "transaction_confirmed") return event.data.title;
+  if (event.type === "merchant_economy")
+    return event.data.kind === "source"
+      ? `${event.data.merchant}: Source refill +${event.data.quantity} ${event.data.item_id}. Confirmed.`
+      : `Offer #${event.data.offer!.offer_id}: ${event.data.offer!.buyer} buying ${event.data.quantity} ${event.data.item_id} from ${event.data.offer!.seller}. ${event.data.kind}.`;
   if (event.type === "sale_confirmed")
     return `Sale #${event.data.trade_id}: ${event.data.quantity} ${event.data.item_id.replaceAll("_", " ")} for ${event.data.total_price} game gold. Confirmed.`;
   if (event.type === "production_ready")

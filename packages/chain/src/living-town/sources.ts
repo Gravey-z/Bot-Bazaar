@@ -8,6 +8,7 @@ import {
   nullable,
   record,
   check,
+  array,
 } from "../wire.js";
 import {
   livingTownProductionEffectBase,
@@ -35,7 +36,7 @@ const supplied = object({
   item_id: rawSourceItem,
   merchant_id: sourceMerchant,
   epoch: positiveU64,
-  issued_quantity: bounded(0n, 8n),
+  issued_quantity: bounded(0n, 2n),
   market_event: nullable(livingTownMarketEvent),
   ledger: livingTownLedger,
 });
@@ -46,56 +47,76 @@ const swept = object({
   burned_gold: bounded(0n, 100n),
   ledger: livingTownLedger,
 });
+const suppliedBatch = object({
+  kind: literal("raw_supplies"),
+  trigger_item_id: rawSourceItem,
+  epoch: positiveU64,
+  allocations: array(supplied, 4),
+});
 export function livingTownSourceEffect(value: unknown): ReturnType<
   typeof livingTownProductionEffectBase
 > & {
-  outcome: ReturnType<typeof supplied> | ReturnType<typeof swept>;
+  outcome: ReturnType<typeof supplied> | ReturnType<typeof swept> | ReturnType<typeof suppliedBatch>;
 } {
   const b = livingTownProductionEffectBase(value);
   const outcome =
     record(b.outcome)["kind"] === "raw_supplied"
       ? supplied(b.outcome)
-      : swept(b.outcome);
+      : record(b.outcome)["kind"] === "raw_supplies" ? suppliedBatch(b.outcome) : swept(b.outcome);
   check(
     b.principal.startsWith("account:") &&
-      b.effect_revision === b.effect_event_sequence &&
-      outcome.ledger.actor.kind === "merchant" &&
-      outcome.ledger.actor.merchant_id === outcome.merchant_id,
+      b.effect_revision === b.effect_event_sequence,
     "source principal/ledger mismatch",
   );
-  if (outcome.kind === "raw_supplied") {
-    const item = outcome.item_id,
+  const allocations = outcome.kind === "raw_supplies" ? outcome.allocations : outcome.kind === "raw_supplied" ? [outcome] : [];
+  if (outcome.kind === "raw_supplies")
+    check(allocations.length > 0 && new Set(allocations.map(a => a.item_id)).size === allocations.length &&
+      allocations.some(a => a.item_id === outcome.trigger_item_id) &&
+      allocations.every(a => a.epoch === outcome.epoch && BigInt(a.issued_quantity) > 0n), "invalid batch supply scope");
+  for (const allocation of allocations) {
+    check(allocation.ledger.actor.kind === "merchant" && allocation.ledger.actor.merchant_id === allocation.merchant_id,
+      "source ledger mismatch");
+    const item = allocation.item_id,
       supplier = { crystal: "rex", wood: "bolt", herb: "luna", iron: "bolt" }[
         item
       ],
-      event = outcome.market_event,
+      event = allocation.market_event,
       active =
         event !== null &&
-        BigInt(outcome.epoch) >= BigInt(event.start_epoch) &&
-        BigInt(outcome.epoch) < BigInt(event.end_epoch),
+        BigInt(allocation.epoch) >= BigInt(event.start_epoch) &&
+        BigInt(allocation.epoch) < BigInt(event.end_epoch),
       ceiling =
-        item === "herb" && active
-          ? 4n
-          : { crystal: 4n, wood: 4n, herb: 8n, iron: 8n }[item],
-      target = { crystal: 10n, wood: 10n, herb: 20n, iron: 20n }[item],
-      held = BigInt(outcome.ledger.inventory.held[item]),
-      issued = BigInt(outcome.issued_quantity),
+        BigInt(allocation.epoch) % 5n !== 0n
+          ? 0n
+          : item === "herb" && active
+            ? 1n
+            : 2n,
+      target = 12n,
+      held = BigInt(allocation.ledger.inventory.held[item]),
+      issued = BigInt(allocation.issued_quantity),
       old = held - issued;
-    const deficit = target > old ? target - old : 0n;
+    const promised =
+      old +
+      BigInt(allocation.ledger.inventory.production_output_reserved[item]) +
+      BigInt(allocation.ledger.inventory.trade_inbound_reserved[item]);
+    const deficit = target > promised ? target - promised : 0n;
     const capacity =
       1000n -
       old -
-      BigInt(outcome.ledger.inventory.production_output_reserved[item]) -
-      BigInt(outcome.ledger.inventory.trade_inbound_reserved[item]);
+      BigInt(allocation.ledger.inventory.production_output_reserved[item]) -
+      BigInt(allocation.ledger.inventory.trade_inbound_reserved[item]);
     check(
-      outcome.merchant_id === supplier &&
+      allocation.merchant_id === supplier &&
         old >= 0n &&
         capacity >= 0n &&
         issued ===
           [deficit, ceiling, capacity].reduce((a, b) => (a < b ? a : b)),
       "raw source formula mismatch",
     );
-  } else {
+  }
+  if (outcome.kind === "treasury_swept") {
+    check(outcome.ledger.actor.kind === "merchant" && outcome.ledger.actor.merchant_id === outcome.merchant_id,
+      "source ledger mismatch");
     const after = BigInt(outcome.ledger.gold.available),
       burn = BigInt(outcome.burned_gold),
       excess = after + burn - 200n;

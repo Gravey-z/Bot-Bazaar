@@ -50,6 +50,22 @@ test("public configuration is normalized and immutable", () => {
   );
 });
 
+test("reviewed Intear Testnet RPC is explicit and rejects similar-host substitutions", () => {
+  assert.equal(
+    parsePublicConfig({
+      ...publicFixture,
+      rpcUrl: "https://testnet-rpc.intea.rs",
+    }).rpcUrl,
+    "https://testnet-rpc.intea.rs/",
+  );
+  for (const rpcUrl of [
+    "https://testnet-rpc.intea.rs.attacker.example",
+    "https://rpc.intea.rs",
+    "http://testnet-rpc.intea.rs",
+  ])
+    assert.throws(() => parsePublicConfig({ ...publicFixture, rpcUrl }));
+});
+
 for (const field of Object.keys(publicFixture)) {
   test(`public configuration rejects missing and placeholder ${field}`, () => {
     for (const value of [undefined, "", "  ", "<replace-me>"]) {

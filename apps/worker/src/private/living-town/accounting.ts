@@ -170,7 +170,7 @@ export class LivingTownAccounting {
         o.gold_burned,
         "not_applicable",
       );
-    if (o.kind === "raw_purchased") {
+    if (o.kind === "raw_purchased" || o.kind === "trade_accepted") {
       add(
         actorKey(o.buyer.actor),
         "material_purchase",

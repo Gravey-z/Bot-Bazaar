@@ -108,6 +108,33 @@ tasks["build-v2"] = [buildV2];
 tasks["unit-v2"] = [
   ["cargo", "test", "-p", "bot-bazaar-living-town", "--lib", "--locked"],
 ];
+tasks["unit-offers-v2"] = [
+  [
+    "cargo",
+    "test",
+    "-p",
+    "bot-bazaar-living-town",
+    "--lib",
+    "offers::tests",
+    "--locked",
+  ],
+];
+tasks["test-offers-v2"] = [
+  ...tasks["unit-offers-v2"],
+  buildV2,
+  [
+    "cargo",
+    "test",
+    "-p",
+    "sandbox-tests",
+    "--test",
+    "living_town",
+    "merchant_offers_",
+    "--locked",
+    "--",
+    "--test-threads=1",
+  ],
+];
 tasks["test-v2"] = [
   ...tasks["unit-v2"],
   buildV2,
@@ -163,7 +190,7 @@ tasks["check-v2"] = [
 const task = process.argv[2];
 if (!Object.hasOwn(tasks, task)) {
   console.error(
-    "Usage: node scripts/rust-toolchain.mjs <build|unit|test|check|format|build-v2|unit-v2|test-v2|check-v2>",
+    "Usage: node scripts/rust-toolchain.mjs <build|unit|test|check|format|build-v2|unit-v2|test-v2|check-v2|unit-offers-v2|test-offers-v2>",
   );
   process.exit(1);
 }

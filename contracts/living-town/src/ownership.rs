@@ -208,10 +208,16 @@ pub(crate) enum Outcome {
     AssistantPolicy(Shop),
     AssistantRepriced(super::assistant::Repriced),
     Upgrade(Box<super::upgrades::Purchased>),
+    MerchantPurchased(Box<super::merchant_trading::MerchantPurchase>),
+    MerchantOffer(Box<super::offers::Effect>),
+    SourceBatch(Box<super::sources::BatchAllocation>),
 }
 impl Outcome {
     fn method(&self) -> &'static str {
         match self {
+            Self::SourceBatch(_) => "allocate_raw_supply",
+            Self::MerchantOffer(e) => e.method(),
+            Self::MerchantPurchased(_) => "merchant_purchase",
             Self::Upgrade(_) => "purchase_upgrade",
             Self::AssistantPolicy(_) => "set_assistant_permissions",
             Self::AssistantRepriced(_) => "assistant_reprice",
@@ -241,6 +247,9 @@ impl Outcome {
     }
     fn view(&self) -> Value {
         match self {
+            Self::SourceBatch(p) => p.view(),
+            Self::MerchantOffer(e) => e.view(),
+            Self::MerchantPurchased(p) => p.view(),
             Self::Upgrade(p) => p.view(),
             Self::AssistantPolicy(s) => {
                 json!({"kind":"assistant_policy_set","policy":s.assistant.view(s.id),"shop":s.view()})
@@ -363,7 +372,25 @@ impl LivingTown {
     ) -> ([u8; 32], Option<Value>) {
         self.assert_versions();
         require!(command.sequence.0 > 0, "LT:E_INVALID_INTEGER");
-        let principal = if method == "cancel_listing" {
+        let principal = if method == "propose_trade" {
+            format!(
+                "merchant:{}",
+                normalized["buyer_merchant_id"].as_str().expect("buyer")
+            )
+        } else if matches!(
+            method,
+            "accept_trade" | "reject_trade" | "cancel_trade" | "expire_offers"
+        ) {
+            format!(
+                "merchant:{}",
+                normalized["merchant_id"].as_str().expect("merchant")
+            )
+        } else if method == "merchant_purchase" {
+            format!(
+                "merchant:{}",
+                normalized["buyer_merchant_id"].as_str().expect("merchant")
+            )
+        } else if method == "cancel_listing" {
             let id = normalized["listing_id"]
                 .as_str()
                 .and_then(|v| v.parse::<u64>().ok())
@@ -416,6 +443,7 @@ impl LivingTown {
         require!(
             !self.paused
                 || method == "cancel_listing"
+                || matches!(method, "reject_trade" | "cancel_trade" | "expire_offers")
                 || (method == "set_assistant_permissions" && normalized["policy"]["mode"] == "off"),
             "LT:E_MARKET_PAUSED"
         );
@@ -432,6 +460,7 @@ impl LivingTown {
         self.player_listings.flush();
         self.listing_slots.flush();
         self.listing_index.flush();
+        self.offers.flush();
         env::state_write(self);
         let used = env::storage_usage();
         require!(used <= 16 * 1024 * 1024, "LT:E_STORAGE_CAPACITY");
@@ -465,6 +494,10 @@ impl LivingTown {
             "LT:E_STORAGE_CAPACITY"
         );
         let principal = match &record.outcome {
+            Outcome::MerchantOffer(e) => format!("merchant:{}", MERCHANTS[e.actor as usize]),
+            Outcome::MerchantPurchased(p) => {
+                format!("merchant:{}", MERCHANTS[p.trade.buyer as usize])
+            }
             Outcome::Started(s) => s.job.owner.principal(),
             Outcome::Listing(s) => s.owner.principal(),
             _ => format!("account:{actor}"),
@@ -475,7 +508,9 @@ impl LivingTown {
         let revocation =
             matches!(&record.outcome, Outcome::AssistantPolicy(s) if s.assistant.is_off());
         self.persist_economic_state(
-            !revocation && !matches!(&record.outcome,Outcome::Listing(c) if c.cancelled),
+            !revocation
+                && !matches!(&record.outcome,Outcome::Listing(c) if c.cancelled)
+                && !matches!(&record.outcome, Outcome::MerchantOffer(e) if e.releasing()),
         );
         let event = json!({"standard":"bot_bazaar_living_town","version":"2.0.0","event":record.outcome.method(),"data":[{"contract_id":env::current_account_id(),"config_version":self.config_version.to_string(),"event_sequence":self.market_revision.to_string(),"market_revision":self.market_revision.to_string(),"block_height":env::block_height().to_string(),"block_timestamp_ns":env::block_timestamp().to_string(),"predecessor_account_id":actor,"principal":principal,"command_sequence":record.sequence.to_string(),"payload_sha256":hex(&digest),"outcome":record.outcome.view()}]});
         let encoded = serde_json::to_string(&event).expect("event");

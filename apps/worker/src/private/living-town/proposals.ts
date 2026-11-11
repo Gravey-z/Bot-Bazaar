@@ -3,7 +3,14 @@ import {
   livingTownSnapshot,
   livingTownTown,
   createLivingTownCall,
+  livingTownOffer,
 } from "@bot-bazaar/chain";
+import {
+  negotiationAvailable,
+  assertNegotiationActor,
+  compileSellerTradeApproval,
+} from "./negotiation.js";
+import type { SellerTradeApproval, SellerTradeStep } from "./negotiation.js";
 import { requireStorage } from "../storage/validation.js";
 import type {
   MerchantAction,
@@ -213,6 +220,8 @@ export interface ProposalResolution {
   reason: string;
   proposal: TownProposal;
   call: TownCall | null;
+  tradeApproval?: SellerTradeApproval;
+  tradePhase?: SellerTradeStep["phase"];
 }
 /** Strict local policy gate. Model JSON never names a chain method or supplies a command identity. */
 export function resolveTownProposal(
@@ -223,6 +232,7 @@ export function resolveTownProposal(
   policy: LivingTownMerchantPolicy,
   identity: unknown,
   command: unknown,
+  offerExpiryNs?: string,
 ): ProposalResolution {
   const proposal = parseTownProposal(value),
     town = livingTownSnapshot(livingTownTown)(input.town);
@@ -243,8 +253,91 @@ export function resolveTownProposal(
   if (!input.fresh || !input.historyComplete)
     return no("confirmed_facts_unavailable");
   if (a.type === "wait") return no("model_wait");
-  if (["propose_trade", "accept_trade", "reject_trade"].includes(a.type))
-    return no("v2_trade_not_available");
+  if (["propose_trade", "accept_trade", "reject_trade"].includes(a.type)) {
+    if (!negotiationAvailable(input)) return no("negotiation_unavailable");
+    assertNegotiationActor(input, merchant, identity);
+    if (a.type === "propose_trade") {
+      requireStorage(
+        a.side === "buy",
+        "only buyer-initiated raw trades supported",
+      );
+      const candidate = signals.stockSharing?.candidates.find(
+        (c) =>
+          c.buyer === merchant &&
+          c.seller === a.counterparty &&
+          c.item === a.item_id,
+      );
+      requireStorage(candidate, "no eligible supplier for model trade");
+      const compiled = policy.compileStockSharingProposal(
+        input,
+        merchant,
+        {
+          candidateId: candidate.id,
+          quantity: a.quantity,
+          unitPrice: a.unit_price,
+        },
+        identity,
+        command,
+        offerExpiryNs,
+      );
+      requireStorage(compiled, "buyer proposal unavailable");
+      return {
+        kind: "command",
+        reason: "validated_buyer_trade_proposal",
+        proposal,
+        call: compiled.call,
+      };
+    }
+    requireStorage(
+      a.type === "accept_trade" || a.type === "reject_trade",
+      "unsupported trade action",
+    );
+    const offer = (input.pendingOffers ?? [])
+      .map(livingTownOffer)
+      .find((o) => o.offer_id === a.offer_id);
+    requireStorage(
+      offer?.seller === merchant,
+      "offer is not an incoming seller offer",
+    );
+    if (a.type === "reject_trade") {
+      // Recipient refusal remains possible when an economic opportunity disappeared.
+      const call = createLivingTownCall("reject_trade", {
+        merchant_id: merchant,
+        offer_id: offer.offer_id,
+        expected_offer_revision: offer.revision,
+        command,
+      });
+      requireStorage(
+        call.args.command.config_version === town.deployment.config_version &&
+          BigInt(call.args.command.valid_until_ns) >
+            BigInt(town.block_timestamp_ns) &&
+          BigInt(call.args.command.valid_until_ns) <=
+            BigInt(town.block_timestamp_ns) + 600000000000n,
+        "seller command outside lifetime",
+      );
+      return {
+        kind: "command",
+        reason: "independent_seller_rejection",
+        proposal,
+        call,
+      };
+    }
+    const step = compileSellerTradeApproval(
+      input,
+      { proposal, offer, rootId: input.stockSharingReaction!.id },
+      policy,
+      identity,
+      command,
+    );
+    return {
+      kind: "command",
+      reason: step.phase,
+      proposal,
+      call: step.call,
+      tradeApproval: step.approval,
+      tradePhase: step.phase,
+    };
+  }
   const step = signals.decisions.find((d) => d.merchant === merchant)!.action;
   if (a.type === "restock") {
     const relevant =
@@ -252,7 +345,7 @@ export function resolveTownProposal(
         ? a.item_id === "iron_tool" && merchant === "bolt"
         : step.kind === "complete_production"
           ? merchant === "bolt" && a.item_id === "iron_tool"
-          : step.kind === "set_listing"
+          : step.kind === "set_listing" || step.kind === "merchant_purchase"
             ? step.item === a.item_id ||
               (merchant === "bolt" &&
                 a.item_id === "iron_tool" &&
@@ -285,15 +378,18 @@ export function resolveTownProposal(
       }
     | undefined;
   const signal = signals.scarcity.find(
-    (s) => s.item === a.item_id && s.supplier === merchant,
+    (s) => s.item === a.item_id,
   );
+  const ledger = town.data.npc_ledgers.find(l => l.actor.kind === "merchant" && l.actor.merchant_id === merchant)!;
+  const saleable = signal ? BigInt(ledger.inventory.held[signal.item]) -
+    BigInt(ledger.inventory.trade_reserved[signal.item]) : 0n;
   requireStorage(
-    l && signal && BigInt(l.remaining_quantity) <= BigInt(signal.saleable),
+    l && signal && BigInt(l.remaining_quantity) <= saleable,
     "unavailable owned price listing/reserve",
   );
   const bands: Record<string, readonly [bigint, bigint]> = {
-    crystal: [4n, 6n],
-    herb: [3n, 4n],
+    crystal: [merchant === "rex" ? 4n : 3n, 6n],
+    herb: [merchant === "luna" ? 3n : 2n, 4n],
     wood: [1n, 3n],
     iron: [3n, 6n],
   };
@@ -303,6 +399,8 @@ export function resolveTownProposal(
     price >= band[0] && price <= band[1],
     "merchant price/cost band violated",
   );
+  const pricing = signals.pricing.find(p => p.merchant === merchant && p.item === a.item_id);
+  requireStorage(pricing?.suggestedPrice === a.unit_price, "price outside current stock/demand target or cooldown");
   // Reuse the audited controller compiler for actor identity, then bind the reviewed price-only replacement.
   const reference: MerchantAction = step;
   policy.compile(input, merchant, reference, identity, command);
@@ -318,8 +416,10 @@ export function resolveTownProposal(
     BigInt(call.args.command.valid_until_ns) >
       BigInt(town.block_timestamp_ns) &&
       BigInt(call.args.command.valid_until_ns) <=
-        BigInt(town.data.genesis_time_ns) +
-          (BigInt(town.data.epoch) + 1n) * 60000000000n,
+        (input.stockSharingReaction
+          ? BigInt(town.block_timestamp_ns) + 60000000000n
+          : BigInt(town.data.genesis_time_ns) +
+            (BigInt(town.data.epoch) + 1n) * 60000000000n),
     "proposal command outside epoch",
   );
   return {
@@ -331,6 +431,7 @@ export function resolveTownProposal(
 }
 
 export interface TownProposalContext {
+  reaction?: { rootId: string; stepId: string };
   tickId: string;
   merchant: ProposalMerchant;
   facts: MerchantPolicyInput;

@@ -5,3 +5,8 @@ node_modules/
 target/
 **/dist/
 **/.angular/
+
+# Preserve the owner's imported character reference documents verbatim.
+/characters/rex.md
+/characters/luna.md
+/characters/bolt.md

@@ -118,8 +118,8 @@ export function listingReviewMatches(
 export function productDemandText(item: string, price: string): string {
   const cap = item === "health_potion" ? 18n : 24n;
   return BigInt(price) > cap
-    ? `Above the ${cap} gold customer price limit: no baseline customer will buy at this price.`
-    : `Within the ${cap} gold customer price limit. Sales still depend on stock, competing offers, quotas, funded demand and an available customer worker.`;
+    ? `Town customers pay up to ${cap}g each. Lower your price to attract them.`
+    : `Town customers pay up to ${cap}g each. Sales depend on demand and other shops' prices.`;
 }
 export function historyLabel(kind: TownHistoryEntry["kind"]): string {
   return {

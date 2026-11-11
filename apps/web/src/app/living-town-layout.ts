@@ -8,6 +8,7 @@ export const shopManagerTabs = [
   { id: "listings", name: "Listings" },
   { id: "assistant", name: "Assistant" },
   { id: "history", name: "History" },
+  { id: "activity", name: "Your activity" },
 ] as const;
 export type TownManagerTab = (typeof shopManagerTabs)[number]["id"];
 export function ownedTownObservation(state: TownState): TownObservation | null {
@@ -52,8 +53,16 @@ export interface TownHud {
   fresh: boolean;
 }
 export function townHud(state: TownState, now: number): TownHud {
+  const observation = state.observation;
+  const playerObservation =
+    state.accountId &&
+    observation?.accountId === state.accountId &&
+    observation.ownershipKnown &&
+    observation.player?.account_id === state.accountId
+      ? observation
+      : null;
   const o = ownedTownObservation(state),
-    ledger = o?.ledger;
+    ledger = playerObservation?.ledger;
   const matches =
     ledger?.actor.kind === "player" &&
     ledger.actor.account_id === state.accountId;

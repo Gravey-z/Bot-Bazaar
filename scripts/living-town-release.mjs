@@ -9,6 +9,8 @@ import {
   parseLivingTownWebProfile,
 } from "../packages/chain/dist/index.js";
 import { parseLivingTownWorkerConfig } from "../apps/worker/dist/private/living-town/config.js";
+import { parseTownRuntimeConfig } from "../apps/worker/dist/private/living-town/runtime-config.js";
+import { activeTownProfile, publicRuntimeKeys } from "./living-town-setup.mjs";
 
 const root = fileURLToPath(new URL("../", import.meta.url));
 const digest = (bytes) => createHash("sha256").update(bytes).digest("hex");
@@ -20,10 +22,14 @@ const configs = [
   "config/living-town-web.example.json",
   "config/living-town-assistant.example.json",
   "config/living-town-read-compose.example.yml",
+  "config/living-town-testnet.json",
+  "config/living-town-runtime.example.json",
+  "config/living-town-runtime-public.json",
 ];
 
 /** Offline source candidate only: never approves a deployment or reads env/key files. */
 export async function releaseCandidate() {
+  const active = await activeTownProfile();
   const reader = await json(configs[1]);
   // The distributed example uses a Linux absolute path. Validate its other fields
   // on Windows too; no directory/database is opened by the config parser.
@@ -38,7 +44,9 @@ export async function releaseCandidate() {
   });
   assert.deepEqual(web.identity, parsed.identity);
   assert.deepEqual(web.public, parsed.public);
+  assert.deepEqual(web, active, "Examples must match config/living-town-testnet.json");
   assert.deepEqual(assistant.identity, parsed.identity);
+  assert.deepEqual(assistant.public, parsed.public);
   assert.deepEqual(
     assistant.boundary.allowedOrigins,
     parsed.boundary.allowedOrigins,
@@ -46,6 +54,25 @@ export async function releaseCandidate() {
   const economy = await json(configs[0]);
   const economyHash = digest(canonicalLivingTownJson(economy));
   assert.equal(economyHash, parsed.identity.deployment.config_sha256);
+  const publicKeys = await publicRuntimeKeys(active);
+  const runtime = await json("config/living-town-runtime.example.json");
+  // Parse Linux example paths portably, without touching a runtime journal/key.
+  const validationRoot = resolve(root, "data/release-validation-only");
+  const parsedRuntime = parseTownRuntimeConfig({
+    ...runtime,
+    execution_dir: resolve(validationRoot, "execution"),
+    witness_dir: resolve(validationRoot, "witness"),
+    receipt_outbox: resolve(validationRoot, "receipts"),
+    agent_activity_inbox: resolve(validationRoot, "activity.json"),
+    control_file: resolve(validationRoot, "control.json"),
+    keys: Object.fromEntries(Object.entries(runtime.keys).map(([lane, key]) => [lane,
+      { ...key, file: resolve(validationRoot, "restricted-keys", `${lane}.json`) }])),
+  });
+  assert.deepEqual(parsedRuntime.identity, active.identity);
+  assert.deepEqual(parsedRuntime.public, active.public);
+  assert.equal(parsedRuntime.provider.kind, "disabled", "Setup must not enable paid inference");
+  for (const [lane, key] of Object.entries(publicKeys))
+    assert.equal(parsedRuntime.keys[lane].publicKey, key.public_key);
   const sqliteVersion = async (name) => {
     const source = await readFile(resolve(root, name), "utf8");
     const match = /PRAGMA user_version=(\d+);/.exec(source);
@@ -63,6 +90,9 @@ export async function releaseCandidate() {
         await collect(`${name}/${child}`);
     } else {
       assert.ok(stat.isFile() && stat.size <= 16 * 1024 * 1024);
+      // Build-generated profiles are derived from the selected public source.
+      // Fingerprint source templates, not stale ignored build configuration.
+      if (["apps/web/public/config.json", "apps/web/public/deployment.json", "apps/web/public/living-town.json"].includes(name)) return;
       // Explicit trees and source types only. Never enumerate deploy env/keys.
       if (
         /\.(?:ts|rs|html|css|scss|json|svg|png|webp|ico|mjs|toml|yaml|yml|lock)$/.test(
@@ -125,9 +155,12 @@ export async function releaseCandidate() {
       state: parsed.identity.deployment.state_schema,
       command: parsed.identity.deployment.command_schema,
       economy: economy.version,
-      projection_sqlite: await sqliteVersion(
-        "apps/worker/src/private/living-town/schema.ts",
-      ),
+      projection_sqlite:
+        parsed.identity.deployment.state_schema === "2"
+          ? 6
+          : await sqliteVersion(
+              "apps/worker/src/private/living-town/schema.ts",
+            ),
       execution_sqlite: await sqliteVersion(
         "apps/worker/src/private/living-town/execution-store.ts",
       ),
@@ -137,7 +170,10 @@ export async function releaseCandidate() {
     },
     config: {
       canonical_economy_sha256: economyHash,
-      profiles: "validated_examples_only",
+      profiles: "active_profile_and_matching_examples",
+      active_profile: "config/living-town-testnet.json",
+      target_identity: active.identity,
+      runtime_public_keys: "config/living-town-runtime-public.json",
     },
     deployment: {
       network: "testnet",
@@ -152,7 +188,7 @@ export async function releaseCandidate() {
     },
     blockers: [
       "Uncommitted source contents are fingerprinted; freeze and rebuild the release revision.",
-      "Example accounts, genesis/code hashes and loopback origins are not deployed identity or approval.",
+      "Target identity comes from the selected public profile; offline agreement does not reverify the live deployment or approve hosting origins.",
       "Record verified WASM/frontend/worker artifact hashes and finalized deployment identity.",
       "Approve actual HTTPS origins and validate matching real reader/web/assistant profiles.",
       "Complete P7.5 live conditions and P7.7-P7.11 hosted/manual gates.",

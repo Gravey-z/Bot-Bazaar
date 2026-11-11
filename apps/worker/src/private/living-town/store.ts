@@ -1,4 +1,12 @@
 import { TownActivityFeed } from "./feed.js";
+import {
+  ChainValidationError,
+  livingTownOffer,
+  livingTownOfferEffect,
+  livingTownOfferPage,
+  checkPendingOfferReservations,
+} from "@bot-bazaar/chain";
+import { sameOfferTerms } from "./offer-store.js";
 import { gzipSync } from "node:zlib";
 import { DatabaseSync, backup } from "node:sqlite";
 import {
@@ -20,6 +28,7 @@ import {
   livingTownTown,
   livingTownMarketEventHistory,
   livingTownShop,
+  livingTownPlayer,
   livingTownLedger,
   livingTownCheckpoint,
   livingTownReadEnvelope,
@@ -31,6 +40,8 @@ import {
   livingTownListing,
   livingTownSalesHistoryRead,
   livingTownMarketListingsRead,
+  livingTownShopDirectory,
+  livingTownMerchantContext,
 } from "@bot-bazaar/chain";
 import type {
   FinalizedBlock,
@@ -51,6 +62,7 @@ type Indexed = LivingTownIndexedReceipt | LivingTownIndexedCompletion;
 type Effect = Extract<Indexed["status"], { kind: "succeeded" }>["result"];
 type Snapshot<T> = ReturnType<ReturnType<typeof livingTownSnapshot<T>>>;
 export interface ProjectionBaseline {
+  offers?: Snapshot<ReturnType<typeof livingTownOfferPage>>[];
   block: FinalizedBlock;
   town: Snapshot<Town>;
   shops: { shop: Snapshot<Shop>; ledger: Snapshot<Ledger> }[];
@@ -151,13 +163,17 @@ export class LivingTownProjectionStore {
         );
         this.transaction(() => {
           this.db.exec(projectionSchema);
+          if (this.identity.deployment.state_schema === "2")
+            this.db.exec(
+              "CREATE TABLE projection_offers(offer_id TEXT PRIMARY KEY,status TEXT NOT NULL,body TEXT NOT NULL CHECK(length(CAST(body AS BLOB))<=4096)) STRICT; PRAGMA user_version=6;",
+            );
           this.db
             .prepare("INSERT INTO projection_identity VALUES(1,?)")
             .run(json(this.identity));
         });
       } else
         requireValue(
-          version === 5,
+          version === (this.identity.deployment.state_schema === "2" ? 6 : 5),
           "unsupported projection schema; initialize a fresh disposable read projection",
         );
       requireValue(
@@ -175,6 +191,8 @@ export class LivingTownProjectionStore {
       this.state();
       this.accounting = new LivingTownAccounting(this.db);
       this.feed = new TownActivityFeed(this.db, this.identity, version === 0);
+      const checkpoint = this.state()?.checkpoint;
+      if (checkpoint) this.transaction(() => this.feed.seedRecentReceipts(checkpoint));
     } catch (e) {
       this.db.close();
       throw e;
@@ -263,6 +281,11 @@ export class LivingTownProjectionStore {
         "INSERT INTO projection_shops VALUES(?,?,?) ON CONFLICT(shop_id) DO UPDATE SET body=excluded.body",
       )
       .run(s.shop_id, owner(s), json(s));
+  }
+  private listing(value: ReturnType<typeof livingTownListing>): void {
+    const listing = livingTownListing(value);
+    this.db.prepare("INSERT INTO market_listings VALUES(?,?,?) ON CONFLICT(listing_id) DO UPDATE SET shop_id=excluded.shop_id,body=excluded.body")
+      .run(listing.listing_id, listing.shop_id, json(listing));
   }
   baseline(
     input: ProjectionBaseline,
@@ -485,10 +508,60 @@ export class LivingTownProjectionStore {
       );
     }
     this.capacity();
+    const offers: ReturnType<typeof livingTownOffer>[] = [];
+    if (this.identity.deployment.state_schema === "2") {
+      requireValue(
+        input.offers && input.offers.length >= 1 && input.offers.length <= 3,
+        "complete offer baseline required",
+      );
+      let last = 0n;
+      input.offers.forEach((raw, i) => {
+        const p = decodeLivingTownSnapshot(
+          raw,
+          this.identity.deployment,
+          livingTownOfferPage,
+        );
+        requireValue(
+          p.block_height === b.height &&
+            p.block_timestamp_ns === b.timestampNs &&
+            p.market_revision === t.market_revision &&
+            p.data.has_more === i < input.offers!.length - 1,
+          "mixed/incomplete offer baseline",
+        );
+        for (const o of p.data.items) {
+          requireValue(
+            BigInt(o.created_at_ns) <= BigInt(b.timestampNs) &&
+              (o.closed_at_ns === null ||
+                BigInt(o.closed_at_ns) <= BigInt(b.timestampNs)) &&
+              o.expired ===
+                (o.status === "expired" ||
+                  (o.status === "pending" &&
+                    BigInt(b.timestampNs) >= BigInt(o.expires_at_ns))),
+            "offer baseline time mismatch",
+          );
+          requireValue(BigInt(o.offer_id) > last, "unordered offer baseline");
+          last = BigInt(o.offer_id);
+          offers.push(o);
+        }
+        requireValue(
+          p.data.next_after_id === (p.data.items.at(-1)?.offer_id ?? null),
+          "offer baseline cursor mismatch",
+        );
+      });
+      requireValue(offers.length <= 140, "offer baseline capacity");
+      checkPendingOfferReservations(
+        t.data.npc_ledgers,
+        offers.filter((o) => o.status === "pending"),
+      );
+    }
     this.transaction(() => {
       this.db.exec(
         "DELETE FROM market_listings; DELETE FROM market_snapshot; DELETE FROM production_jobs; DELETE FROM production_history; DELETE FROM projection_shops; DELETE FROM projection_ledgers;",
       );
+      if (this.identity.deployment.state_schema === "2") {
+        this.db.exec("DELETE FROM projection_offers");
+        for (const o of offers) this.putOffer(o);
+      }
       t.data.npc_ledgers.forEach((l) => this.ledger(l));
       t.data.npc_shops.forEach((s) => this.shop(s));
       for (const row of entries) {
@@ -553,22 +626,27 @@ export class LivingTownProjectionStore {
       .prepare("SELECT request FROM projection_receipts WHERE tx_hash=?")
       .get(hash);
     if (!r) return false;
-    requireValue(
-      r["request"] === request,
-      "conflicting receipt request identity",
-    );
+    if (r["request"] !== request) {
+      throw new ChainValidationError("conflicting receipt request identity");
+    }
     return true;
   }
   commit(receipt: Indexed, now = Date.now()): "duplicate" | "indexed" {
     const s = this.state();
     requireValue(s, "projection baseline required");
     const { status, proof } = receipt;
+    const previouslyThrough = s.checkpoint.through_event_sequence;
     requireValue(
       json(proof.deployment) === json(this.identity.deployment),
       "receipt deployment mismatch",
     );
     const request = json(proof);
     if (this.hasReceipt(proof.transactionHash, request)) return "duplicate";
+    const changedListing = status.kind === "succeeded" && "listing" in status.result.data.outcome
+      ? status.result.data.outcome.listing : null;
+    const previousRow = changedListing ? this.db.prepare("SELECT body FROM market_listings WHERE listing_id=?")
+      .get(changedListing.listing_id) : null;
+    const previousListing = previousRow ? livingTownListing(parseLivingTownJson(String(previousRow["body"]))) : undefined;
     this.capacity();
     this.transaction(() => {
       this.db
@@ -677,6 +755,7 @@ export class LivingTownProjectionStore {
           last_receipt_id: p.receiptId,
           last_log_index: parseU64(p.logIndex),
         };
+        this.db.prepare("UPDATE market_snapshot SET revision=? WHERE singleton=1").run(p.result.market_revision);
       }
       if (
         s.checkpoint.through_event_sequence !==
@@ -684,9 +763,11 @@ export class LivingTownProjectionStore {
       )
         s.observedAt = String(stamp(now));
       this.save(s);
-      this.feed.receipt(receipt);
+      this.feed.receipt(receipt, previousListing);
       this.feed.flush(s.checkpoint);
     });
+    if (BigInt(s.checkpoint.through_event_sequence) > BigInt(previouslyThrough) &&
+      BigInt(s.latestSeen) <= BigInt(s.checkpoint.through_event_sequence)) this.synchronized = true;
     return "indexed";
   }
   private readLedger(key: string): Ledger | null {
@@ -703,24 +784,260 @@ export class LivingTownProjectionStore {
   }
   private apply(s: State, result: Effect): boolean {
     const o = result.data.outcome,
-      t = s.town.data;
-    // Settlement/retention reads are rebuilt at one finalized block. Preserve a
-    // visible gap until jobs, shop revisions and ledgers can advance together.
+      t = copy(s.town.data);
+    if (!["trade_proposed", "trade_accepted", "trade_rejected", "trade_cancelled", "offers_expired",
+      "listing_set", "listing_cancelled", "assistant_repriced", "production_started", "production_completed",
+      "raw_supplied", "raw_supplies", "treasury_swept", "customer_funded", "customer_sale", "upgrade_purchased",
+      "assistant_policy_set", "market_event_scheduled", "player_registered", "shop_created", "shop_renamed",
+      "raw_purchased"].includes(o.kind)) return false;
     if (
-      o.kind === "assistant_policy_set" ||
-      o.kind === "upgrade_purchased" ||
-      o.kind === "assistant_repriced" ||
-      o.kind === "market_event_scheduled" ||
-      o.kind === "production_started" ||
-      o.kind === "production_completed" ||
-      o.kind === "listing_set" ||
-      o.kind === "listing_cancelled" ||
-      o.kind === "raw_supplied" ||
-      o.kind === "treasury_swept" ||
-      o.kind === "customer_funded" ||
-      o.kind === "customer_sale"
-    )
-      return false;
+      [
+        "trade_proposed",
+        "trade_accepted",
+        "trade_rejected",
+        "trade_cancelled",
+        "offers_expired",
+      ].includes(o.kind)
+    ) {
+      requireValue(
+        this.identity.deployment.state_schema === "2",
+        "offer projection schema unavailable",
+      );
+      const v = livingTownOfferEffect(result.data).outcome;
+      const changes = new Map<string, Mutable<Ledger>>();
+      const get = (m: string) => {
+        if (!changes.has(m)) {
+          const prior = this.readLedger(`merchant:${m}`);
+          requireValue(prior, "missing offer ledger");
+          changes.set(m, copy(prior));
+        }
+        return changes.get(m)!;
+      };
+      const changedOffers = v.kind === "offers_expired" ? v.offers : [v.offer];
+      for (const offer of changedOffers) {
+        const row = this.db
+          .prepare("SELECT body FROM projection_offers WHERE offer_id=?")
+          .get(offer.offer_id);
+        if (v.kind !== "trade_proposed" && !row) return false;
+        if (row) {
+          const old = livingTownOffer(JSON.parse(String(row["body"])));
+          requireValue(
+            old.status === "pending" && sameOfferTerms(old, offer),
+            "offer projection lifecycle/terms mismatch",
+          );
+        }
+        if (v.kind === "trade_proposed")
+          requireValue(
+            !row && offer.offer_id === t.next_offer_id,
+            "offer projection creation mismatch",
+          );
+        const b = get(offer.buyer),
+          c = BigInt(offer.total_price),
+          q = BigInt(offer.quantity),
+          item = offer.item_id;
+        const add = (n: string, d: bigint) =>
+          parseU64((BigInt(n) + d).toString());
+        if (v.kind === "trade_proposed") {
+          b.gold.trade_reserved = add(b.gold.trade_reserved, c);
+          b.gold.available = add(b.gold.available, -c);
+          b.inventory.trade_inbound_reserved[item] = add(
+            b.inventory.trade_inbound_reserved[item],
+            q,
+          );
+          t.next_offer_id = add(t.next_offer_id, 1n);
+        } else {
+          b.gold.trade_reserved = add(b.gold.trade_reserved, -c);
+          b.inventory.trade_inbound_reserved[item] = add(
+            b.inventory.trade_inbound_reserved[item],
+            -q,
+          );
+          if (v.kind === "trade_accepted") {
+            b.gold.held = add(b.gold.held, -c);
+            b.inventory.held[item] = add(b.inventory.held[item], q);
+            b.inventory.available[item] = add(b.inventory.available[item], q);
+            const seller = get(offer.seller);
+            seller.gold.held = add(seller.gold.held, c);
+            seller.gold.available = add(seller.gold.available, c);
+            seller.inventory.held[item] = add(seller.inventory.held[item], -q);
+            seller.inventory.available[item] = add(
+              seller.inventory.available[item],
+              -q,
+            );
+            requireValue(
+              v.trade.trade_id === t.next_trade_id,
+              "offer trade cursor mismatch",
+            );
+            t.next_trade_id = add(t.next_trade_id, 1n);
+          } else b.gold.available = add(b.gold.available, c);
+        }
+      }
+      const expected =
+        v.kind === "offers_expired"
+          ? v.ledgers
+          : v.kind === "trade_accepted"
+            ? [v.buyer, v.seller]
+            : [v.buyer];
+      requireValue(
+        expected.length === changes.size,
+        "offer changed ledger set mismatch",
+      );
+      for (const l of expected) {
+        requireValue(l.actor.kind === "merchant", "offer ledger actor");
+        const c = changes.get(l.actor.merchant_id);
+        requireValue(c, "offer ledger missing");
+        c.revision = parseU64((BigInt(c.revision) + 1n).toString());
+        requireValue(
+          json(c) === json(l),
+          "offer projected reservation/transfer mismatch",
+        );
+        this.ledger(l);
+        t.npc_ledgers[["rex", "luna", "bolt"].indexOf(l.actor.merchant_id)] = l;
+      }
+      for (const offer of changedOffers) this.putOffer(offer);
+    }
+    // Verified outcomes carry the changed rows. Apply them atomically with
+    // the event cursor instead of rebuilding every shop after each mutation.
+    const setLedger = (ledger: Ledger) => {
+      this.ledger(ledger);
+      if (ledger.actor.kind === "merchant")
+        t.npc_ledgers[["rex", "luna", "bolt"].indexOf(ledger.actor.merchant_id)] = ledger;
+    };
+    const nextLedger = (ledger: Ledger): boolean => {
+      const old = this.readLedger(actor(ledger));
+      return !!old && BigInt(ledger.revision) === BigInt(old.revision) + 1n;
+    };
+    const getShop = (id: string): Shop | null => {
+      const row = this.db.prepare("SELECT body FROM projection_shops WHERE shop_id=?").get(id);
+      return row ? livingTownShop(JSON.parse(String(row["body"]))) : null;
+    };
+    const getListing = (id: string) => {
+      const row = this.db.prepare("SELECT body FROM market_listings WHERE listing_id=?").get(id);
+      return row ? livingTownListing(JSON.parse(String(row["body"]))) : null;
+    };
+    const setShop = (shop: Shop) => {
+      this.shop(shop);
+      if (shop.owner.kind === "merchant")
+        t.npc_shops[["rex", "luna", "bolt"].indexOf(shop.owner.merchant_id)] = shop;
+    };
+    if (o.kind === "listing_set" || o.kind === "listing_cancelled") {
+      const old = getListing(o.listing.listing_id);
+      if (!getShop(o.listing.shop_id) || !nextLedger(o.ledger) ||
+        (old ? BigInt(o.listing.revision) !== BigInt(old.revision) + 1n
+          : o.listing.listing_id !== t.next_listing_id)) return false;
+      setLedger(o.ledger);
+      this.listing(o.listing);
+      if (!old) t.next_listing_id = parseU64((BigInt(t.next_listing_id) + 1n).toString());
+    }
+    if (o.kind === "assistant_repriced") {
+      const old = getListing(o.listing.listing_id);
+      if (!old || BigInt(o.listing.revision) !== BigInt(old.revision) + 1n ||
+        old.remaining_quantity !== o.listing.remaining_quantity) return false;
+      this.listing(o.listing);
+    }
+    if (o.kind === "production_started" || o.kind === "production_completed") {
+      const shop = getShop(o.job.shop_id);
+      const prior = this.db.prepare("SELECT status FROM production_jobs WHERE job_id=?").get(o.job.job_id);
+      if (!shop || !nextLedger(o.ledger) || (o.kind === "production_started"
+        ? !!prior || o.job.job_id !== t.next_job_id
+        : prior?.["status"] !== "running"))
+        return false;
+      let pruneId: string | null = null;
+      if (o.kind === "production_completed") {
+        const completed = this.db.prepare("SELECT body FROM production_jobs WHERE status='completed'")
+          .all().map(row => livingTownProductionJob(JSON.parse(String(row["body"]))))
+          .sort((a, b) => BigInt(a.completed_at_ns!) < BigInt(b.completed_at_ns!) ? -1
+            : a.completed_at_ns === b.completed_at_ns ? 0 : 1);
+        if (completed.length >= 256) {
+          requireValue(completed.length === 256, "completed job retention bound");
+          const earliest = completed.filter(job => job.completed_at_ns === completed[0]!.completed_at_ns);
+          if (earliest.length === 1) pruneId = earliest[0]!.job_id;
+          else {
+            const ordered = earliest.map(job => ({ job, sequence: this.db.prepare(
+              "SELECT event_sequence FROM projection_events WHERE json_extract(payload,'$.result.data.outcome.kind')='production_completed' AND json_extract(payload,'$.result.data.outcome.job.job_id')=?")
+              .get(job.job_id)?.["event_sequence"] }));
+            // A baseline may lack historical receipt ordering within a block.
+            // Repair instead of guessing which job the contract pruned.
+            if (ordered.some(row => row.sequence === undefined)) return false;
+            ordered.sort((a, b) => BigInt(String(a.sequence)) < BigInt(String(b.sequence)) ? -1 : 1);
+            pruneId = ordered[0]!.job.job_id;
+          }
+        }
+      }
+      setLedger(o.ledger);
+      setShop({ ...shop, revision: parseU64((BigInt(shop.revision) + 1n).toString()) });
+      if (o.kind === "production_started") {
+        this.job(o.job);
+        t.next_job_id = parseU64((BigInt(t.next_job_id) + 1n).toString());
+        for (const item of Object.keys(o.job.inputs_consumed) as (keyof typeof o.job.inputs_consumed)[])
+          t.totals.recipe_inputs_consumed[item] = (BigInt(t.totals.recipe_inputs_consumed[item]) + BigInt(o.job.inputs_consumed[item])).toString();
+      } else {
+        this.db.prepare("UPDATE production_jobs SET status='completed',body=? WHERE job_id=?").run(json(o.job), o.job.job_id);
+        const item = o.job.output_item;
+        t.totals.completed_outputs[item] = (BigInt(t.totals.completed_outputs[item]) + BigInt(o.job.output_quantity)).toString();
+        if (pruneId) {
+          this.db.prepare("DELETE FROM production_jobs WHERE job_id=?").run(pruneId);
+          const previous = String(this.db.prepare("SELECT pruned_through FROM production_history WHERE singleton=1").get()!["pruned_through"]);
+          if (BigInt(pruneId) > BigInt(previous))
+            this.db.prepare("UPDATE production_history SET pruned_through=? WHERE singleton=1").run(pruneId);
+        }
+      }
+    }
+    if (o.kind === "raw_supplies") {
+      const revisions = new Map<string, bigint>();
+      for (const allocation of o.allocations) {
+        const id = actor(allocation.ledger);
+        const previous = revisions.get(id) ?? (() => {
+          const old = this.readLedger(id);
+          return old ? BigInt(old.revision) : -1n;
+        })();
+        if (previous < 0n || BigInt(allocation.ledger.revision) !== previous + 1n) return false;
+        revisions.set(id, BigInt(allocation.ledger.revision));
+      }
+      for (const allocation of o.allocations) {
+        setLedger(allocation.ledger);
+        t.totals.supplied_items[allocation.item_id] = (BigInt(t.totals.supplied_items[allocation.item_id]) + BigInt(allocation.issued_quantity)).toString();
+      }
+    }
+    if (o.kind === "raw_supplied" || o.kind === "treasury_swept") {
+      if (!nextLedger(o.ledger)) return false;
+      setLedger(o.ledger);
+      if (o.kind === "raw_supplied")
+        t.totals.supplied_items[o.item_id] = (BigInt(t.totals.supplied_items[o.item_id]) + BigInt(o.issued_quantity)).toString();
+      else t.totals.treasury_burns = (BigInt(t.totals.treasury_burns) + BigInt(o.burned_gold)).toString();
+    }
+    if (o.kind === "customer_funded") {
+      if (BigInt(o.pool.revision) !== BigInt(t.customer_pool.revision) + 1n) return false;
+      t.customer_pool = o.pool;
+      t.totals.customer_topups = (BigInt(t.totals.customer_topups) + BigInt(o.issued_gold)).toString();
+    }
+    if (o.kind === "customer_sale") {
+      const old = getListing(o.listing.listing_id);
+      if (!old || !nextLedger(o.seller) || o.trade.trade_id !== t.next_trade_id ||
+        BigInt(o.listing.revision) !== BigInt(old.revision) + 1n ||
+        BigInt(o.pool.revision) !== BigInt(t.customer_pool.revision) + 1n) return false;
+      setLedger(o.seller);
+      this.listing(o.listing);
+      t.customer_pool = o.pool;
+      t.next_trade_id = parseU64((BigInt(t.next_trade_id) + 1n).toString());
+      t.totals.customer_consumed[o.trade.item_id] = (BigInt(t.totals.customer_consumed[o.trade.item_id]) + BigInt(o.trade.consumed_quantity)).toString();
+    }
+    if (o.kind === "upgrade_purchased") {
+      const old = getShop(o.shop.shop_id);
+      if (!old || !nextLedger(o.ledger) || BigInt(o.shop.revision) !== BigInt(old.revision) + 1n) return false;
+      setLedger(o.ledger);
+      setShop(o.shop);
+      t.totals.upgrade_burns = (BigInt(t.totals.upgrade_burns) + BigInt(o.gold_burned)).toString();
+    }
+    if (o.kind === "assistant_policy_set") {
+      const old = getShop(o.shop.shop_id);
+      if (!old || BigInt(o.shop.revision) !== BigInt(old.revision) + 1n) return false;
+      setShop(o.shop);
+    }
+    if (o.kind === "market_event_scheduled") {
+      if (o.event.event_id !== t.next_market_event_id) return false;
+      t.market_event = o.event;
+      t.next_market_event_id = parseU64((BigInt(t.next_market_event_id) + 1n).toString());
+    }
     if (o.kind === "player_registered") {
       requireValue(
         !this.readLedger(`account:${o.player.account_id}`),
@@ -760,6 +1077,10 @@ export class LivingTownProjectionStore {
       const buyer = this.readLedger(actor(o.buyer)),
         seller = this.readLedger(actor(o.seller));
       if (!buyer || !seller) return false;
+      const listing = getListing(o.trade.listing_id);
+      if (!listing || listing.item_id !== o.trade.item_id || listing.unit_price !== o.trade.unit_price ||
+        listing.owner.kind !== "merchant" || listing.owner.merchant_id !== o.trade.seller.merchant_id ||
+        BigInt(listing.remaining_quantity) < BigInt(o.trade.quantity)) return false;
       const b = copy(buyer),
         v = copy(seller),
         q = BigInt(o.trade.quantity),
@@ -791,8 +1112,15 @@ export class LivingTownProjectionStore {
       );
       this.ledger(o.buyer);
       this.ledger(o.seller);
+      const remaining = parseU64((BigInt(listing.remaining_quantity) - q).toString());
+      this.listing({ ...listing, remaining_quantity: remaining, active: remaining !== "0",
+        revision: parseU64((BigInt(listing.revision) + 1n).toString()) });
       const index = ["rex", "luna", "bolt"].indexOf(o.trade.seller.merchant_id);
       t.npc_ledgers[index] = o.seller;
+      if (o.buyer.actor.kind === "merchant")
+        t.npc_ledgers[
+          ["rex", "luna", "bolt"].indexOf(o.buyer.actor.merchant_id)
+        ] = o.buyer;
       t.next_trade_id = parseU64((BigInt(t.next_trade_id) + 1n).toString());
     }
     const epoch = (
@@ -805,7 +1133,12 @@ export class LivingTownProjectionStore {
     }
     t.epoch = parseU64(epoch);
     t.customer_pool.epoch = parseU64(epoch);
-    livingTownTown(t);
+    if (this.identity.deployment.state_schema === "2")
+      for (const row of this.db.prepare("SELECT body FROM projection_offers WHERE status='pending'").all()) {
+        const offer = livingTownOffer(JSON.parse(String(row["body"])));
+        this.putOffer({ ...offer, expired: BigInt(offer.expires_at_ns) <= BigInt(result.block_timestamp_ns) });
+      }
+    s.town = { ...s.town, data: livingTownTown(t) };
     return true;
   }
   observe(
@@ -828,15 +1161,26 @@ export class LivingTownProjectionStore {
     }
     expected.epoch = t.data.epoch;
     expected.customer_pool.epoch = t.data.customer_pool.epoch;
+    if (json(expected) !== json(t.data)) return false;
     requireValue(
-      json(expected) === json(t.data) &&
-        t.block_height === block.height &&
+      t.block_height === block.height &&
         t.block_timestamp_ns === block.timestampNs &&
         BigInt(block.height) >= BigInt(s.checkpoint.finalized_block_height),
       "inconsistent finalized projection observation",
     );
     this.transaction(() => {
       s.town = t;
+      if (this.identity.deployment.state_schema === "2") {
+        for (const row of this.db
+          .prepare("SELECT body FROM projection_offers WHERE status='pending'")
+          .all()) {
+          const o = livingTownOffer(JSON.parse(String(row["body"])));
+          this.putOffer({
+            ...o,
+            expired: BigInt(t.block_timestamp_ns) >= BigInt(o.expires_at_ns),
+          });
+        }
+      }
       s.checkpoint.finalized_block_hash = block.hash;
       s.checkpoint.finalized_block_height = block.height;
       s.observedAt = String(stamp(now));
@@ -855,6 +1199,16 @@ export class LivingTownProjectionStore {
     });
     this.synchronized = true;
     return true;
+  }
+  noteHead(town: Snapshot<Town>, block: FinalizedBlock): void {
+    const current = this.state();
+    if (!current) return;
+    const head = decodeLivingTownSnapshot(town, this.identity.deployment, livingTownTown);
+    requireValue(head.block_height === block.height && head.block_timestamp_ns === block.timestampNs &&
+      BigInt(head.event_sequence) >= BigInt(current.checkpoint.through_event_sequence), "invalid projection head");
+    if (BigInt(head.event_sequence) > BigInt(current.latestSeen)) current.latestSeen = head.event_sequence;
+    this.transaction(() => this.save(current));
+    this.synchronized = false;
   }
   private envelope<T>(data: T, decode: (v: unknown) => T, now: number) {
     const s = this.state();
@@ -901,6 +1255,101 @@ export class LivingTownProjectionStore {
     const s = this.state();
     if (!s) throw new ReadApiError(503, "read_unavailable");
     return this.envelope(s.town.data, livingTownTown, now);
+  }
+  offers(
+    now = Date.now(),
+  ): ReturnType<
+    ReturnType<
+      typeof livingTownReadEnvelope<ReturnType<typeof livingTownOffer>[]>
+    >
+  > {
+    if (this.identity.deployment.state_schema !== "2")
+      throw new ReadApiError(503, "read_unavailable");
+    const values = this.db
+      .prepare(
+        "SELECT body FROM projection_offers ORDER BY length(offer_id),offer_id",
+      )
+      .all()
+      .map((r) => livingTownOffer(JSON.parse(String(r["body"]))));
+    return this.envelope(
+      values,
+      (v) => {
+        requireValue(Array.isArray(v) && v.length <= 140, "offer read bound");
+        return v.map(livingTownOffer);
+      },
+      now,
+    );
+  }
+  private putOffer(o: ReturnType<typeof livingTownOffer>): void {
+    this.db
+      .prepare(
+        "INSERT INTO projection_offers VALUES(?,?,?) ON CONFLICT(offer_id) DO UPDATE SET status=excluded.status,body=excluded.body",
+      )
+      .run(o.offer_id, o.status, json(o));
+    this.db
+      .prepare(
+        "DELETE FROM projection_offers WHERE offer_id IN (SELECT offer_id FROM projection_offers WHERE status!='pending' ORDER BY length(json_extract(body,'$.closed_at_ns')) DESC,json_extract(body,'$.closed_at_ns') DESC,length(offer_id) DESC,offer_id DESC LIMIT -1 OFFSET 128)",
+      )
+      .run();
+  }
+  merchantContext(now = Date.now()) {
+    const town = this.town(now);
+    if (town.stale || !this.marketReady()) throw new ReadApiError(503, "read_unavailable");
+    const listings = this.db.prepare("SELECT body FROM market_listings ORDER BY length(listing_id),listing_id")
+      .all().map(row => livingTownListing(JSON.parse(String(row["body"]))));
+    const merchants = ["1", "2", "3"].map(id => {
+      const jobs = this.db.prepare("SELECT body FROM production_jobs WHERE shop_id=? AND status='running'")
+        .all(id).map(row => livingTownProductionJob(JSON.parse(String(row["body"]))));
+      requireValue(jobs.length <= 1, "merchant job context bound");
+      return { shop: this.shopView(id, now).snapshot, listings: listings.filter(l => l.shop_id === id),
+        job: jobs[0] ?? null };
+    });
+    const candidates = listings.filter(l => l.owner.kind === "player" && l.active &&
+      ["health_potion", "iron_tool"].includes(l.item_id)).map(listing => ({ listing,
+        shop: this.shopView(listing.shop_id, now).snapshot, ledger: this.inventory(listing.shop_id, now).snapshot }));
+    const pendingOffers = this.identity.deployment.state_schema === "2"
+      ? this.offers(now).snapshot.data.filter(o => o.status === "pending").map(o => ({ ...o,
+          expired: BigInt(o.expires_at_ns) <= BigInt(town.snapshot.block_timestamp_ns) })) : [];
+    return this.envelope({ merchants, listings: listings.filter(l => l.owner.kind === "merchant"), candidates, pendingOffers,
+      negotiatedTrading: this.identity.deployment.state_schema === "2" }, livingTownMerchantContext, now);
+  }
+  cachePlayer(snapshot: Snapshot<ReturnType<typeof livingTownPlayer> | null>): boolean {
+    const current = this.town();
+    if (json(snapshot.deployment) !== json(this.identity.deployment) ||
+      snapshot.market_revision !== current.snapshot.market_revision || snapshot.event_sequence !== current.snapshot.event_sequence)
+      return false;
+    if (snapshot.data) {
+      const player = livingTownPlayer(snapshot.data);
+      this.transaction(() => this.ledger(player.ledger));
+    }
+    return true;
+  }
+  playerDisplay(account: string) {
+    const key = `account:${account}`;
+    const raw = this.db.prepare("SELECT body FROM projection_shops WHERE owner=?").get(key);
+    const shop = raw ? livingTownShop(JSON.parse(String(raw["body"]))) : null;
+    const listings = shop ? this.db.prepare("SELECT body FROM market_listings WHERE shop_id=? ORDER BY length(listing_id),listing_id")
+      .all(shop.shop_id).map(row => livingTownListing(JSON.parse(String(row["body"])))) : [];
+    const jobs = shop ? this.db.prepare("SELECT body FROM production_jobs WHERE shop_id=? ORDER BY length(job_id),job_id")
+      .all(shop.shop_id).map(row => livingTownProductionJob(JSON.parse(String(row["body"])))) : [];
+    const merchantListings = this.db.prepare("SELECT body FROM market_listings WHERE shop_id IN ('1','2','3') ORDER BY length(listing_id),listing_id")
+      .all().map(row => livingTownListing(JSON.parse(String(row["body"]))))
+      .filter(listing => listing.active && BigInt(listing.remaining_quantity) > 0n);
+    const pruned = this.db.prepare("SELECT pruned_through FROM production_history WHERE singleton=1").get();
+    return { ledger: this.readLedger(key), shop, listings, merchantListings, production: {
+      items: jobs, historyGap: pruned ? BigInt(String(pruned["pruned_through"])) > 0n : true } };
+  }
+  directory(after: string | null = null, limit = 20, now = Date.now()) {
+    this.town(now);
+    const afterId = this.pageCursor(after, "directory");
+    requireValue(Number.isInteger(limit) && limit >= 1 && limit <= 50, "invalid directory limit");
+    const rows = this.db.prepare("SELECT body FROM projection_shops WHERE owner LIKE 'account:%' ORDER BY length(shop_id),shop_id")
+      .all().map(row => livingTownShop(JSON.parse(String(row["body"]))))
+      .filter(shop => BigInt(shop.shop_id) > BigInt(afterId));
+    const shops = rows.slice(0, limit);
+    return this.envelope({ shops,
+      next_cursor: rows.length > shops.length ? this.nextPage("directory", shops.at(-1)!.shop_id) : null },
+      livingTownShopDirectory, now);
   }
   shopView(
     id: string,

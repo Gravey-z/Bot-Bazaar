@@ -4,8 +4,23 @@ import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
 
 import { createPreviewServer } from "./preview-server.mjs";
+import { writeWebConfig } from "./write-web-config.mjs";
 
 const web = fileURLToPath(new URL("../apps/web/", import.meta.url));
+// The default app is Living Town; generate its profile before the watch build.
+// An explicit classic experience remains available for legacy development.
+const experience = process.env.WEB_EXPERIENCE ?? "living-town";
+await writeWebConfig(
+  path.join(web, ".env"),
+  path.join(web, "public/config.json"),
+  {
+    ...process.env,
+    WEB_EXPERIENCE: experience,
+    ...(experience === "living-town"
+      ? { LIVING_TOWN_TARGET: process.env.LIVING_TOWN_TARGET ?? "local" }
+      : {}),
+  },
+);
 const { values } = parseArgs({
   options: { port: { type: "string", default: "4200" } },
 });
@@ -29,11 +44,15 @@ const watcher = spawn(process.execPath, [...args, "--watch"], {
 const server = createPreviewServer(path.join(web, "dist/browser"));
 let stopping = false;
 function stop() {
+  if (stopping) return;
   stopping = true;
   watcher.kill("SIGINT");
 }
 process.once("SIGINT", stop);
 process.once("SIGTERM", stop);
+process.on("message", message => { if (message === "bazaar:stop") stop(); });
+process.once("disconnect", stop);
+process.channel?.unref();
 watcher.once("error", () => {
   console.error("Could not start Angular watch build");
   process.exitCode = 1;

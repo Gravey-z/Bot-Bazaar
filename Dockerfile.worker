@@ -22,3 +22,18 @@ COPY --from=build --chown=node:node /out ./
 USER node
 EXPOSE 3001
 CMD ["node", "dist/index.js"]
+
+# Explicit V2 target; the default image above retains its legacy entry point.
+FROM runtime AS living-town
+USER root
+RUN mkdir -p /data/projection /app/config /app/scripts /app/packages/shared \
+    && chown node:node /data/projection
+COPY --from=build --chown=node:node /workspace/packages/shared/dist /app/packages/shared/dist
+COPY --chown=node:node packages/shared/package.json /app/packages/shared/
+COPY --chown=node:node config/living-town-testnet.json /app/config/
+COPY --chown=node:node scripts/omv7-reader.mjs scripts/omv7-reader-config.mjs /app/scripts/
+USER node
+CMD ["node", "scripts/omv7-reader.mjs"]
+
+# Preserve the existing Dockerfile's default behavior for classic callers.
+FROM runtime AS legacy

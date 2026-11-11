@@ -529,7 +529,7 @@ test("purchase submission uses only matching saved arguments and rejects tamperi
   assert.deepEqual(plain(calls), [["player.testnet", args]]);
 });
 
-test("adapter pins Meteor, explicitly selects Testnet, never requests keys, and checks RPC network", async () => {
+test("adapter loads a default-only CommonJS SDK, pins Meteor and verifies Testnet before wallet actions", async () => {
   const capture = {
     signIns: [],
     accountReads: [],
@@ -556,17 +556,18 @@ test("adapter pins Meteor, explicitly selects Testnet, never requests keys, and 
           }));
           builder.onLoad({ filter: /.*/, namespace: "wallet-double" }, () => ({
             contents: `
-        export class NearConnector {
+        class NearConnector {
           constructor(options) { capture.options = options; capture.connector = this; this.network = options.network; }
           on() {} off() {}
         }
-        export class SandboxWallet {
+        class SandboxWallet {
           constructor(connector, manifest) { this.manifest = manifest; }
           async signIn(options) { capture.signIns.push(options); return [{ accountId: 'player.testnet' }]; }
           async getAccounts(options) { capture.accountReads.push(options); return [{ accountId: 'player.testnet' }]; }
           async signOut(options) { capture.signOuts.push(options); }
           async signAndSendTransaction(options) { if(capture.failure) throw capture.failure; capture.registrations.push(options); return { transaction: { hash: 'candidate' } }; }
         }
+        export default { NearConnector, SandboxWallet };
       `,
           }));
         },
@@ -609,6 +610,14 @@ test("adapter pins Meteor, explicitly selects Testnet, never requests keys, and 
   );
   await port.connect();
   await port.accounts();
+  assert.equal(
+    capture.accountReads.length,
+    0,
+    "connected identity is reused without another sandbox",
+  );
+  const cached = await port.accounts();
+  cached[0].accountId = "changed.testnet";
+  assert.equal((await port.accounts())[0].accountId, "player.testnet");
   saved.setItem(
     "meteor-wallet:meteor-account-data",
     JSON.stringify({
@@ -620,6 +629,14 @@ test("adapter pins Meteor, explicitly selects Testnet, never requests keys, and 
       },
     }),
   );
+  await Promise.all([port.accounts(), port.accounts(), port.accounts()]);
+  assert.equal(
+    capture.accountReads.length,
+    1,
+    "a storage change performs one shared verification",
+  );
+  await port.accounts();
+  assert.equal(capture.accountReads.length, 1);
   await port.register("player.testnet");
   assert.deepEqual(plain(capture.registrations), [
     {
@@ -709,12 +726,22 @@ test("adapter pins Meteor, explicitly selects Testnet, never requests keys, and 
   );
   capture.failure = null;
   await port.disconnect();
+  const readsAfterDisconnect = capture.accountReads.length;
+  assert.deepEqual(plain(await port.accounts()), []);
+  assert.equal(
+    capture.accountReads.length,
+    readsAfterDisconnect,
+    "disconnect cannot silently restore the cached account",
+  );
   assert.deepEqual(plain(capture.signIns), [{ network: "testnet" }]);
   assert.ok(capture.accountReads.length >= 2);
   assert.ok(capture.accountReads.every((row) => row.network === "testnet"));
   assert.deepEqual(plain(capture.signOuts), [{ network: "testnet" }]);
   network = "mainnet";
-  await assert.rejects(port.connect(), /Testnet unavailable/);
+  await assert.rejects(
+    port.connect(),
+    /Testnet connection could not be verified/,
+  );
   assert.equal(capture.signIns.length, 1);
   network = "testnet";
   capture.connector.network = "mainnet";

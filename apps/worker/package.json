@@ -13,7 +13,9 @@
     "start": "node --env-file-if-exists=.env dist/index.js",
     "start:living-town": "node dist/living-town.js",
     "start:assistant": "node dist/assistant.js",
-    "test:signer": "node --test test/*.test.mjs"
+    "start:guest": "node dist/guest.js",
+    "test:signer": "node --test test/*.test.mjs",
+    "start:runtime": "node dist/living-town-runtime.js"
   },
   "dependencies": {
     "@bot-bazaar/chain": "workspace:*",

@@ -1,6 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { readFileSync } from "node:fs";
+import { createHash } from "node:crypto";
+import { canonicalLivingTownJson } from "../../packages/chain/dist/index.js";
 import {
   LivingTownMerchantPolicy,
   collectMerchantPolicyInput,
@@ -8,6 +10,16 @@ import {
 const read = (p) => JSON.parse(readFileSync(p, "utf8"));
 const config = read("config/living-town-v1.json"),
   capture = read("tests/fixtures/chain/living-town-races-sandbox.json");
+// Controlled snapshots are rebound to the fresh demo configuration; archived files stay untouched.
+function rebind(v) {
+  if (!v || typeof v !== "object") return;
+  if (v.deployment)
+    v.deployment.config_sha256 = createHash("sha256")
+      .update(canonicalLivingTownJson(config))
+      .digest("hex");
+  for (const child of Object.values(v)) rebind(child);
+}
+rebind(capture);
 const policy = new LivingTownMerchantPolicy(config),
   names = ["rex", "luna", "bolt"],
   raw = ["crystal", "wood", "herb", "iron"];
@@ -96,7 +108,7 @@ test("V2 policy is pure, deterministic and stable across merchant/listing/histor
     names,
   );
   assert.equal(result.policy, "living-town-merchants-v1");
-  assert.equal(result.scarcity.find((s) => s.item === "herb").floor, "8");
+  assert.equal(result.scarcity.find((s) => s.item === "herb").floor, "4");
 });
 
 test("Rex scarcity aggression and price floor, Luna reserve and bounded prices follow V2 profiles", () => {
@@ -104,12 +116,12 @@ test("Rex scarcity aggression and price floor, Luna reserve and bounded prices f
   assert.equal(action(i, "rex").price, "4");
   stock(i, "rex", "crystal", 4, 2);
   assert.equal(action(i, "rex").price, "6");
-  assert.equal(policy.evaluate(i).scarcity[0].scarcityBps, "7500");
-  stock(i, "luna", "herb", 10, 2);
+  assert.equal(policy.evaluate(i).scarcity[0].scarcityBps, "8000");
+  stock(i, "luna", "herb", 6, 2);
   const luna = action(i, "luna");
   assert.equal(luna.quantity, "2");
   assert.equal(luna.price, "4");
-  stock(i, "luna", "herb", 8, 0);
+  stock(i, "luna", "herb", 4, 0);
   assert.equal(action(i, "luna").quantity, "0");
 });
 
@@ -361,4 +373,73 @@ test("bounded collector pins NPC listings/jobs to one reader and rejects incompl
     collectMerchantPolicyInput(reader, [], true),
     /incomplete/,
   );
+});
+
+test("bounded backups buy existing primary stock only with capability, surplus and operating gold", () => {
+  const i = input();
+  stock(i, "luna", "herb", 20, 4);
+  assert.notEqual(action(i, "luna").kind, "merchant_purchase");
+  i.merchantTrading = true;
+  const plan = action(i, "luna");
+  assert.equal(plan.kind, "merchant_purchase");
+  assert.equal(plan.reason, "build_bounded_backup");
+  assert.equal(plan.seller, "rex");
+  assert.equal(plan.item, "crystal");
+  assert.equal(plan.quantity, "1");
+  const compiled = policy.compile(i, "luna", plan, identity, command(i));
+  assert.equal(compiled.call.method, "merchant_purchase");
+  assert.equal(compiled.call.args.buyer_merchant_id, "luna");
+  assert.equal(compiled.call.args.merchant_id, "rex");
+  assert.equal(compiled.call.deposit, "0");
+  stock(i, "luna", "crystal", 2, 0);
+  assert.notEqual(action(i, "luna").item, "crystal");
+  ledger(i, "luna").gold.held = ledger(i, "luna").gold.available = "120";
+  assert.notEqual(action(i, "luna").kind, "merchant_purchase");
+});
+
+test("backup holders offer actual reserves during shortages and the primary supplier buys them back", () => {
+  const i = input();
+  i.merchantTrading = true;
+  stock(i, "rex", "crystal", 4, 2);
+  stock(i, "luna", "crystal", 2, 0);
+  const offer = action(i, "luna");
+  assert.equal(offer.kind, "set_listing");
+  assert.equal(offer.reason, "offer_emergency_backup");
+  assert.equal(offer.quantity, "2");
+  assert.equal(offer.expectedRevision, null);
+  i.merchants[1].listings.push({
+    listing_id: "20",
+    shop_id: "2",
+    owner: { kind: "merchant", merchant_id: "luna" },
+    item_id: "crystal",
+    remaining_quantity: "2",
+    unit_price: offer.price,
+    revision: "1",
+    active: true,
+  });
+  stock(i, "luna", "crystal", 2, 2);
+  const buyback = action(i, "rex");
+  assert.equal(buyback.reason, "emergency_peer_restock");
+  assert.equal(buyback.seller, "luna");
+  assert.equal(buyback.quantity, "2");
+  const c = policy.compile(i, "rex", buyback, identity, command(i));
+  assert.equal(c.call.args.buyer_merchant_id, "rex");
+  stock(i, "rex", "crystal", 10, 4);
+  assert.equal(action(i, "luna").reason, "protect_backup_stock");
+  assert.equal(action(i, "luna").quantity, "0");
+  for (const block of [
+    (s) => {
+      s.fresh = false;
+    },
+    (s) => {
+      s.historyComplete = false;
+    },
+    (s) => {
+      s.town.data.paused = true;
+    },
+  ]) {
+    const disabled = structuredClone(i);
+    block(disabled);
+    assert.equal(action(disabled, "luna").kind, "wait");
+  }
 });

@@ -2,6 +2,35 @@
   display: block;
   color: #203e35;
 }
+.sales-panel.listings-panel { color: #513823; margin-top: 0; padding-top: 0; border-top: 0; font-size: 12px; }
+.listings-panel .listing-heading h3 { font-size: 23px; margin-bottom: 5px; }
+.listings-panel .listing-heading p { color: #85715a; font-size: 12px; }
+.listings-panel .shelves { margin: 18px 0; gap: 14px; }
+.listings-panel .shelf { padding: 16px; background: rgba(255, 249, 237, .65); border: 1px solid #cbb08a; border-radius: 10px; }
+.listings-panel .shelf-active { border-color: #ae8650; }
+.listings-panel .shelf h4 { font-size: 17px; margin-bottom: 12px; }
+.listings-panel .shelf-price { font: 27px Georgia, serif; margin: 4px 0; }
+.listings-panel .shelf-price span { font: 11px Arial, sans-serif; color: #85715a; margin-left: 5px; }
+.listings-panel .shelf-summary, .listings-panel .shelf-empty { color: #85715a; font-size: 12px; }
+.listings-panel .actions { justify-content: flex-start; gap: 8px; }
+.listings-panel button { color: #624123; background: transparent; border-color: #b99a69; min-height: 36px; font-size: 11px; padding: 8px 12px; }
+.listings-panel button.primary { background: linear-gradient(#f7dfad, #e5bd79); border-color: #aa803f; box-shadow: inset 0 1px #fff2d4; font-weight: 600; }
+.listings-panel button:hover:not(:disabled) { background: #f6e5c6; }
+.listings-panel button.primary:hover:not(:disabled) { background: linear-gradient(#ffe9bb, #edc98c); }
+.listings-panel .listing-editor, .listings-panel .review { padding: 16px; background: #fbefdb; border: 1px solid #cbb08a; border-radius: 10px; margin: 18px 0; }
+.listings-panel .listing-editor h4, .listings-panel .review h4 { margin: 0; font-size: 16px; }
+.listings-panel .listing-form { margin: 14px 0 10px; gap: 10px; }
+.listings-panel label { font-size: 11px; min-width: 115px; }
+.listings-panel input, .listings-panel select { background: #fffaf1; border-color: #cbb08a; color: #513823; min-height: 38px; font-size: 12px; box-sizing: border-box; }
+.listings-panel .listing-help { font-size: 11px; color: #85715a; line-height: 1.6; }
+.listings-panel .listing-error { color: #9a4a30; font-size: 12px; }
+.listings-panel .demand-note, .listings-panel .listing-pending { padding: 9px 12px; font-size: 11px; background: #f4e4c8; border-left: 2px solid #b8965d; }
+.listings-panel .review p { margin-top: 10px; }
+.listings-panel .market-comparison { padding-top: 14px; margin-top: 20px; border-top: 1px solid #d6bf9c; }
+.listings-panel summary { cursor: pointer; color: #795735; }
+.listings-panel .market-comparison p { margin-top: 12px; }
+.listings-panel .offers { list-style: none; padding: 0; }
+.listings-panel .offers li { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; padding: 9px 0; border-bottom: 1px solid #e1cfb3; font-size: 11px; }
 .shelf h4 {
   display: flex;
   align-items: center;

@@ -1,0 +1,78 @@
+name: bot-bazaar-v2
+
+# Linux/OMV7: both services bind host loopback for the existing cloudflared.
+# This stack contains the V2 frontend and read projection, not an economic worker.
+services:
+  reader:
+    build:
+      context: .
+      dockerfile: Dockerfile.worker
+      target: living-town
+    image: bot-bazaar-v2-reader:local
+    init: true
+    restart: unless-stopped
+    stop_grace_period: 30s
+    network_mode: host
+    environment:
+      V2_RELEASE_TARGET: ${V2_RELEASE_TARGET:-local}
+      V2_WORKER_URL: ${V2_WORKER_URL:-http://127.0.0.1:3011}
+      V2_FRONTEND_ORIGIN: ${V2_FRONTEND_ORIGIN:-http://127.0.0.1:4201}
+      V2_CREATE_NEW_PROJECTION: ${V2_CREATE_NEW_PROJECTION:-false}
+    volumes:
+      - projection:/data/projection
+    read_only: true
+    tmpfs: [/tmp:size=32m, mode=1777]
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    pids_limit: 128
+    mem_limit: 1g
+    logging: &logging
+      driver: json-file
+      options: { max-size: 5m, max-file: "3" }
+    healthcheck:
+      test:
+        [
+          CMD,
+          node,
+          -e,
+          "fetch('http://127.0.0.1:3011/health',{signal:AbortSignal.timeout(3000)}).then(async r=>{const h=await r.json();process.exit(r.ok&&h.role==='read_projection'&&!h.stale?0:1)}).catch(()=>process.exit(1))",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.web
+      args:
+        V2_RELEASE_TARGET: ${V2_RELEASE_TARGET:-local}
+        V2_WORKER_URL: ${V2_WORKER_URL:-http://127.0.0.1:3011}
+    image: bot-bazaar-v2-web:local
+    init: true
+    restart: unless-stopped
+    stop_grace_period: 15s
+    network_mode: host
+    read_only: true
+    tmpfs: [/tmp:size=16m, mode=1777]
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    pids_limit: 64
+    mem_limit: 128m
+    logging: *logging
+    healthcheck:
+      test:
+        [
+          CMD,
+          node,
+          -e,
+          "fetch('http://127.0.0.1:4201/living-town.json',{signal:AbortSignal.timeout(2000)}).then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+volumes:
+  projection:

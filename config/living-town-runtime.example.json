@@ -1,0 +1,61 @@
+{
+  "schema": "bot-bazaar-living-town-runtime-v1",
+  "identity": {
+    "deployment": {
+      "network_id": "testnet",
+      "genesis_hash": "FWJ9kR6KFWoyMoNjpLXXGHeuiy7tEY6GmoFeCA5yuc6b",
+      "contract_id": "contract.bb-demo-171aea0e7c.testnet",
+      "api_version": "2.0.0",
+      "state_schema": "2",
+      "command_schema": "1",
+      "config_version": "1",
+      "config_sha256": "50258b219f22de134bbcc3bcaea873ef2ec513e433d190a1a1247b0209f643a9"
+    },
+    "codeHash": "EFHfse8NoN69a8qiCLYoQbu4NctUppmMpvny7uv2xQXB",
+    "ownerId": "bb-demo-171aea0e7c.testnet",
+    "operatorId": "operator.bb-demo-171aea0e7c.testnet",
+    "controllers": {
+      "rex": "rex.bb-demo-171aea0e7c.testnet",
+      "luna": "luna.bb-demo-171aea0e7c.testnet",
+      "bolt": "bolt.bb-demo-171aea0e7c.testnet"
+    }
+  },
+  "public": {
+    "networkId": "testnet",
+    "contractId": "contract.bb-demo-171aea0e7c.testnet",
+    "rpcUrl": "https://test.rpc.fastnear.com",
+    "explorerUrl": "https://testnet.nearblocks.io",
+    "workerUrl": "http://127.0.0.1:3011"
+  },
+  "execution_dir": "/absolute/path/to/contract.bb-demo-171aea0e7c.testnet/execution",
+  "witness_dir": "/absolute/path/to/contract.bb-demo-171aea0e7c.testnet/witness",
+  "receipt_outbox": "/absolute/path/to/contract.bb-demo-171aea0e7c.testnet/receipts",
+  "agent_activity_inbox": "/absolute/path/to/contract.bb-demo-171aea0e7c.testnet/agent-activity.json",
+  "control_file": "/absolute/path/to/contract.bb-demo-171aea0e7c.testnet/control.json",
+  "seed": "42",
+  "poll_ms": "1000",
+  "cadence_ms": "30000",
+  "provider": "disabled",
+  "keys": {
+    "rex": {
+      "public_key": "ed25519:H7ZhUg3LjsduqDHSJAFNy9SPe5Aqt8rZgkvyR9RMo3vZ",
+      "file": "/absolute/restricted-keys/runtime-rex.json"
+    },
+    "luna": {
+      "public_key": "ed25519:44mYvwMWkspw8g2fmAkbiwZ6ZSyMDUp5HurD8aJiA9v8",
+      "file": "/absolute/restricted-keys/runtime-luna.json"
+    },
+    "bolt": {
+      "public_key": "ed25519:rntAPcL12Fh69UNjfVVufP4sxatCiQsdpG2gupy3tFi",
+      "file": "/absolute/restricted-keys/runtime-bolt.json"
+    },
+    "operator": {
+      "public_key": "ed25519:CLZrQwcejtUvUupCPNxgbjFv7kfzBoK7Rh9LLaZbmghT",
+      "file": "/absolute/restricted-keys/runtime-operator.json"
+    },
+    "customer": {
+      "public_key": "ed25519:kuZRouFB3rxCDhQYgFcikPFcQEW7rQzPsHRFtJWMCDp",
+      "file": "/absolute/restricted-keys/runtime-customer.json"
+    }
+  }
+}

@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1648" height="76" viewBox="0 0 1648 76" preserveAspectRatio="none" role="img" aria-label="Decorative dark wooden navigation bar">
+<defs>
+ <linearGradient id="wood" x2="0" y2="1"><stop stop-color="#42281f"/><stop offset=".23" stop-color="#513329"/><stop offset=".60" stop-color="#36231d"/><stop offset="1" stop-color="#231915"/></linearGradient>
+ <linearGradient id="rim" x2="0" y2="1"><stop stop-color="#d5a05c"/><stop offset=".45" stop-color="#7a4d2d"/><stop offset="1" stop-color="#cf9955"/></linearGradient>
+ <pattern id="grain" width="250" height="76" patternUnits="userSpaceOnUse"><path d="M0 13c32-6 71 4 113 0s90-5 137 1M0 22c57 6 87-3 141 0s89 2 109 1M0 36c66-4 89 4 146-1s71 3 104-1M0 53c40 2 73-5 135-1s81-5 115-1M0 65c58-6 93 4 151 0s74 3 99 0" stroke="#b77b4c" stroke-width="1" fill="none" opacity=".18"/><path d="M27 26c36 1 45-3 68-2m55 17c27 0 50-2 76-1M42 58c18-1 29 2 49 0" stroke="#1b120f" stroke-width="1.3" opacity=".33" fill="none"/></pattern>
+</defs>
+<rect width="1648" height="76" fill="url(#wood)"/>
+<rect width="1648" height="76" fill="url(#grain)"/>
+<path d="M0 2H1648" stroke="#c39863" stroke-width="2" opacity=".62"/>
+<path d="M0 6H1648" stroke="#25150f" stroke-width="2" opacity=".9"/>
+<path d="M0 70H1648" stroke="#110e0c" stroke-width="3"/>
+<path d="M0 74H1648" stroke="url(#rim)" stroke-width="3"/>
+<path d="M0 68H1648" stroke="#aa7949" stroke-width="1" opacity=".75"/>
+</svg>

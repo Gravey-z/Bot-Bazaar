@@ -18,6 +18,31 @@ import {
   readTownPrepared,
   townCall,
 } from "../dist/private/living-town/town-chain.js";
+
+test("peer purchase calls are bound to the buyer's merchant lane", () => {
+  const args = {
+    buyer_merchant_id: "luna",
+    merchant_id: "rex",
+    item_id: "crystal",
+    quantity: "1",
+    expected_listing_revision: "1",
+    max_total_price: "4",
+    command: {
+      sequence: "1",
+      config_version: "1",
+      valid_until_ns: "500000000000",
+    },
+  };
+  assert.equal(
+    townCall("merchant_purchase", args, "luna").method,
+    "merchant_purchase",
+  );
+  assert.throws(
+    () => townCall("merchant_purchase", args, "rex"),
+    /buyer.*lane/,
+  );
+  assert.throws(() => townCall("merchant_purchase", args, "operator"), /scope/);
+});
 import {
   assertRuntimePermission,
   townMerchantMethods,
@@ -207,7 +232,7 @@ test("deterministic adapter binds price-only stock/reserves and deliberately dec
       c,
     );
     assert.equal(r.kind, "no_op");
-    assert.equal(r.reason, "v2_trade_not_available");
+    assert.equal(r.reason, "negotiation_unavailable");
     assert.equal(r.call, null);
   }
 });

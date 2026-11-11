@@ -13,6 +13,7 @@ import {
   livingTownJsonDigest,
   assistantReviewLink,
   assistantReviewReference,
+  playerReceiptProof,
 } from "@bot-bazaar/chain";
 import type {
   LivingTownCall,
@@ -26,6 +27,7 @@ import type {
 } from "@bot-bazaar/chain";
 import type { WalletStorage } from "./wallet-context";
 import { walletTransactionHash } from "./registration-reader";
+import { WalletRejectedError } from "./transaction-errors";
 
 export class LivingTownNotOpenedError extends Error {}
 export type TownTransactionMethod = LivingTownMethod | "complete_production";
@@ -83,6 +85,7 @@ interface Envelope {
   identity: LivingTownIdentity;
   pending: LivingTownAttempt | null;
   last: LivingTownAttempt | null;
+  receipts?: ReturnType<typeof playerReceiptProof>[];
 }
 export type LivingTownLock = <T>(
   name: string,
@@ -213,12 +216,15 @@ export class LivingTownTransactions {
         pending: null,
         last: null,
       };
-    requireValue(raw.length <= 32768);
-    const r = exact(parseLivingTownJson(raw), [
+    requireValue(raw.length <= 262144);
+    const parsed = parseLivingTownJson(raw);
+    requireValue(parsed && typeof parsed === "object");
+    const r = exact(parsed, [
       "schema",
       "identity",
       "pending",
       "last",
+      ...(Object.hasOwn(parsed, "receipts") ? ["receipts"] : []),
     ]);
     requireValue(
       r["schema"] === "bot-bazaar:living-town:journal:1" &&
@@ -227,6 +233,36 @@ export class LivingTownTransactions {
     );
     const pending = await this.decodeAttempt(r["pending"]),
       last = await this.decodeAttempt(r["last"]);
+    const receipts = r["receipts"];
+    requireValue(
+      receipts === undefined ||
+        (Array.isArray(receipts) && receipts.length <= 32),
+    );
+    const decodedReceipts =
+      receipts === undefined
+        ? []
+        : (receipts as unknown[]).map(playerReceiptProof);
+    for (const proof of decodedReceipts)
+      requireValue(
+        canonicalLivingTownJson(proof.deployment) ===
+          canonicalLivingTownJson(this.identity.deployment),
+      );
+    // Recover the previous journal's last confirmed proof on first use, without
+    // re-signing. Subsequent acknowledgements leave an explicit empty outbox.
+    if (
+      receipts === undefined &&
+      last?.transactionHash &&
+      ["confirmed", "failed"].includes(last.phase)
+    )
+      decodedReceipts.push(
+        playerReceiptProof({
+          transactionHash: last.transactionHash,
+          signerId: last.accountId,
+          deployment: this.identity.deployment,
+          call: last.call,
+          referenceBlockHeight: last.referenceBlockHeight,
+        }),
+      );
     requireValue(
       !pending ||
         ["prepared", "awaiting_wallet", "unknown", "submitted"].includes(
@@ -241,11 +277,12 @@ export class LivingTownTransactions {
       identity: this.identity,
       pending,
       last,
+      receipts: decodedReceipts,
     };
   }
   private async save(e: Envelope) {
     const raw = JSON.stringify(e);
-    requireValue(raw.length <= 32768);
+    requireValue(raw.length <= 262144);
     this.storage.setItem(this.key, raw);
     requireValue(this.storage.getItem(this.key) === raw);
     await this.load();
@@ -255,6 +292,33 @@ export class LivingTownTransactions {
   }
   async last(): Promise<LivingTownAttempt | null> {
     return (await this.load()).last;
+  }
+  async receiptProofs(): Promise<ReturnType<typeof playerReceiptProof>[]> {
+    const saved = await this.load();
+    const proofs = [...(saved.receipts ?? [])];
+    // Hand off the original hash as soon as it is known, so backend recovery
+    // survives closing the browser before client-side confirmation completes.
+    const pending = saved.pending;
+    if (pending?.transactionHash) proofs.push(playerReceiptProof({
+      transactionHash: pending.transactionHash, signerId: pending.accountId,
+      deployment: this.identity.deployment, call: pending.call,
+      referenceBlockHeight: pending.referenceBlockHeight,
+    }));
+    return [...new Map(proofs.map(p => [canonicalLivingTownJson(p), p])).values()];
+  }
+  async acknowledgeReceipt(
+    proof: ReturnType<typeof playerReceiptProof>,
+  ): Promise<void> {
+    await this.lock(this.key, async () => {
+      const e = await this.load(),
+        body = canonicalLivingTownJson(proof);
+      await this.save({
+        ...e,
+        receipts: (e.receipts ?? []).filter(
+          (p) => canonicalLivingTownJson(p) !== body,
+        ),
+      });
+    });
   }
   private async admit(account: string, call: TownCall) {
     const reader = await this.client.finalized(),
@@ -478,6 +542,10 @@ export class LivingTownTransactions {
     return this.lock(this.key, async () => {
       const e = await this.load();
       requireValue(e.pending === null);
+      if ((e.receipts?.length ?? 0) >= 32)
+        throw new Error(
+          "Receipt handoff is full. Restore the town reader connection before another purchase.",
+        );
       const call = decodeCall(method, args),
         reader = await this.admit(account, call),
         link = assistantReview
@@ -525,30 +593,70 @@ export class LivingTownTransactions {
           "submit",
         );
       }
-      // Persist the irreversible handoff boundary BEFORE entering the wallet.
-      await this.save({ ...e, pending: { ...a, phase: "awaiting_wallet" } });
-      try {
-        const result = await this.send(a.accountId, a.call),
-          hash = walletTransactionHash(result);
+      await this.sendAttempt(e, a);
+    });
+  }
+  /** Registration alone is replay-safe: reuse the original command and digest.
+   * A fresh admission rejects an already-applied or expired command. */
+  async retryRegistration(id: string): Promise<void> {
+    return this.lock(this.key, async () => {
+      const e = await this.load(),
+        a = e.pending;
+      requireValue(
+        a?.id === id &&
+          a.phase === "unknown" &&
+          !a.transactionHash &&
+          a.call.method === "register_player",
+      );
+      await this.admit(a.accountId, a.call);
+      await this.sendAttempt(e, a);
+    });
+  }
+  private async sendAttempt(e: Envelope, a: LivingTownAttempt): Promise<void> {
+    // Persist the irreversible handoff boundary BEFORE entering the wallet.
+    await this.save({ ...e, pending: { ...a, phase: "awaiting_wallet" } });
+    try {
+      const result = await this.walletResponse(a),
+        hash = walletTransactionHash(result);
+      await this.save({
+        ...e,
+        pending: {
+          ...a,
+          phase: hash ? "submitted" : "unknown",
+          transactionHash: hash,
+          hashSource: hash ? "wallet" : null,
+        },
+      });
+    } catch (error) {
+      if (
+        a.phase === "prepared" &&
+        (error instanceof LivingTownNotOpenedError ||
+          error instanceof WalletRejectedError)
+      )
         await this.save({
           ...e,
-          pending: {
-            ...a,
-            phase: hash ? "submitted" : "unknown",
-            transactionHash: hash,
-            hashSource: hash ? "wallet" : null,
-          },
+          pending: null,
+          last: { ...a, phase: "not_submitted" },
         });
-      } catch (error) {
-        if (error instanceof LivingTownNotOpenedError)
-          await this.save({
-            ...e,
-            pending: null,
-            last: { ...a, phase: "not_submitted" },
-          });
-        else await this.save({ ...e, pending: { ...a, phase: "unknown" } });
-      }
-    });
+      else await this.save({ ...e, pending: { ...a, phase: "unknown" } });
+    }
+  }
+  private async walletResponse(a: LivingTownAttempt): Promise<unknown> {
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    try {
+      return await Promise.race([
+        this.send(a.accountId, a.call),
+        new Promise<never>((_resolve, reject) => {
+          timer = setTimeout(
+            () =>
+              reject(new Error("Wallet response timed out; outcome unknown")),
+            90000,
+          );
+        }),
+      ]);
+    } finally {
+      if (timer) clearTimeout(timer);
+    }
   }
   async restore(): Promise<LivingTownAttempt | null> {
     return this.lock(this.key, async () => {
@@ -594,8 +702,33 @@ export class LivingTownTransactions {
       const e = await this.load(),
         a = e.pending;
       if (!a) return null;
-      // Absence/pruning of get_command never unlocks an unresolved wallet attempt.
-      if (!a.transactionHash) return null;
+      if (!a.transactionHash) {
+        // Only a registration proven never applied, with a deadline already behind
+        // the finalized chain clock, can be retired without a transaction hash.
+        if (a.phase === "unknown" && a.call.method === "register_player") {
+          const reader = await this.client.finalized();
+          if (
+            BigInt(reader.block.timestampNs) >=
+            BigInt(a.call.args.command.valid_until_ns)
+          ) {
+            const command = await reader.getCommand(
+              a.accountId,
+              a.call.args.command.sequence,
+            );
+            if (
+              command.data.kind === "not_applied" &&
+              command.data.next_sequence === a.call.args.command.sequence
+            ) {
+              await this.save({
+                ...e,
+                pending: null,
+                last: { ...a, phase: "not_submitted" },
+              });
+            }
+          }
+        }
+        return null;
+      }
       const proof = {
         transactionHash: a.transactionHash,
         signerId: a.accountId,
@@ -618,6 +751,7 @@ export class LivingTownTransactions {
             ...a,
             phase: status.kind === "succeeded" ? "confirmed" : "failed",
           },
+          receipts: [...(e.receipts ?? []), playerReceiptProof(proof)],
         });
       else
         await this.save({

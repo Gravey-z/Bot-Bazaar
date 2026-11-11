@@ -2,7 +2,7 @@ import { LivingTownStreams } from "./streams.js";
 import type { livingTownActivityPage } from "@bot-bazaar/chain";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import type { ActivityPage } from "@bot-bazaar/shared";
-import { parseU64 } from "@bot-bazaar/chain";
+import { parseU64, merchantContextMaxBytes } from "@bot-bazaar/chain";
 import type { LivingTownHealth } from "../living-town/health.js";
 import type { HealthPage } from "./health.js";
 import { ReadApiError } from "../activity/repository.js";
@@ -18,6 +18,10 @@ export interface ReadCapabilities {
       limit: number,
     ) => ReturnType<typeof livingTownActivityPage>;
     town: () => unknown;
+    offers?: () => unknown;
+    gameView?: (account: string) => unknown;
+    merchantContext?: () => unknown;
+    directory?: (after: string | null, limit: number) => unknown;
     shop: (id: string) => unknown;
     inventory: (id: string) => unknown;
     listings?: (after: string | null, limit: number) => unknown;
@@ -104,6 +108,11 @@ export function createReadHandler(
           ["/api/events", "/api/events/stream"].includes(url.pathname);
         const streamRoute = eventRoute && url.pathname === "/api/events/stream";
         const townRoute = url.pathname === "/api/town";
+        const merchantContextRoute = !!read.livingTown?.merchantContext && url.pathname === "/api/merchant-context";
+        const directoryRoute = !!read.livingTown?.directory && url.pathname === "/api/shops";
+        const gameViewRoute = !!read.livingTown?.gameView && url.pathname === "/api/game-view";
+        const offerRoute =
+          !!read.livingTown?.offers && url.pathname === "/api/merchant-offers";
         const productionRoute =
           !!read.livingTown && shopRoute?.[2] === "/production";
         const historyRoute =
@@ -112,10 +121,11 @@ export function createReadHandler(
           !!read.livingTown?.listings &&
           url.pathname === "/api/market/listings";
         const pagedRoute =
-          productionRoute || historyRoute || marketRoute || eventRoute;
+          productionRoute || historyRoute || marketRoute || eventRoute || directoryRoute;
         const projectionRoute =
           !!read.livingTown &&
-          (eventRoute ||
+          (merchantContextRoute || directoryRoute || gameViewRoute || eventRoute ||
+            offerRoute ||
             townRoute ||
             marketRoute ||
             (!!shopRoute && (shopRoute[2] !== "/history" || historyRoute)));
@@ -153,7 +163,10 @@ export function createReadHandler(
         }
         // Validate the query even for preflight, before any read callback.
         if (
-          url.pathname === "/health" || (projectionRoute && !pagedRoute)
+          gameViewRoute
+            ? [...url.searchParams.keys()].some(key => key !== "account") ||
+              url.searchParams.getAll("account").length !== 1
+            : url.pathname === "/health" || (projectionRoute && !pagedRoute)
             ? [...url.searchParams].length !== 0
             : [...url.searchParams.keys()].some(
                 (key) => key !== "after" && key !== "limit",
@@ -256,27 +269,35 @@ export function createReadHandler(
           value = health;
           status = health.status === "ready" ? 200 : 503;
         } else if (projectionRoute) {
-          value = eventRoute
-            ? read.livingTown!.events!(productionAfter, Number(limitText))
-            : marketRoute
-              ? read.livingTown!.listings!(productionAfter, Number(limitText))
-              : historyRoute
-                ? read.livingTown!.history!(
-                    shopRoute![1]!,
-                    productionAfter,
-                    Number(limitText),
-                  )
-                : townRoute
-                  ? read.livingTown!.town()
-                  : productionRoute
-                    ? read.livingTown!.production(
-                        shopRoute![1]!,
-                        productionAfter,
-                        Number(limitText),
-                      )
-                    : shopRoute![2]
-                      ? read.livingTown!.inventory(shopRoute![1]!)
-                      : read.livingTown!.shop(shopRoute![1]!);
+          value = merchantContextRoute
+            ? read.livingTown!.merchantContext!()
+            : directoryRoute
+            ? read.livingTown!.directory!(productionAfter, Number(limitText))
+            : gameViewRoute
+            ? read.livingTown!.gameView!(url.searchParams.get("account")!)
+            : offerRoute
+            ? read.livingTown!.offers!()
+            : eventRoute
+              ? read.livingTown!.events!(productionAfter, Number(limitText))
+              : marketRoute
+                ? read.livingTown!.listings!(productionAfter, Number(limitText))
+                : historyRoute
+                  ? read.livingTown!.history!(
+                      shopRoute![1]!,
+                      productionAfter,
+                      Number(limitText),
+                    )
+                  : townRoute
+                    ? read.livingTown!.town()
+                    : productionRoute
+                      ? read.livingTown!.production(
+                          shopRoute![1]!,
+                          productionAfter,
+                          Number(limitText),
+                        )
+                      : shopRoute![2]
+                        ? read.livingTown!.inventory(shopRoute![1]!)
+                        : read.livingTown!.shop(shopRoute![1]!);
           status = 200;
         } else {
           value = read.activity(
@@ -287,7 +308,7 @@ export function createReadHandler(
         }
         if (
           performance.now() - started > 5000 ||
-          Buffer.byteLength(JSON.stringify(value)) > 262144
+          Buffer.byteLength(JSON.stringify(value)) > (merchantContextRoute ? merchantContextMaxBytes : 262144)
         )
           throw new ReadApiError(503, "read_unavailable");
         send(status, value);

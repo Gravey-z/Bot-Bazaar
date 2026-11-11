@@ -196,18 +196,27 @@ export class TownTickRepository {
     const tickId = sha256(
       canonicalLivingTownJson([this.identity, this.seed, config, slot]),
     );
-    const rank = (arrival: string): number =>
-      arrival.startsWith("raw:")
-        ? ["crystal", "wood", "herb", "iron"].indexOf(arrival.slice(4))
-        : arrival.startsWith("sweep:")
-          ? 4 + ["rex", "luna", "bolt"].indexOf(arrival.slice(6))
-          : arrival.startsWith("merchant:")
-            ? 7 + ["rex", "luna", "bolt"].indexOf(arrival.split(":")[1]!)
-            : arrival.startsWith("assistant:")
-              ? 10
-              : arrival === "fund"
-                ? 11
-                : 12 + Number(arrival);
+    const merchantRank = (arrival: string): number =>
+      (["rex", "luna", "bolt"].indexOf(arrival.split(":")[1]!) + 3 -
+        Number(BigInt(town.data.epoch) % 3n)) % 3;
+    const rank = (arrival: string): number => {
+      if (arrival.startsWith("raw:"))
+        // Rotate over the twenty-minute supply periods. Missed time does not
+        // accumulate extra supply; every item keeps its on-chain eligibility.
+        return (["crystal", "wood", "herb", "iron"].indexOf(arrival.slice(4)) + 4 -
+          Number((BigInt(town.data.epoch) / 20n) % 4n)) % 4;
+      if (arrival === "fund") return 4;
+      if (/^[0-3]$/.test(arrival)) return 5 + Number(arrival);
+      if (/^merchant:(rex|luna|bolt):shelf:/.test(arrival))
+        return 9 + merchantRank(arrival);
+      if (arrival.startsWith("merchant:")) return 12 + merchantRank(arrival);
+      if (arrival.startsWith("sweep:"))
+        return 15 + ["rex", "luna", "bolt"].indexOf(arrival.slice(6));
+      return arrival.startsWith("assistant:") ? 18 : 19;
+    };
+    // Sort only new plans. Persisted plans and unresolved transactions keep
+    // their original order and recovery behavior across runtime restarts.
+    actions = [...actions].sort((a, b) => rank(a.arrival) - rank(b.arrival));
     requireStorage(
       actions.length <= 16 &&
         new Set(actions.map((a) => a.id)).size === actions.length &&
@@ -225,7 +234,7 @@ export class TownTickRepository {
             /^[a-f0-9]{64}$/.test(a.id) &&
             (a.arrival === "fund" ||
               /^[0-3]$/.test(a.arrival) ||
-              /^(raw:(crystal|wood|herb|iron)|sweep:(rex|luna|bolt)|merchant:(rex|luna|bolt):[0-9]+|assistant:[1-9][0-9]{0,3})$/.test(
+              /^(raw:(crystal|wood|herb|iron)|sweep:(rex|luna|bolt)|merchant:(rex|luna|bolt):(shelf:)?[0-9]+|assistant:[1-9][0-9]{0,3})$/.test(
                 a.arrival,
               )),
         ) &&
@@ -372,7 +381,14 @@ export class LivingTownTickScheduler {
     private readonly store: LivingTownExecutionStore,
     private readonly demand: LivingTownCustomerDemand,
     readonly cadenceMs = 60000,
+    readonly fundOnlyWhenNeeded = false,
   ) {}
+  hasPendingCustomers(townValue: unknown): boolean {
+    this.store.gate();
+    const town = livingTownSnapshot(livingTownTown)(townValue);
+    return !town.data.paused && this.demand.arrivals(town, this.store.seed, town.data.epoch)
+      .some(arrival => !this.store.get(arrival.customerId));
+  }
   async prepare(
     reader: FinalizedLivingTownReader,
     prefix: readonly TickAction[] = [],
@@ -400,6 +416,8 @@ export class LivingTownTickScheduler {
         if (
           BigInt(town.data.customer_pool.last_funded_epoch) <
             BigInt(town.data.epoch) &&
+          (!this.fundOnlyWhenNeeded ||
+            BigInt(town.data.customer_pool.gold) < 84n) &&
           !this.store.get(fundingId)
         )
           actions.push({ id: fundingId, arrival: "fund" });

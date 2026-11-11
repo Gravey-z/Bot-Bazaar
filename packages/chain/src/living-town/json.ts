@@ -1,8 +1,10 @@
 import { check } from "../wire.js";
 
 // Preserve repeated-key detection before an exact-key DTO sees parsed values.
-export function parseLivingTownJson(text: string): unknown {
-  check(new TextEncoder().encode(text).length <= 262144, "V2 JSON too large");
+export function parseLivingTownJson(text: string, maxBytes = 262144): unknown {
+  check(Number.isSafeInteger(maxBytes) && maxBytes >= 1 && maxBytes <= 8 * 1024 * 1024,
+    "V2 JSON size bound invalid");
+  check(new TextEncoder().encode(text).length <= maxBytes, "V2 JSON too large");
   let offset = 0;
   const whitespace = () => {
     while (/[\x20\t\r\n]/.test(text[offset] ?? "x")) offset++;

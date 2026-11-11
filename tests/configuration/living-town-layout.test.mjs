@@ -16,12 +16,20 @@ const built = await build({
     {
       name: "layout-framework-double",
       setup(b) {
+        b.onResolve({ filter: /\/game\/town-game\.component$/ }, () => ({
+          path: "town-game",
+          namespace: "layout-game",
+        }));
+        b.onLoad({ filter: /.*/, namespace: "layout-game" }, () => ({
+          contents: "export class TownGameComponent {}",
+          loader: "js",
+        }));
         b.onResolve({ filter: /^@angular\/(core|common)$/ }, (a) => ({
           path: a.path,
           namespace: "layout",
         }));
         b.onLoad({ filter: /.*/, namespace: "layout" }, () => ({
-          contents: `export const Component=()=>c=>c, Injectable=()=>c=>c, ViewChild=()=>()=>{}; export class InjectionToken{}; export class ElementRef{}; export class DatePipe{}; export const untracked=f=>f(), computed=f=>f, effect=()=>{}, inject=()=>{throw Error('not a rendered browser')}; export function signal(v){const f=()=>v;f.set=n=>v=n;return f;} export const input=Object.assign(signal,{required:()=>signal(undefined)});`,
+          contents: `export const Component=()=>c=>c, Injectable=()=>c=>c, ViewChild=()=>()=>{}; export class InjectionToken{}; export class ElementRef{}; export class DatePipe{}; export class NgZone{}; export const output=()=>({emit(){}}); export const untracked=f=>f(), computed=f=>f, effect=()=>{}, inject=()=>{throw Error('not a rendered browser')}; export function signal(v){const f=()=>v;f.set=n=>v=n;return f;} export const input=Object.assign(signal,{required:()=>signal(undefined)});`,
           loader: "js",
         }));
         b.onResolve({ filter: /^@hot-labs\/near-connect$/ }, () => ({
@@ -71,7 +79,7 @@ function state() {
       accountId: owner,
       town: structuredClone(capture.baseline.town.data),
       shop,
-      player: { shop_id: "4" },
+      player: { account_id: owner, shop_id: "4" },
       ledger,
       production: { items: [], historyGap: false },
       ownListings: [],
@@ -118,6 +126,29 @@ test("HUD distinguishes unknown from zero and never shows another account as the
   assert.equal(townHud(s, now).available, null);
   assert.equal(townHud(s, now).slots, null);
   assert.equal(nextTownAction(s, "ready", now).target, "refresh");
+});
+
+test("a registered player's gold is visible before shop creation and remains scoped to that account", () => {
+  const s = state();
+  s.observation.shop = null;
+  s.observation.player.shop_id = null;
+  s.observation.ledger.gold = {
+    held: "100",
+    available: "100",
+    trade_reserved: "0",
+    trade_inbound_reserved: "0",
+  };
+  assert.equal(townHud(s, now).available, "100");
+  assert.equal(townHud(s, now).reserved, "0");
+  assert.equal(townHud(s, now).slots, null);
+  s.observation.player.account_id = "other.testnet";
+  assert.equal(townHud(s, now).available, null);
+  s.observation.player.account_id = owner;
+  s.observation.ownershipKnown = false;
+  assert.equal(townHud(s, now).available, null);
+  s.observation.ownershipKnown = true;
+  s.observation.player = null;
+  assert.equal(townHud(s, now).available, null);
 });
 test("saved requests and stale/future snapshots take priority over economic suggestions", () => {
   const s = state();
@@ -230,8 +261,79 @@ function dialogHarness(t) {
   component.tab = signal("overview");
   component.productionReview = signal({ review: true });
   component.selected = signal(null);
+  component.helpVisible = signal(false);
   return { component, manager, purchase, opener };
 }
+
+test("notices dismiss after ten seconds and a newer notice gets its full lifetime", (t) => {
+  t.mock.timers.enable({ apis: ["setTimeout"] });
+  const component = Object.create(LivingTownComponent.prototype);
+  let text = "",
+    shows = 0,
+    hides = 0;
+  component.notice = Object.assign(() => text, {
+    set: (value) => (text = value),
+  });
+  component.noticeElement = {
+    showPopover() {
+      shows++;
+    },
+    hidePopover() {
+      hides++;
+    },
+  };
+  component.showNotice("First error");
+  t.mock.timers.tick(9000);
+  assert.equal(text, "First error");
+  component.showNotice("Second error");
+  t.mock.timers.tick(9999);
+  assert.equal(text, "Second error");
+  t.mock.timers.tick(1);
+  assert.equal(text, "");
+  assert.equal(shows, 2);
+  assert.equal(hides, 1);
+});
+
+test("wallet prompt opens immediately and closes before the Meteor handoff", async (t) => {
+  const { component, manager, opener } = dialogHarness(t);
+  let visible = false,
+    attempts = 0;
+  const wallet = {
+    open: false,
+    showModal() {
+      this.open = true;
+    },
+    close() {
+      this.open = false;
+    },
+  };
+  component.walletDialog = { nativeElement: wallet };
+  component.walletVisible = Object.assign(() => visible, {
+    set: (v) => (visible = v),
+  });
+  component.state = () => ({ busy: false });
+  component.notice = Object.assign(() => "", { set() {} });
+  component.screen = {
+    controller: {
+      async connect() {
+        assert.equal(wallet.open, false);
+        attempts++;
+      },
+    },
+  };
+  globalThis.document.getElementById = () => opener;
+  manager.open = true;
+  component.openWalletDialog();
+  assert.equal(manager.open, false);
+  assert.equal(wallet.open, true);
+  assert.equal(visible, true);
+  assert.equal(attempts, 0);
+  await component.connectWallet();
+  assert.equal(attempts, 1);
+  component.walletDialogClosed();
+  assert.equal(visible, false);
+  assert.equal(opener.focusCount, 1);
+});
 test("native manager opens once, ignores late close events and clears local reviews on close", (t) => {
   const { component, manager, opener } = dialogHarness(t);
   component.openManager("production");
@@ -266,6 +368,42 @@ test("purchase close cannot steal focus from a newly opened manager or cancel a 
   assert.equal(manager.open, true);
   assert.equal(opener.focusCount, 0);
   assert.equal(cancels, 0);
+});
+test("shop menu opens town panels without stacking dialogs and returns focus to the top shop button", (t) => {
+  const { component, manager, opener } = dialogHarness(t);
+  const scene = {
+    open: false,
+    showModal() {
+      assert.equal(manager.open, false);
+      this.open = true;
+    },
+    close() {
+      this.open = false;
+    },
+  };
+  globalThis.document.getElementById = (id) => {
+    assert.equal(id, "town-shop-menu");
+    return opener;
+  };
+  component.sceneDialog = { nativeElement: scene };
+  let panel = null;
+  component.scenePanel = Object.assign(() => panel, {
+    set: (v) => (panel = v),
+  });
+  component.managerVisible = Object.assign(() => manager.open, { set() {} });
+  for (const destination of ["rex", "luna", "bolt", "notice", "journal"]) {
+    component.openManager();
+    const focusBefore = opener.focusCount;
+    component.openScenePanel(destination);
+    assert.equal(panel, destination);
+    assert.equal(scene.open, true);
+    component.managerClosed();
+    assert.equal(opener.focusCount, focusBefore);
+    component.closeScenePanel();
+    component.scenePanelClosed();
+    assert.equal(panel, null);
+    assert.equal(opener.focusCount, focusBefore + 1);
+  }
 });
 test("wallet recovery remains inside the manager modal and purchase review stays a separate labelled dialog", () => {
   const html = readFileSync(

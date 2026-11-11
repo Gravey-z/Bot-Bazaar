@@ -1,0 +1,26 @@
+FROM node:24.16.0-bookworm-slim@sha256:2c87ef9bd3c6a3bd4b472b4bec2ce9d16354b0c574f736c476489d09f560a203 AS build
+WORKDIR /workspace
+RUN corepack enable
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml tsconfig.base.json eslint.config.mjs ./
+COPY apps/web/package.json ./apps/web/
+COPY packages/shared/package.json packages/shared/tsconfig.json ./packages/shared/
+COPY packages/chain/package.json packages/chain/tsconfig.json ./packages/chain/
+RUN corepack pnpm install --frozen-lockfile --filter @bot-bazaar/web...
+COPY apps/web ./apps/web
+COPY packages/shared/src ./packages/shared/src
+COPY packages/chain/src ./packages/chain/src
+COPY scripts ./scripts
+COPY config ./config
+ARG V2_RELEASE_TARGET=local
+ARG V2_WORKER_URL=http://127.0.0.1:3011
+ENV V2_WORKER_URL=$V2_WORKER_URL
+RUN case "$V2_RELEASE_TARGET" in local|public) ;; *) exit 1 ;; esac \
+    && corepack pnpm run build:web:v2:$V2_RELEASE_TARGET
+
+FROM node:24.16.0-bookworm-slim@sha256:2c87ef9bd3c6a3bd4b472b4bec2ce9d16354b0c574f736c476489d09f560a203 AS runtime
+ENV NODE_ENV=production
+WORKDIR /app
+COPY --from=build --chown=node:node /workspace/apps/web/dist/browser ./public
+COPY --chown=node:node scripts/preview-server.mjs scripts/security-headers.mjs scripts/guest-proxy.mjs scripts/town-rpc-proxy.mjs scripts/omv7-web.mjs ./
+USER node
+CMD ["node", "omv7-web.mjs"]

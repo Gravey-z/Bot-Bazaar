@@ -36,7 +36,7 @@ export function productionQuote(
   )
     return {
       review: null,
-      reason: "Load your confirmed shop, inventory and queue first.",
+      reason: "Your workshop is loading.",
     };
   let terms: ReturnType<typeof planLivingTownProduction>;
   try {
@@ -45,7 +45,7 @@ export function productionQuote(
     return {
       review: null,
       reason:
-        "Recipe timing or version is unavailable. Refresh before starting.",
+        "Recipes are updating. Try again shortly.",
     };
   }
   const inputs = Object.entries(terms.inputs_consumed)
@@ -71,16 +71,16 @@ export function productionQuote(
     ).toString(),
   };
   let reason = "";
-  if (o.stale) reason = "Refresh your confirmed inventory before starting.";
+  if (o.stale) reason = "Your materials are updating. Please wait a moment.";
   else if (o.town.paused)
-    reason = "The town is paused. New batches cannot start.";
+    reason = "Crafting is temporarily paused.";
   else if (
     o.production.items.filter((j) => j.status === "running").length >=
     Number(o.shop.production_slots)
   )
-    reason = "Your production slot is occupied. Claim its ready batch first.";
+    reason = "Your workshop is busy. Collect a ready batch or wait for a free slot.";
   else if (inputs.some((i) => BigInt(i.available) < BigInt(i.required)))
-    reason = "Not enough available inputs. Reserved items cannot be used.";
+    reason = "You need more available materials for this batch.";
   else if (
     BigInt(o.ledger.inventory.held[recipe.output_item]) +
       BigInt(
@@ -90,7 +90,7 @@ export function productionQuote(
       BigInt(terms.output_quantity) >
     1000n
   )
-    reason = "Not enough output capacity for the whole batch.";
+    reason = "Make room in your inventory before crafting this batch.";
   return { review, reason };
 }
 export function productionReviewMatches(
@@ -110,8 +110,8 @@ export function productionCountdown(
   elapsedMs: number,
 ): { state: "running" | "ready" | "completed"; text: string } {
   if (job.status === "completed")
-    return { state: "completed", text: "Completed — finalized settlement" };
-  if (!chainNs) return { state: "running", text: "Refresh for network time" };
+    return { state: "completed", text: "Collected" };
+  if (!chainNs) return { state: "running", text: "Updating crafting progress..." };
   // Elapsed time animates an estimate only. Cap it at the observation freshness
   // window; only finalized chain time may enable Claim or change inventory.
   const elapsed = Number.isFinite(elapsedMs)
@@ -124,12 +124,12 @@ export function productionCountdown(
       state: "ready",
       text:
         BigInt(chainNs) >= BigInt(job.ready_at_ns)
-          ? "Ready — awaiting settlement"
-          : "Estimated ready — refresh to confirm",
+          ? "Ready to collect"
+          : "Finishing up. Checking your batch.",
     };
   return {
     state: "running",
-    text: `Running - ${durationText(((remaining + 999999999n) / 1000000000n).toString())} remaining (estimate)`,
+    text: `About ${durationText(((remaining + 999999999n) / 1000000000n).toString())} remaining`,
   };
 }
 export function durationText(seconds: string): string {

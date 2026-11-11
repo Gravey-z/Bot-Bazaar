@@ -1,5 +1,5 @@
 import { createServer } from "node:http";
-import type { Server } from "node:http";
+import type { Server, IncomingMessage, ServerResponse } from "node:http";
 import { createReadHandler } from "./handler.js";
 import type { ReadCapabilities } from "./handler.js";
 import type { BoundaryConfig } from "./config.js";
@@ -8,6 +8,10 @@ export function createReadServer(
   read: ReadCapabilities,
   config: BoundaryConfig,
   observe?: (durationMs: number, status: number) => void,
+  receiptHandoff?: (
+    request: IncomingMessage,
+    response: ServerResponse,
+  ) => Promise<void>,
 ): Server {
   const handler = createReadHandler(read, config);
   const server = createServer(
@@ -28,7 +32,9 @@ export function createReadServer(
             /* telemetry cannot change a response */
           }
         });
-      handler(request, response);
+      if (receiptHandoff && request.url === "/api/player-receipts")
+        void receiptHandoff(request, response);
+      else handler(request, response);
     },
   );
   const close = server.close;

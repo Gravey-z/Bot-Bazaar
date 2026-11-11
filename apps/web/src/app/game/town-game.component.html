@@ -1,0 +1,16 @@
+<div class="scene-frame">
+  <img
+    class="scene-fallback"
+    src="art/living-town/game/town-square.webp"
+    alt="A warm market square with a blacksmith, herb shop, crystal stall and central fountain."
+  />
+  <div #canvasHost class="canvas-host"></div>
+  @if (status().kind === "loading") {
+    <p class="scene-status" role="status">Loading town artwork…</p>
+  } @else if (status().kind === "fallback") {
+    <div class="scene-status" role="status">
+      Scene unavailable. Open Your shop in the top bar to access town locations.
+      <button type="button" (click)="boot()">Retry scene</button>
+    </div>
+  }
+</div>

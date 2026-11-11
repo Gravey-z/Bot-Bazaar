@@ -17,6 +17,7 @@ import {
   livingTownMarketEvent,
   parseLivingTownDeployment,
 } from "./wire.js";
+import { livingTownOffer } from "./offers.js";
 const text = (v: unknown): string => {
   check(
     typeof v === "string" && /^[\x20-\x7e]{1,240}$/.test(v),
@@ -52,7 +53,7 @@ export const townActivityCheckpoint = object({
   market_revision: positiveU64,
   event_sequence: positiveU64,
 });
-export const townAgentData = object({
+const agentDataShape = object({
   action_id: townActivityId,
   tick_id: townActivityId,
   merchant: choice(["rex", "luna", "bolt"] as const),
@@ -73,6 +74,9 @@ export const townAgentData = object({
     "rejected",
     "expired",
     "confirmed",
+    "thinking",
+    "submitted",
+    "unknown",
   ] as const),
   command_digest: nullable(townActivityId),
   inference_ref: nullable(reference),
@@ -90,6 +94,16 @@ export const townAgentData = object({
   transaction_hash: nullable(hash32),
   receipt_id: nullable(hash32),
 });
+export function townAgentData(
+  value: unknown,
+): ReturnType<typeof agentDataShape> & { offer_id?: string | null } {
+  const r = record(value),
+    { offer_id, ...rest } = r,
+    b = agentDataShape(rest);
+  return Object.hasOwn(r, "offer_id")
+    ? { ...b, offer_id: nullable(positiveU64)(offer_id) }
+    : b;
+}
 export const townAgentInput = object({
   source: choice(["deterministic_rule", "model_proposal"] as const),
   transaction_hint: nullable(hash32),
@@ -97,6 +111,12 @@ export const townAgentInput = object({
   data: townAgentData,
 });
 const common = { event_id: townActivityId, checkpoint: townActivityCheckpoint };
+const transaction = object({
+  ...common,
+  type: literal("transaction_confirmed"),
+  source: literal("confirmed"),
+  data: object({ title: text, transaction_hash: hash32, receipt_id: hash32 }),
+});
 const market = object({
   ...common,
   type: literal("market_event"),
@@ -146,21 +166,67 @@ const agent = object({
   ] as const),
   data: townAgentData,
 });
+const economy = object({
+  ...common,
+  type: literal("merchant_economy"),
+  source: literal("confirmed"),
+  data: object({
+    merchant: choice(["rex", "luna", "bolt"] as const),
+    kind: choice([
+      "source",
+      "proposed",
+      "accepted",
+      "rejected",
+      "cancelled",
+      "expired",
+    ] as const),
+    offer: nullable(livingTownOffer),
+    item_id: livingTownItem,
+    quantity: bounded(0n, 100n),
+    trade_id: nullable(positiveU64),
+    transaction_hash: hash32,
+    receipt_id: hash32,
+  }),
+});
 export type TownActivity =
+  | ReturnType<typeof transaction>
   | ReturnType<typeof market>
   | ReturnType<typeof sale>
   | ReturnType<typeof ready>
-  | ReturnType<typeof agent>;
+  | ReturnType<typeof agent>
+  | ReturnType<typeof economy>;
 export function livingTownActivity(value: unknown): TownActivity {
   const r = record(value),
     v =
-      r["type"] === "market_event"
+      r["type"] === "transaction_confirmed"
+        ? transaction(value)
+        : r["type"] === "market_event"
         ? market(value)
         : r["type"] === "sale_confirmed"
           ? sale(value)
           : r["type"] === "production_ready"
             ? ready(value)
-            : agent(value);
+            : r["type"] === "merchant_economy"
+              ? economy(value)
+              : agent(value);
+  if (v.type === "merchant_economy") {
+    const d = v.data,
+      o = d.offer;
+    check(
+      d.kind === "source"
+        ? o === null &&
+            d.trade_id === null &&
+            ["crystal", "wood", "herb", "iron"].includes(d.item_id) &&
+            BigInt(d.quantity) <= 2n
+        : !!o &&
+            [o.buyer, o.seller].includes(d.merchant) &&
+            o.item_id === d.item_id &&
+            o.quantity === d.quantity &&
+            o.status === (d.kind === "proposed" ? "pending" : d.kind) &&
+            d.trade_id === o.trade_id,
+      "merchant economy evidence mismatch",
+    );
+  }
   if (v.type === "market_event")
     check(
       v.data.boundary === "scheduled"

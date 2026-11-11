@@ -7,6 +7,8 @@ import type {
   LivingTownClient,
   LivingTownProof,
   LivingTownCompletionProof,
+  LivingTownIndexedReceipt,
+  LivingTownIndexedCompletion,
 } from "@bot-bazaar/chain";
 import { LivingTownProjectionStore } from "./store.js";
 import type { ProjectionBaseline } from "./store.js";
@@ -14,6 +16,12 @@ import type { ProjectionBaseline } from "./store.js";
 export class LivingTownProjector {
   private running: Promise<void> | undefined;
   private initialized = false;
+  private gapSince = 0;
+  private fullReconcileAt = 0;
+  private receiptObserver?: (receipt: LivingTownIndexedReceipt | LivingTownIndexedCompletion) => void;
+  observeReceipts(observer: (receipt: LivingTownIndexedReceipt | LivingTownIndexedCompletion) => void): void {
+    this.receiptObserver = observer;
+  }
   constructor(
     private readonly client: LivingTownClient,
     private readonly store: LivingTownProjectionStore,
@@ -47,7 +55,9 @@ export class LivingTownProjector {
             await this.client.receiptEvidence(proof as LivingTownProof),
           );
     if (!indexed) return "unresolved";
-    return this.store.commit(indexed, now);
+    const result = this.store.commit(indexed, now);
+    if (result === "indexed") this.receiptObserver?.(indexed);
+    return result;
   }
   sync(): Promise<void> {
     if (this.running) return this.running;
@@ -64,12 +74,24 @@ export class LivingTownProjector {
   private async reconcile(): Promise<void> {
     const reader = await this.client.finalized(),
       town = await reader.getTown();
+    const now = Date.now();
+    const auditDue = this.initialized && now - this.fullReconcileAt >= 300000;
     if (
       this.initialized &&
+      !auditDue &&
       this.store.marketReady() &&
       this.store.observe(town, reader.block)
-    )
+    ) {
+      this.gapSince = 0;
       return;
+    }
+    if (this.initialized && !auditDue) {
+      // Receipts normally carry the next mutations. Give the durable queues
+      // time to deliver them before falling back to a full repair read.
+      this.store.noteHead(town, reader.block);
+      if (!this.gapSince) this.gapSince = now;
+      if (now - this.gapSince < 15000) return;
+    }
     const count = BigInt(town.data.next_shop_id) - 4n;
     if (count < 0n || count > 1000n)
       throw new Error("invalid bounded shop count");
@@ -150,6 +172,9 @@ export class LivingTownProjector {
         shops,
         production,
         listings,
+        ...(this.client.identity.deployment.state_schema === "2"
+          ? { offers: await this.readOfferPages(reader, town.market_revision) }
+          : {}),
         ...(town.data.market_event
           ? { marketEvents: await reader.getMarketEvents() }
           : {}),
@@ -158,5 +183,29 @@ export class LivingTownProjector {
       true,
     );
     this.initialized = true;
+    this.fullReconcileAt = Date.now();
+    this.gapSince = 0;
+  }
+  private async readOfferPages(
+    reader: import("@bot-bazaar/chain").FinalizedLivingTownReader,
+    revision: string,
+  ) {
+    const pages: NonNullable<ProjectionBaseline["offers"]> = [];
+    let after: string | null = null;
+    for (let i = 0; i < 3; i++) {
+      const p = await reader.getOffers({
+        merchant_id: null,
+        status: "all",
+        after_id: after,
+        limit: "50",
+        expected_market_revision: revision,
+      });
+      pages.push(p);
+      if (!p.data.has_more) return pages;
+      if (p.data.next_after_id === null || p.data.next_after_id === after)
+        throw new Error("offer baseline cursor stalled");
+      after = p.data.next_after_id;
+    }
+    throw new Error("offer baseline incomplete");
   }
 }

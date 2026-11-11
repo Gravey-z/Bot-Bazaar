@@ -178,6 +178,21 @@ export type {
 } from "./living-town/completion.js";
 
 export { livingTownIndexedCompletion } from "./living-town/projection.js";
+export {
+  livingTownOffer,
+  livingTownOfferEffect,
+  livingTownOfferOutcome,
+  livingTownMerchantTrade,
+  livingTownOfferLookup,
+  livingTownOfferPage,
+  livingTownOfferPageArgs,
+  livingTownTradingRules,
+  isLivingTownOfferMethod,
+  offerMethodNames,
+  offerMaterialRules,
+  checkPendingOfferReservations,
+} from "./living-town/offers.js";
+export type { LivingTownOffer } from "./living-town/offers.js";
 export type { LivingTownIndexedCompletion } from "./living-town/projection.js";
 
 export {
@@ -227,3 +242,10 @@ export type {
   AssistantManualReview,
   AssistantReviewLink,
 } from "./living-town/assistant-review.js";
+export { playerReceiptProof, playerReceiptMethods } from "./living-town/player-receipts.js";
+export { guestActionRequest, guestActionMethod } from "./living-town/guest-actions.js";
+export type { GuestAction, GuestActionRequest } from "./living-town/guest-actions.js";
+export { guestActivityEntry, guestActivityPage, guestEconomyProgress } from "./living-town/guest-activity.js";
+export type { GuestActivityEntry, GuestActivityPage } from "./living-town/guest-activity.js";
+export { livingTownGameView, livingTownShopDirectory } from "./living-town/game-view.js";
+export { livingTownMerchantContext, merchantContextMaxBytes } from "./living-town/merchant-context.js";

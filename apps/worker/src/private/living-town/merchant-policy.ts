@@ -9,11 +9,21 @@ import {
   livingTownProductionJob,
   livingTownRawTrade,
   livingTownCustomerTrade,
+  livingTownMerchantTrade,
   parseLivingTownIdentity,
   parseU64,
 } from "@bot-bazaar/chain";
 import type { FinalizedLivingTownReader } from "@bot-bazaar/chain";
 import { sha256, requireStorage } from "../storage/validation.js";
+import {
+  buildStockSharingPlan,
+  selectStockSharingTerms,
+} from "./stock-sharing.js";
+import type {
+  StockSharingPlan,
+  StockSharingReaction,
+  StockSharingChoice,
+} from "./stock-sharing.js";
 
 const names = ["rex", "luna", "bolt"] as const;
 type Merchant = (typeof names)[number];
@@ -33,7 +43,7 @@ export const townMerchantProfiles = Object.freeze({
   luna: Object.freeze({
     goldFloor: "120",
     saleBatch: "4",
-    herbReserve: "8",
+    herbReserve: "4",
     demandTrigger: "4",
   }),
   bolt: Object.freeze({
@@ -44,6 +54,26 @@ export const townMerchantProfiles = Object.freeze({
   }),
 });
 export interface MerchantPolicyInput {
+  /** Trusted confirmed listing history from the execution journal. */
+  pricingHistory?: readonly { merchant: Merchant; item: Raw; unitPrice: string; changedAtNs: string }[];
+  activityCheckpoint?: {
+    block_hash: string;
+    block_height: string;
+    block_timestamp_ns: string;
+    market_revision: string;
+    event_sequence: string;
+  };
+  /** Durable finalized player-purchase inbox, distinct from the rolling demand window. */
+  externalPurchases?: readonly unknown[];
+  /** Trusted host evidence, populated only after journal and pinned key checks. */
+  negotiationAuthority?: {
+    journal: "ready";
+    signerScopes: Record<Merchant, "town_negotiating_merchant">;
+  };
+  stockSharingReaction?: StockSharingReaction;
+  negotiatedTrading?: boolean;
+  pendingOffers?: readonly unknown[];
+  merchantTrading?: boolean;
   town: unknown;
   merchants: readonly {
     shop: unknown;
@@ -63,6 +93,15 @@ export type MerchantAction =
       item: Raw;
       quantity: string;
       price: string;
+      expectedRevision: string | null;
+    }
+  | {
+      kind: "merchant_purchase";
+      reason: string;
+      seller: Merchant;
+      item: Raw;
+      quantity: string;
+      maxTotal: string;
       expectedRevision: string;
     }
   | {
@@ -74,6 +113,9 @@ export type MerchantAction =
     }
   | { kind: "complete_production"; reason: string; jobId: string };
 export interface MerchantPolicyResult {
+  pricing: { merchant: Merchant; item: Raw; basePrice: string; minPrice: string; maxPrice: string;
+    suggestedPrice: string | null; reason: string; cooldownUntilNs: string | null }[];
+  stockSharing?: StockSharingPlan;
   policy: string;
   epoch: string;
   fresh: boolean;
@@ -125,6 +167,7 @@ export class LivingTownMerchantPolicy {
   constructor(config: unknown) {
     this.digest = sha256(canonicalLivingTownJson(config));
     const cfg = config as {
+      version: string;
       economy: {
         materials: Record<Raw, Record<string, string>>;
         recipes: {
@@ -135,11 +178,12 @@ export class LivingTownMerchantPolicy {
         };
       };
     };
+    requireStorage(cfg.version === "1", "unreviewed economy version");
     const reviewed = {
-      crystal: ["rex", "2", "10", "4", "3", "6"],
-      wood: ["bolt", "2", "10", "2", "1", "3"],
-      herb: ["luna", "8", "20", "3", "2", "4"],
-      iron: ["bolt", "4", "20", "5", "3", "6"],
+      crystal: ["rex", "2", "12", "4", "3", "6"],
+      wood: ["bolt", "2", "12", "2", "1", "3"],
+      herb: ["luna", "4", "12", "3", "2", "4"],
+      iron: ["bolt", "4", "12", "5", "3", "6"],
     };
     for (const item of raw)
       requireStorage(
@@ -176,7 +220,7 @@ export class LivingTownMerchantPolicy {
       }),
     ) as typeof this.materials;
     requireStorage(
-      this.materials.herb.floor === 8n &&
+      this.materials.herb.floor === 4n &&
         cfg.economy.recipes.iron_tool.inputs.wood === "1" &&
         cfg.economy.recipes.iron_tool.inputs.iron === "2" &&
         cfg.economy.recipes.iron_tool.salePrice === "24",
@@ -278,13 +322,16 @@ export class LivingTownMerchantPolicy {
       iron_tool: 0n,
     };
     const seen = new Map<string, string>();
+    const retailSales = new Map<string, bigint>();
     const start = genesis + positive(epoch - 4n) * 60000000000n;
     for (const value of input.trades) {
       const kind = (value as { kind?: string })?.kind;
       const trade =
         kind === "customer_sale"
           ? livingTownCustomerTrade(value)
-          : livingTownRawTrade(value);
+          : kind === "merchant_trade"
+            ? livingTownMerchantTrade(value)
+            : livingTownRawTrade(value);
       requireStorage(
         BigInt(trade.event_sequence) <= BigInt(town.event_sequence) &&
           BigInt(trade.settled_at_ns) <= now &&
@@ -299,8 +346,17 @@ export class LivingTownMerchantPolicy {
       );
       if (seen.has(key)) continue;
       seen.set(key, encoded);
-      if (BigInt(trade.settled_at_ns) >= start)
+      if (
+        BigInt(trade.settled_at_ns) >= start &&
+        trade.kind !== "merchant_trade" &&
+        !(trade.kind === "raw_purchase" && trade.buyer.kind === "merchant")
+      ) {
         volume[trade.item_id]! += BigInt(trade.quantity);
+        if (trade.kind === "raw_purchase") {
+          const key = `${trade.seller.merchant_id}:${trade.item_id}`;
+          retailSales.set(key, (retailSales.get(key) ?? 0n) + BigInt(trade.quantity));
+        }
+      }
     }
     const scarcity = raw.map((item) => {
       const cfg = this.materials[item],
@@ -313,19 +369,7 @@ export class LivingTownMerchantPolicy {
           (positive(cfg.target - held) * 10000n) / (cfg.target - cfg.floor),
         ),
         demand = volume[item]!;
-      let price = cfg.price;
-      if (cfg.supplier === "rex")
-        price =
-          scarce >= 5000n || demand >= 3n
-            ? cfg.hi
-            : cfg.price < 4n
-              ? 4n
-              : cfg.price;
-      else if (cfg.supplier === "luna")
-        price = scarce >= 5000n || demand >= 4n ? cfg.hi : cfg.price;
-      else if (scarce >= 5000n) price = cfg.hi;
-      else if (held > cfg.target && demand === 0n) price = cfg.lo;
-      price = min(cfg.hi, price < cfg.lo ? cfg.lo : price);
+      const price = cfg.price;
       return {
         item,
         supplier: cfg.supplier,
@@ -335,7 +379,7 @@ export class LivingTownMerchantPolicy {
         available: inv.available[item],
         floor: cfg.floor.toString(),
         target: cfg.target.toString(),
-        saleable: positive(held - trade - cfg.floor).toString(),
+        saleable: positive(held - trade).toString(),
         restock: positive(cfg.target - held).toString(),
         scarcityBps: scarce.toString(),
         headroom: (
@@ -349,6 +393,40 @@ export class LivingTownMerchantPolicy {
           input.fresh && input.historyComplete ? price.toString() : null,
       };
     });
+    const pricing = names.flatMap(merchant => raw.map(item => {
+      const cfg = this.materials[item], row = rows.find(r => r.name === merchant)!;
+      const listing = row.listings.find(l => l.item_id === item);
+      const primary = cfg.supplier === merchant;
+      const own = positive(BigInt(row.ledger.inventory.held[item]) -
+        BigInt(row.ledger.inventory.trade_reserved[item]));
+      const peerSupply = rows.filter(r => r.name !== merchant).reduce((sum, peer) =>
+        sum + BigInt(peer.listings.find(l => l.item_id === item && l.active)?.remaining_quantity ?? "0"), 0n);
+      const scarcePeers = peerSupply <= 2n;
+      const strongDemand = volume[item]! >= (item === "herb" ? 4n : 3n);
+      const overstock = BigInt(row.ledger.inventory.held[item]) > (primary ? cfg.target : 7n);
+      const slowSales = epoch >= 5n && own >= 4n && (retailSales.get(`${merchant}:${item}`) ?? 0n) === 0n;
+      const minimum = merchant === "rex" && item === "crystal" ? 4n
+        : merchant === "luna" && item === "herb" ? 3n : cfg.lo;
+      // Always anchor the target to the material's base price. Never follow
+      // the cheapest competitor down or compound another discount each tick.
+      const premium = scarcePeers || (own <= 2n && own > 0n) || strongDemand;
+      const discount = !premium && !strongDemand && (overstock || slowSales);
+      let target = cfg.price + (premium ? (scarcePeers && strongDemand ? 2n : 1n) : discount ? -1n : 0n);
+      target = min(cfg.hi, target < minimum ? minimum : target);
+      const current = BigInt(listing?.unit_price ?? cfg.price.toString());
+      const history = input.pricingHistory?.find(p => p.merchant === merchant && p.item === item);
+      const until = history ? BigInt(history.changedAtNs) + 180_000_000_000n : null;
+      const cooling = until !== null && now < until;
+      const next = cooling || own === 0n ? current : current < target ? min(target, current + 1n)
+        : current > target ? (current - 1n < target ? target : current - 1n) : current;
+      return { merchant, item, basePrice: cfg.price.toString(), minPrice: minimum.toString(), maxPrice: cfg.hi.toString(),
+        suggestedPrice: input.fresh && input.historyComplete ? next.toString() : null,
+        reason: cooling ? "price_cooldown" : premium ? "scarcity_or_confirmed_demand"
+          : discount ? "slow_sales_or_surplus" : "stable_base_price",
+        cooldownUntilNs: until?.toString() ?? null };
+    }));
+    for (const signal of scarcity)
+      signal.suggestedPrice = pricing.find(p => p.merchant === signal.supplier && p.item === signal.item)!.suggestedPrice;
     const decisions = names.map((name) => {
       const r = rows.find((row) => row.name === name)!,
         inv = r.ledger.inventory;
@@ -447,7 +525,7 @@ export class LivingTownMerchantPolicy {
             price = BigInt(signal.suggestedPrice!);
           const quantity = min(
             BigInt(signal.saleable),
-            BigInt(townMerchantProfiles[name].saleBatch),
+            100n,
           ).toString();
           if (
             listing.unit_price !== price.toString() ||
@@ -470,10 +548,55 @@ export class LivingTownMerchantPolicy {
             action = wait("supplier_allocation_required");
         }
       }
+      // Offer every raw material, including non-specialty stock. Existing
+      // listings reserve held units, so resize from held minus trade commitments,
+      // not from available. Retail shelves may sell out completely.
+      const craftingRelease = action.kind === "set_listing" && action.reason === "release_inputs_before_crafting";
+      if (input.fresh && input.historyComplete && !town.data.paused &&
+        action.kind !== "complete_production" && action.kind !== "start_production" && !craftingRelease) {
+        // Fill empty/incomplete shelves before optional repricing. Otherwise
+        // repricing an empty specialty listing can hide saleable backup stock.
+        const updates = raw.flatMap(item => {
+          const listing = r.listings.find(l => l.item_id === item);
+          const quantity = min(100n, positive(BigInt(inv.held[item]) - BigInt(inv.trade_reserved[item]))).toString();
+          if (!listing && quantity === "0") return [];
+          const price = pricing.find(p => p.merchant === name && p.item === item)!.suggestedPrice!;
+          if (!listing || listing.remaining_quantity !== quantity || listing.unit_price !== price) {
+            return [{ quantityChanged: (listing?.remaining_quantity ?? "0") !== quantity,
+              action: { kind: "set_listing" as const, reason: "list_all_saleable_materials", item, quantity, price,
+                expectedRevision: listing?.revision ?? null } }];
+          }
+          return [];
+        }).sort((a, b) => Number(b.quantityChanged) - Number(a.quantityChanged));
+        if (updates[0]) action = updates[0].action;
+        // Legacy direct purchases also consume a real active listing. Negotiated
+        // trading uses the listing-backed candidate generator below instead.
+        if (action.kind === "wait" && input.merchantTrading && town.deployment.state_schema === "1" && !input.negotiatedTrading) {
+          for (const item of raw) {
+            const cfg = this.materials[item], primary = cfg.supplier === name;
+            const target = primary ? cfg.target : 2n, held = BigInt(inv.held[item]);
+            if (held >= target) continue;
+            const supplier = rows.find(row => row.name === cfg.supplier)!;
+            if (!primary && BigInt(supplier.ledger.inventory.held[item]) < cfg.target - 2n) continue;
+            const seller = rows.find(row => row.name !== name && row.listings.some(l =>
+              l.item_id === item && l.active && BigInt(l.remaining_quantity) > 0n &&
+              BigInt(l.unit_price) <= (primary ? cfg.hi : cfg.price)));
+            const listing = seller?.listings.find(l => l.item_id === item && l.active);
+            if (!seller || !listing) continue;
+            const quantity = min(2n, target - held, BigInt(listing.remaining_quantity));
+            const cost = quantity * BigInt(listing.unit_price);
+            if (BigInt(r.ledger.gold.available) < cost + BigInt(townMerchantProfiles[name].goldFloor)) continue;
+            action = { kind: "merchant_purchase", reason: primary ? "listed_peer_restock" : "listed_backup_acquisition",
+              seller: seller.name, item, quantity: quantity.toString(), maxTotal: cost.toString(), expectedRevision: listing.revision };
+            break;
+          }
+        }
+      }
       return { merchant: name, action };
     });
     return {
-      policy: townMerchantProfiles.policy,
+      policy: "living-town-merchants-v4-bounded-pricing",
+      pricing,
       epoch: town.data.epoch,
       fresh: input.fresh,
       historyComplete: input.historyComplete,
@@ -488,7 +611,65 @@ export class LivingTownMerchantPolicy {
       ),
       scarcity,
       decisions,
+      ...(input.negotiatedTrading
+        ? { stockSharing: buildStockSharingPlan(input) }
+        : {}),
     };
+  }
+  /** Phase 4 supplies the model-selected terms; this method only revalidates and
+   * compiles a buyer proposal. It never approves on behalf of the seller. */
+  compileStockSharingProposal(
+    input: MerchantPolicyInput,
+    merchant: Merchant,
+    choice: StockSharingChoice,
+    identityValue: unknown,
+    command: unknown,
+    expiresAtNs?: string,
+  ): CompiledMerchantStep {
+    const identity = parseLivingTownIdentity(identityValue),
+      town = livingTownSnapshot(livingTownTown)(input.town);
+    requireStorage(
+      canonicalLivingTownJson(identity.deployment) ===
+        canonicalLivingTownJson(town.deployment),
+      "stock-sharing compiler identity mismatch",
+    );
+    const plan = this.evaluate(input).stockSharing;
+    requireStorage(plan, "negotiated stock-sharing capability unavailable");
+    const { candidate } = selectStockSharingTerms(plan, merchant, choice),
+      signer = identity.controllers[merchant];
+    requireStorage(
+      signer !== identity.operatorId &&
+        signer !== identity.ownerId &&
+        signer !== identity.deployment.contract_id,
+      "independent stock-sharing buyer controller required",
+    );
+    const call = createLivingTownCall("propose_trade", {
+      buyer_merchant_id: merchant,
+      seller_merchant_id: candidate.seller,
+      item_id: candidate.item,
+      quantity: choice.quantity,
+      unit_price: choice.unitPrice,
+      expires_at_ns:
+        expiresAtNs ??
+        (BigInt(town.block_timestamp_ns) + 600000000000n).toString(),
+      expected_buyer_ledger_revision: candidate.buyerLedgerRevision,
+      expected_seller_ledger_revision: candidate.sellerLedgerRevision,
+      command,
+    });
+    requireStorage(
+      "expires_at_ns" in call.args &&
+        BigInt(call.args.expires_at_ns) >=
+          BigInt(town.block_timestamp_ns) + 60000000000n &&
+        BigInt(call.args.expires_at_ns) <=
+          BigInt(town.block_timestamp_ns) + 600000000000n &&
+        call.args.command.config_version === town.deployment.config_version &&
+        BigInt(call.args.command.valid_until_ns) >
+          BigInt(town.block_timestamp_ns) &&
+        BigInt(call.args.command.valid_until_ns) <=
+          BigInt(town.block_timestamp_ns) + 600000000000n,
+      "stock-sharing command expired/outside bounded lifetime",
+    );
+    return { merchant, signer, call };
   }
   /** Compile only a freshly re-evaluated policy step, scoped to its merchant controller. */
   compile(
@@ -528,30 +709,44 @@ export class LivingTownMerchantPolicy {
       };
     const shop = String(names.indexOf(merchant) + 1);
     const call =
-      proposal.kind === "set_listing"
-        ? createLivingTownCall("set_listing", {
-            shop_id: shop,
+      proposal.kind === "merchant_purchase"
+        ? createLivingTownCall("merchant_purchase", {
+            buyer_merchant_id: merchant,
+            merchant_id: proposal.seller,
             item_id: proposal.item,
             quantity: proposal.quantity,
-            unit_price: proposal.price,
             expected_listing_revision: proposal.expectedRevision,
+            max_total_price: proposal.maxTotal,
             command,
           })
-        : createLivingTownCall("start_production", {
-            shop_id: shop,
-            recipe_id: proposal.recipe,
-            recipe_version: "1",
-            quantity: proposal.quantity,
-            expected_shop_revision: proposal.expectedShopRevision,
-            command,
-          });
+        : proposal.kind === "set_listing"
+          ? createLivingTownCall("set_listing", {
+              shop_id: shop,
+              item_id: proposal.item,
+              quantity: proposal.quantity,
+              unit_price: proposal.price,
+              expected_listing_revision: proposal.expectedRevision,
+              command,
+            })
+          : createLivingTownCall("start_production", {
+              shop_id: shop,
+              recipe_id: proposal.recipe,
+              recipe_version: "1",
+              quantity: proposal.quantity,
+              expected_shop_revision: proposal.expectedShopRevision,
+              command,
+            });
     requireStorage(
       BigInt(call.args.command.valid_until_ns) >
         BigInt(town.block_timestamp_ns) &&
         BigInt(call.args.command.valid_until_ns) <=
-          BigInt(town.data.genesis_time_ns) +
-            (BigInt(town.data.epoch) + 1n) * 60000000000n,
-      "merchant command outside current epoch",
+          (input.stockSharingReaction
+            ? BigInt(town.block_timestamp_ns) + 60000000000n
+            : proposal.kind === "set_listing"
+              ? BigInt(town.block_timestamp_ns) + 120000000000n
+            : BigInt(town.data.genesis_time_ns) +
+              (BigInt(town.data.epoch) + 1n) * 60000000000n),
+      "merchant command outside bounded execution window",
     );
     return { merchant, signer, call };
   }
@@ -595,5 +790,29 @@ export async function collectMerchantPolicyInput(
       job: jobs.data.items[0] ?? null,
     });
   }
-  return { town, merchants, trades, fresh: true, historyComplete };
+  const merchantTrading =
+    typeof reader.getFoundation === "function" &&
+    (await reader.getFoundation()).data.supported_methods.includes(
+      "merchant_purchase",
+    );
+  const pending =
+    town.deployment.state_schema === "2"
+      ? await reader.getPendingMerchantOffers()
+      : null;
+  requireStorage(
+    !pending ||
+      canonicalLivingTownJson(pending.town) === canonicalLivingTownJson(town),
+    "mixed stock-sharing offer checkpoint",
+  );
+  return {
+    town,
+    merchants,
+    trades,
+    fresh: true,
+    historyComplete,
+    merchantTrading,
+    ...(pending
+      ? { negotiatedTrading: true, pendingOffers: pending.offers }
+      : {}),
+  };
 }

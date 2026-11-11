@@ -1,15 +1,11 @@
 import type { TownState, TownObservation } from "./living-town-controller";
-import { inventoryRows } from "./living-town-controller";
 import { ownedTownObservation, townSnapshotFresh } from "./living-town-layout";
 
 export interface TownFeedback {
   id: string;
-  kind: "gold" | "stock" | "ready" | "sale" | "upgrade";
+  kind: "ready" | "sale" | "upgrade";
   text: string;
 }
-const signed = (n: bigint): string => (n > 0n ? `+${n}` : `${n}`);
-const change = (label: string, before: string, after: string): string =>
-  `${label} ${before} → ${after} (${signed(BigInt(after) - BigInt(before))})`;
 
 /** Session-only feedback; never authorizes a transaction or becomes game state. */
 export class TownFeedbackTracker {
@@ -44,53 +40,6 @@ export class TownFeedbackTracker {
     const add = (kind: TownFeedback["kind"], key: string, text: string) =>
       events.push({ id: `${scope}:${kind}:${key}`, kind, text });
     if (time > previousTime) {
-      const oldLedger = before.ledger,
-        ledger = o.ledger;
-      if (
-        oldLedger?.actor.kind === "player" &&
-        oldLedger.actor.account_id === state.accountId &&
-        ledger?.actor.kind === "player" &&
-        ledger.actor.account_id === state.accountId &&
-        BigInt(ledger.revision) >= BigInt(oldLedger.revision)
-      ) {
-        const gold = (
-          [
-            "held",
-            "available",
-            "trade_reserved",
-            "trade_inbound_reserved",
-          ] as const
-        )
-          .filter((key) => oldLedger.gold[key] !== ledger.gold[key])
-          .map((key) =>
-            change(
-              key.replaceAll("_", " "),
-              oldLedger.gold[key],
-              ledger.gold[key],
-            ),
-          );
-        if (gold.length)
-          add(
-            "gold",
-            `${time}`,
-            `Game gold: ${gold.join("; ")}. Observed net change, not proof of a sale or profit.`,
-          );
-        const oldStock = inventoryRows(oldLedger);
-        for (const row of inventoryRows(ledger)) {
-          const old = oldStock.find((r) => r.id === row.id)!;
-          const fields = (
-            ["held", "available", "reserved", "incoming"] as const
-          )
-            .filter((key) => old[key] !== row[key])
-            .map((key) => change(key, old[key], row[key]));
-          if (fields.length)
-            add(
-              "stock",
-              `${time}:${row.id}`,
-              `${row.name}: ${fields.join("; ")}.`,
-            );
-        }
-      }
       if (o.shop!.production_slots !== before.shop!.production_slots)
         add(
           "upgrade",
@@ -118,10 +67,11 @@ export class TownFeedbackTracker {
         ) {
           if (this.readySeen.size < 2048) {
             this.readySeen.add(job.job_id);
+            const item = job.output_item.replaceAll("_", " ") + (job.output_quantity === "1" ? "" : "s");
             add(
               "ready",
               job.job_id,
-              `Batch ${job.job_id} is ready at finalized network time: ${job.output_quantity} ${job.output_item}. Review and claim its whole output in Production; no output is credited until completion confirms.`,
+              `Batch #${job.job_id} is ready: ${job.output_quantity} ${item}. Collect ${job.output_quantity === "1" ? "it" : "them"} in your shop.`,
             );
           }
         }

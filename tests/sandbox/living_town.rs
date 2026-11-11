@@ -7,6 +7,7 @@ mod living_town_assistant;
 mod living_town_completion;
 mod living_town_customers;
 mod living_town_listings;
+mod living_town_offers;
 mod living_town_ownership;
 mod living_town_production;
 mod living_town_purchases;

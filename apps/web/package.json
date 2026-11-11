@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "node ../../scripts/write-web-config.mjs && node ../../scripts/dev-web.mjs",
+    "dev": "node ../../scripts/dev-web.mjs",
     "build": "node ../../scripts/write-web-config.mjs && node ../../scripts/check-public-templates.mjs && eslint src ../../packages/shared/src ../../packages/chain/src --max-warnings 0 && ng build",
     "typecheck": "ngc -p tsconfig.json --noEmit"
   },
@@ -16,6 +16,7 @@
     "@bot-bazaar/chain": "workspace:*",
     "@bot-bazaar/shared": "workspace:*",
     "@hot-labs/near-connect": "0.11.4",
+    "phaser": "3.90.0",
     "rxjs": "7.8.2",
     "tslib": "2.8.1"
   },

@@ -1,215 +1,92 @@
 @if (mode() === "listings") {
-  <section aria-labelledby="shelves-title" class="sales-panel">
-    <p class="eyebrow">FROM YOUR WORKSHOP TO YOUR SHELVES</p>
-    <h3 id="shelves-title">Product listings</h3>
-    <p>
-      Listing stock reserves items for customers. Choose the total quantity
-      remaining on the shelf. Repricing does not add stock or guarantee a sale.
-    </p>
+  <section aria-labelledby="shelves-title" class="sales-panel listings-panel">
+    <div class="listing-heading"><h3 id="shelves-title">Your shelves</h3><p>Put your crafted goods up for sale.</p></div>
+    @if (state().pending; as pending) {
+      @if (pending.call.method === 'set_listing' || pending.call.method === 'cancel_listing') {
+        <p class="listing-pending" role="status">Updating your shelves&hellip; Waiting for confirmation.</p>
+      }
+    }
     <div class="shelves">
       @for (p of products; track p.id) {
-        <article class="shelf">
+        <article class="shelf" [class.shelf-active]="owned(p.id)?.active">
           <h4><app-town-art [kind]="p.id" />{{ p.name }}</h4>
-          <dl>
-            <div>
-              <dt>Held</dt>
-              <dd>{{ stock(p.id, "held") }}</dd>
-            </div>
-            <div>
-              <dt>Available</dt>
-              <dd>{{ stock(p.id, "available") }}</dd>
-            </div>
-            <div>
-              <dt>Listed / reserved</dt>
-              <dd>{{ stock(p.id, "listing_reserved") }}</dd>
-            </div>
-          </dl>
-          @if (owned(p.id); as l) {
-            <p>
-              {{
-                l.active
-                  ? l.remaining_quantity +
-                    " listed at " +
-                    l.unit_price +
-                    " gold each"
-                  : "Inactive listing. Its identity is retained."
-              }}
-            </p>
-          }
+          @if (owned(p.id); as listing) {
+            @if (listing.active) {
+              <p class="shelf-price">{{ listing.unit_price }}<span>g each</span></p>
+              <p class="shelf-summary">{{ listing.remaining_quantity }} on sale &middot; {{ stock(p.id, 'available') }} ready to list</p>
+            } @else { <p class="shelf-empty">Not on sale</p><p class="shelf-summary">{{ stock(p.id, 'available') }} ready to list</p> }
+          } @else { <p class="shelf-empty">Not on sale</p><p class="shelf-summary">{{ stock(p.id, 'available') }} ready to list</p> }
           <div class="actions">
-            <button type="button" [disabled]="!canEdit()" (click)="edit(p.id)">
-              {{ owned(p.id)?.active ? "Edit listing" : "Set up listing" }}
+            <button class="primary" type="button" [disabled]="!canEdit() || stock(p.id, 'held') === '0'" (click)="edit(p.id)">
+              {{ owned(p.id)?.active ? 'Edit listing' : 'List for sale' }}
             </button>
-            @if (owned(p.id); as l) {
-              @if (l.active) {
-                <button
-                  type="button"
-                  [disabled]="!canCancel()"
-                  (click)="reviewCancellation(l)"
-                >
-                  Review cancellation
-                </button>
+            @if (owned(p.id); as listing) {
+              @if (listing.active) {
+                <button class="quiet" type="button" [disabled]="!canCancel()" (click)="reviewCancellation(listing)">Remove</button>
               }
             }
           </div>
         </article>
       }
     </div>
-    <form
-      (submit)="$event.preventDefault(); reviewListing()"
-      class="listing-form"
-      aria-label="Listing terms"
-    >
-      <label
-        >Product<select [value]="product()" (change)="edit(text($event))">
-          <option value="health_potion">Health potions</option>
-          <option value="iron_tool">Iron tools</option>
-        </select></label
-      >
-      <label
-        >Remaining quantity<input
-          type="text"
-          inputmode="numeric"
-          maxlength="3"
-          [value]="quantity()"
-          (input)="quantity.set(text($event)); review.set(null)"
-      /></label>
-      <label
-        >Gold per item<input
-          type="text"
-          inputmode="numeric"
-          maxlength="3"
-          [value]="price()"
-          (input)="price.set(text($event)); review.set(null)"
-      /></label>
-      <button
-        type="submit"
-        [disabled]="!canEdit() || !!quote().reason || !quote().review"
-      >
-        Review listing
-      </button>
-    </form>
-    <p class="muted">
-      Whole prices: 1–100 gold. Remaining quantity: 1–100, within your held
-      stock. Cancel a listing to release its unsold units.
-    </p>
-    @if (quote().reason) {
-      <p role="status">{{ quote().reason }}</p>
-    }
-    @if (quote().review; as q) {
-      <p class="demand-note">{{ demandText(q.itemId, q.price) }}</p>
-    }
-    @if (review(); as r) {
-      <div class="review" role="region" aria-label="Review listing change">
-        <h4>Review your shelf</h4>
-        <p>
-          Replace {{ r.previousQuantity }} remaining units with {{ r.quantity }}
-          {{ name(r.itemId).toLowerCase() }}, at {{ r.price }} gold each.
-        </p>
-        <p>
-          This reserves stock. It does not earn revenue until a funded purchase
-          confirms. Wallet fees use NEAR.
-        </p>
-        @if (!reviewCurrent()) {
-          <p role="status">
-            Your stock or listing terms changed. Refresh confirmed data and
-            review again.
-          </p>
+    @if (editing()) {
+      <section class="listing-editor" aria-labelledby="listing-editor-title">
+        <div class="heading"><h4 id="listing-editor-title">{{ owned(product())?.active ? 'Edit your listing' : 'Create a listing' }}</h4>
+          <button type="button" class="quiet" (click)="editing.set(false); review.set(null)">Close</button></div>
+        <form (submit)="$event.preventDefault(); reviewListing()" class="listing-form" aria-label="Listing details">
+          <label>Product<select [value]="product()" (change)="edit(text($event))">
+            <option value="health_potion">Health potions</option><option value="iron_tool">Iron tools</option>
+          </select></label>
+          <label>Quantity on sale<input type="text" inputmode="numeric" maxlength="3" [value]="quantity()"
+            (input)="quantity.set(text($event)); review.set(null)" /></label>
+          <label>Price per item (g)<input type="text" inputmode="numeric" maxlength="3" [value]="price()"
+            (input)="price.set(text($event)); review.set(null)" /></label>
+          <button class="primary" type="submit" [disabled]="!canEdit() || !!quote().reason || !quote().review">Review listing</button>
+        </form>
+        <p class="listing-help">Set the total quantity you want on sale, including any already listed. Prices and quantities must be whole numbers from 1 to 100.</p>
+        @if (quote().reason) { <p class="listing-error" role="status">{{ quote().reason }}</p> }
+        @if (quote().review; as q) { <p class="demand-note">{{ demandText(q.itemId, q.price) }}</p> }
+        @if (review(); as r) {
+          <div class="review" role="region" aria-label="Confirm listing">
+            <h4>Ready to list?</h4>
+            <p>{{ r.quantity }} {{ name(r.itemId).toLowerCase() }} at <strong>{{ r.price }}g each</strong>.</p>
+            @if (r.previousQuantity !== '0') { <p class="listing-help">Replaces your current listing of {{ r.previousQuantity }}.</p> }
+            <p class="listing-help">Items stay on your shelves until sold or removed.</p>
+            @if (!reviewCurrent()) { <p role="status">Your stock changed. Review the listing again.</p> }
+            <div class="actions">
+              <button class="primary" type="button" [disabled]="!canEdit() || !reviewCurrent()" (click)="saveListing()">Confirm listing</button>
+              <button class="quiet" type="button" (click)="review.set(null)">Go back</button>
+            </div>
+          </div>
         }
+      </section>
+    }
+    @if (cancellation(); as listing) {
+      <div class="review" role="region" aria-label="Remove listing">
+        <h4>Remove from sale?</h4><p>{{ listing.remaining_quantity }} {{ name(listing.item_id).toLowerCase() }} will be available to use again.</p>
+        @if (!cancelCurrent()) { <p role="status">This listing changed. Review its latest stock again.</p> }
         <div class="actions">
-          <button
-            type="button"
-            [disabled]="!canEdit() || !reviewCurrent()"
-            (click)="saveListing()"
-          >
-            Save reviewed listing</button
-          ><button type="button" (click)="review.set(null)">
-            Close review
-          </button>
+          <button class="primary" type="button" [disabled]="!canCancel() || !cancelCurrent()" (click)="cancelListing()">Remove listing</button>
+          <button class="quiet" type="button" (click)="cancellation.set(null)">Keep on sale</button>
         </div>
       </div>
     }
-    @if (cancellation(); as l) {
-      <div
-        class="review"
-        role="region"
-        aria-label="Review listing cancellation"
-      >
-        <h4>Release unsold stock</h4>
-        <p>
-          Cancel listing #{{ l.listing_id }} and release its
-          {{ l.remaining_quantity }} unsold units. Confirmed sales stay settled.
-        </p>
-        @if (!cancelCurrent()) {
-          <p role="status">
-            This listing changed. Refresh and review its current remaining
-            stock.
-          </p>
+    <details class="market-comparison">
+      <summary>Compare {{ name(product()).toLowerCase() }} prices</summary>
+      <p class="listing-help">Customers consider cheaper eligible listings first. Sales may take a little time.</p>
+      @if (state().market; as market) {
+        @if (old(market)) { <p class="listing-help">These prices are updating.</p> }
+        <ul class="offers">
+          @for (listing of comparables(); track listing.listing_id) {
+            <li><span>Shop #{{ listing.shop_id }}</span><span>{{ listing.remaining_quantity }} available &middot; {{ listing.unit_price }}g each</span></li>
+          } @empty { <li>No other listings for {{ name(product()).toLowerCase() }} in the loaded results.</li> }
+        </ul>
+        @if (market.nextCursor) {
+          <button type="button" class="quiet" [disabled]="state().marketBusy" (click)="controller().loadMarket(false)">Show more</button>
         }
-        <div class="actions">
-          <button
-            type="button"
-            [disabled]="!canCancel() || !cancelCurrent()"
-            (click)="cancelListing()"
-          >
-            Cancel reviewed listing</button
-          ><button type="button" (click)="cancellation.set(null)">
-            Keep listing
-          </button>
-        </div>
-      </div>
-    }
-    @if (state().observation; as o) {
-      <p class="muted">
-        At your confirmed town snapshot, customers have
-        {{ o.town.customer_pool.gold }} gold available. Purchases this epoch:
-        {{ o.town.customer_pool.potion_units_bought }}/2 potions and
-        {{ o.town.customer_pool.tool_units_bought }}/2 tools. Worker
-        availability and competing shops can delay a sale.
-      </p>
-    }
-    <div class="heading">
-      <h4>Comparable offers</h4>
-      <button
-        type="button"
-        [disabled]="state().marketBusy"
-        (click)="controller().loadMarket()"
-      >
-        Refresh offers
-      </button>
-    </div>
-    <p class="muted">
-      Active {{ name(product()).toLowerCase() }} offers in the loaded market
-      pages. Lower prices are considered first; customer budgets and quotas
-      still apply.
-    </p>
-    @if (state().market; as market) {
-      <p class="muted">
-        Observed {{ market.receivedAt | date: "shortTime"
-        }}{{ old(market) ? " · Previous snapshot" : "" }}
-      </p>
-      <ul class="offers">
-        @for (l of comparables(); track l.listing_id) {
-          <li>
-            Shop #{{ l.shop_id }} · {{ l.unit_price }} gold each ·
-            {{ l.remaining_quantity }} remaining
-          </li>
-        } @empty {
-          <li>No matching offers in the loaded pages.</li>
-        }
-      </ul>
-      @if (market.nextCursor) {
-        <button
-          type="button"
-          [disabled]="state().marketBusy"
-          (click)="controller().loadMarket(false)"
-        >
-          Load more offers
-        </button>
-      }
-    } @else {
-      <p role="status">Comparable offers are not available yet.</p>
-    }
+      } @else { <p class="listing-help">Loading other shops&hellip;</p> }
+      <button type="button" class="quiet" [disabled]="state().marketBusy" (click)="controller().loadMarket()">Update prices</button>
+    </details>
   </section>
 } @else {
   <section

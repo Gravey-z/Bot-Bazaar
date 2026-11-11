@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { DatabaseSync } from "node:sqlite";
 import { mkdtempSync, rmSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
@@ -37,6 +38,19 @@ async function fixture(t, options) {
   });
   return { ...f, dir };
 }
+
+test("new journals support peer trading while legacy version 1007 stays readable without enabling it", async (t) => {
+  const f = await fixture(t);
+  assert.equal(f.store.merchantTrading, true);
+  const { path, identity, seed } = f.store;
+  f.close();
+  const db = new DatabaseSync(path);
+  db.exec("PRAGMA user_version=1007");
+  db.close();
+  const legacy = new LivingTownExecutionStore(f.dir, identity, seed);
+  assert.equal(legacy.merchantTrading, false);
+  legacy.close();
+});
 
 test("customer decision and signed bytes persist before send; final receipt unlocks exactly one action", async (t) => {
   const f = await fixture(t);
