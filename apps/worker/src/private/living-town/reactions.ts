@@ -58,6 +58,43 @@ export class TownReactionRepository {
   hasPending(): boolean {
     return !!this.db.prepare("SELECT id FROM reaction_roots WHERE state!='closed' LIMIT 1").get();
   }
+  /** Housekeeping can progress without AI admission or a customer turn.
+   * Only journal-terminal steps may be retired; pending chain offers stay pending.
+   */
+  advanceExpired(nowNs: string): boolean {
+    this.gate();
+    return this.write(() => {
+      const active = this.active();
+      if (!active || active.offer_id == null) return false;
+      const id = String(active.id);
+      if (this.steps(id).some(s => s.state !== "completed")) return false;
+      const row = this.db.prepare(
+        "SELECT body FROM town_offer_commitments WHERE offer_id=?",
+      ).get(active.offer_id);
+      if (!row) return false;
+      const offer = livingTownOffer(JSON.parse(String(row.body)));
+      if (offer.status !== "pending") {
+        this.close(id, offer.status);
+        return true;
+      }
+      if (BigInt(offer.expires_at_ns) > BigInt(nowNs)) return false;
+      if (this.steps(id).filter(s => s.role === "cleanup").length < 3) return false;
+      this.close(id, "cleanup_retry_limit_reached");
+      return true;
+    });
+  }
+  /** Only consider finalized, mirrored expired offers; a housekeeping turn
+   * remains subject to fresh chain facts and the single durable executor.
+   */
+  needsCleanup(nowNs: string): boolean {
+    const rows = this.db.prepare(
+      "SELECT body FROM town_offer_commitments WHERE status='pending'",
+    ).all();
+    return rows.some(row => {
+      const offer = livingTownOffer(JSON.parse(String(row.body)));
+      return BigInt(offer.expires_at_ns) <= BigInt(nowNs);
+    });
+  }
   steps(rootId: string): Row[] {
     return this.db
       .prepare("SELECT * FROM reaction_steps WHERE root_id=? ORDER BY ordinal")

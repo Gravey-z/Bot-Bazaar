@@ -449,6 +449,7 @@ export class LivingTownSimulationAdapter {
       }),
     };
   }
+  private housekeepingDeferrals = 0;
   async poll(): Promise<SimulationPoll> {
     requireStorage(!this.busy, "simulation adapter already running");
     this.busy = true;
@@ -516,6 +517,11 @@ export class LivingTownSimulationAdapter {
         block: reader.block,
         codeHash: reader.identity.codeHash,
       });
+      // Always retire exhausted or terminal offer reactions, even while a
+      // customer tick is queued or the AI provider is unavailable.
+      if (this.store.negotiatedTrading &&
+          this.store.reactions.advanceExpired(town.block_timestamp_ns))
+        return { kind: "advanced" };
       let maintenanceInput: MerchantPolicyInput | undefined;
       let sourceMarkers: ReturnType<typeof livingTownSourceState> | undefined;
       let sourceTurn = false;
@@ -537,6 +543,26 @@ export class LivingTownSimulationAdapter {
       const nextArrival = activeTick ? String(this.store.ticks.actions(String(activeTick["id"]))
         .find(action => ["planned", "active"].includes(String(action["state"])))?.["arrival"] ?? "") : "";
       const queuedCustomer = nextArrival === "fund" || /^[0-3]$/.test(nextArrival);
+      // Cooperative independent housekeeping lane: while customers are queued,
+      // permit an expired-offer cleanup after at most three customer polls.
+      // All actual transactions still pass through the exclusive town executor.
+      // Do not advance AI decisions here or consume customer opportunities.
+      if (queuedCustomer && this.store.negotiatedTrading && this.propose && !sourceTurn &&
+          this.store.reactions.needsCleanup(town.block_timestamp_ns)) {
+        this.housekeepingDeferrals++;
+        if (this.housekeepingDeferrals >= 4) {
+          this.housekeepingDeferrals = 0;
+          const input = await this.facts(reader);
+          if (input.fresh && input.historyComplete) {
+            this.store.reactions.observe(input);
+            const priorRoot = this.store.reactions.active();
+            const work = this.store.reactions.next(input, this.store.offers);
+            if (work?.role === "cleanup") return this.react(work, reader);
+            if (priorRoot && this.store.reactions.root(String(priorRoot.id))?.state === "closed")
+              return { kind: "advanced" };
+          }
+        }
+      } else this.housekeepingDeferrals = 0;
       // Recover signed work first (above), then service this epoch's customers
       // before collecting merchant policy or starting another AI reaction.
       if (queuedCustomer || (!activeTick && !sourceTurn && this.scheduler.hasPendingCustomers(town))) {

@@ -678,8 +678,8 @@ export class LivingTownComponent implements OnInit, OnDestroy {
           } else if (!balanceReady) {
             stage = state.phase === "unavailable" || observation?.stale ? "reconnecting" : "loading-balance";
             message = stage === "reconnecting"
-              ? "Trying to re-establish the town connection… Your progress is saved."
-              : "Guest connected. Loading your gold and shop…";
+              ? "The town is reconnecting…"
+              : "The merchants are preparing your arrival…";
           } else if (!state.transactionAvailable) {
             stage = "restoring-actions";
             message = "Guest connected. Restoring your saved action details before you can play…";
