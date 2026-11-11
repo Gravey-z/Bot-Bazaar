@@ -66,6 +66,16 @@ export class TownReactionRepository {
   root(id: string): Row | undefined {
     return this.db.prepare("SELECT * FROM reaction_roots WHERE id=?").get(id);
   }
+  /** Persisted expiry attempts across both purchase and housekeeping roots.
+   * Read-only audit: never infer transaction success from an abandoned intent.
+   */
+  cleanupHistory(offerId: string): Row[] {
+    return this.db.prepare(
+      "SELECT id,status,args_json,args_digest FROM intents " +
+      "WHERE method='expire_offers' AND status IN ('abandoned','failed','confirmed') " +
+      "AND json_extract(args_json,'$.offer_ids[0]')=? ORDER BY rowid DESC LIMIT 12",
+    ).all(offerId);
+  }
   work(id: string): ReactionWork | null {
     const row = this.db
       .prepare(
@@ -342,11 +352,17 @@ export class TownReactionRepository {
         );
         if (offer.status === "pending") {
           if (BigInt(offer.expires_at_ns) <= now) {
-            // Never create an unbounded stream of attempts for the same offer.
-            // A purchase root has up to three cleanup attempts; the separate,
-            // stable housekeeping root may make three more attempts. Every
-            // attempt still uses the original single-writer execution journal.
+            // An expired trade is no longer AI negotiation work. After the
+            // first attempted cleanup, release the purchase root and hand off
+            // to the offer's stable housekeeping root. Existing completed
+            // attempts remain immutable in the original execution journal.
             const cleanupAttempts = this.steps(id).filter(s => s.role === "cleanup").length;
+            if (root.kind === "purchase" && cleanupAttempts > 0) {
+              this.close(id, "cleanup_handed_off");
+              return;
+            }
+            // Existing installations may already have several purchase-root
+            // attempts. The housekeeping root still has an independent cap.
             if (cleanupAttempts >= 3) {
               this.close(id, "cleanup_retry_limit_reached");
               return;

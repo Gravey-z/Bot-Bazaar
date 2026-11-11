@@ -575,14 +575,19 @@ export class LivingTownSimulationAdapter {
         if (!this.store.ticks.active()) {
           const active = this.store.reactions.active();
           const work = this.store.reactions.next(input, this.store.offers);
-          // Saved non-cleanup decisions retain recovery priority. Expiry
-          // housekeeping yields when deterministic supply or shelf work is due.
-          const shelves = this.shelfUpdates(input);
+          // Keep deterministic listings AND production eligible even when an
+          // expired offer is waiting for housekeeping. Every third epoch may
+          // service cleanup to avoid starving it under constant stock demand.
+          const maintenanceDue = this.policy.evaluate(input).decisions.some(d =>
+            d.action.kind === "set_listing" ||
+            d.action.kind === "start_production" ||
+            d.action.kind === "complete_production");
           sourceMarkers = (await reader.getSourceState()).data;
           const supply = (["crystal", "wood", "herb", "iron"] as const)
             .some(item => this.supplyDue(town, sourceMarkers!, item));
+          const cleanupTurn = BigInt(town.data.epoch) % 3n === 0n;
           if (work && ((work.decision && work.role !== "cleanup") ||
-              (shelves.size === 0 && !supply)))
+              (!supply && (!maintenanceDue || cleanupTurn))))
             return this.react(work, reader);
           if (
             active &&

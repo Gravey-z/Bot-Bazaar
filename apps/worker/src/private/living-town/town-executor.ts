@@ -266,6 +266,54 @@ export class DurableTownExecutor {
       return { kind: "ready", reasons: [] };
     });
   }
+  /** Verify prior unbroadcast expiry attempts against the finalized chain
+   * before a new cleanup command is prepared. Never rewrite historical intents,
+   * force a command sequence, or assume an unknown outcome is a failure.
+   */
+  private async verifyCleanupRetry(
+    work: TownWork,
+    reader: FinalizedLivingTownReader,
+  ): Promise<void> {
+    const reaction = this.store.reactions.work(work.id);
+    if (reaction?.role !== "cleanup") return;
+    const offerId = (work.decision as { offerId?: string } | null)?.offerId;
+    requireStorage(typeof offerId === "string", "cleanup offer ID required");
+    const snapshot = await reader.getOffer(offerId);
+    // A terminal or not-yet-expired offer becomes an audited no-op through
+    // refresh(); it must not leave an unbound reaction step behind.
+    if (snapshot.data.kind !== "found" ||
+        snapshot.data.offer.status !== "pending" ||
+        BigInt(snapshot.block_timestamp_ns) < BigInt(snapshot.data.offer.expires_at_ns))
+      return;
+    // Multiple abandoned attempts may share the same unchanged sequence.
+    // Cache the evidence to avoid unnecessary RPC reads and rate limiting.
+    const checked = new Map<string, Awaited<ReturnType<typeof reader.getCommand>>>();
+    for (const previous of this.store.reactions.cleanupHistory(offerId)) {
+      if (String(previous.id) === work.id) continue;
+      if (previous.status === "confirmed")
+        throw new StaleTownStep("previous expiry confirmed; await offer reconciliation");
+      if (previous.status !== "abandoned") continue;
+      const args = JSON.parse(String(previous.args_json)) as {
+        command?: { sequence?: string };
+      };
+      requireStorage(typeof args.command?.sequence === "string",
+        "abandoned cleanup command evidence missing");
+      let checkpoint = checked.get(args.command.sequence);
+      if (!checkpoint) {
+        checkpoint = await reader.getCommand(`merchant:${work.lane}`, args.command.sequence);
+        checked.set(args.command.sequence, checkpoint);
+      }
+      if (checkpoint.data.kind === "found") {
+        // Another command may legitimately occupy an abandoned sequence;
+        // only the same digest indicates an unexpectedly applied expiry.
+        requireStorage(checkpoint.data.payload_sha256 !== previous.args_digest,
+          "abandoned expiry appears applied; reconcile journal before retry");
+      } else {
+        requireStorage(checkpoint.data.kind === "not_applied",
+          "abandoned cleanup command evidence unavailable");
+      }
+    }
+  }
   private async live(work: TownWork, call: TownCall): Promise<void> {
     requireStorage(this.authorized, "verified town recovery required");
     const reader = await this.adapters[work.lane].client.finalized(),
@@ -346,6 +394,10 @@ export class DurableTownExecutor {
             (BigInt(work.tick) + 1n) * 60000000000n
         ).toString(),
       };
+      // Cleanup is admitted only after finalized offer AND abandoned-command
+      // evidence have been rechecked, including attempts from older roots.
+      if (reaction?.role === "cleanup")
+        await this.verifyCleanupRetry(work, reader);
       const proposed = await this.refresh(
           work.decision,
           work.lane,
