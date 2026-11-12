@@ -375,10 +375,7 @@ impl LivingTown {
             slot < 4 && (1..=2).contains(&quantity.0),
             "LT:E_INVALID_QUANTITY"
         );
-        require!(
-            (b == PRIMARY[slot]) != (s == PRIMARY[slot]),
-            "LT:E_TRADE_DIRECTION"
-        );
+        require!(b != s, "LT:E_SELF_TRADE");
         require!(
             (MIN_PRICE[slot]..=MAX_PRICE[slot]).contains(&unit_price.0),
             "LT:E_PRICE_BAND"

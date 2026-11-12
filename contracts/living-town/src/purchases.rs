@@ -159,8 +159,7 @@ fn settle(
         .checked_sub(seller.reservations.trade.quantities[slot])
         .unwrap_or_else(|| env::panic_str("LT:E_INSUFFICIENT_AVAILABLE_STOCK"));
     require!(
-        quantity <= listing.quantity
-            && listing.quantity <= free_after_trade,
+        quantity <= listing.quantity && listing.quantity <= free_after_trade,
         "LT:E_INSUFFICIENT_AVAILABLE_STOCK"
     );
     let total = quantity

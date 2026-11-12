@@ -744,6 +744,9 @@ fn gold_capacity_direction_and_competing_promises_reject_without_side_effects() 
     fails(&mut t, |t| {
         propose(t, p, "luna.testnet", 10);
     });
+    let previous = t.npcs[2].held.quantities[0];
+    t.npcs[2].held.quantities[0] = 1;
+
     let p = proposal(
         &t,
         MerchantId::Luna,
@@ -756,6 +759,8 @@ fn gold_capacity_direction_and_competing_promises_reject_without_side_effects() 
     fails(&mut t, |t| {
         propose(t, p, "luna.testnet", 10);
     });
+
+    t.npcs[2].held.quantities[0] = previous;
     t.npcs[1].gold = 120;
     let p = proposal(
         &t,

@@ -448,8 +448,12 @@ const backupTarget = 3n,
         )
           why.push("emergency_price_below_donor_band");
       } else {
-        if (!signal.healthyForBackups)
+        if (
+          !signal.healthyForBackups &&
+          BigInt(bi.held[o.item_id]) > 0n
+        ) {
           why.push("primary_no_longer_healthy_for_backup");
+        }
         if (BigInt(o.unit_price) > BigInt(cfg.base_price))
           why.push("backup_price_above_base");
       }

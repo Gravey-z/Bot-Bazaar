@@ -229,6 +229,8 @@ mod tests {
     #[test]
     fn backup_purchase_resale_and_replay_conserve_existing_gold_and_materials() {
         let mut t = town();
+        // Create inventory headroom for the legacy 2-unit backup cap.
+        t.npcs[1].held.quantities[0] = 0;
         let revision = t.npcs[0].listings[0].as_ref().unwrap().revision;
         let first = buy(
             &mut t,
@@ -242,7 +244,7 @@ mod tests {
             1,
         );
         assert_eq!(first["data"]["principal"], "merchant:luna");
-        assert_eq!(t.npcs[0].held.quantities[0], 8);
+        assert_eq!(t.npcs[0].held.quantities[0], 10);
         assert_eq!(t.npcs[1].held.quantities[0], 2);
         assert_eq!(t.npcs.iter().map(|n| n.gold).sum::<u64>(), 600);
         let before = near_sdk::borsh::to_vec(&t).unwrap();
@@ -290,6 +292,7 @@ mod tests {
     #[test]
     fn authority_stale_quotes_price_quantity_and_backup_caps_reject_without_mutation() {
         let mut t = town();
+        t.npcs[1].held.quantities[0] = 0;
         let revision = t.npcs[0].listings[0].as_ref().unwrap().revision;
         for (actor, buyer, seller, q, rev, max) in [
             (

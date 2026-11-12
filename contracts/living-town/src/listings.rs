@@ -240,7 +240,7 @@ impl LivingTown {
             }
         };
         require!(
-            quantity.0 <= held.checked_sub(trade).unwrap_or(0),
+            quantity.0 <= held.saturating_sub(trade),
             "LT:E_INSUFFICIENT_AVAILABLE_STOCK"
         );
         let listing = if let Some(old) = old {
@@ -273,8 +273,14 @@ impl LivingTown {
         command: Command,
     ) -> Value {
         let p: BatchListingArgs = args(&["updates", "command"]);
-        require!(p.updates == updates && p.command == command, "LT:E_INVALID_ARGUMENT");
-        require!((1..=ITEMS.len()).contains(&updates.len()), "LT:E_INVALID_ARGUMENT");
+        require!(
+            p.updates == updates && p.command == command,
+            "LT:E_INVALID_ARGUMENT"
+        );
+        require!(
+            (1..=ITEMS.len()).contains(&updates.len()),
+            "LT:E_INVALID_ARGUMENT"
+        );
         let shop_id = updates[0].shop_id.0;
         require!((1..=3).contains(&shop_id), "LT:E_INVALID_ARGUMENT");
         let owner = self.listing_owner(shop_id);
@@ -293,18 +299,26 @@ impl LivingTown {
             json!({"updates": updates, "command": command}),
             &command,
         );
-        if let Some(effect) = replay { return effect; }
+        if let Some(effect) = replay {
+            return effect;
+        }
         let mut entries = Vec::with_capacity(updates.len());
         let mut final_change: Option<Change> = None;
         for u in updates {
-            require!(u.quantity.0 <= 100 && (1..=100).contains(&u.unit_price.0),
-                "LT:E_INVALID_LISTING_TERMS");
+            require!(
+                u.quantity.0 <= 100 && (1..=100).contains(&u.unit_price.0),
+                "LT:E_INVALID_LISTING_TERMS"
+            );
             let slot = u.item_id as usize;
             let key = (shop_id, slot as u8);
-            let old = self.listing_slots.get(&key)
+            let old = self
+                .listing_slots
+                .get(&key)
                 .and_then(|id| self.listing_row(*id).map(|(_, _, l)| l));
-            require!(old.as_ref().map(|l| Decimal(l.revision)) == u.expected_listing_revision,
-                "LT:E_STALE_LISTING");
+            require!(
+                old.as_ref().map(|l| Decimal(l.revision)) == u.expected_listing_revision,
+                "LT:E_STALE_LISTING"
+            );
             let npc = &self.npcs[(shop_id - 1) as usize];
             if slot < 4 {
                 let cfg = config();
@@ -313,28 +327,45 @@ impl LivingTown {
                 let hi = row["maxPrice"].as_str().unwrap().parse::<u64>().unwrap();
                 require!((lo..=hi).contains(&u.unit_price.0), "LT:E_PRICE_BAND");
             }
-            require!(u.quantity.0 <= npc.held.quantities[slot]
-                .checked_sub(npc.reservations.trade.quantities[slot]).unwrap_or(0),
-                "LT:E_INSUFFICIENT_AVAILABLE_STOCK");
+            require!(
+                u.quantity.0
+                    <= npc.held.quantities[slot]
+                        .saturating_sub(npc.reservations.trade.quantities[slot]),
+                "LT:E_INSUFFICIENT_AVAILABLE_STOCK"
+            );
             let listing = if let Some(old) = old {
                 Listing {
-                    id: old.id, quantity: u.quantity.0,
-                    unit_price: u.unit_price.0, revision: next(old.revision),
+                    id: old.id,
+                    quantity: u.quantity.0,
+                    unit_price: u.unit_price.0,
+                    revision: next(old.revision),
                 }
             } else {
                 let id = self.next_listing_id;
                 self.next_listing_id = next(id);
                 self.listing_index.insert(id, key);
                 self.listing_slots.insert(key, id);
-                Listing { id, quantity: u.quantity.0, unit_price: u.unit_price.0, revision: 1 }
+                Listing {
+                    id,
+                    quantity: u.quantity.0,
+                    unit_price: u.unit_price.0,
+                    revision: 1,
+                }
             };
             let change = self.replace_listing(shop_id, u.item_id, listing.clone(), false);
             entries.push((shop_id, u.item_id, listing));
             final_change = Some(change);
         }
-        self.commit(actor, command, digest, Outcome::ListingBatch(Box::new(BatchListing {
-            owner, entries, final_change: final_change.expect("nonempty batch"),
-        })))
+        self.commit(
+            actor,
+            command,
+            digest,
+            Outcome::ListingBatch(Box::new(BatchListing {
+                owner,
+                entries,
+                final_change: final_change.expect("nonempty batch"),
+            })),
+        )
     }
     pub fn cancel_listing(
         &mut self,
@@ -584,36 +615,61 @@ mod tests {
         let mut t = town();
         let updates = vec![
             BatchListingUpdate {
-                shop_id: Decimal(1), item_id: Item::Crystal,
-                quantity: Decimal(7), unit_price: Decimal(3),
+                shop_id: Decimal(1),
+                item_id: Item::Crystal,
+                quantity: Decimal(7),
+                unit_price: Decimal(3),
                 expected_listing_revision: Some(Decimal(1)),
             },
             BatchListingUpdate {
-                shop_id: Decimal(1), item_id: Item::IronTool,
-                quantity: Decimal(0), unit_price: Decimal(5),
+                shop_id: Decimal(1),
+                item_id: Item::IronTool,
+                quantity: Decimal(0),
+                unit_price: Decimal(5),
                 expected_listing_revision: None,
             },
         ];
-        context("rex.testnet", json!({"updates": updates, "command": command(1)}),
-            400_000_000_000);
+        context(
+            "rex.testnet",
+            json!({"updates": updates, "command": command(1)}),
+            400_000_000_000,
+        );
         let first = t.batch_set_listings(updates.clone(), command(1));
         assert_eq!(first["data"]["principal"], "merchant:rex");
         assert_eq!(first["data"]["command_sequence"], "1");
         assert_eq!(first["data"]["outcome"]["kind"], "listings_set");
-        assert_eq!(first["data"]["outcome"]["listings"].as_array().unwrap().len(), 2);
-        assert_eq!(t.commands.get(&"merchant:rex".to_string()).unwrap().sequence, 1);
-        context("rex.testnet", json!({"updates": updates, "command": command(1)}),
-            400_000_000_000);
+        assert_eq!(
+            first["data"]["outcome"]["listings"]
+                .as_array()
+                .unwrap()
+                .len(),
+            2
+        );
+        assert_eq!(
+            t.commands
+                .get(&"merchant:rex".to_string())
+                .unwrap()
+                .sequence,
+            1
+        );
+        context(
+            "rex.testnet",
+            json!({"updates": updates, "command": command(1)}),
+            400_000_000_000,
+        );
         let again = t.batch_set_listings(updates, command(1));
         assert_eq!(again["data"]["replayed"], true);
-        assert_eq!(again["data"]["payload_sha256"], first["data"]["payload_sha256"]);
+        assert_eq!(
+            again["data"]["payload_sha256"],
+            first["data"]["payload_sha256"]
+        );
     }
     #[test]
     fn npc_prices_stock_and_authority_share_the_persistent_merchant_lane() {
         let mut t = town();
         for (actor, q, price) in [
             ("other.testnet", 1, 4),
-            ("rex.testnet", 11, 4),
+            ("rex.testnet", 13, 4),
             ("rex.testnet", 1, 2),
             ("rex.testnet", 1, 7),
         ] {
@@ -638,7 +694,7 @@ mod tests {
         assert_eq!(result["data"]["principal"], "merchant:rex");
         assert_eq!(
             result["data"]["outcome"]["ledger"]["inventory"]["available"]["crystal"],
-            "10"
+            "12"
         );
         assert!(t.commands.get(&"account:rex.testnet".to_owned()).is_none());
         let before = state(&t);
@@ -685,7 +741,7 @@ mod tests {
             Decimal(1),
             command(2),
         );
-        assert_eq!(t.npcs[0].held.quantities[0], 7);
+        assert_eq!(t.npcs[0].held.quantities[0], 9);
         assert_eq!(t.npcs[0].reservations.output.quantities[4], 3);
         assert_eq!(t.npcs[0].listings[0].as_ref().unwrap().quantity, 0);
     }

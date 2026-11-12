@@ -52,7 +52,20 @@ async fn herb_shortage_announces_once_limits_real_supply_and_expires_without_bal
         )
         .await?,
     );
-    let purchase = |revision: &str, seq: u64| json!({"merchant_id":"luna","item_id":"herb","quantity":"12","expected_listing_revision":revision,"max_total_price":"36","command":{"sequence":seq.to_string(),"config_version":"1","valid_until_ns":"0"}});
+    let purchase = |revision: &str, seq: u64| {
+        json!({
+            "merchant_id": "luna",
+            "item_id": "herb",
+            "quantity": "8",
+            "expected_listing_revision": revision,
+            "max_total_price": "24",
+            "command": {
+                "sequence": seq.to_string(),
+                "config_version": "1",
+                "valid_until_ns": "0"
+            }
+        })
+    };
     let mut buy = purchase("1", 2);
     buy["command"] = command(&c, 2).await?;
     steps.push(call(&url, &c, &player, "buy_from_merchant", buy).await?);

@@ -74,27 +74,34 @@ mod tests {
         );
         t.npcs[0].held.quantities[0] = 0;
         t.npcs[0].listings[0].as_mut().unwrap().quantity = 0;
+
         raw(&mut t, Item::Crystal, 10000, 3);
+        assert_eq!(t.npcs[0].held.quantities[0], 2);
+        assert_eq!(t.supplied_items[0], 2);
+
+        raw(&mut t, Item::Crystal, 10005, 4);
         assert_eq!(t.npcs[0].held.quantities[0], 4);
-        assert_eq!(t.supplied_items[0], 4);
-        raw(&mut t, Item::Crystal, 10001, 4);
-        assert_eq!(t.npcs[0].held.quantities[0], 8);
-        raw(&mut t, Item::Crystal, 10002, 5);
-        assert_eq!(t.npcs[0].held.quantities[0], 10);
-        assert_eq!(t.supplied_items[0], 10);
+
+        raw(&mut t, Item::Crystal, 10010, 5);
+        assert_eq!(t.npcs[0].held.quantities[0], 6);
+        assert_eq!(t.supplied_items[0], 6);
     }
     #[test]
     fn supply_protects_inbound_capacity_and_lifetime_counter_overflow_stops_before_mutation() {
         let mut t = town();
+
         t.npcs[1].held.quantities[2] = 0;
         t.npcs[1].listings[2].as_mut().unwrap().quantity = 0;
         t.npcs[1].reservations.inbound.quantities[2] = 996;
-        raw(&mut t, Item::Herb, 1, 1);
-        assert_eq!(t.npcs[1].held.quantities[2], 4);
+
+        raw(&mut t, Item::Herb, 5, 1);
+        assert_eq!(t.npcs[1].held.quantities[2], 0);
         assert_eq!(t.npcs[1].reservations.inbound.quantities[2], 996);
-        raw(&mut t, Item::Herb, 2, 2);
-        assert_eq!(t.raw_epochs[2], 2);
-        assert_eq!(t.supplied_items[2], 4);
+
+        raw(&mut t, Item::Herb, 10, 2);
+        assert_eq!(t.raw_epochs[2], 10);
+        assert_eq!(t.supplied_items[2], 0);
+
         t.npcs[1].reservations.inbound.quantities[2] = 0;
         t.supplied_items[2] = u128::MAX;
         let held = t.npcs[1].held;
@@ -102,13 +109,13 @@ mod tests {
             std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| raw(
                 &mut t,
                 Item::Herb,
-                3,
+                15,
                 3
             )))
             .is_err()
         );
         assert_eq!(t.npcs[1].held.quantities, held.quantities);
-        assert_eq!(t.raw_epochs[2], 2);
+        assert_eq!(t.raw_epochs[2], 10);
     }
     #[test]
     fn treasury_sweep_protects_reserved_gold_and_zero_allocation_marks_the_epoch() {

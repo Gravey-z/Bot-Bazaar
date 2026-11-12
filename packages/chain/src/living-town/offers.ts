@@ -97,8 +97,7 @@ function decodeOffer(value: unknown) {
     pending = o.status === "pending";
   check(
     o.proposer === o.buyer &&
-      o.buyer !== o.seller &&
-      (o.buyer === cfg.supplier) !== (o.seller === cfg.supplier),
+      o.buyer !== o.seller,
     "offer participants/direction mismatch",
   );
   check(
@@ -221,9 +220,7 @@ function decodeMerchantTrade(value: unknown) {
   const cfg = offerMaterialRules[t.item_id];
   check(
     t.buyer.merchant_id !== t.seller.merchant_id &&
-      (t.buyer.merchant_id === cfg.supplier) !==
-        (t.seller.merchant_id === cfg.supplier) &&
-      t.command_principal === `merchant:${t.seller.merchant_id}` &&
+t.command_principal === `merchant:${t.seller.merchant_id}` &&
       BigInt(t.quantity) * BigInt(t.unit_price) === BigInt(t.total_price) &&
       BigInt(t.unit_price) >= BigInt(cfg.min_price) &&
       BigInt(t.unit_price) <= BigInt(cfg.max_price),

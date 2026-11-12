@@ -27,7 +27,10 @@ pub(super) async fn reject(
         .transact()
         .await?
         .into_result();
-    let error = r.unwrap_err().to_string();
+    let error = match r {
+        Ok(_) => anyhow::bail!("Expected {m} to fail with {code}, but it succeeded"),
+        Err(error) => error.to_string(),
+    };
     assert!(error.contains(code), "expected {code}, got {error}");
     assert_eq!(c.view_state().await?, before);
     Ok(())

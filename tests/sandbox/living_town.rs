@@ -181,15 +181,24 @@ async fn isolated_v2_foundation_pins_versions_six_items_config_and_authority() -
         .await?
         .json()?;
     assert_eq!(town["deployment"]["api_version"], "2.0.0");
-    assert_eq!(town["deployment"]["state_schema"], "1");
+    assert_eq!(town["deployment"]["state_schema"], "2");
     assert_eq!(town["deployment"]["config_version"], "1");
     assert_eq!(town["deployment"]["config_sha256"], digest);
     assert_eq!(town["deployment"]["contract_id"], contract.id().as_str());
     assert_eq!(town["data"]["totals"]["initial_gold"], "700");
+
     assert_eq!(
         town["data"]["totals"]["seed_items"],
-        json!({"crystal":"10","wood":"10","herb":"20","iron":"20","health_potion":"0","iron_tool":"0"})
+        json!({
+            "crystal": "23",
+            "wood": "23",
+            "herb": "23",
+            "iron": "23",
+            "health_potion": "0",
+            "iron_tool": "0"
+        })
     );
+
     for ledger in town["data"]["npc_ledgers"].as_array().unwrap() {
         for field in [
             "held",

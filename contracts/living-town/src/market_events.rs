@@ -117,7 +117,7 @@ mod tests {
         let mut t = town();
         let before = t.supplied_items;
         schedule(&mut t, 1, 1);
-        for (e, limit) in [(1, 8), (2, 4), (6, 4), (7, 8), (10000, 8)] {
+        for (e, limit) in [(1, 2), (2, 1), (6, 1), (7, 2), (10000, 2)] {
             assert_eq!(t.herb_ceiling(e), limit);
         }
         assert!(
@@ -139,7 +139,7 @@ mod tests {
         schedule(&mut t, 1, 1);
         t.npcs[1].held.quantities[2] = 0;
         t.npcs[1].listings[2].as_mut().unwrap().quantity = 0;
-        for (epoch, sequence, issued) in [(2, 2, 4), (6, 3, 4), (7, 4, 8)] {
+        for (epoch, sequence, issued) in [(5, 2, 1), (10, 3, 2), (15, 4, 2)] {
             let c = Command {
                 sequence: Decimal(sequence),
                 config_version: Decimal(1),
@@ -153,7 +153,7 @@ mod tests {
             let r = t.allocate_raw_supply(Item::Herb, Decimal(epoch), c, None);
             assert_eq!(r["data"]["outcome"]["issued_quantity"], issued.to_string());
         }
-        assert_eq!(t.supplied_items[2], 16);
-        assert_eq!(t.npcs[1].held.quantities[2], 16);
+        assert_eq!(t.supplied_items[2], 5);
+        assert_eq!(t.npcs[1].held.quantities[2], 5);
     }
 }
