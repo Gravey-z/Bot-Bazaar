@@ -1,4 +1,5 @@
 use super::*;
+use near_sdk::serde::Serialize;
 use ownership::{Outcome, args, next};
 use production::Owner;
 
@@ -47,6 +48,42 @@ struct CancelArgs {
     listing_id: Decimal,
     expected_listing_revision: Decimal,
     command: Command,
+}
+/// One entry is a complete listing mutation. Only one merchant's shop is
+/// permitted in a batch, and item IDs must be distinct.
+#[derive(Clone, Deserialize, Serialize, near_sdk::NearSchema, PartialEq, Eq)]
+#[serde(crate = "near_sdk::serde", deny_unknown_fields)]
+pub struct BatchListingUpdate {
+    shop_id: Decimal,
+    item_id: Item,
+    quantity: Decimal,
+    unit_price: Decimal,
+    expected_listing_revision: Option<Decimal>,
+}
+#[derive(Deserialize)]
+#[serde(crate = "near_sdk::serde", deny_unknown_fields)]
+struct BatchListingArgs {
+    updates: Vec<BatchListingUpdate>,
+    command: Command,
+}
+/// One command checkpoint and one replayable result for the whole batch.
+#[near(serializers=[borsh])]
+#[derive(Clone)]
+pub(crate) struct BatchListing {
+    pub owner: Owner,
+    entries: Vec<(u64, Item, Listing)>,
+    final_change: Change,
+}
+impl BatchListing {
+    pub(super) fn view(&self) -> Value {
+        json!({
+            "kind": "listings_set",
+            "listings": self.entries.iter().map(|(shop,item,listing)|
+                view(*shop, *item, listing, &self.owner)
+            ).collect::<Vec<_>>(),
+            "ledger": self.final_change.view()["ledger"],
+        })
+    }
 }
 impl LivingTown {
     pub(super) fn listing_owner(&self, shop_id: u64) -> Owner {
@@ -227,6 +264,77 @@ impl LivingTown {
         };
         let change = self.replace_listing(shop_id.0, item_id, listing, false);
         self.commit(actor, command, digest, Outcome::Listing(Box::new(change)))
+    }
+    /// Atomic, bounded merchant listing update. One command sequence, one
+    /// command digest, and one durable on-chain result for all child changes.
+    pub fn batch_set_listings(
+        &mut self,
+        updates: Vec<BatchListingUpdate>,
+        command: Command,
+    ) -> Value {
+        let p: BatchListingArgs = args(&["updates", "command"]);
+        require!(p.updates == updates && p.command == command, "LT:E_INVALID_ARGUMENT");
+        require!((1..=ITEMS.len()).contains(&updates.len()), "LT:E_INVALID_ARGUMENT");
+        let shop_id = updates[0].shop_id.0;
+        require!((1..=3).contains(&shop_id), "LT:E_INVALID_ARGUMENT");
+        let owner = self.listing_owner(shop_id);
+        self.listing_authority(&owner);
+        let mut seen = [false; 6];
+        for u in &updates {
+            require!(u.shop_id.0 == shop_id, "LT:E_NOT_OWNER");
+            let slot = u.item_id as usize;
+            require!(!seen[slot], "LT:E_INVALID_ARGUMENT");
+            seen[slot] = true;
+        }
+        let actor = env::predecessor_account_id();
+        let (digest, replay) = self.command_check(
+            &actor,
+            "batch_set_listings",
+            json!({"updates": updates, "command": command}),
+            &command,
+        );
+        if let Some(effect) = replay { return effect; }
+        let mut entries = Vec::with_capacity(updates.len());
+        let mut final_change: Option<Change> = None;
+        for u in updates {
+            require!(u.quantity.0 <= 100 && (1..=100).contains(&u.unit_price.0),
+                "LT:E_INVALID_LISTING_TERMS");
+            let slot = u.item_id as usize;
+            let key = (shop_id, slot as u8);
+            let old = self.listing_slots.get(&key)
+                .and_then(|id| self.listing_row(*id).map(|(_, _, l)| l));
+            require!(old.as_ref().map(|l| Decimal(l.revision)) == u.expected_listing_revision,
+                "LT:E_STALE_LISTING");
+            let npc = &self.npcs[(shop_id - 1) as usize];
+            if slot < 4 {
+                let cfg = config();
+                let row = &cfg["economy"]["materials"][ITEM_IDS[slot]];
+                let lo = row["minPrice"].as_str().unwrap().parse::<u64>().unwrap();
+                let hi = row["maxPrice"].as_str().unwrap().parse::<u64>().unwrap();
+                require!((lo..=hi).contains(&u.unit_price.0), "LT:E_PRICE_BAND");
+            }
+            require!(u.quantity.0 <= npc.held.quantities[slot]
+                .checked_sub(npc.reservations.trade.quantities[slot]).unwrap_or(0),
+                "LT:E_INSUFFICIENT_AVAILABLE_STOCK");
+            let listing = if let Some(old) = old {
+                Listing {
+                    id: old.id, quantity: u.quantity.0,
+                    unit_price: u.unit_price.0, revision: next(old.revision),
+                }
+            } else {
+                let id = self.next_listing_id;
+                self.next_listing_id = next(id);
+                self.listing_index.insert(id, key);
+                self.listing_slots.insert(key, id);
+                Listing { id, quantity: u.quantity.0, unit_price: u.unit_price.0, revision: 1 }
+            };
+            let change = self.replace_listing(shop_id, u.item_id, listing.clone(), false);
+            entries.push((shop_id, u.item_id, listing));
+            final_change = Some(change);
+        }
+        self.commit(actor, command, digest, Outcome::ListingBatch(Box::new(BatchListing {
+            owner, entries, final_change: final_change.expect("nonempty batch"),
+        })))
     }
     pub fn cancel_listing(
         &mut self,
@@ -470,6 +578,35 @@ mod tests {
             .is_err()
         );
         assert_eq!(state(&t), before);
+    }
+    #[test]
+    fn merchant_listing_batch_is_one_replayable_command() {
+        let mut t = town();
+        let updates = vec![
+            BatchListingUpdate {
+                shop_id: Decimal(1), item_id: Item::Crystal,
+                quantity: Decimal(7), unit_price: Decimal(3),
+                expected_listing_revision: Some(Decimal(1)),
+            },
+            BatchListingUpdate {
+                shop_id: Decimal(1), item_id: Item::IronTool,
+                quantity: Decimal(0), unit_price: Decimal(5),
+                expected_listing_revision: None,
+            },
+        ];
+        context("rex.testnet", json!({"updates": updates, "command": command(1)}),
+            400_000_000_000);
+        let first = t.batch_set_listings(updates.clone(), command(1));
+        assert_eq!(first["data"]["principal"], "merchant:rex");
+        assert_eq!(first["data"]["command_sequence"], "1");
+        assert_eq!(first["data"]["outcome"]["kind"], "listings_set");
+        assert_eq!(first["data"]["outcome"]["listings"].as_array().unwrap().len(), 2);
+        assert_eq!(t.commands.get(&"merchant:rex".to_string()).unwrap().sequence, 1);
+        context("rex.testnet", json!({"updates": updates, "command": command(1)}),
+            400_000_000_000);
+        let again = t.batch_set_listings(updates, command(1));
+        assert_eq!(again["data"]["replayed"], true);
+        assert_eq!(again["data"]["payload_sha256"], first["data"]["payload_sha256"]);
     }
     #[test]
     fn npc_prices_stock_and_authority_share_the_persistent_merchant_lane() {

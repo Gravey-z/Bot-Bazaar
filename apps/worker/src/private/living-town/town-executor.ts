@@ -49,6 +49,8 @@ class StaleTownStep extends Error {}
 function shelfMaintenance(work: TownWork): boolean {
   const d = work.decision as Record<string, unknown> | null;
   if (!d || typeof d !== "object") return false;
+  if (d["kind"] === "maintenance")
+    return d["merchant"] === work.lane && work.arrival === `merchant:${work.lane}:maintenance:${work.id}`;
   const proposal = d["proposal"] as { action?: { type?: string } } | undefined;
   return /^merchant:(rex|luna|bolt):shelf:[0-9]+$/.test(work.arrival) &&
     work.arrival.split(":")[1] === work.lane &&
@@ -60,6 +62,7 @@ function shelfMaintenance(work: TownWork): boolean {
 export class DurableTownExecutor {
   private busy = false;
   private authorized = false;
+  private readonly completionRetryAt = new Map<string, number>();
   constructor(
     private readonly store: LivingTownExecutionStore,
     private readonly adapters: Record<TownLane, TownChainAdapter>,
@@ -94,8 +97,8 @@ export class DurableTownExecutor {
   }
   async recover(): Promise<TownRecovery> {
     return this.exclusive(async () => {
+      const previouslyAuthorized = this.authorized;
       this.authorized = false;
-      this.store.invalidate();
       const context = {
           sessionId: this.store.sessionId,
           identityHash: this.store.identityHash,
@@ -109,11 +112,21 @@ export class DurableTownExecutor {
         proof.fencing !== "verified" ||
         proof.providerHistory !== "accounted" ||
         !/^[a-zA-Z0-9:_.-]{1,128}$/.test(proof.evidenceRef)
-      )
-        return {
-          kind: "blocked",
-          reasons: ["journal_continuity_or_fencing_unverified"],
-        };
+      ) {
+        this.store.invalidate();
+        return { kind: "blocked", reasons: ["journal_continuity_or_fencing_unverified"] };
+      }
+      // Reuse recovery only within this fenced process, while the witnessed
+      // journal is ready and has no unresolved transaction. Every submission
+      // invalidates readiness; every signature still checks fresh command/key state.
+      if (previouslyAuthorized && this.store.unresolved().length === 0) {
+        try {
+          this.store.gate();
+          this.authorized = true;
+          return { kind: "ready", reasons: [] };
+        } catch { /* Another executor invalidated readiness: reconcile fully. */ }
+      }
+      this.store.invalidate();
       this.authorized = true;
       const reasons: string[] = [];
       for (const row of this.store.unresolved()) {
@@ -232,7 +245,21 @@ export class DurableTownExecutor {
     reasons.push("unknown_town_receipt");
   }
 }
-        } else reasons.push("unknown_town_completion");
+        } else {
+          // Completion has no command checkpoint. If receipt lookup times out,
+          // recover by retrying ONLY the already persisted bytes and original
+          // hash. Never sign a replacement or infer success from the job state.
+          const now = Date.now();
+          if ((this.completionRetryAt.get(p.transactionHash) ?? 0) <= now) {
+            this.completionRetryAt.set(p.transactionHash, now + 30000);
+            if (this.completionRetryAt.size > 100)
+              this.completionRetryAt.delete(this.completionRetryAt.keys().next().value!);
+            this.store.markBroadcast(actionId, "unknown");
+            const retried = await adapter.submit(p);
+            this.store.markBroadcast(actionId, retried.kind);
+          }
+          reasons.push("completion_receipt_pending");
+        }
       }
       if (reasons.length || this.store.unresolved().length)
         return { kind: "blocked", reasons };
@@ -314,9 +341,9 @@ export class DurableTownExecutor {
       }
     }
   }
-  private async live(work: TownWork, call: TownCall): Promise<void> {
+  private async live(work: TownWork, call: TownCall, pinned?: FinalizedLivingTownReader): Promise<void> {
     requireStorage(this.authorized, "verified town recovery required");
-    const reader = await this.adapters[work.lane].client.finalized(),
+    const reader = pinned ?? await this.adapters[work.lane].client.finalized(),
       town = await reader.getTown();
     const reaction = this.store.reactions.work(work.id);
     if (
@@ -325,7 +352,7 @@ export class DurableTownExecutor {
       BigInt(town.block_timestamp_ns) >= BigInt(reaction.deadlineNs)
     )
       throw new StaleTownStep("reaction deadline expired");
-    const shelf = shelfMaintenance(work) && call.method === "set_listing";
+    const shelf = shelfMaintenance(work) && (call.method === "set_listing" || call.method === "batch_set_listings" || (work.decision as { kind?: string }).kind === "maintenance");
     if (!reaction && !shelf && town.data.epoch !== work.tick)
       throw new StaleTownStep("town opportunity epoch expired");
     if ("command" in call.args) {
@@ -369,6 +396,7 @@ export class DurableTownExecutor {
       const reaction = this.store.reactions.work(work.id);
       const shelf = shelfMaintenance(work);
       if (!reaction && !shelf && town.data.epoch !== work.tick) {
+        if (this.store.maintenance.get(work.id)) this.store.maintenance.expireUnstarted(work.id);
         this.store.ticks.reconcile({
           town,
           block: reader.block,
@@ -404,7 +432,7 @@ export class DurableTownExecutor {
           reader,
           command,
         ),
-        call = proposed && (!shelf || proposed.method === "set_listing")
+        call = proposed && (!shelf || (work.decision as { kind?: string }).kind === "maintenance" || proposed.method === "set_listing" || proposed.method === "batch_set_listings")
           ? townCall(proposed.method, proposed.args, work.lane)
           : null;
       const digest = call
@@ -426,9 +454,8 @@ export class DurableTownExecutor {
     call: TownCall,
   ): Promise<TownSubmission> {
     try {
-      await this.live(work, call);
-      const p = await this.adapters[work.lane].prepare(call, () =>
-        this.live(work, call),
+      const p = await this.adapters[work.lane].prepare(call, reader =>
+        this.live(work, call, reader),
       );
       this.store.saveTownSigned(work.id, p);
       return await this.submit(work, p);

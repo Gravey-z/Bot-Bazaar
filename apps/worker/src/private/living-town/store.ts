@@ -786,7 +786,7 @@ export class LivingTownProjectionStore {
     const o = result.data.outcome,
       t = copy(s.town.data);
     if (!["trade_proposed", "trade_accepted", "trade_rejected", "trade_cancelled", "offers_expired",
-      "listing_set", "listing_cancelled", "assistant_repriced", "production_started", "production_completed",
+      "listing_set", "listing_cancelled", "listings_set", "assistant_repriced", "production_started", "production_completed",
       "raw_supplied", "raw_supplies", "treasury_swept", "customer_funded", "customer_sale", "upgrade_purchased",
       "assistant_policy_set", "market_event_scheduled", "player_registered", "shop_created", "shop_renamed",
       "raw_purchased"].includes(o.kind)) return false;
@@ -919,6 +919,28 @@ export class LivingTownProjectionStore {
       if (shop.owner.kind === "merchant")
         t.npc_shops[["rex", "luna", "bolt"].indexOf(shop.owner.merchant_id)] = shop;
     };
+    if (o.kind === "listings_set") {
+      const priorLedger = this.readLedger(actor(o.ledger));
+      if (!priorLedger || BigInt(o.ledger.revision) !== BigInt(priorLedger.revision) + BigInt(o.listings.length)) return false;
+      let nextId = BigInt(t.next_listing_id);
+      const expectedLedger = copy(priorLedger);
+      expectedLedger.revision = o.ledger.revision;
+      for (const listing of o.listings) {
+        const old = getListing(listing.listing_id);
+        if (!getShop(listing.shop_id) || (old
+          ? old.shop_id !== listing.shop_id || old.item_id !== listing.item_id || BigInt(listing.revision) !== BigInt(old.revision) + 1n
+          : BigInt(listing.listing_id) !== nextId || listing.revision !== "1")) return false;
+        if (!old) nextId++;
+        const item = listing.item_id;
+        expectedLedger.inventory.listing_reserved[item] = listing.remaining_quantity;
+        expectedLedger.inventory.available[item] = parseU64((BigInt(expectedLedger.inventory.held[item]) -
+          BigInt(listing.remaining_quantity) - BigInt(expectedLedger.inventory.trade_reserved[item])).toString());
+      }
+      if (json(expectedLedger) !== json(o.ledger)) return false;
+      setLedger(o.ledger);
+      for (const listing of o.listings) this.listing(listing);
+      t.next_listing_id = parseU64(nextId.toString());
+    }
     if (o.kind === "listing_set" || o.kind === "listing_cancelled") {
       const old = getListing(o.listing.listing_id);
       if (!getShop(o.listing.shop_id) || !nextLedger(o.ledger) ||

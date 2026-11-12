@@ -18,7 +18,7 @@ import {
   canonicalLivingTownJson,
 } from "../packages/chain/dist/index.js";
 import {
-  townNegotiatingMerchantMethods,
+  townBatchNegotiatingMerchantMethods,
   townOperatorMethods,
   customerRuntimeMethods,
   assertRuntimePermission,
@@ -46,7 +46,7 @@ export const scopes = Object.fromEntries(
       ? [...customerRuntimeMethods]
       : lane === "operator"
         ? [...townOperatorMethods]
-        : [...townNegotiatingMerchantMethods],
+        : [...townBatchNegotiatingMerchantMethods],
   ]),
 );
 export function demoLimits(value = {}) {
@@ -593,7 +593,7 @@ export async function deployDemo(plan) {
         ? "customer"
         : lane === "operator"
           ? "town_operator"
-          : "town_negotiating_merchant",
+          : plan.runtime_scopes[lane].includes("batch_set_listings") ? "town_batch_negotiating_merchant" : "town_negotiating_merchant",
     );
   }
   const pub = {

@@ -276,7 +276,7 @@ export class TownActivityFeed {
       agent.data.proposal_type === "adjust_price"
         ? ["set_listing"]
         : agent.data.proposal_type === "restock"
-          ? ["set_listing", "start_production", "complete_production"]
+          ? ["set_listing", "batch_set_listings", "start_production", "complete_production"]
           : agent.data.proposal_type === "propose_trade"
             ? ["propose_trade"]
             : agent.data.proposal_type === "accept_trade"
@@ -333,20 +333,23 @@ export class TownActivityFeed {
   }
   private previousListingPrice(indexed: Indexed, listing: ReturnType<typeof livingTownListing>,
     previous?: ReturnType<typeof livingTownListing>): string | null {
-    const args = indexed.proof.call.args;
-    if (!("expected_listing_revision" in args) || args.expected_listing_revision === null) return null;
+    const callArgs = indexed.proof.call.args;
+    const args = "updates" in callArgs ? callArgs.updates.find(u => u.item_id === listing.item_id) : callArgs;
+    if (!args || !("expected_listing_revision" in args) || args.expected_listing_revision === null) return null;
     const expected = args.expected_listing_revision;
     if (previous?.listing_id === listing.listing_id && previous.revision === expected)
       return previous.unit_price;
     // Receipt arrival can be out of order. Require the exact preceding listing
     // revision, rather than comparing against a possibly newer market snapshot.
-    const row = this.db.prepare(`SELECT e.payload FROM projection_events e
+    const row = this.db.prepare(`SELECT json_extract(e.payload,'$.result.data.outcome.listing') AS listing FROM projection_events e
       WHERE json_extract(e.payload,'$.result.data.outcome.listing.listing_id')=?
         AND json_extract(e.payload,'$.result.data.outcome.listing.revision')=?
-      LIMIT 1`).get(listing.listing_id, expected);
+      UNION ALL
+      SELECT l.value AS listing FROM projection_events e, json_each(e.payload,'$.result.data.outcome.listings') l
+      WHERE json_extract(l.value,'$.listing_id')=? AND json_extract(l.value,'$.revision')=?
+      LIMIT 1`).get(listing.listing_id, expected, listing.listing_id, expected);
     if (!row) return null;
-    const archived = JSON.parse(String(row["payload"])) as { result: { data: { outcome: { listing: unknown } } } };
-    const old = livingTownListing(archived.result.data.outcome.listing);
+    const old = livingTownListing(JSON.parse(String(row["listing"])));
     return old.unit_price;
   }
   receipt(indexed: Indexed, previousListing?: ReturnType<typeof livingTownListing>): void {
@@ -388,6 +391,9 @@ export class TownActivityFeed {
           title = `${seller} set ${item(o.listing.item_id)} price to ${o.listing.unit_price} gold`;
         break;
       }
+      case "listings_set":
+        title = `${actor} listed: ` + o.listings.map(l => `${l.remaining_quantity} ${item(l.item_id)} at ${l.unit_price}g each`).join("; ");
+        break;
       case "listing_cancelled": title = `${actor} removed a ${item(o.listing.item_id)} listing`; break;
       case "raw_purchased": title = `${actor} bought ${o.trade.quantity} ${item(o.trade.item_id)} from ${name(o.trade.seller.merchant_id)}`; break;
       case "customer_sale": title = `${name(o.trade.seller.account_id)} sold ${o.trade.quantity} ${item(o.trade.item_id)} to a customer`; break;

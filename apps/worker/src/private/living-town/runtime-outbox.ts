@@ -34,11 +34,14 @@ export async function atomicRuntimeJson(
   await rename(temporary, filename);
 }
 /** Public proofs only. Private signed transaction bytes never leave the execution journal. */
-export async function publishRuntimeOutbox(
-  store: LivingTownExecutionStore,
-  directory: string,
-  activityFile: string,
-): Promise<void> {
+const publications = new WeakMap<LivingTownExecutionStore, Promise<void>>();
+export function publishRuntimeOutbox(store: LivingTownExecutionStore, directory: string, activityFile: string): Promise<void> {
+  const prior = publications.get(store) ?? Promise.resolve();
+  const next = prior.catch(() => {}).then(() => publishOnce(store, directory, activityFile));
+  publications.set(store, next);
+  return next;
+}
+async function publishOnce(store: LivingTownExecutionStore, directory: string, activityFile: string): Promise<void> {
   await mkdir(join(directory, "archive"), { recursive: true });
   await mkdir(join(directory, "rejected"), { recursive: true });
   for (const hash of store.rejectedAdmissions()) {

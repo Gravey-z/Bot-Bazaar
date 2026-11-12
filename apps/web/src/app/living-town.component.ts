@@ -660,7 +660,7 @@ export class LivingTownComponent implements OnInit, OnDestroy {
         sawGuest = true;
         stage = guest.status;
         if (guest.status === "unavailable" && guest.registrationObserved) {
-          message = "Trying to restore your guest connection… Your progress is saved.";
+          message = "Trying to restore your connection…";
         } else if (guest.status === "unavailable" || guest.status === "failed") {
           message = guest.message || "Guest setup is unavailable. Try connecting again shortly.";
           pending = false;

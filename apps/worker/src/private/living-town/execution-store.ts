@@ -1,3 +1,4 @@
+import { TownWorkQueue, townWorkQueueSchema } from "./work-queue.js";
 import {
   townMarketEventSchema,
   TownMarketEventObserver,
@@ -80,11 +81,12 @@ const townJournalSchema = schema
   )
   .replace(
     "'cancel_trade','expire_offers'))",
-    "'cancel_trade','expire_offers','reject_trade','fund_customer_budget','settle_customer_purchase','start_production','complete_production','allocate_raw_supply','sweep_merchant_treasury','assistant_reprice','merchant_purchase'))",
+    "'cancel_trade','expire_offers','batch_set_listings','reject_trade','fund_customer_budget','settle_customer_purchase','start_production','complete_production','allocate_raw_supply','sweep_merchant_treasury','assistant_reprice','merchant_purchase'))",
   );
 
 /** One exclusive execution database for all V2 actors; never a customer-only side journal. */
 export class LivingTownExecutionStore {
+  readonly maintenance: TownWorkQueue;
   readonly reactions: TownReactionRepository;
   readonly merchantTrading: boolean;
   readonly negotiatedTrading: boolean;
@@ -231,6 +233,7 @@ export class LivingTownExecutionStore {
       this.db.close();
       throw error;
     }
+    this.maintenance = new TownWorkQueue(this.db, fn => this.write(fn));
     this.journal = new RuntimeJournal(this.db);
     this.providerAttempts = new TownProviderRepository(
       this.db,
@@ -292,6 +295,74 @@ export class LivingTownExecutionStore {
       throw error;
     }
   }
+  /** Preserve all signed work and row identities while widening the method constraint. */
+  enableBatchListings(): void {
+    const row = this.db
+      .prepare(
+        "SELECT sql FROM sqlite_schema WHERE type='table' AND name='intents'",
+      )
+      .get();
+    const sql = String(row?.["sql"] ?? "");
+    if (sql.includes("'batch_set_listings'")) return;
+    requireStorage(
+      !!this.mutationObserver &&
+        sql.includes("'set_listing'") &&
+        /^CREATE TABLE intents\s*\(/i.test(sql),
+      "verified execution witness and known intent schema required for migration",
+    );
+    const objects = this.db
+      .prepare(
+        "SELECT sql FROM sqlite_schema WHERE tbl_name='intents' AND type IN ('index','trigger') AND sql IS NOT NULL",
+      )
+      .all();
+    const columns = this.db
+      .prepare("PRAGMA table_info(intents)")
+      .all()
+      .map((c) => String(c["name"]));
+    requireStorage(
+      columns.every((c) => /^[a-z_]+$/.test(c)),
+      "unexpected intent columns",
+    );
+    this.db.exec("PRAGMA foreign_keys=OFF");
+    try {
+      this.write(() => {
+        this.db.exec(
+          sql
+            .replace(
+              /^CREATE TABLE intents/i,
+              "CREATE TABLE intents_batch_migration",
+            )
+            .replace("'set_listing'", "'set_listing','batch_set_listings'"),
+        );
+        const names = ["rowid", ...columns].join(",");
+        this.db.exec(
+          `INSERT INTO intents_batch_migration(${names}) SELECT ${names} FROM intents`,
+        );
+        this.db.exec(
+          "DROP TABLE intents; ALTER TABLE intents_batch_migration RENAME TO intents",
+        );
+        for (const object of objects) this.db.exec(String(object["sql"]));
+        requireStorage(
+          this.db.prepare("PRAGMA foreign_key_check").all().length === 0,
+          "batch migration foreign key check failed",
+        );
+      });
+    } finally {
+      this.db.exec("PRAGMA foreign_keys=ON");
+    }
+  }
+  enableIndependentWorkers(): void {
+    requireStorage(!!this.mutationObserver, "verified witness required for worker migration");
+    if (this.db.prepare("SELECT name FROM sqlite_schema WHERE name='one_active_reaction_per_merchant'").get() &&
+      this.db.prepare("SELECT name FROM sqlite_schema WHERE name='town_work_queue'").get() &&
+      String(this.db.prepare("SELECT sql FROM sqlite_schema WHERE name='one_town_provider_pending'").get()?.["sql"]).includes("(merchant)")) return;
+    this.write(() => {
+      this.db.exec(townWorkQueueSchema);
+      this.db.exec("DROP INDEX IF EXISTS one_active_reaction; CREATE UNIQUE INDEX IF NOT EXISTS one_active_reaction_per_merchant ON reaction_roots(merchant) WHERE state='active'");
+      this.db.exec("DROP INDEX IF EXISTS one_town_provider_pending; CREATE UNIQUE INDEX one_town_provider_pending ON town_provider_attempts(merchant) WHERE status IN ('prepared','reserved','dispatched')");
+    });
+  }
+  get planningReady(): boolean { return this.ready && !this.stopped; }
   gate(): void {
     requireStorage(
       this.ready && !this.stopped,
@@ -361,22 +432,26 @@ export class LivingTownExecutionStore {
     const history = new Map<string, ReturnType<LivingTownExecutionStore["merchantPricingHistory"]>[number]>();
     const rows = this.db.prepare(`SELECT i.merchant_id,a.signed_json,a.evidence_json,a.updated_at
       FROM attempts a JOIN intents i ON i.id=a.intent_id
-      WHERE i.status='confirmed' AND i.method='set_listing' AND i.merchant_id IN ('rex','luna','bolt')
+      WHERE i.status='confirmed' AND i.method IN ('set_listing','batch_set_listings') AND i.merchant_id IN ('rex','luna','bolt')
       ORDER BY a.rowid`).all();
     for (const row of rows) {
       const prepared = JSON.parse(String(row["signed_json"])) as PreparedTownCall;
-      const args = prepared.call.args;
-      if (prepared.call.method !== "set_listing" || !("item_id" in args) || !("unit_price" in args)) continue;
-      const item = args.item_id;
-      if (item !== "crystal" && item !== "wood" && item !== "herb" && item !== "iron") continue;
-      const merchant = String(row["merchant_id"]) as "rex" | "luna" | "bolt";
-      const key = `${merchant}:${item}`, previous = history.get(key);
-      if (previous?.unitPrice === args.unit_price) continue;
-      const evidence = JSON.parse(String(row["evidence_json"])) as {
-        result?: { block_timestamp_ns?: string }; command?: { block_timestamp_ns?: string } };
-      const changedAtNs = evidence.result?.block_timestamp_ns ?? evidence.command?.block_timestamp_ns ??
-        (BigInt(Number(row["updated_at"])) * 1000000n).toString();
-      history.set(key, { merchant, item, unitPrice: args.unit_price, changedAtNs });
+      const call = townCall(prepared.call.method, prepared.call.args, String(row["merchant_id"]) as TownLane);
+      const updates = call.method === "batch_set_listings" && "updates" in call.args ? call.args.updates
+        : call.method === "set_listing" && "item_id" in call.args ? [call.args] : [];
+      for (const args of updates) {
+        if (!("unit_price" in args)) continue;
+        const item = args.item_id;
+        if (item !== "crystal" && item !== "wood" && item !== "herb" && item !== "iron") continue;
+        const merchant = String(row["merchant_id"]) as "rex" | "luna" | "bolt";
+        const key = `${merchant}:${item}`, previous = history.get(key);
+        if (previous?.unitPrice === args.unit_price) continue;
+        const evidence = JSON.parse(String(row["evidence_json"])) as {
+          result?: { block_timestamp_ns?: string }; command?: { block_timestamp_ns?: string } };
+        const changedAtNs = evidence.result?.block_timestamp_ns ?? evidence.command?.block_timestamp_ns ??
+          (BigInt(Number(row["updated_at"])) * 1000000n).toString();
+        history.set(key, { merchant, item, unitPrice: args.unit_price, changedAtNs });
+      }
     }
     return [...history.values()];
   }
@@ -820,13 +895,14 @@ export class LivingTownExecutionStore {
       "tick action lane mismatch",
     );
     requireStorage(
-      (!!this.ticks.active() || !!this.reactions.work(action.id)) &&
+      (!!this.ticks.active() || !!this.reactions.work(action.id) || !!this.maintenance.get(action.id)) &&
         townLanes.includes(action.lane),
       "persisted tick required for town actions",
     );
     this.write(() => {
       if (this.reactions.work(action.id))
         this.reactions.bind(action, !!action.call);
+      else if (this.maintenance.get(action.id)) this.maintenance.bind(action);
       else this.ticks.bind(action);
       this.claim(action.id, [action.lane], deadline);
       this.db
@@ -1133,6 +1209,7 @@ export class LivingTownExecutionStore {
       .run(status, Date.now(), jobId);
     this.ticks.settled(jobId, status);
     this.reactions.settled(jobId, status);
+    this.maintenance.settled(jobId, status);
   }
   completeRuntimeJob(jobId: string): void {
     this.gate();

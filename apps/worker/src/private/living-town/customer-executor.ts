@@ -77,8 +77,8 @@ export class DurableCustomerExecutor {
     options: { preservePrepared?: boolean } = {},
   ): Promise<RecoveryReport> {
     return this.exclusive(async () => {
+      const previouslyAuthorized = this.authorized;
       this.authorized = false;
-      this.store.invalidate();
       const context = {
         sessionId: this.store.sessionId,
         identityHash: this.store.identityHash,
@@ -92,12 +92,19 @@ export class DurableCustomerExecutor {
         proof.fencing !== "verified" ||
         proof.providerHistory !== "accounted" ||
         !/^[a-zA-Z0-9:_.-]{1,128}$/.test(proof.evidenceRef)
-      )
-        return {
-          kind: "blocked",
-          reasons: ["journal_continuity_or_fencing_unverified"],
-          unresolved: this.store.unresolved().length,
-        };
+      ) {
+        this.store.invalidate();
+        return { kind: "blocked", reasons: ["journal_continuity_or_fencing_unverified"],
+          unresolved: this.store.unresolved().length };
+      }
+      if (previouslyAuthorized && this.store.unresolved().length === 0) {
+        try {
+          this.store.gate();
+          this.authorized = true;
+          return { kind: "ready", reasons: [], unresolved: 0 };
+        } catch { /* A submission invalidated readiness: recover original work. */ }
+      }
+      this.store.invalidate();
       // Verified continuity allows submission of existing bytes, never a new signature while blocked.
       this.authorized = true;
       const reader = await this.adapter.client.finalized(),
@@ -194,20 +201,16 @@ export class DurableCustomerExecutor {
         TownLane,
         { sequence: string; digest: string | null }
       >;
-      for (const lane of townLanes) {
-        const old = this.store.checkpoint(lane)["last_action_id"],
-          seq = old === null || old === "0" ? "1" : String(old);
-        const command = await latest.getCommand(
-          lane === "operator"
-            ? this.store.identity.operatorId
-            : `merchant:${lane}`,
-          seq,
-        );
-        checkpoints[lane] = {
-          sequence: command.data.high_water,
-          digest:
-            command.data.kind === "found" ? command.data.payload_sha256 : null,
-        };
+      const reads = await Promise.allSettled(townLanes.map(async lane => {
+        const old = this.store.checkpoint(lane)["last_action_id"];
+        const command = await latest.getCommand(lane === "operator" ? this.store.identity.operatorId : `merchant:${lane}`,
+          old === null || old === "0" ? "1" : String(old));
+        return { lane, checkpoint: { sequence: command.data.high_water,
+          digest: command.data.kind === "found" ? command.data.payload_sha256 : null } };
+      }));
+      for (const read of reads) {
+        if (read.status === "rejected") throw read.reason;
+        checkpoints[read.value.lane] = read.value.checkpoint;
       }
       if (this.store.unresolved().length || reasons.length)
         return {
@@ -317,6 +320,15 @@ const decision = this.demand.select(input),
       remaining > 0n && remaining <= 60_000_000_000n,
       "customer epoch window exhausted",
     );
+    // Skip a new purchase if fresh validation/signing cannot fit this epoch.
+    // Never alter or replace an existing signed transaction here.
+    if (call && BigInt(call.args.command.valid_until_ns) - BigInt(Date.now()) * 1000000n < 15000000000n) {
+      this.gate();
+      this.store.prepare({ id: actionId, tick, arrival, call: null, digest: null,
+        decision: { ...(decision as Record<string, unknown>), kind: "no_purchase",
+          reason: "confirmation_window_too_short" } }, Date.now() + 1000);
+      return { kind: "no_purchase", actionId };
+    }
     const digest = call
       ? await livingTownCommandDigest(
           this.store.identity.deployment,
@@ -330,20 +342,30 @@ const decision = this.demand.select(input),
       Date.now() + Math.max(1, Number(remaining / 1_000_000n)),
     );
     if (!call) return { kind: "no_purchase", actionId };
-    const signed = await this.adapter.prepare(call, async () => {
+    try {
+      const signed = await this.adapter.prepare(call, async reader => {
+        this.gate();
+        await this.assertLive(actionId, call, reader);
+      });
       this.gate();
-      await this.assertLive(actionId, call);
-    });
-    this.gate();
-    this.store.saveSigned(actionId, signed);
-    return this.submitSigned(actionId, signed);
+      this.store.saveSigned(actionId, signed);
+      return await this.submitSigned(actionId, signed);
+    } catch (error) {
+      // Expected quote/epoch expiry is terminal only for provably unsent bytes.
+      if (!(error instanceof StaleCustomerQuote)) throw error;
+      const pending = this.store.get(actionId);
+      if (!pending || !["prepared", "signed"].includes(String(pending["status"]))) throw error;
+      this.store.abandon(actionId);
+      return { kind: "stale_checkpoint", actionId };
+    }
   }
   private async assertLive(
     actionId: string,
     call: CustomerCall,
+    pinned?: import("@bot-bazaar/chain").FinalizedLivingTownReader,
   ): Promise<void> {
     requireStorage(this.authorized, "customer continuity required");
-    const reader = await this.adapter.client.finalized(),
+    const reader = pinned ?? await this.adapter.client.finalized(),
       town = await reader.getTown();
     const args = call.args as Record<string, unknown>,
       epoch = String(args["epoch"]);
@@ -489,12 +511,12 @@ const decision = this.demand.select(input),
               this.store.identity,
             ),
           );
-        const signed = await this.adapter.prepare(call, async () => {
+        const signed = await this.adapter.prepare(call, async reader => {
           requireStorage(
             this.authorized,
             "customer recovery continuity required",
           );
-          await this.assertLive(actionId, call);
+          await this.assertLive(actionId, call, reader);
         });
         this.store.saveSigned(actionId, signed, true);
         return await this.submitSigned(actionId, signed);

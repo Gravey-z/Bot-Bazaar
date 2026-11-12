@@ -3,6 +3,7 @@ import {
   livingTownVersions,
   livingTownFoundationMethods,
   livingTownOfferFoundationMethods,
+  livingTownBatchFoundationMethods,
 } from "@bot-bazaar/shared";
 import type { LivingTownSix } from "@bot-bazaar/shared";
 import {
@@ -443,8 +444,9 @@ const foundationShape = object({
     choice([
       ...livingTownFoundationMethods,
       ...livingTownOfferFoundationMethods,
+      "batch_set_listings",
     ]),
-    livingTownOfferFoundationMethods.length,
+    livingTownBatchFoundationMethods.length,
   ),
 });
 export function livingTownFoundation(
@@ -456,7 +458,9 @@ export function livingTownFoundation(
   check(
     result.item_ids.join() === livingTownItemIds.join() &&
       (result.supported_methods.join() ===
-        livingTownOfferFoundationMethods.join() ||
+        livingTownBatchFoundationMethods.join() ||
+        result.supported_methods.join() ===
+          livingTownOfferFoundationMethods.join() ||
         result.supported_methods.join() ===
           livingTownFoundationMethods.join() ||
         result.supported_methods.join() ===

@@ -29,7 +29,7 @@ if (args[0] !== "--config" || !args[1] || (args.length !== 2 && !initialize))
   );
 const config = parseLivingTownWorkerConfig(readBoundedFile(args[1], 32768));
 const operations = new TownOperations("read_projection");
-const rpc = boundedTownRpc(resilientTownRpc(config.public.rpcUrl));
+const rpc = boundedTownRpc(resilientTownRpc(config.public.rpcUrl), 250, 4);
 if (initialize) mkdirSync(config.dataDir, { recursive: true, mode: 0o700 });
 const store = new LivingTownProjectionStore(
     config.dataDir,

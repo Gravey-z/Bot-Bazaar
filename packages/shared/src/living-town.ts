@@ -57,6 +57,12 @@ export const livingTownOfferFoundationMethods = [
   "get_offers",
   "get_merchant_trading_rules",
 ] as const;
+export const livingTownBatchFoundationMethods =
+  livingTownOfferFoundationMethods.flatMap((method) =>
+    method === "set_listing"
+      ? [method, "batch_set_listings" as const]
+      : [method],
+  );
 export const livingTownRecipeIds = ["health_potion", "iron_tool"] as const;
 export type LivingTownRecipeId = (typeof livingTownRecipeIds)[number];
 export type LivingTownSix<T> = { readonly [K in LivingTownItem]: T };

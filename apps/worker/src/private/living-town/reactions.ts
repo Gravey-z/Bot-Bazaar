@@ -326,6 +326,7 @@ export class TownReactionRepository {
   next(
     input: MerchantPolicyInput,
     offers: { get(id: string): ReturnType<typeof livingTownOffer> | null },
+    origin?: ProposalMerchant,
   ): ReactionWork | null {
     this.gate();
     const town = livingTownSnapshot(livingTownTown)(input.town),
@@ -355,14 +356,14 @@ export class TownReactionRepository {
         }
       }
       let root = this.db
-        .prepare("SELECT * FROM reaction_roots WHERE state='active'")
-        .get();
+        .prepare("SELECT * FROM reaction_roots WHERE state='active' AND (? IS NULL OR merchant=?) ORDER BY rowid LIMIT 1")
+        .get(origin ?? null, origin ?? null);
       if (!root) {
         root = this.db
           .prepare(
-            "SELECT * FROM reaction_roots WHERE state='queued' ORDER BY CASE kind WHEN 'cleanup' THEN 0 ELSE 1 END,rowid LIMIT 1",
+            "SELECT * FROM reaction_roots q WHERE state='queued' AND (? IS NULL OR merchant=?) AND NOT EXISTS(SELECT 1 FROM reaction_roots a WHERE a.state='active' AND a.merchant=q.merchant) ORDER BY CASE kind WHEN 'cleanup' THEN 0 ELSE 1 END,rowid LIMIT 1",
           )
-          .get();
+          .get(origin ?? null, origin ?? null);
         if (!root) return;
         this.db
           .prepare("UPDATE reaction_roots SET state='active' WHERE id=?")
@@ -465,10 +466,14 @@ export class TownReactionRepository {
     });
     const row = this.db
       .prepare(
-        "SELECT s.id FROM reaction_steps s JOIN reaction_roots r ON r.id=s.root_id WHERE r.state='active' AND s.state!='completed' ORDER BY s.ordinal LIMIT 1",
+        "SELECT s.id FROM reaction_steps s JOIN reaction_roots r ON r.id=s.root_id WHERE r.state='active' AND s.state!='completed' AND (? IS NULL OR r.merchant=?) ORDER BY CASE s.state WHEN 'decided' THEN 0 ELSE 1 END,s.rowid LIMIT 1",
       )
-      .get();
+      .get(origin ?? null, origin ?? null);
     return row ? this.work(String(row.id)) : null;
+  }
+  decided(): ReactionWork | null {
+    const row = this.db.prepare("SELECT s.id FROM reaction_steps s JOIN reaction_roots r ON r.id=s.root_id WHERE s.state='decided' AND r.state='active' ORDER BY s.rowid LIMIT 1").get();
+    return row ? this.work(String(row["id"])) : null;
   }
   private close(root: string, reason: string): void {
     this.db

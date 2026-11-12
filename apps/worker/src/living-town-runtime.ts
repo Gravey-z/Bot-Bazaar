@@ -1,3 +1,4 @@
+import { LivingTownWorkerGroup } from "./private/living-town/worker-group.js";
 import { boundedTownRpc, resilientTownRpc } from "./private/living-town/runtime-rpc.js";
 import { mkdirSync, readdirSync, lstatSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
@@ -18,7 +19,7 @@ import {
   townLanes,
 } from "./private/living-town/execution-store.js";
 import { RuntimeFacts } from "./private/living-town/runtime-facts.js";
-import { readSharedMerchantFacts, SharedMerchantFactsUnavailable } from "./private/living-town/shared-merchant-facts.js";
+import { readSharedMerchantFacts, readSharedPlanningFacts, SharedMerchantFactsUnavailable } from "./private/living-town/shared-merchant-facts.js";
 import { RuntimeOwner } from "./private/living-town/runtime-owner.js";
 import { RuntimeBudget } from "./private/living-town/runtime-budget.js";
 import { LivingTownProviderRunner } from "./private/living-town/provider.js";
@@ -88,12 +89,13 @@ const operations = new TownOperations("simulation");
 const transport = resilientTownRpc(config.public.rpcUrl);
 const rpc = boundedTownRpc((method, params) =>
   operations.measure("chain", () => transport(method, params)),
-  1500,
-  2,
+  250,
+  4,
 );
 const client = new LivingTownClient(config.identity, rpc);
 const pinned = await client.finalized();
 if (stopping) process.exit(0);
+const verifiedNegotiatingLanes = new Set<string>();
 for (const lane of [...townLanes, "customer"] as const) {
   const account =
     lane === "operator" || lane === "customer"
@@ -107,6 +109,9 @@ for (const lane of [...townLanes, "customer"] as const) {
       ? "customer"
       : lane === "operator"
         ? "town_operator"
+        : (key.permission as {FunctionCall?: {method_names?: string[]}})?.FunctionCall?.method_names?.includes("batch_set_listings")
+          ? ((key.permission as {FunctionCall?: {method_names?: string[]}})?.FunctionCall?.method_names?.includes("propose_trade")
+            ? "town_batch_negotiating_merchant" : "town_batch_merchant")
         : config.identity.deployment.state_schema === "2" &&
             ((
               key.permission as { FunctionCall?: { method_names?: string[] } }
@@ -115,6 +120,9 @@ for (const lane of [...townLanes, "customer"] as const) {
           ? "town_negotiating_merchant"
           : "town_merchant",
   );
+  if (lane !== "operator" && lane !== "customer" &&
+      (key.permission as {FunctionCall?: {method_names?: string[]}})?.FunctionCall?.method_names?.includes("propose_trade"))
+    verifiedNegotiatingLanes.add(lane);
   if (initialize && lane !== "customer") {
     const command = await pinned.getCommand(
       lane === "operator" ? account : `merchant:${lane}`,
@@ -204,6 +212,9 @@ if (checkOnly) {
     initialize,
     authority,
   );
+  owner.verify();
+  store.enableBatchListings();
+  if (store.negotiatedTrading) store.enableIndependentWorkers();
   if (args.includes("--enable-provider")) owner.enableProvider();
   if (args.includes("--enable-provider-if-needed") && !owner.providerEnabled) owner.enableProvider();
   store.providerAttempts.recoverInterrupted();
@@ -256,7 +267,7 @@ if (checkOnly) {
     );
     // Customer turns also collect trades. Persist their merchant triggers here
     // before a higher-priority turn can return from the simulation loop.
-    if (store.negotiatedTrading && result.merchant.fresh && result.merchant.historyComplete)
+    if (store.planningReady && store.unresolved().length === 0 && store.negotiatedTrading && result.merchant.fresh && result.merchant.historyComplete)
       store.reactions.observe(result.merchant);
     return result;
   };
@@ -319,10 +330,8 @@ if (checkOnly) {
                 context.reaction.rootId,
                 context.reaction.stepId,
                 context.merchant,
-              ) &&
-              (await current.getTown()).market_revision ===
-                (context.facts.town as { market_revision: string })
-                  .market_revision
+              ) && BigInt((await current.getTown()).block_timestamp_ns) <
+                BigInt(store.reactions.work(context.reaction.stepId)!.deadlineNs)
             );
           return sameCustomerCheckpointState(
             context.facts.town,
@@ -354,6 +363,20 @@ if (checkOnly) {
       skipIdleMerchantTurns: true,
       merchantOpportunities: true,
       independentSupply: true,
+      independentWorkers: store.negotiatedTrading && !once,
+      planningCollect: async () => {
+        owner.verify();
+        const view = await readSharedPlanningFacts(config.public.workerUrl, config.identity);
+        const input = facts.planningInput(view);
+        input.externalPurchases = facts.purchasesAfter(store.reactions.cursor());
+        input.pricingHistory = store.merchantPricingHistory();
+        // Capabilities were pinned at startup. The executor repeats fresh key
+        // permission and nonce checks before every signature.
+        if (verifiedNegotiatingLanes.size === 3) input.negotiationAuthority = {
+          journal: "ready", signerScopes: { rex: "town_negotiating_merchant", luna: "town_negotiating_merchant", bolt: "town_negotiating_merchant" },
+        };
+        return input;
+      },
       // Negotiated V2 reactions invoke AI separately; ordinary tick turns
       // execute deterministic policy and do not need a 45-second AI window.
       minimumTickWindowMs: authority && !store.negotiatedTrading ? 45000 : 10000,
@@ -361,6 +384,34 @@ if (checkOnly) {
       ...(providerRunner ? { modelReady: () => providerRunner.canInvoke() } : {}),
     },
   );
+  const planningWorkers = new LivingTownWorkerGroup(async (worker, error) => {
+    await atomicRuntimeJson(join(config.executionDir, `${worker}-error.json`), {
+      captured_at: Date.now(), name: error instanceof Error ? error.name : "UnknownError",
+      message: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+    });
+  });
+  if (store.negotiatedTrading && !once) {
+    planningWorkers.start({ name: "maintenance", intervalMs: 2500, tick: () => simulation.planMaintenance() });
+    planningWorkers.start({ name: "merchant-ai", intervalMs: 1000, tick: () => simulation.planReactions() });
+    if (authority && loadAiKey && providerRunner) {
+      let refreshedQuote: NearAiQuote | undefined;
+      planningWorkers.start({ name: "provider-rates", intervalMs: 5000, tick: async () => {
+        if (stopping || !admission()) return { kind: "deferred" };
+        if (!refreshedQuote) {
+          if (activeQuote && Date.now() < activeQuote.verifiedUntil - 60000) return { kind: "idle" };
+          if (Date.now() - lastQuoteRefresh < 60000) return { kind: "deferred" };
+          lastQuoteRefresh = Date.now();
+          refreshedQuote = await nearAiPreflight(loadAiKey);
+        }
+        if (!providerRunner.replaceProvider(nearAiProvider(policy, authority, refreshedQuote, loadAiKey)))
+          return { kind: "deferred", reason: "inference_in_progress" };
+        activeQuote = refreshedQuote;
+        refreshedQuote = undefined;
+        return { kind: "ready" };
+      } });
+    }
+  }
   let failures = 0;
   try {
     do {
@@ -368,12 +419,6 @@ if (checkOnly) {
       let result: unknown;
       try {
         owner.verify();
-        if (activeQuote && loadAiKey && Date.now() >= activeQuote.verifiedUntil - 60000 &&
-          Date.now() - lastQuoteRefresh >= 300000) {
-          lastQuoteRefresh = Date.now();
-          try { Object.assign(activeQuote, await nearAiPreflight(loadAiKey)); }
-          catch { /* Do not extend an expired quote or authorize unverified rates. */ }
-        }
         const control = readBoundedFile(config.controlFile, 1024) as Record<
           string,
           unknown
@@ -411,6 +456,11 @@ if (checkOnly) {
           result = { kind: "deferred", reasons: ["shared_merchant_projection_not_ready"], diagnostic: error.reason };
         } else {
           failures++;
+          await atomicRuntimeJson(join(config.executionDir, "runtime-error.json"), {
+            captured_at: Date.now(), name: error instanceof Error ? error.name : "UnknownError",
+            message: error instanceof Error ? error.message : String(error),
+            stack: error instanceof Error ? error.stack : undefined,
+          });
           store.invalidate();
           operations.setMode("recovery_only");
           result = {
@@ -442,6 +492,8 @@ if (checkOnly) {
           last_model_action: store.latestModelAction(),
           provider_attempts: store.providerHistory().length,
           unresolved_transactions: store.unresolved().length,
+          workers: planningWorkers.status(),
+          queues: store.negotiatedTrading ? simulation.workerStatus() : null,
         },
       );
       console.log(
@@ -462,6 +514,8 @@ if (checkOnly) {
     } while (!once && !stopping);
   } finally {
     operations.setMode("paused");
+    await planningWorkers.stop();
+    await simulation.drainPlanning();
     owner.close();
     facts.close();
     store.close();

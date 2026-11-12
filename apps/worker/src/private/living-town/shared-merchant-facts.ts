@@ -1,5 +1,5 @@
 import { canonicalLivingTownJson, livingTownMerchantContext, livingTownReadEnvelope,
-  parseLivingTownJson, merchantContextMaxBytes } from "@bot-bazaar/chain";
+  parseLivingTownJson, merchantContextMaxBytes, livingTownTown } from "@bot-bazaar/chain";
 import type { FinalizedLivingTownReader } from "@bot-bazaar/chain";
 import { requireStorage } from "../storage/validation.js";
 
@@ -69,4 +69,55 @@ export async function readSharedMerchantFacts(
       pendingOffers: context.pendingOffers.map(offer => ({ ...offer,
         expired: BigInt(offer.expires_at_ns) <= BigInt(town.block_timestamp_ns) })) };
   } catch { throw new SharedMerchantFactsUnavailable(reason); }
+}
+
+export interface SharedPlanningFacts {
+  town: Awaited<ReturnType<FinalizedLivingTownReader["getTown"]>>;
+  context: SharedMerchantFacts;
+  blockHash: string;
+}
+/** Planning trusts the same verified database service as the frontend. Only
+ * signing and transaction recovery perform independent fresh chain checks.
+ */
+export async function readSharedPlanningFacts(workerUrl: string,
+  identity: import("@bot-bazaar/chain").LivingTownIdentity, fetcher: typeof fetch = fetch): Promise<SharedPlanningFacts> {
+  const read = async (path: string): Promise<unknown> => {
+    const response = await fetcher(new URL(path, workerUrl), { credentials: "omit", redirect: "error",
+      cache: "no-store", signal: AbortSignal.timeout(5000) });
+    if (!response.ok || !response.body) throw new SharedMerchantFactsUnavailable(`reader_http_${response.status}`);
+    const stream = response.body.getReader(), chunks: Uint8Array[] = [];
+    let size = 0;
+    try { for (;;) {
+      const part = await stream.read();
+      if (part.done) break;
+      size += part.value.byteLength;
+      requireStorage(size <= merchantContextMaxBytes, "planning context size bound");
+      chunks.push(part.value);
+    } } finally { await stream.cancel(); }
+    return parseLivingTownJson(new TextDecoder("utf-8", { fatal: true }).decode(Buffer.concat(chunks)), merchantContextMaxBytes);
+  };
+  try {
+    const [rawTown, rawContext] = await Promise.all([read("/api/town"), read("/api/merchant-context")]);
+    const townEnvelope = livingTownReadEnvelope(livingTownTown)(rawTown),
+      contextEnvelope = livingTownReadEnvelope(livingTownMerchantContext)(rawContext), town = townEnvelope.snapshot;
+    for (const envelope of [townEnvelope, contextEnvelope]) requireStorage(!envelope.stale &&
+      canonicalLivingTownJson(envelope.deployment) === canonicalLivingTownJson(identity.deployment) &&
+      envelope.checkpoint.verified_code_hash === identity.codeHash &&
+      Math.abs(Date.now() - Number(envelope.observed_at_ms)) <= 30000 &&
+      Math.abs(Date.now() - Number(BigInt(envelope.snapshot.block_timestamp_ns) / 1000000n)) <= 30000,
+      "planning projection stale or deployment mismatch");
+    requireStorage(town.market_revision === contextEnvelope.snapshot.market_revision &&
+      town.event_sequence === contextEnvelope.snapshot.event_sequence, "planning projection changed between reads");
+    const context = contextEnvelope.snapshot.data;
+    const lift = <T extends { data: unknown }>(snapshot: T): T => ({ ...snapshot, ...town, data: snapshot.data });
+    for (const row of context.merchants) requireStorage(town.data.npc_shops.some(shop =>
+      canonicalLivingTownJson(shop) === canonicalLivingTownJson(row.shop.data)), "planning shop state mismatch");
+    return { town, blockHash: townEnvelope.checkpoint.finalized_block_hash,
+      context: { ...context, merchants: context.merchants.map(row => ({ ...row, shop: lift(row.shop) })),
+        candidates: context.candidates.map(row => ({ ...row, shop: lift(row.shop), ledger: lift(row.ledger) })),
+        pendingOffers: context.pendingOffers.map(o => ({ ...o, expired: BigInt(o.expires_at_ns) <= BigInt(town.block_timestamp_ns) })) } };
+  } catch (error) {
+    if (error instanceof SharedMerchantFactsUnavailable) throw error;
+    throw new SharedMerchantFactsUnavailable("planning_projection_not_ready");
+  }
 }

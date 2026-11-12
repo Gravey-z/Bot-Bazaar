@@ -30,6 +30,14 @@ export const townNegotiatingMerchantMethods = [
   "cancel_trade",
   "expire_offers",
 ] as const;
+export const townBatchMerchantMethods = [
+  ...townMerchantMethods,
+  "batch_set_listings",
+] as const;
+export const townBatchNegotiatingMerchantMethods = [
+  ...townNegotiatingMerchantMethods,
+  "batch_set_listings",
+] as const;
 export const townSourceMethods = [
   "allocate_raw_supply",
   "sweep_merchant_treasury",
@@ -44,22 +52,28 @@ type RuntimeScope =
   | "town_merchant"
   | "town_trading_merchant"
   | "town_negotiating_merchant"
+  | "town_batch_merchant"
+  | "town_batch_negotiating_merchant"
   | "town_source"
   | "town_operator";
 function methods(scope: RuntimeScope = "merchant"): readonly string[] {
-  return scope === "town_negotiating_merchant"
-    ? townNegotiatingMerchantMethods
-    : scope === "town_trading_merchant"
-      ? townTradingMerchantMethods
-      : scope === "town_merchant"
-        ? townMerchantMethods
-        : scope === "town_operator"
-          ? townOperatorMethods
-          : scope === "town_source"
-            ? townSourceMethods
-            : scope === "customer"
-              ? customerRuntimeMethods
-              : runtimeMethods;
+  return scope === "town_batch_merchant"
+    ? townBatchMerchantMethods
+    : scope === "town_batch_negotiating_merchant"
+      ? townBatchNegotiatingMerchantMethods
+      : scope === "town_negotiating_merchant"
+        ? townNegotiatingMerchantMethods
+        : scope === "town_trading_merchant"
+          ? townTradingMerchantMethods
+          : scope === "town_merchant"
+            ? townMerchantMethods
+            : scope === "town_operator"
+              ? townOperatorMethods
+              : scope === "town_source"
+                ? townSourceMethods
+                : scope === "customer"
+                  ? customerRuntimeMethods
+                  : runtimeMethods;
 }
 export const maximumRuntimeAllowance = 100_000_000_000_000_000_000_000n;
 export const customerRuntimeMethods = [
@@ -114,7 +128,9 @@ export function assertRuntimePermission(
     )
   ) {
     throw new Error(
-      scope === "town_source" ||
+      scope === "town_batch_merchant" ||
+        scope === "town_batch_negotiating_merchant" ||
+        scope === "town_source" ||
         scope === "town_merchant" ||
         scope === "town_trading_merchant" ||
         scope === "town_negotiating_merchant" ||

@@ -15,6 +15,7 @@ export {
   livingTownVersions,
   livingTownFoundationMethods,
   livingTownOfferFoundationMethods,
+  livingTownBatchFoundationMethods,
   livingTownOfferMethods,
   livingTownRecipeIds,
 } from "./living-town.js";

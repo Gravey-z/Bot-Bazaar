@@ -5,7 +5,7 @@ import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { canonicalLivingTownJson, parseLivingTownWebProfile } from "../packages/chain/dist/index.js";
 import { releaseProfileUrl } from "./living-town-web-release.mjs";
-import { townNegotiatingMerchantMethods, townOperatorMethods, customerRuntimeMethods,
+import { townBatchNegotiatingMerchantMethods, townNegotiatingMerchantMethods, townOperatorMethods, customerRuntimeMethods,
   maximumRuntimeAllowance } from "../apps/worker/dist/private/near-signer.js";
 
 export const projectRoot = fileURLToPath(new URL("../", import.meta.url));
@@ -38,7 +38,7 @@ export async function publicRuntimeKeys(profile, filename = runtimePublicKeysUrl
     assert(/^ed25519:[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(key.public_key));
     assert(typeof key.allowance_yocto === "string" && /^[1-9][0-9]{0,38}$/.test(key.allowance_yocto) &&
       BigInt(key.allowance_yocto) <= maximumRuntimeAllowance, "Finite restricted-key allowance required");
-    const methods = lane === "customer" ? customerRuntimeMethods : lane === "operator" ? townOperatorMethods : townNegotiatingMerchantMethods;
+    const methods = lane === "customer" ? customerRuntimeMethods : lane === "operator" ? townOperatorMethods : key.method_names?.includes("batch_set_listings") ? townBatchNegotiatingMerchantMethods : townNegotiatingMerchantMethods;
     assert(Array.isArray(key.method_names) && key.method_names.every(v => typeof v === "string"));
     assert.deepEqual([...key.method_names].sort(), [...methods].sort(), "Public key method scope differs from runtime");
   }

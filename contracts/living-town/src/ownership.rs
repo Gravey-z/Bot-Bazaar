@@ -211,10 +211,13 @@ pub(crate) enum Outcome {
     MerchantPurchased(Box<super::merchant_trading::MerchantPurchase>),
     MerchantOffer(Box<super::offers::Effect>),
     SourceBatch(Box<super::sources::BatchAllocation>),
+    // Append only: preserve historical Borsh discriminants in stored commands.
+    ListingBatch(Box<super::listings::BatchListing>),
 }
 impl Outcome {
     fn method(&self) -> &'static str {
         match self {
+            Self::ListingBatch(_) => "batch_set_listings",
             Self::SourceBatch(_) => "allocate_raw_supply",
             Self::MerchantOffer(e) => e.method(),
             Self::MerchantPurchased(_) => "merchant_purchase",
@@ -247,6 +250,7 @@ impl Outcome {
     }
     fn view(&self) -> Value {
         match self {
+            Self::ListingBatch(p) => p.view(),
             Self::SourceBatch(p) => p.view(),
             Self::MerchantOffer(e) => e.view(),
             Self::MerchantPurchased(p) => p.view(),
@@ -397,6 +401,14 @@ impl LivingTown {
                 .expect("listing id");
             let (shop, _, _) = self.listing_row(id).expect("authorized listing");
             self.listing_owner(shop).principal()
+        } else if method == "batch_set_listings" {
+            match normalized["updates"][0]["shop_id"]
+                .as_str()
+                .and_then(|v| v.parse::<usize>().ok())
+            {
+                Some(id @ 1..=3) => format!("merchant:{}", MERCHANTS[id - 1]),
+                _ => env::panic_str("LT:E_INVALID_ARGUMENT"),
+            }
         } else if method == "start_production" || method == "set_listing" {
             match normalized["shop_id"]
                 .as_str()
@@ -500,6 +512,7 @@ impl LivingTown {
             }
             Outcome::Started(s) => s.job.owner.principal(),
             Outcome::Listing(s) => s.owner.principal(),
+            Outcome::ListingBatch(s) => s.owner.principal(),
             _ => format!("account:{actor}"),
         };
         self.commands.insert(principal.clone(), record.clone());

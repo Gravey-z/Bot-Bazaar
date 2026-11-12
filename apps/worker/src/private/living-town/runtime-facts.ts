@@ -10,7 +10,8 @@ import type { MerchantPolicyInput } from "./merchant-policy.js";
 import type { CustomerDemandInput } from "./customers.js";
 import { sameCustomerCheckpointState } from "./customers.js";
 import { requireStorage, sha256 } from "../storage/validation.js";
-import type { SharedMerchantFacts } from "./shared-merchant-facts.js";
+import { SharedMerchantFactsUnavailable } from "./shared-merchant-facts.js";
+import type { SharedPlanningFacts, SharedMerchantFacts } from "./shared-merchant-facts.js";
 type Trade = Extract<
   Awaited<ReturnType<FinalizedLivingTownReader["getTrade"]>>["data"],
   { kind: "found" }
@@ -20,6 +21,7 @@ type Trade = Extract<
 export class RuntimeFacts {
   private readonly db: DatabaseSync;
   private observer?: () => void;
+  private collectionTail: Promise<void> = Promise.resolve();
   private cached?: {
     merchant: MerchantPolicyInput;
     customer: Omit<CustomerDemandInput, "seed" | "tick" | "arrivalIndex">;
@@ -103,19 +105,52 @@ export class RuntimeFacts {
       ]),
     );
   }
+  planningInput(view: SharedPlanningFacts): MerchantPolicyInput {
+    const cursor = this.db.prepare("SELECT next_trade FROM facts WHERE singleton=1").get()!;
+    const trades = this.db.prepare("SELECT body FROM trades ORDER BY id").all()
+      .map(row => JSON.parse(String(row["body"])) as Trade);
+    const complete = String(cursor["next_trade"]) === view.town.data.next_trade_id;
+    return { town: view.town, merchants: view.context.merchants, pendingOffers: view.context.pendingOffers,
+      negotiatedTrading: view.context.negotiatedTrading, fresh: true, historyComplete: complete, trades,
+      activityCheckpoint: { block_hash: view.blockHash, block_height: view.town.block_height,
+        block_timestamp_ns: view.town.block_timestamp_ns, market_revision: view.town.market_revision,
+        event_sequence: view.town.event_sequence } };
+  }
   async collect(reader: FinalizedLivingTownReader): Promise<{
     merchant: MerchantPolicyInput;
     customer: Omit<CustomerDemandInput, "seed" | "tick" | "arrivalIndex">;
   }> {
+    let release!: () => void;
+    const previous = this.collectionTail;
+    this.collectionTail = new Promise<void>(resolve => { release = resolve; });
+    await previous;
+    try { return await this.collectAt(reader); } finally { release(); }
+  }
+  private async collectAt(reader: FinalizedLivingTownReader): ReturnType<RuntimeFacts["collect"]> {
     const town = await reader.getTown();
     const shared = this.shared ? await this.shared(reader) : null;
     const old = this.db.prepare("SELECT * FROM facts").get()!;
-    requireStorage(
-      BigInt(town.block_height) >= BigInt(String(old["height"])) &&
-        BigInt(town.event_sequence) >= BigInt(String(old["event_sequence"])) &&
-        BigInt(town.data.next_trade_id) >= BigInt(String(old["next_trade"])),
-      "facts checkpoint moved backwards",
-    );
+    if (BigInt(town.block_height) < BigInt(String(old["height"])) ||
+        BigInt(town.event_sequence) < BigInt(String(old["event_sequence"])) ||
+        BigInt(town.data.next_trade_id) < BigInt(String(old["next_trade"]))) {
+      // A planner may finish a newer observation while a signer still validates
+      // its pinned block. Reuse only identical complete economic state, without
+      // moving the durable observation checkpoint backwards.
+      if (this.cached?.merchant.historyComplete && sameCustomerCheckpointState(town, this.cached.merchant.town)) {
+        const value = structuredClone(this.cached);
+        const lift = (snapshot: unknown): unknown => ({ ...town, data: (snapshot as { data: unknown }).data });
+        value.merchant.town = value.customer.town = town;
+        value.merchant.merchants = value.merchant.merchants.map(m => ({ ...m, shop: lift(m.shop) }));
+        value.customer.candidates = value.customer.candidates.map(c => ({ ...c, shop: lift(c.shop), ledger: lift(c.ledger) }));
+        value.merchant.pendingOffers = (shared?.pendingOffers ?? value.merchant.pendingOffers ?? []).map(raw => {
+          const offer = livingTownOffer(raw);
+          return { ...offer, expired: BigInt(offer.expires_at_ns) <= BigInt(town.block_timestamp_ns) };
+        });
+        value.merchant.fresh = value.customer.fresh = Math.abs(Date.now() - Number(BigInt(town.block_timestamp_ns) / 1000000n)) < 60000;
+        return value;
+      }
+      throw new SharedMerchantFactsUnavailable("facts_checkpoint_superseded");
+    }
     // The reviewed contract increments the global revision/event sequence for every economic
     // mutation. Equal full town state at a newer finalized block proves that its subordinate
     // listings, jobs and ledgers have not changed. Rebind only previously complete facts;

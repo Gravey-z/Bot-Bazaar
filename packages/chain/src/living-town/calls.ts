@@ -56,6 +56,20 @@ const name = (v: unknown): string => {
   );
   return v;
 };
+const batchListingArguments = object({
+  updates: array(
+    object({
+      shop_id: bounded(1n, 3n),
+      item_id: livingTownItem,
+      quantity: bounded(0n, 100n),
+      unit_price: bounded(1n, 100n),
+      expected_listing_revision: nullable(positiveU64),
+    }),
+    6,
+  ),
+  command: livingTownCommand,
+});
+
 export const livingTownCallArguments = {
   propose_trade: object({
     buyer_merchant_id: offerMerchant,
@@ -127,10 +141,22 @@ export const livingTownCallArguments = {
     start_epoch: positiveU64,
     command: livingTownCommand,
   }),
-  allocate_raw_supply: (value: unknown) => "all_eligible" in record(value)
-    ? object({ item_id: rawSourceItem, epoch: parseU64, command: livingTownCommand,
-        all_eligible: (v: unknown) => { check(v === true, "batch supply flag must be true"); return true as const; } })(value)
-    : object({ item_id: rawSourceItem, epoch: parseU64, command: livingTownCommand })(value),
+  allocate_raw_supply: (value: unknown) =>
+    "all_eligible" in record(value)
+      ? object({
+          item_id: rawSourceItem,
+          epoch: parseU64,
+          command: livingTownCommand,
+          all_eligible: (v: unknown) => {
+            check(v === true, "batch supply flag must be true");
+            return true as const;
+          },
+        })(value)
+      : object({
+          item_id: rawSourceItem,
+          epoch: parseU64,
+          command: livingTownCommand,
+        })(value),
   sweep_merchant_treasury: object({
     merchant_id: sourceMerchant,
     epoch: parseU64,
@@ -144,6 +170,19 @@ export const livingTownCallArguments = {
     max_total_price: bounded(1n, 10000n),
     command: livingTownCommand,
   }),
+  batch_set_listings: (
+    value: unknown,
+  ): ReturnType<typeof batchListingArguments> => {
+    const args = batchListingArguments(value);
+    check(
+      args.updates.length > 0 &&
+        new Set(args.updates.map((u) => u.item_id)).size ===
+          args.updates.length &&
+        args.updates.every((u) => u.shop_id === args.updates[0]!.shop_id),
+      "Batch updates require distinct items in one merchant shop",
+    );
+    return args;
+  },
   set_listing: object({
     shop_id: positiveU64,
     item_id: livingTownItem,
@@ -360,7 +399,9 @@ export function decodeLivingTownResult(
               : method === "fund_customer_budget" ||
                   method === "settle_customer_purchase"
                 ? livingTownCustomerEffect(v)
-                : method === "set_listing" || method === "cancel_listing"
+                : method === "set_listing" ||
+                    method === "cancel_listing" ||
+                    method === "batch_set_listings"
                   ? livingTownListingEffect(v)
                   : method === "start_production"
                     ? livingTownProductionEffect(v)
@@ -521,9 +562,11 @@ export async function verifyLivingTownEffect(
   if (call.method === "allocate_raw_supply")
     check(
       (outcome.kind === "raw_supplies" || outcome.kind === "raw_supplied") &&
-      (args["all_eligible"] === true
-        ? outcome.kind === "raw_supplies" && outcome.trigger_item_id === args["item_id"]
-        : outcome.kind === "raw_supplied" && outcome.item_id === args["item_id"]) &&
+        (args["all_eligible"] === true
+          ? outcome.kind === "raw_supplies" &&
+            outcome.trigger_item_id === args["item_id"]
+          : outcome.kind === "raw_supplied" &&
+            outcome.item_id === args["item_id"]) &&
         outcome.epoch === args["epoch"],
       "raw supply reviewed terms mismatch",
     );
@@ -552,6 +595,30 @@ export async function verifyLivingTownEffect(
           BigInt(result.block_timestamp_ns),
       "Customer sale reviewed terms mismatch",
     );
+  }
+  if (call.method === "batch_set_listings") {
+    check(outcome.kind === "listings_set", "Batch listing outcome required");
+    const updates = livingTownCallArguments.batch_set_listings(
+      call.args,
+    ).updates;
+    check(
+      outcome.listings.length === updates.length,
+      "Batch listing count mismatch",
+    );
+    updates.forEach((u, i) => {
+      const l = outcome.listings[i]!;
+      check(
+        l.shop_id === u.shop_id &&
+          l.item_id === u.item_id &&
+          l.remaining_quantity === u.quantity &&
+          l.unit_price === u.unit_price &&
+          l.revision ===
+            (u.expected_listing_revision === null
+              ? "1"
+              : (BigInt(u.expected_listing_revision) + 1n).toString()),
+        "Batch listing terms mismatch",
+      );
+    });
   }
   if (call.method === "set_listing" || call.method === "cancel_listing") {
     check(
@@ -684,6 +751,12 @@ export function livingTownCallPrincipal(
     return `merchant:${args[call.method === "propose_trade" ? "buyer_merchant_id" : "merchant_id"]}`;
   if (call.method === "merchant_purchase")
     return `merchant:${args["buyer_merchant_id"]}`;
+  if (call.method === "batch_set_listings") {
+    const updates = livingTownCallArguments.batch_set_listings(
+      call.args,
+    ).updates;
+    return `merchant:${["rex", "luna", "bolt"][Number(BigInt(updates[0]!.shop_id) - 1n)]}`;
+  }
   const id = BigInt(String(args["shop_id"] ?? "0"));
   return (call.method === "start_production" ||
     call.method === "set_listing") &&

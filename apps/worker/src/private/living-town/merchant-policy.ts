@@ -227,6 +227,65 @@ export class LivingTownMerchantPolicy {
       "unreviewed V2 merchant recipe/reserve",
     );
   }
+  listingUpdates(
+    input: MerchantPolicyInput,
+    merchant: Merchant,
+  ): {
+    shop_id: string;
+    item_id: Raw;
+    quantity: string;
+    unit_price: string;
+    expected_listing_revision: string | null;
+  }[] {
+    const plan = this.evaluate(input);
+    const decision = plan.decisions.find((d) => d.merchant === merchant);
+    if (
+      decision?.action.kind !== "set_listing" ||
+      decision.action.reason !== "list_all_saleable_materials"
+    )
+      return [];
+    const town = livingTownSnapshot(livingTownTown)(input.town);
+    const ledger = town.data.npc_ledgers.find(
+      (l) => l.actor.kind === "merchant" && l.actor.merchant_id === merchant,
+    )!;
+    const shop = input.merchants
+      .map((r) => ({ ...r, shop: livingTownSnapshot(livingTownShop)(r.shop) }))
+      .find(
+        (r) =>
+          r.shop.data.owner.kind === "merchant" &&
+          r.shop.data.owner.merchant_id === merchant,
+      )!;
+    const listings = shop.listings.map(livingTownListing);
+    return raw.flatMap((item) => {
+      const listing = listings.find((l) => l.item_id === item);
+      const quantity = min(
+        100n,
+        positive(
+          BigInt(ledger.inventory.held[item]) -
+            BigInt(ledger.inventory.trade_reserved[item]),
+        ),
+      ).toString();
+      const price = plan.pricing.find(
+        (p) => p.merchant === merchant && p.item === item,
+      )?.suggestedPrice;
+      if (
+        !price ||
+        (!listing && quantity === "0") ||
+        (listing?.remaining_quantity === quantity &&
+          listing.unit_price === price)
+      )
+        return [];
+      return [
+        {
+          shop_id: shop.shop.data.shop_id,
+          item_id: item,
+          quantity,
+          unit_price: price,
+          expected_listing_revision: listing?.revision ?? null,
+        },
+      ];
+    });
+  }
   evaluate(input: MerchantPolicyInput): MerchantPolicyResult {
     const town = livingTownSnapshot(livingTownTown)(input.town),
       epoch = BigInt(town.data.epoch),

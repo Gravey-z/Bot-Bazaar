@@ -48,7 +48,7 @@ export class LivingTownProviderRunner {
     private readonly policy: LivingTownMerchantPolicy,
     private readonly budget: BudgetRepository | null,
     private readonly binding: TownBudgetBinding | null,
-    private readonly provider: TownProviderConfiguration | null,
+    private provider: TownProviderConfiguration | null,
     private readonly isCurrent: (
       context: TownProposalContext,
     ) => Promise<boolean>,
@@ -66,6 +66,13 @@ export class LivingTownProviderRunner {
     this.provider = provider ? Object.freeze({ ...provider }) : null;
     this.clock =
       clock ?? new SafetyClock(() => budget?.invalidate("town:clock-drift"));
+  }
+  replaceProvider(provider: TownProviderConfiguration): boolean {
+    if (this.pending.size !== 0) return false;
+    requireStorage(!this.provider || (provider.provider === this.provider.provider && provider.model === this.provider.model &&
+      provider.promptVersion === this.provider.promptVersion), "provider refresh must preserve reviewed model identity");
+    this.provider = Object.freeze({ ...provider });
+    return true;
   }
   private now(): number {
     try {
@@ -422,7 +429,9 @@ export class LivingTownProviderRunner {
             late();
             throw new ProviderUnavailable("stale_response");
           }
-          this.store.gate();
+          // This reply belongs to an already admitted, accounted attempt.
+          // A simultaneous transaction may temporarily close NEW-work admission.
+          if (!context.reaction) this.store.gate();
           if (
             !this.store.providerAttempts.finish(
               id,

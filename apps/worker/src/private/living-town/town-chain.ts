@@ -126,6 +126,7 @@ export function townCall(
       ? ["allocate_raw_supply", "sweep_merchant_treasury", "assistant_reprice"]
       : [
           "set_listing",
+          "batch_set_listings",
           "start_production",
           "complete_production",
           "merchant_purchase",
@@ -144,6 +145,19 @@ export function townCall(
     requireStorage(
       call.args.shop_id === String(["rex", "luna", "bolt"].indexOf(lane) + 1),
       "NPC shop outside selected lane",
+    );
+  if (call.method === "batch_set_listings")
+    requireStorage(
+      "updates" in call.args &&
+        call.args.updates.every(
+          (u) =>
+            u.shop_id ===
+            String(
+              ["rex", "luna", "bolt"].indexOf(lane as "rex" | "luna" | "bolt") +
+                1,
+            ),
+        ),
+      "Batch shop outside selected lane",
     );
   if (call.method === "merchant_purchase")
     requireStorage(
@@ -279,12 +293,43 @@ export class TownChainAdapter {
     assertRuntimePermission(
       key.permission,
       this.identity.deployment.contract_id,
-      "town_negotiating_merchant",
+      (
+        key.permission as { FunctionCall?: { method_names?: string[] } }
+      )?.FunctionCall?.method_names?.includes("batch_set_listings")
+        ? "town_batch_negotiating_merchant"
+        : "town_negotiating_merchant",
     );
+  }
+  async supportsListingBatch(
+    reader: import("@bot-bazaar/chain").FinalizedLivingTownReader,
+  ): Promise<boolean> {
+    if (
+      this.lane === "operator" ||
+      !(await reader.getFoundation()).data.supported_methods.includes(
+        "batch_set_listings",
+      )
+    )
+      return false;
+    const key = await reader.getAccessKey(
+      this.signerId,
+      this.credential.publicKey,
+    );
+    const names = (
+      key.permission as { FunctionCall?: { method_names?: string[] } }
+    )?.FunctionCall?.method_names;
+    if (!names?.includes("batch_set_listings")) return false;
+    assertRuntimePermission(
+      key.permission,
+      this.identity.deployment.contract_id,
+      names.includes("propose_trade")
+        ? "town_batch_negotiating_merchant"
+        : "town_batch_merchant",
+    );
+    return true;
   }
   async prepare(
     call: TownCall,
-    beforeSign: () => Promise<void>,
+    beforeSign: (reader: import("@bot-bazaar/chain").FinalizedLivingTownReader) => Promise<void>,
   ): Promise<PreparedTownCall> {
     call = townCall(call.method, call.args, this.lane);
     requireStorage(
@@ -303,14 +348,18 @@ export class TownChainAdapter {
     const signingScope =
       this.lane === "operator"
         ? this.operatorScope
-        : this.identity.deployment.state_schema === "2" &&
-            Array.isArray(keyMethods) &&
-            keyMethods.includes("propose_trade")
-          ? "town_negotiating_merchant"
-          : Array.isArray(keyMethods) &&
-              keyMethods.includes("merchant_purchase")
-            ? "town_trading_merchant"
-            : "town_merchant";
+        : Array.isArray(keyMethods) && keyMethods.includes("batch_set_listings")
+          ? keyMethods.includes("propose_trade")
+            ? "town_batch_negotiating_merchant"
+            : "town_batch_merchant"
+          : this.identity.deployment.state_schema === "2" &&
+              Array.isArray(keyMethods) &&
+              keyMethods.includes("propose_trade")
+            ? "town_negotiating_merchant"
+            : Array.isArray(keyMethods) &&
+                keyMethods.includes("merchant_purchase")
+              ? "town_trading_merchant"
+              : "town_merchant";
     requireStorage(
       call.method !== "merchant_purchase" ||
         signingScope === "town_trading_merchant",
@@ -319,7 +368,8 @@ export class TownChainAdapter {
     requireStorage(
       !isLivingTownOfferMethod(call.method) ||
         (this.identity.deployment.state_schema === "2" &&
-          signingScope === "town_negotiating_merchant"),
+          (signingScope === "town_negotiating_merchant" ||
+            signingScope === "town_batch_negotiating_merchant")),
       "offers require schema 2 and exact negotiated key scope",
     );
     requireStorage(
@@ -332,6 +382,11 @@ export class TownChainAdapter {
       this.identity.deployment.contract_id,
       signingScope,
     );
+    requireStorage(
+      call.method !== "batch_set_listings" ||
+        (await this.supportsListingBatch(reader)),
+      "batch listings require deployed capability and an explicitly authorized key",
+    );
     if (isLivingTownOfferMethod(call.method))
       await validateTownOfferCall(reader, call);
     const tx = createTransaction(
@@ -343,7 +398,6 @@ export class TownChainAdapter {
       baseDecode(reader.block.hash),
     );
     const secretKey = await this.credential.loadSecretKey();
-    await beforeSign();
     const latest = await this.client.finalized();
     const freshKey = await latest.getAccessKey(
       this.signerId,
@@ -358,8 +412,14 @@ export class TownChainAdapter {
       freshKey.nonce === key.nonce,
       "town key nonce changed before signing",
     );
+    requireStorage(
+      call.method !== "batch_set_listings" ||
+        (await this.supportsListingBatch(latest)),
+      "batch listings require deployed capability and an explicitly authorized key",
+    );
     if (isLivingTownOfferMethod(call.method))
       await validateTownOfferCall(latest, call);
+    await beforeSign(latest);
     const signed = await signRestrictedTransaction({
       scope: signingScope,
       networkId: "testnet",

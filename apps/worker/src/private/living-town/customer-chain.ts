@@ -109,7 +109,7 @@ export class CustomerChainAdapter {
   }
   async prepare(
     call: CustomerCall,
-    beforeSign: () => Promise<void>,
+    beforeSign: (reader: import("@bot-bazaar/chain").FinalizedLivingTownReader) => Promise<void>,
   ): Promise<PreparedCustomerCall> {
     call = customerCall(call.method, call.args);
     const reader = await this.client.finalized();
@@ -131,7 +131,6 @@ export class CustomerChainAdapter {
       baseDecode(reader.block.hash),
     );
     const secretKey = await this.credential.loadSecretKey();
-    await beforeSign();
     const latest = await this.client.finalized();
     const freshKey = await latest.getAccessKey(
       this.identity.operatorId,
@@ -146,6 +145,7 @@ export class CustomerChainAdapter {
       freshKey.nonce === key.nonce,
       "customer key nonce changed before signing",
     );
+    await beforeSign(latest);
     const signed = await signRestrictedTransaction({
       scope: "customer",
       networkId: "testnet",

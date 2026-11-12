@@ -2,7 +2,6 @@ import {
   livingTownMarketEventEffect,
   livingTownMarketEventHistory,
 } from "./market-events.js";
-import { livingTownOfferFoundationMethods } from "@bot-bazaar/shared";
 import {
   livingTownOfferEffect,
   livingTownMerchantTrade,
@@ -141,7 +140,7 @@ const effect = (v: unknown) =>
                   String(record(record(v)["outcome"])["kind"]),
                 )
               ? livingTownCustomerEffect(v)
-              : ["listing_set", "listing_cancelled"].includes(
+              : ["listing_set", "listing_cancelled", "listings_set"].includes(
                     String(record(record(v)["outcome"])["kind"]),
                   )
                 ? livingTownListingEffect(v)
@@ -171,6 +170,7 @@ const commandLookup = (v: unknown) => {
         "fund_customer_budget",
         "settle_customer_purchase",
         "set_listing",
+        "batch_set_listings",
         "cancel_listing",
         "start_production",
         "register_player",
@@ -319,8 +319,7 @@ export class FinalizedLivingTownReader {
   > {
     const f = await this.view("get_foundation", {}, livingTownFoundation);
     check(
-      (f.data.supported_methods.join() ===
-        livingTownOfferFoundationMethods.join()) ===
+      f.data.supported_methods.includes("get_merchant_trading_rules") ===
         (this.identity.deployment.state_schema === "2"),
       "foundation/state schema capability mismatch",
     );
@@ -721,6 +720,7 @@ export class FinalizedLivingTownReader {
                     : "buy_from_merchant",
                 production_started: "start_production",
                 listing_set: "set_listing",
+                listings_set: "batch_set_listings",
                 market_event_scheduled: "schedule_market_event",
                 raw_supplied: "allocate_raw_supply",
                 raw_supplies: "allocate_raw_supply",
@@ -838,13 +838,19 @@ export class LivingTownClient {
     // Both reads are pinned to this exact finalized block. Finish all identity
     // checks before exposing the reader to a caller.
     const identityReads = await Promise.allSettled([
-      r.query("view_account"), r.getFoundation(),
+      r.query("view_account"),
+      r.getFoundation(),
     ] as const);
-    const identityFailure = identityReads.find(result => result.status === "rejected");
+    const identityFailure = identityReads.find(
+      (result) => result.status === "rejected",
+    );
     if (identityFailure?.status === "rejected") throw identityFailure.reason;
     const [accountRead, foundationRead] = identityReads;
-    check(accountRead.status === "fulfilled" && foundationRead.status === "fulfilled",
-      "incomplete finalized identity reads");
+    check(
+      accountRead.status === "fulfilled" &&
+        foundationRead.status === "fulfilled",
+      "incomplete finalized identity reads",
+    );
     const account = accountRead.value;
     identityCheck(
       account["code_hash"] === this.identity.codeHash,

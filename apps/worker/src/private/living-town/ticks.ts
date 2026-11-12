@@ -206,9 +206,9 @@ export class TownTickRepository {
         return (["crystal", "wood", "herb", "iron"].indexOf(arrival.slice(4)) + 4 -
           Number((BigInt(town.data.epoch) / 20n) % 4n)) % 4;
       if (arrival === "fund") return 4;
-      if (/^[0-3]$/.test(arrival)) return 5 + Number(arrival);
+      if (/^[0-3]$/.test(arrival)) return 5 + 2 * Number(arrival);
       if (/^merchant:(rex|luna|bolt):shelf:/.test(arrival))
-        return 9 + merchantRank(arrival);
+        return 6 + 2 * merchantRank(arrival);
       if (arrival.startsWith("merchant:")) return 12 + merchantRank(arrival);
       if (arrival.startsWith("sweep:"))
         return 15 + ["rex", "luna", "bolt"].indexOf(arrival.slice(6));
