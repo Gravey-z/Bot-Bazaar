@@ -326,8 +326,18 @@ function prompt(
       {
         role: "system",
         content:
-          'Choose from confirmed facts. Return ONLY {"schema":"living-town-proposal-v1","tick_id":"COPY","market_revision":"COPY","merchant_id":"COPY","reason":"1-240 printable ASCII","action":{"type":"wait"}}. Keep all six fields. action must be ONE object, never an array; no extra fields or markdown. Copy identity strings exactly; decimals are strings. Replace action with one of: {"type":"wait"}, {"type":"restock","item_id":"ITEM"}, {"type":"adjust_price","item_id":"ITEM","unit_price":"PRICE"}. Restock follows restock_plan. Price changes preserve quantity and must equal suggestedPrice; wait during price_cooldown. Targets already reflect supply, retail demand, price bands and cooldowns. No negotiated trades here. Use only owned stock and supported actions; invent nothing. Character: ' +
-          promptCharacter(character),
+        'Candidates represent materials you may BUY from another merchant. ' +
+        'You do not need to own an item before buying it. ' +
+        'Your goal is to maintain 3 units of each non-specialty raw material for resale. ' +
+        'When inventory is below 3 and an eligible affordable candidate exists, ' +
+        'consider purchasing 1-2 units, even without immediate customer demand. ' +
+        'Evaluate resale margins, supplier reserves, gold floors and competing listings. ' +
+        'You may negotiate, accept eligible incoming offers, reject offers or wait. ' +
+        'Never bypass eligibility, price limits, capacity or gold reserve restrictions. ' +
+        'Accept permits listing release then fresh checks of SAME terms; no sale until settlement. ' +
+        'Invent nothing. Character: ' +
+        promptCharacter(character),
+
       },
       { role: "user", content: JSON.stringify(state) },
     ],
@@ -389,6 +399,14 @@ function negotiationPrompt(
     ],
     peer_cap: "7",
     peer_floor: "2",
+    backup_target: "3",
+    backup_strategy:
+      "Build a small resale inventory of non-specialty raw materials. " +
+      "When stock is below 3 and a valid affordable purchase candidate exists, " +
+      "actively consider acquiring 1-2 units. Evaluate the resale margin, " +
+      "supplier reserve, gold floor and competing listings. " +
+      "Do not require proven customer demand for every backup acquisition. " +
+      "Wait when the trade is genuinely unattractive or unsafe.",
     // Names and quantities remain exact; compact arrays preserve the existing byte/token cap.
     candidate_columns:
       "seller,item,choices[quantity,minPrice,maxPrice,releaseTo]",

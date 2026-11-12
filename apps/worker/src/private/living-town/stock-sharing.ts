@@ -106,8 +106,9 @@ function evaluate(input: MerchantPolicyInput): StockSharingPlan {
   const town = livingTownSnapshot(livingTownTown)(input.town),
     now = BigInt(town.block_timestamp_ns),
     genesis = BigInt(town.data.genesis_time_ns);
-  const backupCap = 7n,
-    peerFloor = 2n;
+const backupTarget = 3n,
+  backupCap = 7n,
+  peerFloor = 2n;
   requireStorage(
     town.deployment.state_schema === "2" && input.negotiatedTrading === true,
     "negotiated stock sharing requires schema 2 capability",
@@ -271,11 +272,16 @@ function evaluate(input: MerchantPolicyInput): StockSharingPlan {
             note(buyer.name, "restock_already_incoming");
             continue;
           }
-        } else if (!signal.healthyForBackups) {
-          note(buyer.name, "primary_not_healthy_for_backup");
-          continue;
-        }
-        const target = primaryBuyer ? BigInt(cfg.target) : backupCap;
+        } else if (
+  !signal.healthyForBackups &&
+  BigInt(inv.held[item]) > 0n
+) {
+  note(buyer.name, "primary_not_healthy_for_backup");
+  continue;
+}
+        const target = primaryBuyer
+  ? BigInt(cfg.target)
+  : min(backupTarget, backupCap);
         const headroom = min(
           nonnegative(
             target -
