@@ -53,7 +53,7 @@ export class LivingTownProviderRunner {
       context: TownProposalContext,
     ) => Promise<boolean>,
     private readonly timeoutMs = 15000,
-    private readonly fallbackMode: "policy" | "wait" = "policy",
+    private readonly fallbackMode: "policy" | "wait" = "wait",
     clock?: SafetyClock,
     private readonly operations?: TownOperations,
     private readonly publishPending?: () => Promise<void>,
@@ -314,8 +314,20 @@ export class LivingTownProviderRunner {
       const prepared = Object.freeze({
         ...this.provider.prepare(structuredClone(context)),
       });
-      if (prepared.countTokens(prepared.payload) > maximumInferenceInputTokens)
-        throw new ProviderUnavailable("prompt_too_large");
+const estimatedTokens = prepared.countTokens(prepared.payload);
+
+if (estimatedTokens > maximumInferenceInputTokens) {
+  console.error(JSON.stringify({
+    role: "economic_runtime",
+    event: "merchant_prompt_size",
+    merchant: context.merchant,
+    estimated_tokens: estimatedTokens,
+    maximum_tokens: maximumInferenceInputTokens,
+    payload_bytes: Buffer.byteLength(prepared.payload, "utf8"),
+  }));
+
+  throw new ProviderUnavailable("prompt_too_large");
+}
       requireStorage(
         prepared.provider === this.provider.provider &&
           prepared.model === this.provider.model &&

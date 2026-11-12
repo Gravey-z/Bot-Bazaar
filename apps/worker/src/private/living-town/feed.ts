@@ -392,7 +392,10 @@ export class TownActivityFeed {
         break;
       }
       case "listings_set":
-        title = `${actor} listed: ` + o.listings.map(l => `${l.remaining_quantity} ${item(l.item_id)} at ${l.unit_price}g each`).join("; ");
+        title = `${actor} listed:\n` +
+          o.listings
+            .map(l => `${l.remaining_quantity} ${item(l.item_id)} at ${l.unit_price}g each`)
+            .join("\n");
         break;
       case "listing_cancelled": title = `${actor} removed a ${item(o.listing.item_id)} listing`; break;
       case "raw_purchased": title = `${actor} bought ${o.trade.quantity} ${item(o.trade.item_id)} from ${name(o.trade.seller.merchant_id)}`; break;

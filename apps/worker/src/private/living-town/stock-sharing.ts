@@ -323,51 +323,55 @@ const backupTarget = 3n,
             note(buyer.name, "no_supplier_surplus_above_floor");
             continue;
           }
-          const listing = seller.listings.find((l) => l.item_id === item),
-            listed = BigInt(si.listing_reserved[item]);
-          // Held stock alone is not an offer to sell. Only propose purchases
-          // of stock currently exposed by an active public listing.
-          if (!listing?.active || BigInt(listing.remaining_quantity) === 0n) {
-            note(buyer.name, "supplier_has_no_active_listing");
-            continue;
-          }
-          let lo = primaryBuyer
-            ? min(BigInt(cfg.max_price), BigInt(cfg.base_price) + 1n)
-            : BigInt(cfg.min_price);
-          if (listing?.active) lo = max(lo, BigInt(listing.unit_price));
-          const hi = primaryBuyer
-            ? BigInt(cfg.max_price)
-            : BigInt(cfg.base_price);
-          const goldHeadroom = nonnegative(
-            1000000n -
-              BigInt(seller.ledger.gold.held) -
-              BigInt(seller.ledger.gold.trade_inbound_reserved),
-          );
-          const choices: StockSharingQuantity[] = [];
-          for (let q = 1n; q <= min(2n, potential, headroom, BigInt(listing.remaining_quantity)); q++) {
-            const maxPrice = min(hi, spendable / q, goldHeadroom / q);
-            if (lo > maxPrice) continue;
-            const remaining = nonnegative(
-              BigInt(si.held[item]) -
-                BigInt(si.trade_reserved[item]) -
-                floor -
-                q,
-            );
-            choices.push({
-              quantity: q.toString(),
-              minUnitPrice: lo.toString(),
-              maxUnitPrice: maxPrice.toString(),
-              listingRelease:
-                listed > remaining
-                  ? {
-                      listingId: listing!.listing_id,
-                      expectedRevision: listing!.revision,
-                      currentQuantity: listed.toString(),
-                      maxRemainingQuantity: remaining.toString(),
-                    }
-                  : null,
-            });
-          }
+          const listing = seller.listings.find((l) => l.item_id === item);
+
+// Merchant trades use unlisted, available inventory.
+// Existing retail listings remain reserved for customers.
+if (available === 0n) {
+  note(buyer.name, "no_free_stock_above_floor");
+  continue;
+}
+
+let lo = primaryBuyer
+  ? min(BigInt(cfg.max_price), BigInt(cfg.base_price) + 1n)
+  : BigInt(cfg.min_price);
+
+if (listing?.active) {
+  lo = max(lo, BigInt(listing.unit_price));
+}
+
+const hi = primaryBuyer
+  ? BigInt(cfg.max_price)
+  : BigInt(cfg.base_price);
+
+const goldHeadroom = nonnegative(
+  1000000n -
+    BigInt(seller.ledger.gold.held) -
+    BigInt(seller.ledger.gold.trade_inbound_reserved),
+);
+
+const choices: StockSharingQuantity[] = [];
+
+for (
+  let q = 1n;
+  q <= min(4n, available, headroom);
+  q++
+) {
+  const maxPrice = min(
+    hi,
+    spendable / q,
+    goldHeadroom / q,
+  );
+
+  if (lo > maxPrice) continue;
+
+  choices.push({
+    quantity: q.toString(),
+    minUnitPrice: lo.toString(),
+    maxUnitPrice: maxPrice.toString(),
+    listingRelease: null,
+  });
+}
           if (!choices.length) {
             note(
               buyer.name,

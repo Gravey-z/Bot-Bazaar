@@ -118,7 +118,7 @@ async fn herb_shortage_announces_once_limits_real_supply_and_expires_without_bal
     steps.push(call(&url, &c, &op, "allocate_raw_supply", raw.clone()).await?);
     assert_eq!(
         steps.last().unwrap()["effect"]["data"]["outcome"]["issued_quantity"],
-        "4"
+        "0"
     );
     checkpoints.push(capture()?);
     // Relist and buy replenished stock through ordinary controller/player authority.

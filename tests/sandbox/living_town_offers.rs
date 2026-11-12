@@ -334,7 +334,7 @@ async fn merchant_offers_competing_sellers_stock_is_not_promised_without_consent
         json!({"command":command(c,1).await?}),
     )
     .await?;
-    call(c,&h.player,"buy_from_merchant",json!({"merchant_id":"rex","item_id":"crystal","quantity":"6","expected_listing_revision":"1","max_total_price":"24","command":command(c,2).await?})).await?;
+    call(c,&h.player,"buy_from_merchant",json!({"merchant_id":"rex","item_id":"crystal","quantity":"8","expected_listing_revision":"1","max_total_price":"32","command":command(c,2).await?})).await?;
     call(
         c,
         &h.luna,
@@ -346,9 +346,40 @@ async fn merchant_offers_competing_sellers_stock_is_not_promised_without_consent
         c,
         &h.bolt,
         "propose_trade",
-        proposal(c, "bolt", "rex", "crystal", "2", "4", 1, 600).await?,
+        proposal(c, "bolt", "rex", "crystal", "2", "4", 2, 600).await?,
     )
     .await?;
+
+    call(
+        c,
+        &h.bolt,
+        "set_listing",
+        json!({
+            "shop_id": "3",
+            "item_id": "crystal",
+            "quantity": "2",
+            "unit_price": "4",
+            "expected_listing_revision": null,
+            "command": command(c, 1).await?
+        }),
+    )
+    .await?;
+
+    call(
+        c,
+        &h.player,
+        "buy_from_merchant",
+        json!({
+            "merchant_id": "bolt",
+            "item_id": "crystal",
+            "quantity": "2",
+            "expected_listing_revision": "1",
+            "max_total_price": "8",
+            "command": command(c, 3).await?
+        }),
+    )
+    .await?;
+
     call(c,&h.rex,"set_listing",json!({"shop_id":"1","item_id":"crystal","quantity":"0","unit_price":"4","expected_listing_revision":"2","command":command(c,1).await?})).await?;
     call(c, &h.rex, "accept_trade", acceptance(c, "1", 2).await?).await?;
     reject(

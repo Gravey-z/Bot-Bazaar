@@ -296,7 +296,7 @@ impl LivingTown {
         // Distributed towns replenish slowly, only at five-epoch boundaries.
         // Missed periods never accumulate; incoming trades retain target headroom.
         let (target, ceiling) = (
-            12u64,
+            20u64,
             if epoch.is_multiple_of(5) {
                 ceiling.min(2)
             } else {

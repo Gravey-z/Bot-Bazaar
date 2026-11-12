@@ -232,8 +232,7 @@ export class LivingTownComponent implements OnInit, OnDestroy {
       this.showGuestToast(message, false);
     }
   }
-  protected readonly usePhaser =
-    new URLSearchParams(location.search).get("town") === "phaser";
+  protected readonly usePhaser = true;
   protected readonly sceneSelection = signal<TownLocation | null>(null);
   protected readonly scenePanel = signal<
     "rex" | "luna" | "bolt" | "notice" | "journal" | null

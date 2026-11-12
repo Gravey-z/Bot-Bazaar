@@ -468,24 +468,20 @@ console.log(
       "individually. Your own specialty is managed separately. " +
       "Items below this target are potential purchasing priorities, " +
       "not automatic purchases.",
-    backup_strategy:
-      "You operate a competitive merchant business, not just a passive shop. " +
-      "Your business objective is to maintain 3 units of each non-specialty " +
-      "raw material as resale inventory. " +
-      "Having zero inventory of an item is a business opportunity when " +
-      "another merchant offers it at an affordable price. " +
-      "Proactively consider purchasing 1-2 units from eligible candidates " +
-      "to establish or replenish your resale inventory. " +
-      "Confirmed customer demand is NOT required for a small initial purchase. " +
-      "Do not describe an affordable purchase as depleting your gold when " +
-      "the remaining balance stays safely above your operating reserve. " +
-      "Compare candidate prices, acquisition cost, possible resale price, " +
-      "inventory capacity and your available gold. " +
-      "Prefer a viable inventory-building trade over waiting without a " +
-      "specific economic reason. " +
-      "You may still wait when no profitable or economically reasonable " +
-      "purchase exists. Never bypass hard safety rules.",
-
+backup_strategy:
+  "Maintain a backup target of 3 units for each non-specialty " +
+  "material. Evaluate each material independently. " +
+  "Prioritize zero-stock materials when eligible suppliers exist. " +
+  "Prefer the largest eligible purchase that reaches the target " +
+  "without exceeding it: 0 held = buy 3, 1 = buy 2, " +
+  "2 = buy 1. Never exceed the target of 3. " +
+  "Smaller purchases are allowed when necessary. " +
+  "Compare purchase price, potential resale margin, gold " +
+  "reserves, inventory capacity and available suppliers. " +
+  "Customer demand is not required for initial backup stock. " +
+  "Do not split an eligible purchase unnecessarily. " +
+  "Prefer economically viable trades over waiting, but " +
+  "never invent opportunities or bypass safety rules.",
     // Names and quantities remain exact; compact arrays preserve the existing byte/token cap.
     candidate_columns:
       "seller,item,choices[quantity,minPrice,maxPrice,releaseTo]",
@@ -618,6 +614,20 @@ if (offers.length > 0) {
           'Candidates bound buys, never force them. ' +
           'Independently accept eligible incoming, reject or wait. ' +
           'Accept permits listing release then fresh checks of SAME terms; no sale until settlement. ' +
+
+          'TRADE ROLES: Always identify your role using the offer buyer and seller fields. ' +
+          'If you are the seller, accepting a trade means you GIVE the offered item ' +
+          'to the buyer and RECEIVE the total gold payment. ' +
+          'Your inventory decreases by the offered quantity and your gold increases. ' +
+          'If you are the buyer, accepting means you RECEIVE the item and PAY gold. ' +
+          'Your inventory increases and your gold decreases. ' +
+          'Never describe a seller accepting an offer as replenishing its own stock. ' +
+          'For an incoming offer, explain the economic benefit from YOUR perspective. ' +
+          'For sellers, consider sale price, remaining stock, inventory floors and ' +
+          'retail commitments. For buyers, consider acquisition cost, target stock, ' +
+          'available gold and potential resale value. ' +
+          'An accepted proposal is not a completed trade until on-chain settlement. ' +
+
           'Use resale_pricing to evaluate possible profit. ' +
           'Do not assume the purchase price is also your resale price. ' +
           'Compare candidate acquisition costs with your own permitted ' +
@@ -694,7 +704,7 @@ export function nearAiProvider(
   return {
     provider: "near-ai",
     model: nearAiModel,
-    promptVersion: "town-near-ai-v9-resale-pricing",
+    promptVersion: "town-near-ai-v11-batch-restock",
     prepare: (context) => ({
       payload: prompt(context, policy),
       provider: "near-ai",

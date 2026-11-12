@@ -6,7 +6,7 @@ use ownership::{Decimal, Outcome, args, next};
 
 const PRIMARY: [usize; 4] = [0, 2, 1, 2];
 const FLOOR: [u64; 4] = [2, 2, 4, 4];
-const TARGET: [u64; 4] = [12; 4];
+const TARGET: [u64; 4] = [20; 4];
 const MIN_PRICE: [u64; 4] = [3, 1, 2, 3];
 const MAX_PRICE: [u64; 4] = [6, 3, 4, 6];
 const GOLD_FLOOR: [u64; 3] = [80, 120, 60];
@@ -372,7 +372,7 @@ impl LivingTown {
         }
         let slot = item_id as usize;
         require!(
-            slot < 4 && (1..=2).contains(&quantity.0),
+            slot < 4 && (1..=4).contains(&quantity.0),
             "LT:E_INVALID_QUANTITY"
         );
         require!(b != s, "LT:E_SELF_TRADE");
@@ -732,7 +732,7 @@ impl LivingTown {
         for (i, item) in ITEM_IDS[..4].iter().enumerate() {
             materials.insert((*item).to_owned(),json!({"supplier":MERCHANTS[PRIMARY[i]],"floor":cfg["economy"]["materials"][*item]["floor"],"target":cfg["economy"]["materials"][*item]["target"],"base_price":cfg["economy"]["materials"][*item]["price"],"min_price":MIN_PRICE[i].to_string(),"max_price":MAX_PRICE[i].to_string()}));
         }
-        self.snapshot(json!({"schema":"merchant-offers-v1","items":&ITEM_IDS[..4],"quantity_cap":"2","backup_cap":"7","operating_gold":{"rex":"80","luna":"120","bolt":"60"},"max_pending_global":"12","max_pending_per_merchant":"8","terminal_retention":"128","min_offer_lifetime_seconds":"60","max_offer_lifetime_seconds":"600","materials":materials}))
+        self.snapshot(json!({"schema":"merchant-offers-v1","items":&ITEM_IDS[..4],"quantity_cap":"4","backup_cap":"7","operating_gold":{"rex":"80","luna":"120","bolt":"60"},"max_pending_global":"12","max_pending_per_merchant":"8","terminal_retention":"128","min_offer_lifetime_seconds":"60","max_offer_lifetime_seconds":"600","materials":materials}))
     }
 }
 

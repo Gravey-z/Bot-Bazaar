@@ -69,9 +69,9 @@ const offerShape = object({
   buyer: offerMerchant,
   seller: offerMerchant,
   item_id: offerItem,
-  quantity: bounded(1n, 2n),
+  quantity: bounded(1n, 4n),
   unit_price: bounded(1n, 6n),
-  total_price: bounded(1n, 12n),
+  total_price: bounded(1n, 24n),
   created_at_ns: parseU64,
   expires_at_ns: positiveU64,
   status: choice([
@@ -202,9 +202,9 @@ function decodeMerchantTrade(value: unknown) {
     seller: merchantActor,
     customer_pool_id: nil,
     item_id: offerItem,
-    quantity: bounded(1n, 2n),
+    quantity: bounded(1n, 4n),
     unit_price: bounded(1n, 6n),
-    total_price: bounded(1n, 12n),
+    total_price: bounded(1n, 24n),
     listing_id: nil,
     offer_id: positiveU64,
     consumed_quantity: literal("0"),
@@ -393,7 +393,7 @@ function decodeTradingRules(value: unknown) {
   const r = object({
     schema: literal("merchant-offers-v1"),
     items: array(offerItem, 4),
-    quantity_cap: literal("2"),
+    quantity_cap: literal("4"),
     backup_cap: literal("7"),
     operating_gold: object({
       rex: literal("80"),

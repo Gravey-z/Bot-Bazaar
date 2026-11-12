@@ -258,12 +258,14 @@ export class LivingTownMerchantPolicy {
     const listings = shop.listings.map(livingTownListing);
     return raw.flatMap((item) => {
       const listing = listings.find((l) => l.item_id === item);
-      const quantity = min(
-        100n,
-        positive(
-          BigInt(ledger.inventory.held[item]) -
-            BigInt(ledger.inventory.trade_reserved[item]),
-        ),
+      const held = BigInt(ledger.inventory.held[item]);
+      const reserved = BigInt(ledger.inventory.trade_reserved[item]);
+      const specialty = this.materials[item].supplier === merchant;
+
+      const quantity = (
+        specialty
+          ? min(12n, positive(held - reserved - 8n))
+          : min(100n, positive(held - reserved))
       ).toString();
       const price = plan.pricing.find(
         (p) => p.merchant === merchant && p.item === item,
@@ -583,8 +585,8 @@ export class LivingTownMerchantPolicy {
           const scarce = BigInt(signal.scarcityBps),
             price = BigInt(signal.suggestedPrice!);
           const quantity = min(
-            BigInt(signal.saleable),
-            100n,
+            12n,
+            positive(BigInt(signal.saleable) - 8n),
           ).toString();
           if (
             listing.unit_price !== price.toString() ||
@@ -617,7 +619,15 @@ export class LivingTownMerchantPolicy {
         // repricing an empty specialty listing can hide saleable backup stock.
         const updates = raw.flatMap(item => {
           const listing = r.listings.find(l => l.item_id === item);
-          const quantity = min(100n, positive(BigInt(inv.held[item]) - BigInt(inv.trade_reserved[item]))).toString();
+          const held = BigInt(inv.held[item]);
+          const reserved = BigInt(inv.trade_reserved[item]);
+          const specialty = this.materials[item].supplier === name;
+
+          const quantity = (
+            specialty
+              ? min(12n, positive(held - reserved - 8n))
+              : min(100n, positive(held - reserved))
+          ).toString();
           if (!listing && quantity === "0") return [];
           const price = pricing.find(p => p.merchant === name && p.item === item)!.suggestedPrice!;
           if (!listing || listing.remaining_quantity !== quantity || listing.unit_price !== price) {

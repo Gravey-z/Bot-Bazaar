@@ -91,7 +91,7 @@ export function livingTownSourceEffect(value: unknown): ReturnType<
           : item === "herb" && active
             ? 1n
             : 2n,
-      target = 12n,
+      target = 20n,
       held = BigInt(allocation.ledger.inventory.held[item]),
       issued = BigInt(allocation.issued_quantity),
       old = held - issued;

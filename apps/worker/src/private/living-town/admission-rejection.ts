@@ -111,6 +111,137 @@ export function isVerifiedExpiredUnappliedCommand(
 }
 
 
+const verifiedMerchantBatchCommands = new WeakSet<object>();
+
+export interface ExpiredMerchantBatchCommand {
+  kind: "expired_unapplied_merchant_batch";
+  transactionHash: string;
+  method: "batch_set_listings";
+  merchant: "bolt" | "luna" | "rex";
+  signerId: string;
+  sequence: string;
+  checkpoint: {
+    hash: string;
+    height: string;
+    timestampNs: string;
+  };
+  keyNonce: string;
+  commandHighWater: string;
+}
+
+export async function verifyExpiredMerchantBatchCommand(
+  original: PreparedTownCall,
+  reader: FinalizedLivingTownReader,
+  merchant: "bolt" | "luna" | "rex",
+  expectedSignerId: string,
+): Promise<ExpiredMerchantBatchCommand> {
+  requireStorage(
+    original.call.method === "batch_set_listings" &&
+      original.signerId === expectedSignerId,
+    "unexpected merchant batch transaction",
+  );
+
+  requireStorage(
+    "command" in original.call.args,
+    "merchant command missing",
+  );
+
+  const command = original.call.args.command;
+
+  // Expiration must be proven using finalized chain time.
+  
+const finalizedNs = BigInt(reader.block.timestampNs);
+const expiresNs = BigInt(command.valid_until_ns);
+
+console.log(JSON.stringify({
+  event: "merchant_recovery_time_diagnostic",
+  transactionHash: original.transactionHash,
+  finalizedBlockHeight: reader.block.height,
+  finalizedBlockHash: reader.block.hash,
+  finalizedTimeUTC: new Date(
+    Number(finalizedNs / 1000000n)
+  ).toISOString(),
+  expiresAtUTC: new Date(
+    Number(expiresNs / 1000000n)
+  ).toISOString(),
+  localTimeUTC: new Date().toISOString(),
+  expiredOnChain: finalizedNs > expiresNs,
+}));
+
+requireStorage(
+  finalizedNs > expiresNs,
+  "merchant command has not expired on-chain",
+);
+
+
+  const key = await reader.getAccessKey(
+    original.signerId,
+    original.publicKey,
+  );
+
+  // The original transaction must not have consumed its nonce.
+  requireStorage(
+    BigInt(key.nonce) + 1n === BigInt(original.nonce) &&
+      key.block_hash === reader.block.hash,
+    "merchant access key nonce changed",
+  );
+
+  const permission = key.permission as {
+    FunctionCall?: {
+      receiver_id?: string;
+      method_names?: string[];
+    };
+  };
+
+  const access = permission.FunctionCall;
+
+  requireStorage(
+    access?.receiver_id === original.deployment.contract_id &&
+      Array.isArray(access.method_names) &&
+      (
+        access.method_names.length === 0 ||
+        access.method_names.includes("batch_set_listings")
+      ),
+    "merchant batch key permission mismatch",
+  );
+
+  const checkpoint = await reader.getCommand(
+    `merchant:${merchant}`,
+    command.sequence,
+  );
+
+  requireStorage(
+    checkpoint.block_height === reader.block.height &&
+      checkpoint.data.kind === "not_applied" &&
+      checkpoint.data.next_sequence === command.sequence &&
+      BigInt(checkpoint.data.high_water) ===
+        BigInt(command.sequence) - 1n,
+    "merchant batch command may have executed",
+  );
+
+  const evidence: ExpiredMerchantBatchCommand = {
+    kind: "expired_unapplied_merchant_batch",
+    transactionHash: original.transactionHash,
+    method: "batch_set_listings",
+    merchant,
+    signerId: original.signerId,
+    sequence: command.sequence,
+    checkpoint: reader.block,
+    keyNonce: key.nonce,
+    commandHighWater: checkpoint.data.high_water,
+  };
+
+  verifiedMerchantBatchCommands.add(evidence);
+  return Object.freeze(evidence);
+}
+
+export function isVerifiedMerchantBatchCommand(
+  value: ExpiredMerchantBatchCommand,
+): boolean {
+  return verifiedMerchantBatchCommands.has(value);
+}
+
+
 const verified = new WeakSet<object>();
 
 export interface ExpiredAdmissionRejection {

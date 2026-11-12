@@ -20,7 +20,7 @@ import {
 import { livingTownOffer } from "./offers.js";
 const text = (v: unknown): string => {
   check(
-    typeof v === "string" && /^[\x20-\x7e]{1,240}$/.test(v),
+    typeof v === "string" && /^[\x20-\x7e\n]{1,240}$/.test(v),
     "invalid public activity text",
   );
   return v;
