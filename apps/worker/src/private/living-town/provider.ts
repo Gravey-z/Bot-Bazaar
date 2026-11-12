@@ -417,9 +417,23 @@ export class LivingTownProviderRunner {
               this.store.identity,
               command,
             );
-          } catch {
-            throw new ProviderUnavailable("policy_rejected");
-          }
+          
+            } catch (error) {
+              console.error(JSON.stringify({
+                role: "economic_runtime",
+                event: "merchant_policy_rejection",
+                merchant: context.merchant,
+                request_id: id,
+                proposed_action: proposal.action,
+                rejection_reason:
+                  error instanceof Error
+                    ? error.message
+                    : "unknown_validation_error",
+              }));
+
+              throw new ProviderUnavailable("policy_rejected");
+            }
+
           if (
             !(await this.isCurrent(context)) ||
             closed ||

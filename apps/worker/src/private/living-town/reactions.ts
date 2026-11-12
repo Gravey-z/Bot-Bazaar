@@ -264,7 +264,7 @@ export class TownReactionRepository {
     const town = livingTownSnapshot(livingTownTown)(input.town);
     if (town.data.paused) return;
     const now = BigInt(town.block_timestamp_ns);
-    const reviewIntervalNs = 1_800_000_000_000n;
+    const reviewIntervalNs = 500_000_000_000n;
     this.write(() => {
       for (const merchant of names) {
         // Stock-sharing candidates already account for target stock, reservations,
@@ -433,8 +433,23 @@ export class TownReactionRepository {
         this.close(id, offer?.status ?? "deadline");
         return;
       }
-      const steps = this.steps(id);
-      if (steps.length === 0) {
+
+        const steps = this.steps(id);
+
+        // Do not generate additional AI follow-ups when the initial
+        // buyer turn has completed without creating an on-chain offer.
+        // Never close an unfinished step or an existing pending offer.
+        if (
+          root.kind === "purchase" &&
+          root.offer_id === null &&
+          steps.some((s) => s.role === "buyer")
+        ) {
+          this.close(id, "buyer_declined_or_no_offer");
+          return;
+        }
+
+        if (steps.length === 0) {
+
         if (BigInt(String(root.deadline_ns)) - now < 90000000000n) {
           this.close(id, "insufficient_root_window");
           return;

@@ -8,6 +8,7 @@ import type { LivingTownMerchantPolicy } from "./merchant-policy.js";
 import type { RuntimeBudget } from "./runtime-budget.js";
 import { merchantCharacter } from "./merchant-characters.js";
 import { negotiationAvailable } from "./negotiation.js";
+import { offerMaterialRules } from "@bot-bazaar/chain";
 
 // Ready JSON-mode model in the NEAR AI catalogue checked 2026-11-11.
 // Modest upgrade: $0.17 input / $1.10 output per million tokens.
@@ -326,18 +327,23 @@ function prompt(
       {
         role: "system",
         content:
-        'Candidates represent materials you may BUY from another merchant. ' +
-        'You do not need to own an item before buying it. ' +
-        'Your goal is to maintain 3 units of each non-specialty raw material for resale. ' +
-        'When inventory is below 3 and an eligible affordable candidate exists, ' +
-        'consider purchasing 1-2 units, even without immediate customer demand. ' +
-        'Evaluate resale margins, supplier reserves, gold floors and competing listings. ' +
-        'You may negotiate, accept eligible incoming offers, reject offers or wait. ' +
-        'Never bypass eligibility, price limits, capacity or gold reserve restrictions. ' +
-        'Accept permits listing release then fresh checks of SAME terms; no sale until settlement. ' +
-        'Invent nothing. Character: ' +
-        promptCharacter(character),
-
+          'Choose from confirmed facts. ' +
+          'Return ONLY {"schema":"living-town-proposal-v1","tick_id":"COPY","market_revision":"COPY","merchant_id":"COPY","reason":"1-240 printable ASCII","action":{"type":"wait"}}. ' +
+          'Keep all six fields. ' +
+          'action must be ONE object, never an array; no extra fields or markdown. ' +
+          'Copy identity strings exactly; decimals are strings. ' +
+          'Replace action with one of: ' +
+          '{"type":"wait"}, ' +
+          '{"type":"restock","item_id":"ITEM"}, ' +
+          '{"type":"adjust_price","item_id":"ITEM","unit_price":"PRICE"}. ' +
+          'Restock follows restock_plan. ' +
+          'Price changes preserve quantity and must equal suggestedPrice; ' +
+          'wait during price_cooldown. ' +
+          'Targets already reflect supply, retail demand, price bands and cooldowns. ' +
+          'No negotiated trades here. ' +
+          'Use only owned stock and supported actions; invent nothing. ' +
+          'Character: ' +
+          promptCharacter(character),
       },
       { role: "user", content: JSON.stringify(state) },
     ],
@@ -370,6 +376,36 @@ function negotiationPrompt(
   const step = signals.decisions.find(
     (d) => d.merchant === context.merchant,
   )!.action;
+
+const merchantPlan = plan.merchants.find(
+  (m) => m.merchant === context.merchant,
+);
+
+console.log(
+  JSON.stringify({
+    role: "economic_runtime",
+    event: "merchant_trade_opportunities",
+    merchant: context.merchant,
+    reaction_role: context.facts.stockSharingReaction?.followUpOnly
+      ? "followup_only"
+      : "buyer_eligible",
+    backup_target: "3",
+    candidates: plan.candidates
+      .filter((c) => c.buyer === context.merchant)
+      .map((c) => ({
+        seller: c.seller,
+        item: c.item,
+        kind: c.kind,
+        choices: c.quantityChoices.map((q) => ({
+          quantity: q.quantity,
+          minimum_price: q.minUnitPrice,
+          maximum_price: q.maxUnitPrice,
+        })),
+      })),
+    rejection_reasons: merchantPlan?.reasons ?? [],
+  }),
+);
+
   const stocks = (data["npc_ledgers"] as unknown[]).map(object).map((l) => {
     const inv = object(l["inventory"]),
       gold = object(l["gold"]);
@@ -400,13 +436,56 @@ function negotiationPrompt(
     peer_cap: "7",
     peer_floor: "2",
     backup_target: "3",
+    resale_pricing_columns:
+      "item,basePrice,minAllowedPrice,maxAllowedPrice,currentOwnListingPrice,suggestedOwnPrice",
+
+    resale_pricing: (
+      ["crystal", "wood", "herb", "iron"] as const
+    ).map((item) => {
+      const rule = offerMaterialRules[item];
+
+      const listing = own.listings
+        .map(object)
+        .find((l) => l["item_id"] === item);
+
+      const pricing = signals.pricing.find(
+        (p) =>
+          p.merchant === context.merchant &&
+          p.item === item,
+      );
+
+      return [
+        item,
+        rule.base_price,
+        rule.min_price,
+        rule.max_price,
+        listing?.["unit_price"] ?? null,
+        pricing?.suggestedPrice ?? null,
+      ];
+    }),
+    backup_target_explanation:
+      "The target of 3 applies to each non-specialty raw material " +
+      "individually. Your own specialty is managed separately. " +
+      "Items below this target are potential purchasing priorities, " +
+      "not automatic purchases.",
     backup_strategy:
-      "Build a small resale inventory of non-specialty raw materials. " +
-      "When stock is below 3 and a valid affordable purchase candidate exists, " +
-      "actively consider acquiring 1-2 units. Evaluate the resale margin, " +
-      "supplier reserve, gold floor and competing listings. " +
-      "Do not require proven customer demand for every backup acquisition. " +
-      "Wait when the trade is genuinely unattractive or unsafe.",
+      "You operate a competitive merchant business, not just a passive shop. " +
+      "Your business objective is to maintain 3 units of each non-specialty " +
+      "raw material as resale inventory. " +
+      "Having zero inventory of an item is a business opportunity when " +
+      "another merchant offers it at an affordable price. " +
+      "Proactively consider purchasing 1-2 units from eligible candidates " +
+      "to establish or replenish your resale inventory. " +
+      "Confirmed customer demand is NOT required for a small initial purchase. " +
+      "Do not describe an affordable purchase as depleting your gold when " +
+      "the remaining balance stays safely above your operating reserve. " +
+      "Compare candidate prices, acquisition cost, possible resale price, " +
+      "inventory capacity and your available gold. " +
+      "Prefer a viable inventory-building trade over waiting without a " +
+      "specific economic reason. " +
+      "You may still wait when no profitable or economically reasonable " +
+      "purchase exists. Never bypass hard safety rules.",
+
     // Names and quantities remain exact; compact arrays preserve the existing byte/token cap.
     candidate_columns:
       "seller,item,choices[quantity,minPrice,maxPrice,releaseTo]",
@@ -495,6 +574,32 @@ function negotiationPrompt(
           { type: "adjust_price", item_id: "ITEM", unit_price: "CHOOSE" },
         ],
   };
+
+if (offers.length > 0) {
+  console.log(JSON.stringify({
+    role: "economic_runtime",
+    event: "merchant_incoming_offer_assessment",
+    merchant: context.merchant,
+    offers: offers.map(o => ({
+      offer_id: o["offer_id"],
+      buyer: o["buyer"],
+      seller: o["seller"],
+      item: o["item_id"],
+      quantity: o["quantity"],
+      unit_price: o["unit_price"],
+    })),
+    assessments: plan.pendingAssessments.filter(
+      a => a.seller === context.merchant
+    ).map(a => ({
+      offer_id: a.offerId,
+      eligible: a.eligible,
+      acceptance_ready: a.acceptanceReady,
+      reasons: a.reasons,
+      listing_release: a.listingRelease,
+    })),
+  }));
+}
+
   return JSON.stringify({
     model: nearAiModel,
     stream: false,
@@ -506,8 +611,21 @@ function negotiationPrompt(
       {
         role: "system",
         content:
-          'Decide for your character using confirmed facts. Return ONLY {"schema":"living-town-proposal-v1","tick_id":"COPY","market_revision":"COPY","merchant_id":"COPY","reason":"1-240 printable ASCII","action":{"type":"wait"}}. Keep all six fields. action must be ONE object chosen from actions, never an array; no extra fields or markdown. Copy identity strings exactly; decimals are strings. Candidates bound buys, never force them. Independently accept eligible incoming, reject or wait. Accept permits listing release then fresh checks of SAME terms; no sale until settlement. Invent nothing. Character: ' +
+          'Decide for your character using confirmed facts. ' +
+          'Return ONLY {"schema":"living-town-proposal-v1","tick_id":"COPY","market_revision":"COPY","merchant_id":"COPY","reason":"1-240 printable ASCII","action":{"type":"wait"}}. ' +
+          'Keep all six fields. action must be ONE object chosen from actions, never an array; no extra fields or markdown. ' +
+          'Copy identity strings exactly; decimals are strings. ' +
+          'Candidates bound buys, never force them. ' +
+          'Independently accept eligible incoming, reject or wait. ' +
+          'Accept permits listing release then fresh checks of SAME terms; no sale until settlement. ' +
+          'Use resale_pricing to evaluate possible profit. ' +
+          'Do not assume the purchase price is also your resale price. ' +
+          'Compare candidate acquisition costs with your own permitted ' +
+          'and suggested listing prices. A positive margin is only ' +
+          'potential profit, not a guaranteed sale. ' +
+          'Invent nothing. Character: ' +
           promptCharacter(character),
+
       },
       { role: "user", content: JSON.stringify(state) },
     ],
@@ -576,7 +694,7 @@ export function nearAiProvider(
   return {
     provider: "near-ai",
     model: nearAiModel,
-    promptVersion: "town-near-ai-v8-bounded-reason",
+    promptVersion: "town-near-ai-v9-resale-pricing",
     prepare: (context) => ({
       payload: prompt(context, policy),
       provider: "near-ai",

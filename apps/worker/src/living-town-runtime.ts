@@ -392,8 +392,8 @@ if (checkOnly) {
     });
   });
   if (store.negotiatedTrading && !once) {
-    planningWorkers.start({ name: "maintenance", intervalMs: 2500, tick: () => simulation.planMaintenance() });
-    planningWorkers.start({ name: "merchant-ai", intervalMs: 1000, tick: () => simulation.planReactions() });
+    planningWorkers.start({ name: "maintenance", intervalMs: 10000, tick: () => simulation.planMaintenance() });
+    planningWorkers.start({ name: "merchant-ai", intervalMs: 5000, tick: () => simulation.planReactions() });
     if (authority && loadAiKey && providerRunner) {
       let refreshedQuote: NearAiQuote | undefined;
       planningWorkers.start({ name: "provider-rates", intervalMs: 5000, tick: async () => {

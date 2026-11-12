@@ -261,42 +261,43 @@ export class LivingTownSimulationAdapter {
     }
     if (decision.kind === "no_op") return null;
     const town = await reader.getTown();
-    if (decision.kind === "raw" || decision.kind === "sweep") {
+    
+    if (decision.kind === "sweep") {
+      // Retired treasury operation; safely consume old queued actions.
+      return null;
+    }
+
+    if (decision.kind === "raw") {
       requireStorage(lane === "operator", "source requires operator lane");
       if (town.data.paused || town.data.epoch === "0") return null;
-      const state = livingTownSourceState((await reader.getSourceState()).data);
-      if (decision.kind === "raw") {
-        requireStorage(
-          ["crystal", "wood", "herb", "iron"].includes(decision.item),
-          "invalid fixed source item",
-        );
-        if (!this.supplyDue(town, state, decision.item as keyof typeof state.raw_epochs))
-          return null;
-        return createLivingTownCall("allocate_raw_supply", {
-          item_id: decision.item,
-          epoch: town.data.epoch,
-          command,
-          all_eligible: true,
-        });
-      }
-      requireStorage(
-        ["rex", "luna", "bolt"].includes(decision.merchant),
-        "invalid fixed treasury",
+
+      const state = livingTownSourceState(
+        (await reader.getSourceState()).data,
       );
+
+      requireStorage(
+        ["crystal", "wood", "herb", "iron"].includes(decision.item),
+        "invalid fixed source item",
+      );
+
       if (
-        BigInt(
-          state.treasury_epochs[
-            decision.merchant as keyof typeof state.treasury_epochs
-          ],
-        ) >= BigInt(town.data.epoch)
-      )
+        !this.supplyDue(
+          town,
+          state,
+          decision.item as keyof typeof state.raw_epochs,
+        )
+      ) {
         return null;
-      return createLivingTownCall("sweep_merchant_treasury", {
-        merchant_id: decision.merchant,
+      }
+
+      return createLivingTownCall("allocate_raw_supply", {
+        item_id: decision.item,
         epoch: town.data.epoch,
         command,
+        all_eligible: true,
       });
     }
+
     if (decision.kind === "maintenance") {
       requireStorage(lane === decision.merchant, "maintenance merchant mismatch");
       const input = await this.facts(reader, undefined, true);
@@ -577,13 +578,6 @@ export class LivingTownSimulationAdapter {
       const id = sha256(canonicalLivingTownJson(["independent-supply-v1", this.store.identity, this.store.seed, town.data.epoch]));
       this.store.maintenance.enqueue({ id, lane: "operator", tick: town.data.epoch, arrival: `raw:${source}`,
         decision: { kind: "raw", item: source } });
-    }
-    if (!source && markers) for (const merchant of ["rex", "luna", "bolt"] as const) {
-      const ledger = town.data.npc_ledgers.find(l => l.actor.kind === "merchant" && l.actor.merchant_id === merchant)!;
-      if (BigInt(ledger.gold.available) <= 200n || BigInt(markers.treasury_epochs[merchant]) >= BigInt(town.data.epoch)) continue;
-      const id = sha256(canonicalLivingTownJson(["independent-sweep-v1", this.store.identity, this.store.seed, merchant, town.data.epoch]));
-      this.store.maintenance.enqueue({ id, lane: "operator", tick: town.data.epoch, arrival: `sweep:${merchant}`,
-        decision: { kind: "sweep", merchant } });
     }
     if (!this.canPlan() || !input.fresh || !input.historyComplete) return { kind: "deferred" };
     for (const { merchant, action } of this.policy.evaluate(input).decisions) {
@@ -871,18 +865,6 @@ export class LivingTownSimulationAdapter {
               // One operator transaction replenishes every eligible material.
               break;
             }
-          for (const name of ["rex", "luna", "bolt"] as const)
-            if (!sourceTurn && BigInt(markers.treasury_epochs[name]) < BigInt(town.data.epoch))
-              if (
-                !this.options.skipEmptySources ||
-                town.data.npc_ledgers.some(
-                  (l) =>
-                    l.actor.kind === "merchant" &&
-                    l.actor.merchant_id === name &&
-                    BigInt(l.gold.available) > 200n,
-                )
-              )
-                add(`sweep:${name}`, ["sweep", name, town.data.epoch]);
         }
         const slot = (
           (BigInt(town.block_timestamp_ns) -
