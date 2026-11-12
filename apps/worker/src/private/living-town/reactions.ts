@@ -255,9 +255,9 @@ export class TownReactionRepository {
     });
   }
   /** Run autonomous inventory-driven AI reviews at most once every 30 minutes
-   * of merchant inactivity. Purchase-triggered reactions remain immediate.
-   * All timestamps and review roots are durable in the existing execution journal.
-   */
+ * of merchant inactivity. Purchase-triggered reactions remain immediate.
+ * All timestamps and review roots are durable in the existing execution journal.
+ */
   observeOpportunities(input: MerchantPolicyInput, candidates: readonly StockSharingCandidate[]): void {
     this.gate();
     if (!input.fresh || !input.historyComplete || !input.negotiatedTrading || !candidates.length) return;

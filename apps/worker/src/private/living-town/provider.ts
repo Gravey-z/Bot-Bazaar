@@ -446,11 +446,50 @@ export class LivingTownProviderRunner {
           }
           return proposal;
         });
+      
       const proposal = await Promise.race([response, interrupted]);
+
+      console.log(
+        JSON.stringify({
+          role: "economic_runtime",
+          event: "merchant_ai_decision",
+          merchant: context.merchant,
+          request_id: id,
+          reaction: context.reaction ?? null,
+          status: "accepted",
+          model: this.provider?.model ?? null,
+          action: proposal.action,
+          reason: proposal.reason,
+          validation: "validated_model_proposal",
+        }),
+      );
+
       return new TownProposalDelivery(proposal, "model_proposal", id);
+
     } catch (error) {
       closed = true;
       abort.abort();
+      if (
+        error instanceof Error &&
+        error.name === "NearAiHttpError"
+      ) {
+        const failure = error as Error & {
+          status: number;
+          detail?: string;
+          parameter?: string;
+        };
+
+        console.error(
+          JSON.stringify({
+            role: "economic_runtime",
+            event: "near_ai_request_failed",
+            merchant: context.merchant,
+            status: failure.status,
+            message: failure.detail ?? "No error details returned",
+            parameter: failure.parameter ?? null,
+          }),
+        );
+      }
       const httpStatus =
         error instanceof Error &&
         error.name === "NearAiHttpError" &&
@@ -476,11 +515,29 @@ export class LivingTownProviderRunner {
           "request_cancelled",
         ].includes(code),
       );
+      
       if (
         !this.store.providerAttempts.finish(id, "fallback", code, p, Date.now())
       )
         this.store.providerAttempts.fallbackRecord(id, code, p);
+
+      console.error(
+        canonicalLivingTownJson({
+          role: "economic_runtime",
+          event: "merchant_ai_decision",
+          merchant: context.merchant,
+          request_id: id,
+          reaction: context.reaction ?? null,
+          status: "fallback",
+          model: this.provider?.model ?? null,
+          failure_code: code,
+          action: p.action,
+          reason: p.reason,
+        }),
+      );
+
       return new TownProposalDelivery(p, "rules", id);
+
     } finally {
       closed = true;
       if (timer) clearTimeout(timer);

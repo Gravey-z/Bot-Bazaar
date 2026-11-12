@@ -449,10 +449,55 @@ export class LivingTownSimulationAdapter {
               }
             : {}),
         };
-      } catch {
+            } catch (error) {
+        const attempt = this.store.providerAttempts.getForTick(
+          work.id,
+          work.merchant,
+        );
+
+        const status = String(attempt?.["status"] ?? "not_dispatched");
+        const providerCode = attempt?.["code"];
+
+        console.error(JSON.stringify({
+          role: "economic_runtime",
+          event: "merchant_reaction_failed",
+          merchant: work.merchant,
+          reaction_id: work.id,
+          reaction_root_id: work.rootId,
+          reaction_role: work.role,
+          failure_reason: failureReason,
+          provider_status: status,
+          provider_code: providerCode ?? null,
+
+          error_name:
+            error instanceof Error ? error.name : "UnknownError",
+
+          error_message:
+            error instanceof Error ? error.message : String(error),
+
+          error_stack:
+            error instanceof Error ? error.stack : null,
+        }));
+
+        // A provider request that may still have executed must not be
+        // silently converted into a completed reaction.
+        if (
+          attempt &&
+          status !== "fallback"
+        ) {
+          throw new Error(
+            `Reaction ${work.id} cannot be finalized: ` +
+            `AI audit status is ${status}`,
+            { cause: error },
+          );
+        }
+
         decision = {
           kind: "no_op",
-          reason: failureReason,
+          reason:
+            status === "fallback" && typeof providerCode === "string"
+              ? `reaction_provider_${providerCode}`
+              : failureReason,
         };
       }
       if (

@@ -122,6 +122,21 @@ export class TownProviderRepository {
         .run(state, payloadHash, state, Date.now(), requestId);
     });
   }
+  getForTick(
+    tickId: string,
+    merchant: string,
+  ): Row | undefined {
+    return this.db
+      .prepare(`
+        SELECT *
+        FROM town_provider_attempts
+        WHERE tick_id = ?
+          AND merchant = ?
+        ORDER BY started_at DESC
+        LIMIT 1
+      `)
+      .get(tickId, merchant);
+  }
   finish(
     requestId: string,
     status: "accepted" | "fallback",

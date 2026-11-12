@@ -14,11 +14,16 @@ import { negotiationAvailable } from "./negotiation.js";
 export const nearAiModel = "Qwen/Qwen3.6-35B-A3B-FP8";
 const origin = "https://cloud-api.near.ai";
 export class NearAiHttpError extends Error {
-  constructor(readonly status: number) {
+  constructor(
+    readonly status: number,
+    readonly detail?: string,
+    readonly parameter?: string,
+  ) {
     super(`NEAR AI HTTP ${status}`);
     this.name = "NearAiHttpError";
   }
 }
+
 type ObjectValue = Record<string, unknown>;
 const object = (v: unknown): ObjectValue => {
   requireStorage(
@@ -46,10 +51,51 @@ async function jsonRequest(
     ...(body === undefined ? {} : { body: JSON.stringify(body) }),
   });
   // Never include a remote error body or request headers in exceptions/logs.
-  if (!response.ok) {
-    await response.body?.cancel();
-    throw new NearAiHttpError(response.status);
+if (!response.ok) {
+  let detail: string | undefined;
+  let parameter: string | undefined;
+
+  try {
+    // Read at most 4 KB from an error response.
+    const reader = response.body?.getReader();
+    if (reader) {
+      const chunks: Uint8Array[] = [];
+      let total = 0;
+
+      try {
+        while (total < 4096) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          chunks.push(value.slice(0, 4096 - total));
+          total += value.byteLength;
+        }
+      } finally {
+        await reader.cancel();
+      }
+
+      const raw = Buffer.concat(chunks).toString("utf8");
+      const parsed = JSON.parse(raw);
+      const error = parsed?.error;
+
+      if (typeof error?.message === "string") {
+        detail = error.message
+          .replace(/Bearer\s+\S+/gi, "Bearer [REDACTED]")
+          .replace(/sk-[A-Za-z0-9_-]+/g, "[REDACTED]")
+          .replace(/[\r\n\t]/g, " ")
+          .slice(0, 240);
+      }
+
+      if (typeof error?.param === "string") {
+        parameter = error.param.slice(0, 80);
+      }
+    }
+  } catch {
+    // Preserve the HTTP status even if the body cannot be parsed.
   }
+
+  throw new NearAiHttpError(response.status, detail, parameter);
+}
   requireStorage(response.body, "NEAR AI body missing");
   const reader = response.body.getReader(),
     chunks: Uint8Array[] = [];
@@ -158,8 +204,25 @@ export const nearAiInputBound = (payload: string): number =>
 function responseFormat(context: TownProposalContext): ObjectValue {
   // Use the same action fields as the local decoder. Keep backend regexes simple;
   // the local decoder still checks full decimal bounds and exact string endings.
-  const schema = object(JSON.parse(JSON.stringify(townProposalSchema, (key, value: unknown) =>
-    key === "pattern" && typeof value === "string" ? value.split("$")[0] + "$" : value)));
+  
+const schema = object(
+  JSON.parse(
+    JSON.stringify(townProposalSchema, (key, value: unknown) => {
+      // These constraints are not supported by the model's xgrammar backend.
+      // Keep them in our local proposal validator instead.
+      if (
+        key === "pattern" ||
+        key === "minLength" ||
+        key === "maxLength"
+      ) {
+        return undefined;
+      }
+
+      return value;
+    }),
+  ),
+);
+
   const properties = object(schema["properties"]);
   properties["tick_id"] = { type: "string", enum: [context.tickId] };
   properties["market_revision"] = { type: "string", enum: [object(context.facts.town)["market_revision"]] };
