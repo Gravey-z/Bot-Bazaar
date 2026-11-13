@@ -21,10 +21,10 @@ export default defineConfig([
     languageOptions: { globals: globals.node },
   },
   {
-  files: ["apps/**/*.ts", "packages/**/*.ts"],
-  extends: [js.configs.recommended, tseslint.configs.recommended],
-  rules: { "@typescript-eslint/explicit-module-boundary-types": "off" },
-},
+    files: ["apps/**/*.ts", "packages/**/*.ts"],
+    extends: [js.configs.recommended, tseslint.configs.recommended],
+    rules: { "@typescript-eslint/explicit-module-boundary-types": "off" },
+  },
   {
     files: ["apps/worker/src/**/*.ts"],
     languageOptions: { globals: globals.node },
