@@ -106,6 +106,7 @@ export class LivingTownExecutionStore {
   readonly identityHash: string;
   private stopped = false;
   private ready = false;
+  private readinessInvalidation: { at: number; origin: string; stack: string | undefined } | null = null;
   private mutationObserver?: () => void;
   constructor(
     readonly dataDir: string,
@@ -296,6 +297,8 @@ export class LivingTownExecutionStore {
         /* fail closed */
       }
       this.ready = false;
+      this.readinessInvalidation = { at: Date.now(), origin: "journal_write_failed",
+        stack: error instanceof Error ? error.stack : String(error) };
       throw error;
     }
   }
@@ -368,12 +371,22 @@ export class LivingTownExecutionStore {
   }
   get planningReady(): boolean { return this.ready && !this.stopped; }
   gate(): void {
-    requireStorage(
-      this.ready && !this.stopped,
-      "verified V2 recovery required",
-    );
+    try {
+      requireStorage(this.ready && !this.stopped, "verified V2 recovery required");
+    } catch (error) {
+      if (error instanceof Error) error.cause = {
+        ready: this.ready, stopped: this.stopped,
+        invalidation: this.readinessInvalidation,
+      };
+      throw error;
+    }
   }
   invalidate(): void {
+    // Retain the first invalidation; a later catch must not hide its origin.
+    if (this.ready || !this.readinessInvalidation) {
+      this.readinessInvalidation = { at: Date.now(), origin: "invalidate_called",
+        stack: new Error("Recovery readiness invalidated").stack };
+    }
     this.ready = false;
   }
   /** Private executable continuity seam; called after durable commits, before callers may sign/send. */
@@ -862,6 +875,7 @@ retireExpiredTownCommand(
       this.db.exec("UPDATE deployment SET recovery_required=0");
     });
     this.ready = true;
+    this.readinessInvalidation = null;
   }
   /** Shared admission seam for merchant turns and operator actions. */
   claimRuntimeJob(
@@ -981,8 +995,16 @@ retireExpiredTownCommand(
     this.gate();
     id(action.id);
     parseU64(action.tick);
+    const decision = action.decision as Record<string, unknown> | null;
+    // Compatibility for reserve work queued before merchant-prefixed arrivals.
+    // Bind the legacy label to its exact merchant, item and persisted work.
+    const legacyReserve = decision?.["kind"] === "stock_reserve_maintenance" &&
+      decision["merchant"] === action.lane &&
+      ["crystal", "wood", "herb", "iron"].includes(String(decision["item"])) &&
+      action.arrival === `stock:${action.lane}:${decision["item"]}` &&
+      this.maintenance.get(action.id)?.arrival === action.arrival;
     requireStorage(
-      action.lane ===
+      legacyReserve || action.lane ===
         (action.arrival.startsWith("merchant:")
           ? action.arrival.split(":")[1]
           : "operator"),

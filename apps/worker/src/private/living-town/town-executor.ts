@@ -49,6 +49,11 @@ class StaleTownStep extends Error {}
 function shelfMaintenance(work: TownWork): boolean {
   const d = work.decision as Record<string, unknown> | null;
   if (!d || typeof d !== "object") return false;
+  if (d["kind"] === "stock_reserve_maintenance")
+    return d["merchant"] === work.lane &&
+      ["crystal", "wood", "herb", "iron"].includes(String(d["item"])) &&
+      (work.arrival === `stock:${work.lane}:${d["item"]}` ||
+        work.arrival === `merchant:${work.lane}:reserve:${d["item"]}`);
   if (d["kind"] === "maintenance")
     return d["merchant"] === work.lane && work.arrival === `merchant:${work.lane}:maintenance:${work.id}`;
   const proposal = d["proposal"] as { action?: { type?: string } } | undefined;

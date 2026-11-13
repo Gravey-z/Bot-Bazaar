@@ -59,6 +59,9 @@ const agentDataShape = object({
   merchant: choice(["rex", "luna", "bolt"] as const),
   proposal_type: choice([
     "adjust_price",
+    "set_listing",
+    "start_production",
+    "complete_production",
     "propose_trade",
     "accept_trade",
     "reject_trade",

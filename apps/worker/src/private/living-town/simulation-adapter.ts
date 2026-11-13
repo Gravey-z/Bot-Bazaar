@@ -32,6 +32,7 @@ import { resolveAssistantReprice } from "../assistant/automatic.js";
 import type { AutomaticAssistant } from "../assistant/automatic.js";
 
 type Decision =
+  | { kind: "stock_reserve_maintenance"; merchant: ProposalMerchant; item: string }
   | { kind: "maintenance"; merchant: ProposalMerchant }
   | { kind: "reaction_cleanup"; offerId: string; method: "expire_offers" }
   | { kind: "assistant"; shop: string; proposal: unknown }
@@ -88,6 +89,7 @@ export class LivingTownSimulationAdapter {
     ) => Promise<MerchantPolicyInput>,
     continuity: ContinuityVerifier,
     private readonly propose?: (context: {
+      purpose?: "trading" | "pricing";
       tickId: string;
       merchant: ProposalMerchant;
       facts: MerchantPolicyInput;
@@ -286,6 +288,18 @@ export class LivingTownSimulationAdapter {
       });
     }
 
+    if (decision.kind === "stock_reserve_maintenance") {
+      requireStorage(lane === decision.merchant, "stock maintenance merchant mismatch");
+      const input = await this.facts(reader);
+      if (!input.fresh || !input.historyComplete || town.data.paused ||
+        input.pendingOffers?.some(o => {
+          const offer = o as { buyer: string; seller: string };
+          return offer.buyer === lane || offer.seller === lane;
+        })) return null;
+      const update = this.policy.listingUpdates(input, decision.merchant).find(u => u.item_id === decision.item);
+      if (!update) return null;
+      return createLivingTownCall("set_listing", { ...update, command });
+    }
     if (decision.kind === "maintenance") {
       // Phase 4: retire previously queued unsigned automatic merchant work.
       // Never turn an old maintenance record into a fresh business decision.
@@ -331,14 +345,25 @@ export class LivingTownSimulationAdapter {
         // A second mutation needs its own durable work item in Phase 5.
         return step.phase === decision.tradePhase ? step.call : null;
       }
-      const executionProposal = decision.contextFingerprint && decision.contextFingerprint === this.contextFingerprint(input)
-        ? { ...decision.proposal, market_revision: (await reader.getTown()).market_revision } : decision.proposal;
+      // A saved reaction authorizes exact action terms, not a frozen global
+      // town revision. Resolve those terms again against fresh candidates,
+      // stock, reservations, price bands and authority; never extend its expiry.
+      const canRevalidate = !!decision.reactionStepId ||
+        (decision.contextFingerprint && decision.contextFingerprint === this.contextFingerprint(input));
+      const executionProposal = canRevalidate
+        ? { ...decision.proposal, market_revision: (input.town as { market_revision: string }).market_revision }
+        : decision.proposal;
       const resolved = resolveTownProposal(
         executionProposal, input, decision.tickId, decision.merchant,
         this.policy, this.store.identity, command, decision.offerExpiryNs,
-      ).call;
-      return resolved;
-    } catch {
+      );
+      if (!resolved.call) console.log(JSON.stringify({ role: "economic_runtime", event: "merchant_execution_declined",
+        merchant: decision.merchant, action_id: decision.tickId, reason: resolved.reason }));
+      return resolved.call;
+    } catch (error) {
+      console.log(JSON.stringify({ role: "economic_runtime", event: "merchant_execution_declined",
+        merchant: decision.merchant, action_id: decision.tickId,
+        reason: error instanceof Error ? error.message.slice(0, 240) : "proposal_revalidation_failed" }));
       return null;
     }
   }
@@ -350,6 +375,15 @@ export class LivingTownSimulationAdapter {
   private async decideReaction(work: ReactionWork, input: MerchantPolicyInput,
     town: Awaited<ReturnType<FinalizedLivingTownReader["getTown"]>>): Promise<Record<string, unknown> | null> {
       let decision: Record<string, unknown>;
+      if (work.role === "followup") {
+        const own = input.merchants.find(m => (m.shop as { data: { owner: { merchant_id?: string } } }).data.owner.merchant_id === work.merchant);
+        const due = this.policy.evaluate(input).pricing.some(p => p.merchant === work.merchant && p.suggestedPrice !== null &&
+          own?.listings.some(value => {
+            const l = value as { item_id: string; active: boolean; remaining_quantity: string; unit_price: string };
+            return l.item_id === p.item && l.active && BigInt(l.remaining_quantity) > 0n && l.unit_price !== p.suggestedPrice;
+          }));
+        if (!due) return { kind: "no_op", reason: "pricing_unchanged_or_cooling_down" };
+      }
       let failureReason = "reaction_admission_unavailable";
       try {
         const admitted = this.store.reactions.admitModel(work, town.block_timestamp_ns);
@@ -364,6 +398,7 @@ export class LivingTownSimulationAdapter {
         failureReason = "reaction_provider_unavailable";
         const delivery = await this.propose!({
           tickId: work.id,
+          purpose: work.role === "followup" ? "pricing" : "trading",
           merchant: work.merchant,
           facts: structuredClone(input),
           schemaVersion: "living-town-proposal-v1",
@@ -375,6 +410,10 @@ export class LivingTownSimulationAdapter {
           "reaction requires audited provider delivery",
         );
         const proposal = parseTownProposal(delivery.proposal);
+        requireStorage(work.role === "followup"
+          ? ["wait", "adjust_price"].includes(proposal.action.type)
+          : ["wait", "propose_trade", "accept_trade", "reject_trade", "start_production", "complete_production"].includes(proposal.action.type),
+          "proposal outside focused decision purpose");
         requireStorage(
           delivery.origin === "model_proposal" ||
             proposal.action.type === "wait",
@@ -517,6 +556,7 @@ export class LivingTownSimulationAdapter {
   private backgroundError: unknown;
   workerStatus(): unknown {
     return { thinking: [...this.thinking.keys()], completedReplies: this.replies.size,
+      merchants: this.store.reactions.reviewStatus(),
       maintenance: this.store.maintenance.counts(), separateWorkers: this.workerModeReady };
   }
   private canPlan(): boolean {
@@ -528,7 +568,7 @@ export class LivingTownSimulationAdapter {
   private sourcePlanningCache?: { revision: string; markers: ReturnType<typeof livingTownSourceState> };
   private async planningFacts(): Promise<MerchantPolicyInput> {
     requireStorage(this.options.planningCollect, "database planning port required");
-    const input = await this.options.planningCollect();
+    const input = { ...await this.options.planningCollect(), pricingHistory: this.store.merchantPricingHistory() };
     this.policy.evaluate(input);
     return input;
   }
@@ -536,24 +576,36 @@ export class LivingTownSimulationAdapter {
     if (!this.canPlan()) return { kind: "deferred" };
     const input = await this.planningFacts(), town = livingTownSnapshot(livingTownTown)(input.town);
     if (town.data.paused || town.data.epoch === "0") return { kind: "idle" };
-    if (this.sourcePlanningCache?.revision !== town.market_revision) {
+    const sourceWindow = !this.options.skipEmptySources || BigInt(town.data.epoch) % 5n === 0n;
+    if (sourceWindow && this.sourcePlanningCache?.revision !== town.market_revision) {
       const reader = await this.adapters.operator.client.finalized();
       const [sourceTown, state] = await Promise.all([reader.getTown(), reader.getSourceState()]);
       this.sourcePlanningCache = { revision: sourceTown.market_revision, markers: state.data };
     }
     if (!this.canPlan()) return { kind: "deferred" };
-    const markers = this.sourcePlanningCache?.revision === town.market_revision ? this.sourcePlanningCache.markers : undefined;
+    const markers = sourceWindow && this.sourcePlanningCache?.revision === town.market_revision ? this.sourcePlanningCache.markers : undefined;
     const source = markers ? (["crystal", "wood", "herb", "iron"] as const).find(item => this.supplyDue(town, markers, item)) : undefined;
     if (source) {
-      const id = sha256(canonicalLivingTownJson(["independent-supply-v1", this.store.identity, this.store.seed, town.data.epoch]));
+      const id = sha256(canonicalLivingTownJson(["independent-supply-v1", this.store.identity, this.store.seed, town.data.epoch, source]));
       this.store.maintenance.enqueue({ id, lane: "operator", tick: town.data.epoch, arrival: `raw:${source}`,
         decision: { kind: "raw", item: source } });
     }
     if (!this.canPlan() || !input.fresh || !input.historyComplete) return { kind: "deferred" };
-    // Phase 4: the maintenance planner only schedules mechanical raw supply.
-    // Prices, listings, purchases and crafting require an audited AI proposal.
+    for (const merchant of ["rex", "luna", "bolt"] as const) {
+      if (input.pendingOffers?.some(o => {
+        const offer = o as { buyer: string; seller: string };
+        return offer.buyer === merchant || offer.seller === merchant;
+      })) continue;
+      for (const update of this.policy.listingUpdates(input, merchant)) {
+        const id = sha256(canonicalLivingTownJson(["stock-reserves-v1", this.store.identity, merchant, update]));
+        this.store.maintenance.enqueue({ id, lane: merchant, tick: town.data.epoch, arrival: `merchant:${merchant}:reserve:${update.item_id}`,
+          decision: { kind: "stock_reserve_maintenance", merchant, item: update.item_id } });
+      }
+    }
+    // Only stock quantities/reserves are mechanical; pricing and trading use focused AI reviews.
     return { kind: "planned" };
   }
+  private lastReviewStatus = "";
   async planReactions(): Promise<unknown> {
     if (this.backgroundError) { const error = this.backgroundError; this.backgroundError = undefined; throw error; }
     if (!this.canPlan()) return { kind: "deferred" };
@@ -566,7 +618,13 @@ export class LivingTownSimulationAdapter {
     const input = await this.planningFacts(), town = livingTownSnapshot(livingTownTown)(input.town);
     if (!this.canPlan() || !input.fresh || !input.historyComplete) return { kind: "deferred" };
     this.store.reactions.observe(input);
-    this.store.reactions.observeOpportunities(input, this.policy.evaluate(input).stockSharing?.candidates ?? []);
+    this.store.reactions.observeOpportunities(input, this.policy.evaluate(input).stockSharing?.candidates ?? [], this.policy.evaluate(input).pricing);
+    const status = this.store.reactions.reviewStatus();
+    const encoded = canonicalLivingTownJson(status);
+    if (encoded !== this.lastReviewStatus) {
+      this.lastReviewStatus = encoded;
+      console.log(JSON.stringify({ role: "economic_runtime", event: "merchant_ai_status", merchants: status }));
+    }
     for (const origin of ["rex", "luna", "bolt"] as const) {
       const work = this.store.reactions.next(input, this.store.offers, origin);
       if (!work || work.decision || this.replies.has(work.id) || this.thinking.has(work.merchant)) continue;
@@ -590,8 +648,8 @@ export class LivingTownSimulationAdapter {
   private async executeWorkers(reader: FinalizedLivingTownReader): Promise<SimulationPoll> {
     const maintenance = this.store.maintenance.next(), reaction = this.store.reactions.decided();
     const turn = this.workerTurn++ % 3;
-    if (turn === 0 && maintenance) return { kind: "advanced", action: await this.runtime.execute(maintenance) };
-    if (turn === 1 && reaction) return this.react(reaction, reader);
+    if (turn === 0 && reaction) return this.react(reaction, reader);
+    if (turn === 1 && maintenance) return { kind: "advanced", action: await this.runtime.execute(maintenance) };
     // Customer planning and submission share this one executor. No planning
     // worker can acquire controller locks or submit signed bytes.
     if (turn === 2 || (!maintenance && !reaction)) {
@@ -703,14 +761,14 @@ export class LivingTownSimulationAdapter {
       // work remains queued. Signed work has already been recovered above.
       // The same exclusive executor still owns all actual transactions.
       if (!sourceTurn && this.propose && this.store.negotiatedTrading &&
-          (!this.options.modelReady || this.options.modelReady()) && ++this.reactionPolls >= 3) {
+          (!this.options.modelReady || this.options.modelReady()) && ++this.reactionPolls >= 1) {
         this.reactionPolls = 0;
         const input = await this.facts(reader);
         maintenanceInput = input;
         if (input.fresh && input.historyComplete) {
           this.store.reactions.observe(input);
           if (this.options.merchantOpportunities)
-            this.store.reactions.observeOpportunities(input, this.policy.evaluate(input).stockSharing?.candidates ?? []);
+            this.store.reactions.observeOpportunities(input, this.policy.evaluate(input).stockSharing?.candidates ?? [], this.policy.evaluate(input).pricing);
           const work = this.store.reactions.next(input, this.store.offers);
           if (work) return this.react(work, reader);
         }
@@ -775,7 +833,7 @@ export class LivingTownSimulationAdapter {
         if (!input.fresh || !input.historyComplete) return { kind: "deferred" };
         this.store.reactions.observe(input);
         if (this.options.merchantOpportunities)
-          this.store.reactions.observeOpportunities(input, this.policy.evaluate(input).stockSharing?.candidates ?? []);
+          this.store.reactions.observeOpportunities(input, this.policy.evaluate(input).stockSharing?.candidates ?? [], this.policy.evaluate(input).pricing);
         if (!this.store.ticks.active()) {
           const active = this.store.reactions.active();
           const work = this.store.reactions.next(input, this.store.offers);

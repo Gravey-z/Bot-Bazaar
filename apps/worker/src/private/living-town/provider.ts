@@ -247,6 +247,7 @@ export class LivingTownProviderRunner {
       context: {
         tickId: context.tickId,
         merchant: context.merchant,
+        purpose: context.purpose ?? "trading",
         signals,
         character: merchantCharacter(context.merchant),
         character_sha256: sha256(

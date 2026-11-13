@@ -244,9 +244,7 @@ const allowed = negotiationAvailable(context.facts)
     ? ["wait", "accept_trade", "reject_trade"]
     : [
         "wait",
-        "adjust_price",
         "propose_trade",
-        "set_listing",
         ...productionActions,
       ]
   : [
@@ -255,8 +253,9 @@ const allowed = negotiationAvailable(context.facts)
       "set_listing",
       ...productionActions,
     ];
+  const focused = context.purpose === "pricing" ? ["wait", "adjust_price"] : allowed;
   action["anyOf"] = (action["oneOf"] as ObjectValue[]).filter(branch =>
-    allowed.includes(String(object(object(branch["properties"])["type"])["const"])));
+    focused.includes(String(object(object(branch["properties"])["type"])["const"])));
   delete action["oneOf"];
   return { type: "json_schema", json_schema: { name: "merchant_decision", strict: true, schema } };
 }
@@ -293,11 +292,42 @@ const priorities = {
   return `${character.name}; ${character.role}. Voice: ${character.voice} Priorities: ${priorities}`;
 }
 
+function pricingPrompt(context: TownProposalContext, signals: ReturnType<LivingTownMerchantPolicy["evaluate"]>): string {
+  const own = context.facts.merchants.find(m =>
+    object(object(object(m.shop)["data"])["owner"])["merchant_id"] === context.merchant)!;
+  const state = {
+    tick_id: context.tickId, market_revision: object(context.facts.town)["market_revision"],
+    merchant_id: context.merchant, now_ns: object(context.facts.town)["block_timestamp_ns"],
+    pricing: signals.pricing.filter(p => p.merchant === context.merchant),
+    stocks: object(context.facts.town)["data"],
+    listings: own.listings,
+    competitors: context.facts.merchants.filter(m => m !== own).flatMap(m => m.listings),
+  };
+  // Pricing needs inventory totals, not the full town, account ledgers or offers.
+  state.stocks = (object(state.stocks)["npc_ledgers"] as unknown[])
+    .map(object).filter(l => object(l["actor"])["merchant_id"] === context.merchant)
+    .map(l => ({ held: object(l["inventory"])["held"], listed: object(l["inventory"])["listing_reserved"] }));
+  const listing = (value: unknown) => {
+    const l = object(value);
+    return [l["item_id"], l["remaining_quantity"], l["unit_price"], l["active"]];
+  };
+  return JSON.stringify({ model: nearAiModel, stream: false, temperature: 0.2, max_tokens: 512,
+    reasoning_effort: "none", response_format: responseFormat(context), messages: [
+      { role: "system", content: "Review prices only. Return JSON matching the response schema; copy identities exactly. " +
+        "Choose wait or adjust_price for one stocked item. Decimal values are strings; reason is 1-240 printable ASCII. " +
+        "Use demand, inventory and active competitors to choose competitive sustainable prices within the supplied bands. " +
+        "Change at most one gold and respect cooldowns. Preserve listing quantities and stock reserves. " +
+        "Suggestions are guidance, not mandatory prices. Explain your choice. Character: " + promptCharacter(merchantCharacter(context.merchant)) },
+      { role: "user", content: JSON.stringify({ ...state, listings: own.listings.map(listing), competitors: state.competitors.map(listing) }) },
+    ] });
+}
+
 function prompt(
   context: TownProposalContext,
   policy: LivingTownMerchantPolicy,
 ): string {
   const signals = policy.evaluate(context.facts);
+  if (context.purpose === "pricing") return pricingPrompt(context, signals);
   const character = merchantCharacter(context.merchant);
   if (negotiationAvailable(context.facts))
     return negotiationPrompt(context, signals, character);
@@ -670,8 +700,6 @@ if (offers.length > 0) {
           'Held includes listed stock. Respect reservations, capacity, supplier floors and price bands. ' +
           'For incoming offers, use explicit buyer/seller roles: seller gives stock for gold; buyer pays gold for stock. ' +
           'Accept only eligible terms; acceptance permits necessary listing release and fresh checks, not settlement. ' +
-          'Choose resale prices using demand and competitors; adjust_price changes at most 1 gold and respects cooldowns. ' +
-          'For set_listing, retain useful trade/production reserves and list only uncommitted stock. ' +
           'Bolt may craft one iron_tool from 1 wood and 2 iron only with no running job and safe reserves. ' +
           'Complete only a ready job using its exact job_id. Offers are not completed trades. ' +
           'Explain the selected action accurately; wait needs a concrete reason and never implies a transfer. ' +
@@ -746,7 +774,7 @@ export function nearAiProvider(
   return {
     provider: "near-ai",
     model: nearAiModel,
-    promptVersion: "town-near-ai-v16-ai-only-compact-trade",
+    promptVersion: "town-near-ai-v17-focused-trading-pricing",
     prepare: (context) => ({
       payload: prompt(context, policy),
       provider: "near-ai",

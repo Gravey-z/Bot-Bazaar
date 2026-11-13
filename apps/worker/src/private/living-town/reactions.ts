@@ -5,6 +5,8 @@ import {
   livingTownSnapshot,
   livingTownTown,
   livingTownOffer,
+  livingTownShop,
+  livingTownListing,
 } from "@bot-bazaar/chain";
 import type { MerchantPolicyInput } from "./merchant-policy.js";
 import type { ProposalMerchant } from "./proposals.js";
@@ -34,6 +36,11 @@ export interface ReactionWork {
 /** All state lives in the witnessed execution DB. Calls into bind/settled run inside
  * the original intent/terminal transaction, so wake-up cannot be lost after a receipt. */
 export class TownReactionRepository {
+  private readonly reviewStates: Record<string, Record<string, unknown>> = {};
+  reviewStatus(): Record<string, Record<string, unknown>> {
+    return structuredClone(this.reviewStates);
+  }
+
   constructor(
     private readonly db: DatabaseSync,
     private readonly write: <T>(fn: () => T) => T,
@@ -254,70 +261,95 @@ export class TownReactionRepository {
       }
     });
   }
-  /** Run autonomous inventory-driven AI reviews at most once every 30 minutes
- * of merchant inactivity. Purchase-triggered reactions remain immediate.
- * All timestamps and review roots are durable in the existing execution journal.
- */
-  observeOpportunities(input: MerchantPolicyInput, candidates: readonly StockSharingCandidate[]): void {
+  /** Review changed commercial facts once; polling and clock ticks alone never buy inference. */
+  observeOpportunities(input: MerchantPolicyInput, candidates: readonly StockSharingCandidate[],
+    pricing: readonly { merchant: string; item: string; suggestedPrice: string | null }[] = []): void {
     this.gate();
     if (!input.fresh || !input.historyComplete || !input.negotiatedTrading) return;
     const town = livingTownSnapshot(livingTownTown)(input.town);
     if (town.data.paused) return;
     const now = BigInt(town.block_timestamp_ns);
-    const reviewIntervalNs = 150_000_000_000n;
     this.write(() => {
       for (const merchant of names) {
-        // AI reviews prices, listings and crafting even without peer trades.
-        // Scheduling a review never selects or signs a business action.
-        const eligible = candidates.filter(c => c.buyer === merchant).map(c => c.id).sort();
-        if (this.db.prepare("SELECT id FROM reaction_roots WHERE merchant=? AND state!='closed'").get(merchant))
-          continue;
-
-        // Read the latest confirmed player purchase from the durable inbox.
-        // Compare decimal nanoseconds as strings: SQLite INTEGER cannot hold them.
-        const latestPurchase = this.db.prepare(
-          "SELECT json_extract(body,'$.settled_at_ns') AS settled_at_ns FROM reaction_purchases " +
-          "WHERE json_extract(body,'$.seller.merchant_id')=? " +
-          "ORDER BY length(json_extract(body,'$.settled_at_ns')) DESC, " +
-          "json_extract(body,'$.settled_at_ns') DESC LIMIT 1",
-        ).get(merchant)?.["settled_at_ns"];
-        // Existing purchase/review roots also provide a durable cooldown.
-        const latestRoot = this.db.prepare(
-          "SELECT created_ns FROM reaction_roots WHERE merchant=? AND kind='purchase' " +
-          "ORDER BY length(created_ns) DESC, created_ns DESC LIMIT 1",
-        ).get(merchant)?.["created_ns"];
-        let lastActivity = BigInt(town.data.genesis_time_ns);
-        for (const timestamp of [latestPurchase, latestRoot]) {
-          if (timestamp !== undefined && timestamp !== null) {
-            const observed = BigInt(String(timestamp));
-            if (observed > lastActivity) lastActivity = observed;
-          }
-        }
-        // Recent confirmed merchant-to-merchant purchases also reset inactivity.
-        // Older activity is covered by the durable 30-minute review cadence.
-        for (const value of input.trades) {
-          const trade = value as {
-            kind?: string;
-            settled_at_ns?: string;
-            seller?: { kind?: string; merchant_id?: string };
+        const open = this.db.prepare("SELECT id,state,offer_id,deadline_ns FROM reaction_roots WHERE merchant=? AND state!='closed' ORDER BY rowid LIMIT 1").get(merchant);
+        if (open) {
+          const step = this.steps(String(open.id)).find(s => s.state !== "completed");
+          const saved = open.offer_id == null ? undefined : this.db.prepare("SELECT body FROM town_offer_commitments WHERE offer_id=?").get(open.offer_id);
+          const offer = saved ? livingTownOffer(JSON.parse(String(saved.body))) : null;
+          const waiting = offer?.status === "pending" && !step;
+          const expired = offer?.status === "pending" && BigInt(offer.expires_at_ns) <= now;
+          this.reviewStates[merchant] = {
+            state: expired ? "waiting_for_offer_cleanup" : waiting ? "waiting_for_seller" : step?.state === "decided" ? "waiting_for_execution" : step ? "decision_pending" : "reaction_queued",
+            message: expired ? `Offer #${offer.offer_id} expired; waiting for cleanup.` : waiting ? `Waiting for ${offer.seller}'s acceptance of offer #${offer.offer_id}.` : step?.role === "seller" && step.state === "planned" ? `Waiting for ${step.merchant}'s offer decision.` : step?.state === "decided" ? "Decision ready; waiting for execution." : "Existing reaction is still in progress.",
+            root_id: open.id, offer_id: open.offer_id,
+            ...(waiting ? { expires_at_ns: offer.expires_at_ns } : {}),
           };
-          if (trade.kind !== "raw_purchase" && trade.kind !== "merchant_trade") continue;
-          if (trade.seller?.merchant_id !== merchant ||
-              typeof trade.settled_at_ns !== "string" ||
-              !/^[0-9]+$/.test(trade.settled_at_ns)) continue;
-          const settledAt = BigInt(trade.settled_at_ns);
-          if (settledAt <= now && settledAt > lastActivity) lastActivity = settledAt;
+          continue;
         }
-        if (now - lastActivity < reviewIntervalNs) continue;
-
-        // Admit a bounded AI review after cooldown. The model chooses trade,
-        // listing, production or wait; the backend still validates the choice.
-        const id = sha256(canonicalLivingTownJson([
-          this.deployment, "merchant-inventory-review-v1", merchant, town.block_timestamp_ns, eligible,
-        ]));
-        this.db.prepare(
-          "INSERT INTO reaction_roots(id,merchant,kind,state,created_ns,deadline_ns) VALUES(?,?,'purchase','queued',?,?)",
-        ).run(id, merchant, town.block_timestamp_ns, String(now + 600_000_000_000n));
+        this.reviewStates[merchant] = { state: "no_eligible_opportunity", message: "No eligible trade or price change under the current stock and policy limits." };
+        const eligible = candidates.filter(c => c.buyer === merchant).map(c => c.id).sort();
+        const own = input.merchants.find(m => {
+          const shop = livingTownSnapshot(livingTownShop)(m.shop);
+          return shop.data.owner.kind === "merchant" && shop.data.owner.merchant_id === merchant;
+        });
+        if (merchant === "bolt" && own) {
+          const ledger = town.data.npc_ledgers.find(l => l.actor.kind === "merchant" && l.actor.merchant_id === merchant)!;
+          const job = own.job as { job_id: string; status: string; ready_at_ns: string } | null;
+          const ready = job?.status === "running" && BigInt(job.ready_at_ns) <= now;
+          const canCraft = !job && BigInt(ledger.inventory.available.wood) >= 1n &&
+            BigInt(ledger.inventory.available.iron) >= 2n && BigInt(ledger.gold.available) >= 60n &&
+            BigInt(ledger.inventory.held.iron_tool) + BigInt(ledger.inventory.production_output_reserved.iron_tool) < 1n;
+          if (ready || canCraft) eligible.push(sha256(canonicalLivingTownJson([
+            "production", ready ? job!.job_id : "start", ledger.inventory.held, ledger.inventory.trade_reserved,
+          ])));
+        }
+        const prices = pricing.filter(p => p.merchant === merchant && p.suggestedPrice !== null &&
+          own?.listings.some(value => {
+            const l = livingTownListing(value);
+            return l.item_id === p.item && l.active && BigInt(l.remaining_quantity) > 0n && l.unit_price !== p.suggestedPrice;
+          }));
+        // Stable roots retain attempts across restarts. Unchanged shortages get
+        // at most three reconsiderations, spaced by at least sixty seconds.
+        // Pricing and production do not receive periodic paid retries.
+        for (const [purpose, facts] of [["trading", eligible], ["pricing", prices.map(p => [p.item, p.suggestedPrice])]] as const) {
+          if (facts.length === 0) continue;
+          const fingerprint = purpose === "pricing"
+            ? [facts, input.merchants.map(m => m.listings.map(livingTownListing).map(l =>
+                [l.item_id, l.remaining_quantity, l.unit_price, l.active]))]
+            : facts;
+          const baseId = sha256(canonicalLivingTownJson([this.deployment, "focused-review-v1", merchant, purpose, fingerprint]));
+          let id = baseId;
+          let previous = this.root(id);
+          if (previous) {
+            const shortage = purpose === "trading" && candidates.some(c => c.buyer === merchant && BigInt(c.buyerHeadroom) > 0n);
+            if (!shortage) {
+              if (this.reviewStates[merchant]?.state === "no_eligible_opportunity")
+                this.reviewStates[merchant] = { state: "opportunity_already_reviewed", message: "Opportunity already reviewed; waiting for changed facts." };
+              continue;
+            }
+            let retry = 1;
+            for (; retry <= 3; retry++) {
+              id = sha256(canonicalLivingTownJson([baseId, "shortage-reconsideration-v1", String(retry)]));
+              const attempted = this.root(id);
+              if (!attempted) break;
+              previous = attempted;
+            }
+            if (retry > 3) {
+              this.reviewStates[merchant] = { state: "reconsideration_limit_reached", message: "Three shortage reconsiderations used; waiting for changed opportunities." };
+              continue;
+            }
+            const next = BigInt(String(previous.created_ns)) + 60_000_000_000n;
+            if (now < next) {
+              this.reviewStates[merchant] = { state: "reconsideration_cooldown", message: "Stock shortage remains; waiting for the next review.", next_review_at_ns: next.toString(), retry: String(retry), maximum_retries: "3" };
+              continue;
+            }
+          }
+          this.db.prepare("INSERT INTO reaction_roots(id,merchant,kind,state,created_ns,deadline_ns) VALUES(?,?,'purchase','queued',?,?)")
+            .run(id, merchant, town.block_timestamp_ns, String(now + 600_000_000_000n));
+          if (purpose === "pricing") this.add(id, merchant, "followup");
+          this.reviewStates[merchant] = { state: "review_queued", message: `${purpose === "pricing" ? "Pricing" : "Trading"} review queued.`, root_id: id };
+          break;
+        }
       }
     });
   }

@@ -488,6 +488,7 @@ if (checkOnly) {
             captured_at: Date.now(), name: error instanceof Error ? error.name : "UnknownError",
             message: error instanceof Error ? error.message : String(error),
             stack: error instanceof Error ? error.stack : undefined,
+            cause: error instanceof Error ? error.cause : undefined,
           });
           store.invalidate();
           operations.setMode("recovery_only");

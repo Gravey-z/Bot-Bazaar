@@ -738,6 +738,7 @@ export function resolveTownProposal(
 }
 
 export interface TownProposalContext {
+  purpose?: "trading" | "pricing";
   reaction?: { rootId: string; stepId: string };
   tickId: string;
   merchant: ProposalMerchant;
