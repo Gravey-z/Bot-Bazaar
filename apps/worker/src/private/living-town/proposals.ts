@@ -367,13 +367,14 @@ export function resolveTownProposal(
       (r.shop as { data: { owner: { merchant_id?: string } } }).data.owner
         .merchant_id === merchant,
   )!;
-  const l = row.listings.find(
+    const l = row.listings.find(
     (v) => (v as { item_id: string }).item_id === a.item_id,
   ) as
     | {
         shop_id: string;
         item_id: string;
         remaining_quantity: string;
+        unit_price: string;
         revision: string;
       }
     | undefined;
@@ -399,8 +400,43 @@ export function resolveTownProposal(
     price >= band[0] && price <= band[1],
     "merchant price/cost band violated",
   );
-  const pricing = signals.pricing.find(p => p.merchant === merchant && p.item === a.item_id);
-  requireStorage(pricing?.suggestedPrice === a.unit_price, "price outside current stock/demand target or cooldown");
+  
+  const pricing = signals.pricing.find(
+    (p) => p.merchant === merchant && p.item === a.item_id,
+  );
+
+  requireStorage(
+    l !== undefined && pricing !== undefined,
+    "price context unavailable",
+  );
+
+  const currentPrice = BigInt(l.unit_price);
+  const proposedPrice = BigInt(a.unit_price);
+
+  requireStorage(
+    proposedPrice !== currentPrice,
+    "price unchanged",
+  );
+
+  // AI can increase or decrease by at most 1 gold.
+  const difference =
+    proposedPrice > currentPrice
+      ? proposedPrice - currentPrice
+      : currentPrice - proposedPrice;
+
+  requireStorage(
+    difference <= 1n,
+    "price change exceeds one gold",
+  );
+
+  // Keep the existing three-minute cooldown.
+  requireStorage(
+    pricing.cooldownUntilNs === null ||
+      BigInt(town.block_timestamp_ns) >=
+        BigInt(pricing.cooldownUntilNs),
+    "price cooldown active",
+  );
+
   // Reuse the audited controller compiler for actor identity, then bind the reviewed price-only replacement.
   const reference: MerchantAction = step;
   policy.compile(input, merchant, reference, identity, command);

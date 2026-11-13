@@ -267,9 +267,12 @@ export class LivingTownMerchantPolicy {
           ? min(12n, positive(held - reserved - 8n))
           : min(100n, positive(held - reserved))
       ).toString();
-      const price = plan.pricing.find(
-        (p) => p.merchant === merchant && p.item === item,
-      )?.suggestedPrice;
+      // Maintenance must never choose a new selling price.
+      // Existing listings retain their price.
+      // First-time listings use the configured initial price.
+      const price =
+        listing?.unit_price ??
+        this.materials[item].price.toString();
       if (
         !price ||
         (!listing && quantity === "0") ||
@@ -583,7 +586,7 @@ export class LivingTownMerchantPolicy {
           const listing = r.listings.find((l) => l.item_id === signal.item);
           requireStorage(listing, "supplier listing identity required");
           const scarce = BigInt(signal.scarcityBps),
-            price = BigInt(signal.suggestedPrice!);
+            price = BigInt(listing.unit_price);
           const quantity = min(
             12n,
             positive(BigInt(signal.saleable) - 8n),
@@ -629,7 +632,9 @@ export class LivingTownMerchantPolicy {
               : min(100n, positive(held - reserved))
           ).toString();
           if (!listing && quantity === "0") return [];
-          const price = pricing.find(p => p.merchant === name && p.item === item)!.suggestedPrice!;
+          const price =
+            listing?.unit_price ??
+            this.materials[item].price.toString();
           if (!listing || listing.remaining_quantity !== quantity || listing.unit_price !== price) {
             return [{ quantityChanged: (listing?.remaining_quantity ?? "0") !== quantity,
               action: { kind: "set_listing" as const, reason: "list_all_saleable_materials", item, quantity, price,

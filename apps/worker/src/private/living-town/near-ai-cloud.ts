@@ -272,9 +272,19 @@ function prompt(
     merchant_trading_available: context.facts.merchantTrading === true,
     restock_plan: signals.decisions.find((d) => d.merchant === context.merchant)
       ?.action,
-    pricing_columns: "item,suggestedPrice,reason",
-    pricing: signals.pricing.filter(p => p.merchant === context.merchant)
-      .map(p => [p.item, p.suggestedPrice, p.reason]),
+    
+    pricing_columns:
+      "item,basePrice,minPrice,maxPrice,cooldownUntilNs",
+    pricing: signals.pricing
+      .filter(p => p.merchant === context.merchant)
+      .map(p => [
+        p.item,
+        p.basePrice,
+        p.minPrice,
+        p.maxPrice,
+        p.cooldownUntilNs,
+      ]),
+
     peer_listings: context.facts.merchantTrading
       ? context.facts.merchants.flatMap((m) =>
           m.listings.filter(listing => object(object(listing)["owner"])["merchant_id"] !== context.merchant).map((listing) => {
@@ -337,9 +347,14 @@ function prompt(
           '{"type":"restock","item_id":"ITEM"}, ' +
           '{"type":"adjust_price","item_id":"ITEM","unit_price":"PRICE"}. ' +
           'Restock follows restock_plan. ' +
-          'Price changes preserve quantity and must equal suggestedPrice; ' +
-          'wait during price_cooldown. ' +
-          'Targets already reflect supply, retail demand, price bands and cooldowns. ' +
+          'You independently decide whether to increase, decrease or ' +
+          'keep your selling prices based on supply, demand, ' +
+          'competition, inventory and your merchant personality. ' +
+          'Use adjust_price only for an existing owned listing. ' +
+          'Choose a price within minPrice and maxPrice. ' +
+          'Change prices by at most 1 gold per decision. ' +
+          'Preserve listing quantity and respect cooldownUntilNs. ' +
+          'Choose wait if no price change is economically justified. ' +
           'No negotiated trades here. ' +
           'Use only owned stock and supported actions; invent nothing. ' +
           'Character: ' +
@@ -436,8 +451,8 @@ console.log(
     peer_cap: "7",
     peer_floor: "2",
     backup_target: "3",
-    resale_pricing_columns:
-      "item,basePrice,minAllowedPrice,maxAllowedPrice,currentOwnListingPrice,suggestedOwnPrice",
+        resale_pricing_columns:
+      "item,basePrice,minAllowedPrice,maxAllowedPrice,currentOwnListingPrice,cooldownUntilNs",
 
     resale_pricing: (
       ["crystal", "wood", "herb", "iron"] as const
@@ -460,7 +475,7 @@ console.log(
         rule.min_price,
         rule.max_price,
         listing?.["unit_price"] ?? null,
-        pricing?.suggestedPrice ?? null,
+                pricing?.cooldownUntilNs ?? null,
       ];
     }),
     backup_target_explanation:
@@ -543,9 +558,19 @@ backup_strategy:
             object(own.job)["ready_at_ns"],
           ],
     restock_plan: [step.kind, "item" in step ? step.item : "iron_tool"],
-    pricing_columns: "item,suggestedPrice,reason",
-    pricing: signals.pricing.filter(p => p.merchant === context.merchant)
-      .map(p => [p.item, p.suggestedPrice, p.reason]),
+    
+    pricing_columns:
+      "item,basePrice,minPrice,maxPrice,cooldownUntilNs",
+    pricing: signals.pricing
+      .filter(p => p.merchant === context.merchant)
+      .map(p => [
+        p.item,
+        p.basePrice,
+        p.minPrice,
+        p.maxPrice,
+        p.cooldownUntilNs,
+      ]),
+
     actions: offers.length
       ? [
           { type: "wait" },
@@ -630,8 +655,11 @@ if (offers.length > 0) {
 
           'Use resale_pricing to evaluate possible profit. ' +
           'Do not assume the purchase price is also your resale price. ' +
-          'Compare candidate acquisition costs with your own permitted ' +
-          'and suggested listing prices. A positive margin is only ' +
+                    'Compare candidate acquisition costs against current prices, ' +
+          'permitted price ranges and potential resale margins. ' +
+          'Choose your own resale prices, not deterministic targets. ' +
+          'For adjust_price, change at most 1 gold and respect cooldowns. ' +
+          'A positive margin is only ' +
           'potential profit, not a guaranteed sale. ' +
           'Invent nothing. Character: ' +
           promptCharacter(character),
@@ -704,7 +732,7 @@ export function nearAiProvider(
   return {
     provider: "near-ai",
     model: nearAiModel,
-    promptVersion: "town-near-ai-v11-batch-restock",
+    promptVersion: "town-near-ai-v12-ai-pricing",
     prepare: (context) => ({
       payload: prompt(context, policy),
       provider: "near-ai",
