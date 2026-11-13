@@ -219,26 +219,45 @@ export class DurableTownExecutor {
             );
           
           } else {
-            // Recover the historical operator allocation only when
-            // its original expiration proof can be verified.
-            if (
-              lane === "operator" &&
-              p.call.method === "allocate_raw_supply" &&
-              p.transactionHash ===
-                "6BYSUvhheerc9rjLU9b9pTgYe71bLb84VQ8iyuDJBJTn"
-            ) {
-              try {
-                const evidence =
-                  await verifyExpiredUnappliedCommand(p, reader);
+            
+if (
+  lane === "operator" &&
+  p.call.method === "allocate_raw_supply"
+) {
+  try {
+    const evidence = await verifyExpiredUnappliedCommand(
+      p,
+      reader,
+      this.store.identity.operatorId,
+    );
 
-                this.store.retireExpiredUnappliedCommand(
-                  actionId,
-                  evidence,
-                );
-              } catch {
-                reasons.push("unknown_town_receipt");
-              }
-            } else if (
+    this.store.retireExpiredUnappliedCommand(
+      actionId,
+      evidence,
+    );
+
+    console.log(JSON.stringify({
+      role: "economic_runtime",
+      event: "verified_expired_operator_allocation",
+      transactionHash: p.transactionHash,
+      commandSequence: evidence.sequence,
+      checkpointHeight: evidence.checkpoint.height,
+    }));
+  } catch (error) {
+    console.error(JSON.stringify({
+      role: "economic_runtime",
+      event: "operator_allocation_recovery_pending",
+      transactionHash: p.transactionHash,
+      reason:
+        error instanceof Error
+          ? error.message
+          : "verification_unavailable",
+    }));
+
+    reasons.push("unknown_town_receipt");
+  }
+}
+ else if (
               (lane === "rex" ||
                 lane === "luna" ||
                 lane === "bolt") &&
@@ -460,7 +479,7 @@ export class DurableTownExecutor {
                 BigInt(town.block_timestamp_ns) + 60000000000n
               ? BigInt(town.block_timestamp_ns) + 60000000000n
               : BigInt(reaction.deadlineNs)
-          : shelf ? BigInt(town.block_timestamp_ns) + 120000000000n
+          : shelf ? BigInt(town.block_timestamp_ns) + 40000000000n
           : BigInt(town.data.genesis_time_ns) +
             (BigInt(work.tick) + 1n) * 60000000000n
         ).toString(),

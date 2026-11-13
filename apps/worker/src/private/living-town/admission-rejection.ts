@@ -21,15 +21,14 @@ export interface ExpiredUnappliedCommand {
 
 export async function verifyExpiredUnappliedCommand(
   original: PreparedTownCall,
-  reader: FinalizedLivingTownReader
+  reader: FinalizedLivingTownReader,
+  expectedSignerId: string,
 ): Promise<ExpiredUnappliedCommand> {
   requireStorage(
     original.call.method === "allocate_raw_supply" &&
-      original.signerId ===
-        "operator.bb-demo-171aea0e7c.testnet" &&
-      original.transactionHash ===
-        "6BYSUvhheerc9rjLU9b9pTgYe71bLb84VQ8iyuDJBJTn",
-    "unexpected operator transaction"
+      original.signerId === expectedSignerId &&
+      original.signerId !== original.deployment.contract_id,
+    "unexpected operator allocation transaction",
   );
 
   requireStorage(
@@ -40,11 +39,10 @@ export async function verifyExpiredUnappliedCommand(
   const command = original.call.args.command;
   const sequence = command.sequence;
 
-  requireStorage(
-    sequence === "11" &&
-      BigInt(reader.block.timestampNs) >
-        BigInt(command.valid_until_ns),
-    "command has not expired"
+    requireStorage(
+    BigInt(reader.block.timestampNs) >
+      BigInt(command.valid_until_ns),
+    "operator command has not expired on-chain",
   );
 
   const key = await reader.getAccessKey(

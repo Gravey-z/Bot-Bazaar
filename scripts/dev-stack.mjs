@@ -114,7 +114,7 @@ try {
       start("Guest backend", "apps/worker/dist/guest.js", ["--config", guestFile, ...initialization(guest.directory, "guests.sqlite")]);
     }
     if (merchantRuntime) {
-      console.info(`Merchant AI: ${merchantRuntime.model}; event-driven calls, no two-minute throttle or daily spending cap; $10 shared lifetime budget. Idle turns use no AI. Control: ${merchantRuntime.control}`);
+      console.info(`Merchant AI: ${merchantRuntime.model}; Control: ${merchantRuntime.control}`);
       start("AI merchants", "apps/worker/dist/living-town-runtime.js", merchantRuntime.args);
     } else console.info("AI merchants disabled by DEV_AI_MERCHANTS=0.");
   }
