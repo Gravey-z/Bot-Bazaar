@@ -289,20 +289,6 @@
                     This shop has no active offers in the current town snapshot.
                   </p>
                 }
-                @if (!state().accountId) {
-                  <button
-                    class="primary"
-                    type="button"
-                    [disabled]="state().busy || screen.setup.kind !== 'ready'"
-                    (click)="openWalletDialog()"
-                  >
-                    Connect
-                  </button>
-                } @else if (!state().observation?.player) {
-                  <button class="primary" type="button" (click)="openManager()">
-                    Open player registration
-                  </button>
-                }
                 <app-merchant-economy [view]="merchantEconomies()[p.id]" />
               }
             }
