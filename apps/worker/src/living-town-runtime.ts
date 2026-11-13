@@ -326,16 +326,40 @@ if (checkOnly) {
         async (context) => {
           owner.verify();
           if (!admission()) return false;
+          if (context.reaction) {
+            // The reader supplied this finalized checkpoint to the planner.
+            // An AI draft cannot authorize a transaction; the executor still
+            // recompiles against fresh finalized state before signing.
+            const checkpoint = context.facts.activityCheckpoint;
+            const town = context.facts.town as {
+              block_height: string;
+              block_timestamp_ns: string;
+              market_revision: string;
+              event_sequence: string;
+            };
+            const work = store.reactions.work(context.reaction.stepId);
+            if (!checkpoint || !work || !context.facts.fresh ||
+                !context.facts.historyComplete ||
+                !store.reactions.modelContext(
+                  context.reaction.rootId,
+                  context.reaction.stepId,
+                  context.merchant,
+                ) ||
+                checkpoint.block_height !== town.block_height ||
+                checkpoint.block_timestamp_ns !== town.block_timestamp_ns ||
+                checkpoint.market_revision !== town.market_revision ||
+                checkpoint.event_sequence !== town.event_sequence)
+              return false;
+            const nowNs = BigInt(Date.now()) * 1_000_000n;
+            const blockNs = BigInt(checkpoint.block_timestamp_ns);
+            // Reject excessively stale or future-dated reader observations.
+            if (nowNs - blockNs > 60_000_000_000n ||
+                blockNs - nowNs > 5_000_000_000n)
+              return false;
+            return nowNs < BigInt(work.deadlineNs);
+          }
+          // Legacy customer/tick admission remains chain-verified.
           const current = await client.finalized();
-          if (context.reaction)
-            return (
-              store.reactions.modelContext(
-                context.reaction.rootId,
-                context.reaction.stepId,
-                context.merchant,
-              ) && BigInt((await current.getTown()).block_timestamp_ns) <
-                BigInt(store.reactions.work(context.reaction.stepId)!.deadlineNs)
-            );
           return sameCustomerCheckpointState(
             context.facts.town,
             await current.getTown(),

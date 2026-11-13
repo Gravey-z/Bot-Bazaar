@@ -270,6 +270,10 @@ export class LivingTownProviderRunner {
     let timingStage = "preparation";
     let timingFailure: string | null = null;
     let timingAccepted = false;
+    let contextVerificationMs: number | null = null;
+    let promptPreparationMs: number | null = null;
+    let budgetReservationMs: number | null = null;
+    let pendingPublicationMs: number | null = null;
     let closed = false,
       identitySeen = false;
     const abort = new AbortController();
@@ -313,16 +317,23 @@ export class LivingTownProviderRunner {
         throw new ProviderUnavailable("budget_binding_mismatch");
       if (this.budget.status(now).blocked)
         throw new ProviderUnavailable("budget_history_unverified");
-      if (
-        !context.facts.fresh ||
-        !context.facts.historyComplete ||
-        !(await Promise.race([this.isCurrent(context), interrupted]))
-      )
-        throw new ProviderUnavailable("stale_context");
+      const contextCheckStarted = performance.now();
+      try {
+        if (
+          !context.facts.fresh ||
+          !context.facts.historyComplete ||
+          !(await Promise.race([this.isCurrent(context), interrupted]))
+        )
+          throw new ProviderUnavailable("stale_context");
+      } finally {
+        contextVerificationMs = Math.round(performance.now() - contextCheckStarted);
+      }
+      const promptStarted = performance.now();
       const prepared = Object.freeze({
         ...this.provider.prepare(structuredClone(context)),
       });
 const estimatedTokens = prepared.countTokens(prepared.payload);
+      promptPreparationMs = Math.round(performance.now() - promptStarted);
 
 if (estimatedTokens > maximumInferenceInputTokens) {
   console.error(JSON.stringify({
@@ -345,10 +356,13 @@ if (estimatedTokens > maximumInferenceInputTokens) {
       // The shared authority reserves the full bounded call against the
       // original lifetime budget, including unresolved billing reservations.
       if (!this.canInvoke(id, context.merchant)) throw new ProviderUnavailable("provider_busy_or_total_budget_exhausted");
+      const budgetStarted = performance.now();
       try {
         this.budget.reserve(id, prepared, now);
       } catch {
         throw new ProviderUnavailable("budget_admission_rejected");
+      } finally {
+        budgetReservationMs = Math.round(performance.now() - budgetStarted);
       }
       this.store.providerAttempts.transition(
         id,
@@ -358,7 +372,12 @@ if (estimatedTokens > maximumInferenceInputTokens) {
       if (this.now() >= deadline)
         throw new ProviderUnavailable("request_timeout");
       this.store.providerAttempts.transition(id, "dispatched");
-      await this.publishPending?.();
+      const publishStarted = performance.now();
+      try {
+        await this.publishPending?.();
+      } finally {
+        pendingPublicationMs = Math.round(performance.now() - publishStarted);
+      }
       const response = Promise.resolve()
         .then(() => {
           if (closed || abort.signal.aborted)
@@ -596,6 +615,10 @@ if (estimatedTokens > maximumInferenceInputTokens) {
         failure_code: timingFailure,
         stage: timingStage,
         preparation_ms: elapsed(timingStartedAt, preparationEnd),
+        context_verification_ms: contextVerificationMs,
+        prompt_preparation_ms: promptPreparationMs,
+        budget_reservation_ms: budgetReservationMs,
+        pending_publication_ms: pendingPublicationMs,
         near_ai_request_ms: aiStartedAt === null ? null : elapsed(aiStartedAt, aiEnd),
         near_ai_response_received: aiFinishedAt !== null,
         validation_ms: aiFinishedAt === null ? null :

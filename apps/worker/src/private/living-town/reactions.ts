@@ -264,7 +264,7 @@ export class TownReactionRepository {
     const town = livingTownSnapshot(livingTownTown)(input.town);
     if (town.data.paused) return;
     const now = BigInt(town.block_timestamp_ns);
-    const reviewIntervalNs = 300_000_000_000n;
+    const reviewIntervalNs = 150_000_000_000n;
     this.write(() => {
       for (const merchant of names) {
         // AI reviews prices, listings and crafting even without peer trades.
