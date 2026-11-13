@@ -457,9 +457,6 @@ function negotiationPrompt(
       object(object(object(r.shop)["data"])["owner"])["merchant_id"] ===
       context.merchant,
   )!;
-  const step = signals.decisions.find(
-    (d) => d.merchant === context.merchant,
-  )!.action;
 
 const merchantPlan = plan.merchants.find(
   (m) => m.merchant === context.merchant,
@@ -547,39 +544,17 @@ console.log(
                 pricing?.cooldownUntilNs ?? null,
       ];
     }),
-    backup_target_explanation:
-      "The target of 3 applies to each non-specialty raw material " +
-      "individually. Your own specialty is managed separately. " +
-      "Items below this target are potential purchasing priorities, " +
-      "not automatic purchases.",
-
-backup_strategy:
-  "Maintain a backup target of 3 units for each non-specialty " +
-  "material independently. Calculate the shortage exactly: " +
-  "shortage = max(0, 3 - current held quantity). " +
-  "If held is 0, buying 1 results in 1 held and 2 still missing. " +
-  "Buying 1 does NOT meet a target of 3. " +
-  "Prefer buying the full shortage when an eligible, affordable " +
-  "quantity is available and economically sensible. " +
-  "Smaller purchases are allowed when justified, but describe " +
-  "them as partial progress, never as reaching the target. " +
-  "Never purchase more than the shortage for backup purposes. " +
-  "Check gold reserves, available suppliers, inventory capacity, " +
-"price and potential resale margin. " +
-"Before proposing a purchase, compare every eligible seller " +
-"for the same item and quantity. " +
-"Prefer the seller with the lowest minimum negotiated unit price. " +
-"Only compare candidates that have the requested quantity " +
-"available outside retail listing reservations. " +
-"Retail listing prices are not automatically executable " +
-"merchant-to-merchant prices. " +
-"Never select a more expensive eligible seller when a cheaper " +
-"eligible seller can provide the same quantity. " +
-"Explain the chosen supplier and proposed unit price. " +
-  "If choosing wait, explain why no action is being taken. " +
-  "Never describe an unexecuted trade as a completed purchase. " +
-  "Distinguish incoming trade offers from available buying " +
-  "opportunities and identify buyer and seller correctly.",
+    backup_strategy:
+      "Target 3 of each non-specialty material independently. " +
+      "Shortage = max(0, 3 - held); buy no more than shortage. " +
+      "A partial buy does not reach the target: 0 + 1 = 1, not 3. " +
+      "Prefer filling the shortage when affordable, but partial buys " +
+      "are valid if explained. Compare eligible sellers for the SAME " +
+      "quantity and prefer the lowest minimum price. Retail listings " +
+      "may be reserved, so only compare eligible unlisted stock. " +
+      "Protect gold floors, inventory capacity and resale margin. " +
+      "Offers are not settled trades; describe wait or partial buys accurately.",
+    // The strict response schema already defines the possible action shapes.
     // Names and quantities remain exact; compact arrays preserve the existing byte/token cap.
     candidate_columns:
       "seller,item,choices[quantity,minPrice,maxPrice,releaseTo]",
@@ -641,8 +616,6 @@ backup_strategy:
             object(own.job)["status"],
             object(own.job)["ready_at_ns"],
           ],
-    restock_plan: [step.kind, "item" in step ? step.item : "iron_tool"],
-    
     pricing_columns:
       "item,basePrice,minPrice,maxPrice,cooldownUntilNs",
     pricing: signals.pricing
@@ -655,39 +628,7 @@ backup_strategy:
         p.cooldownUntilNs,
       ]),
 
-    actions: offers.length
-      ? [
-          { type: "wait" },
-          {
-            type: "accept_trade",
-            offer_id: "COPY",
-            expected_offer_revision: "COPY",
-          },
-          { type: "reject_trade", offer_id: "COPY" },
-        ]
-      : [
-          { type: "wait" },
-          {
-            type: "propose_trade",
-            counterparty: "SELLER",
-            side: "buy",
-            item_id: "ITEM",
-            quantity: "CHOOSE",
-            unit_price: "CHOOSE",
-          },
-          ...(context.merchant === "bolt" ? [
-            { type: "start_production", recipe_id: "iron_tool", quantity: "1" },
-            { type: "complete_production", job_id: "COPY" },
-          ] : []),
-{
-  type: "set_listing",
-  item_id: "ITEM",
-  quantity: "CHOOSE",
-  unit_price: "CHOOSE",
-  reserve_quantity: "CHOOSE",
-},
-{ type: "adjust_price", item_id: "ITEM", unit_price: "CHOOSE" },
-        ],
+
   };
 
 if (offers.length > 0) {

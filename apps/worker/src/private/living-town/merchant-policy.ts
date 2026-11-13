@@ -837,7 +837,7 @@ export class LivingTownMerchantPolicy {
       recipe_id: "iron_tool",
       recipe_version: "1",
       quantity: "1",
-      expected_shop_revision: shop.revision,
+      expected_shop_revision: shop.data.revision,
       command,
     });
     requireStorage(
