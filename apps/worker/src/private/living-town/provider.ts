@@ -59,7 +59,7 @@ export class LivingTownProviderRunner {
     private readonly publishPending?: () => Promise<void>,
   ) {
     requireStorage(
-      Number.isSafeInteger(timeoutMs) && timeoutMs >= 1 && timeoutMs <= 15000,
+      Number.isSafeInteger(timeoutMs) && timeoutMs >= 1 && timeoutMs <= 30000,
       "provider timeout must be 1-15000 milliseconds",
     );
     this.binding = binding ? Object.freeze({ ...binding }) : null;
@@ -262,6 +262,14 @@ export class LivingTownProviderRunner {
       now,
       deadline,
     });
+    // Monotonic durations only: never affect budget admission or deadlines.
+    const timingStartedAt = performance.now();
+    let aiStartedAt: number | null = null;
+    let aiFinishedAt: number | null = null;
+    let validationFinishedAt: number | null = null;
+    let timingStage = "preparation";
+    let timingFailure: string | null = null;
+    let timingAccepted = false;
     let closed = false,
       identitySeen = false;
     const abort = new AbortController();
@@ -355,6 +363,8 @@ if (estimatedTokens > maximumInferenceInputTokens) {
         .then(() => {
           if (closed || abort.signal.aborted)
             throw new ProviderUnavailable("request_cancelled");
+          timingStage = "near_ai_request";
+          aiStartedAt = performance.now();
           return this.provider!.invoke({
             signal: abort.signal,
             requestId: id,
@@ -390,6 +400,8 @@ if (estimatedTokens > maximumInferenceInputTokens) {
           });
         })
         .then(async (value) => {
+          aiFinishedAt = performance.now();
+          timingStage = "validation";
           if (closed || abort.signal.aborted || this.now() >= deadline) {
             late();
             throw new ProviderUnavailable("late_response");
@@ -470,10 +482,12 @@ if (estimatedTokens > maximumInferenceInputTokens) {
             late();
             throw new ProviderUnavailable("attempt_closed");
           }
+          validationFinishedAt = performance.now();
           return proposal;
         });
       
       const proposal = await Promise.race([response, interrupted]);
+      timingAccepted = true;
 
       console.log(
         JSON.stringify({
@@ -531,6 +545,7 @@ if (estimatedTokens > maximumInferenceInputTokens) {
             : httpStatus >= 400 && httpStatus <= 599
               ? `near_ai_http_${httpStatus}`
               : "provider_or_admission_unavailable";
+      timingFailure = code;
       const p = this.fallback(
         context,
         code,
@@ -565,6 +580,28 @@ if (estimatedTokens > maximumInferenceInputTokens) {
       return new TownProposalDelivery(p, "rules", id);
 
     } finally {
+      // A timeout may abort an in-flight HTTP request before it resolves.
+      // In that case request_ms is elapsed wait time, not completed latency.
+      const timingFinishedAt = performance.now();
+      const preparationEnd = aiStartedAt ?? timingFinishedAt;
+      const aiEnd = aiFinishedAt ?? timingFinishedAt;
+      const elapsed = (start: number, end: number) =>
+        Math.max(0, Math.round(end - start));
+      console.log(JSON.stringify({
+        role: "economic_runtime",
+        event: "merchant_ai_timing",
+        merchant: context.merchant,
+        request_id: id,
+        outcome: timingAccepted ? "accepted" : "fallback",
+        failure_code: timingFailure,
+        stage: timingStage,
+        preparation_ms: elapsed(timingStartedAt, preparationEnd),
+        near_ai_request_ms: aiStartedAt === null ? null : elapsed(aiStartedAt, aiEnd),
+        near_ai_response_received: aiFinishedAt !== null,
+        validation_ms: aiFinishedAt === null ? null :
+          elapsed(aiFinishedAt, validationFinishedAt ?? timingFinishedAt),
+        total_ms: elapsed(timingStartedAt, timingFinishedAt),
+      }));
       closed = true;
       if (timer) clearTimeout(timer);
       options.signal?.removeEventListener("abort", cancel);

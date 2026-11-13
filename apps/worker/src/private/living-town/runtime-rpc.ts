@@ -6,7 +6,7 @@ import { ChainRpcError, createRpcTransport } from "@bot-bazaar/chain";
 export function resilientTownRpc(primary: string): RpcTransport {
   const urls = [...new Set([new URL(primary).href, "https://test.rpc.fastnear.com/",
     "https://archival-rpc.testnet.near.org/", "https://testnet-rpc.intea.rs/"])];
-  const providers = urls.map(url => ({ rpc: createRpcTransport(url), retryAt: 0 }));
+  const providers = urls.map(url => ({ rpc: createRpcTransport(url), retryAt: 0, failures: 0, host: new URL(url).host }));
   let preferred = 0;
   return async (method, params) => {
     let failure: unknown = new ChainRpcError("RATE_LIMITED");
@@ -20,11 +20,18 @@ export function resilientTownRpc(primary: string): RpcTransport {
       try {
         const result = await provider.rpc(method, params);
         preferred = index;
+        provider.failures = 0;
+        provider.retryAt = 0;
         return result;
       } catch (error) {
         if (!(error instanceof ChainRpcError) ||
           !["RATE_LIMITED", "UNAVAILABLE", "UNAVAILABLE_OR_INVALID_RESPONSE"].includes(error.code)) throw error;
-        provider.retryAt = Date.now() + 60000;
+        provider.failures++;
+        const cooldownMs = Math.min(60000, 15000 * 2 ** Math.min(provider.failures - 1, 2));
+        provider.retryAt = Date.now() + cooldownMs;
+        console.warn(JSON.stringify({ role: "town_rpc", event: "rpc_provider_cooldown",
+          endpoint: provider.host, method, error_code: error.code,
+          retry_after_ms: cooldownMs, retry_at: new Date(provider.retryAt).toISOString() }));
         failure = error;
         // A broadcast may have reached the provider. Recover the original hash
         // on the next cycle rather than immediately broadcasting elsewhere.

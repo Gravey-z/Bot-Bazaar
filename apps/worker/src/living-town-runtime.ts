@@ -89,9 +89,12 @@ const operations = new TownOperations("simulation");
 const transport = resilientTownRpc(config.public.rpcUrl);
 const rpc = boundedTownRpc((method, params) =>
   operations.measure("chain", () => transport(method, params)),
-  250,
-  4,
+  1200,
+  2,
 );
+console.log(JSON.stringify({ role: "economic_runtime", event: "rpc_client_config",
+  endpoint: new URL(config.public.rpcUrl).host, spacing_ms: 1200,
+  max_concurrent_reads: 2, shared_limiter: false }));
 const client = new LivingTownClient(config.identity, rpc);
 const pinned = await client.finalized();
 if (stopping) process.exit(0);
@@ -507,7 +510,7 @@ if (checkOnly) {
             ((result as { kind?: string })?.kind === "advanced"
               ? config.pollMs
               : (result as { kind?: string })?.kind === "blocked"
-                ? Math.max(config.pollMs, 15000)
+                ? Math.max(config.pollMs, 30000)
                 : Math.max(config.pollMs, 2500)) *
               2 ** Math.min(failures, 4),
           ), undefined, { signal: stopDelay.signal },

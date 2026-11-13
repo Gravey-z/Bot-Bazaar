@@ -16,6 +16,7 @@ import type { ProjectionBaseline } from "./store.js";
 export class LivingTownProjector {
   private running: Promise<void> | undefined;
   private initialized = false;
+  private lastObservedBlockHash: string | undefined;
   private gapSince = 0;
   private fullReconcileAt = 0;
   private receiptObserver?: (receipt: LivingTownIndexedReceipt | LivingTownIndexedCompletion) => void;
@@ -72,16 +73,21 @@ export class LivingTownProjector {
     return this.running;
   }
   private async reconcile(): Promise<void> {
-    const reader = await this.client.finalized(),
-      town = await reader.getTown();
+    const reader = await this.client.finalized();
     const now = Date.now();
     const auditDue = this.initialized && now - this.fullReconcileAt >= 300000;
+    // An unchanged finalized block cannot contain new chain state. Still run
+    // receipt ingestion in the caller and the periodic full integrity audit.
+    if (this.initialized && !auditDue && this.store.marketReady() &&
+        !this.store.town().stale && reader.block.hash === this.lastObservedBlockHash) return;
+    const town = await reader.getTown();
     if (
       this.initialized &&
       !auditDue &&
       this.store.marketReady() &&
       this.store.observe(town, reader.block)
     ) {
+      this.lastObservedBlockHash = reader.block.hash;
       this.gapSince = 0;
       return;
     }
@@ -183,6 +189,7 @@ export class LivingTownProjector {
       true,
     );
     this.initialized = true;
+    this.lastObservedBlockHash = reader.block.hash;
     this.fullReconcileAt = Date.now();
     this.gapSince = 0;
   }

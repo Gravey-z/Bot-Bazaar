@@ -29,7 +29,12 @@ if (args[0] !== "--config" || !args[1] || (args.length !== 2 && !initialize))
   );
 const config = parseLivingTownWorkerConfig(readBoundedFile(args[1], 32768));
 const operations = new TownOperations("read_projection");
-const rpc = boundedTownRpc(resilientTownRpc(config.public.rpcUrl), 250, 4);
+// Reader and signing worker are separate processes: each has its own limiter.
+// Conservative per-process pacing reduces aggregate load on public Testnet RPC.
+const rpc = boundedTownRpc(resilientTownRpc(config.public.rpcUrl), 1200, 2);
+console.log(JSON.stringify({ role: "read_projection", event: "rpc_client_config",
+  endpoint: new URL(config.public.rpcUrl).host, spacing_ms: 1200,
+  max_concurrent_reads: 2, shared_limiter: false }));
 if (initialize) mkdirSync(config.dataDir, { recursive: true, mode: 0o700 });
 const store = new LivingTownProjectionStore(
     config.dataDir,

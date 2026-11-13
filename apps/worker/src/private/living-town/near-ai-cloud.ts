@@ -543,15 +543,11 @@ console.log(
       ];
     }),
     backup_strategy:
-      "Target 3 of each non-specialty material independently. " +
-      "Shortage = max(0, 3 - held); buy no more than shortage. " +
-      "A partial buy does not reach the target: 0 + 1 = 1, not 3. " +
-      "Prefer filling the shortage when affordable, but partial buys " +
-      "are valid if explained. Compare eligible sellers for the SAME " +
-      "quantity and prefer the lowest minimum price. Retail listings " +
-      "may be reserved, so only compare eligible unlisted stock. " +
-      "Protect gold floors, inventory capacity and resale margin. " +
-      "Offers are not settled trades; describe wait or partial buys accurately.",
+      "Target 3 per non-specialty item; shortage=max(0,3-held). " +
+      "Never buy above shortage. Partial purchases do not fill the target. " +
+      "Prefer the cheapest eligible seller for the same quantity; " +
+      "listed stock is reserved, so buy only eligible free stock. " +
+      "Respect gold floors, capacity and resale margin. Offers are not settled.",
     // The strict response schema already defines the possible action shapes.
     // Names and quantities remain exact; compact arrays preserve the existing byte/token cap.
     candidate_columns:
@@ -614,19 +610,7 @@ console.log(
             object(own.job)["status"],
             object(own.job)["ready_at_ns"],
           ],
-    pricing_columns:
-      "item,basePrice,minPrice,maxPrice,cooldownUntilNs",
-    pricing: signals.pricing
-      .filter(p => p.merchant === context.merchant)
-      .map(p => [
-        p.item,
-        p.basePrice,
-        p.minPrice,
-        p.maxPrice,
-        p.cooldownUntilNs,
-      ]),
-
-
+    // resale_pricing already includes these bands and cooldowns.
   };
 
 if (offers.length > 0) {
@@ -682,18 +666,13 @@ if (offers.length > 0) {
           'Independently accept eligible incoming, reject or wait. ' +
           'Accept permits listing release then fresh checks of SAME terms; no sale until settlement. ' +
 
-          'TRADE ROLES: Always identify your role using the offer buyer and seller fields. ' +
-          'If you are the seller, accepting a trade means you GIVE the offered item ' +
-          'to the buyer and RECEIVE the total gold payment. ' +
-          'Your inventory decreases by the offered quantity and your gold increases. ' +
-          'If you are the buyer, accepting means you RECEIVE the item and PAY gold. ' +
-          'Your inventory increases and your gold decreases. ' +
-          'Never describe a seller accepting an offer as replenishing its own stock. ' +
-          'For an incoming offer, explain the economic benefit from YOUR perspective. ' +
-          'For sellers, consider sale price, remaining stock, inventory floors and ' +
-          'retail commitments. For buyers, consider acquisition cost, target stock, ' +
-          'available gold and potential resale value. ' +
-          'An accepted proposal is not a completed trade until on-chain settlement. ' +
+          'TRADE ROLES: Use the buyer/seller fields, never assume your role. ' +
+          'Seller accepts: GIVE item, RECEIVE gold; stock falls, gold rises. ' +
+          'Buyer accepts: RECEIVE item, PAY gold; stock rises, gold falls. ' +
+          'Never claim seller acceptance replenishes seller stock. ' +
+          'Explain your own benefit: seller price/floors/retail promises, ' +
+          'or buyer cost/stock/gold/resale value. ' +
+          'Accepting a proposal is NOT settlement; only chain settlement completes a trade. ' +
 
           'Use resale_pricing to evaluate possible profit. ' +
           'Do not assume the purchase price is also your resale price. ' +
@@ -787,7 +766,7 @@ export function nearAiProvider(
   return {
     provider: "near-ai",
     model: nearAiModel,
-    promptVersion: "town-near-ai-v15-ai-only",
+    promptVersion: "town-near-ai-v16-ai-only-compact-trade",
     prepare: (context) => ({
       payload: prompt(context, policy),
       provider: "near-ai",
