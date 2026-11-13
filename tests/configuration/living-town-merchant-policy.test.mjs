@@ -443,3 +443,19 @@ test("backup holders offer actual reserves during shortages and the primary supp
     assert.equal(action(disabled, "luna").kind, "wait");
   }
 });
+
+
+test("backup shelf maintenance retains two free units", () => {
+  const i = input();
+  for (const [index, name] of names.entries()) {
+    for (const item of raw) {
+      const listed = i.merchants[index].listings.find(l => l.item_id === item)?.remaining_quantity ?? "0";
+      stock(i, name, item, ledger(i, name).inventory.held[item], listed);
+    }
+  }
+  const template = structuredClone(i.merchants[0].listings[0]);
+  i.merchants[0].listings.push({ ...template, listing_id: "99", item_id: "herb", remaining_quantity: "7", active: true });
+  stock(i, "rex", "herb", 7, 7);
+  const update = policy.listingUpdates(i, "rex").find(l => l.item_id === "herb");
+  assert.equal(update.quantity, "5");
+});

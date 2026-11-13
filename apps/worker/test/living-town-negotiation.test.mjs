@@ -717,3 +717,23 @@ test("SDK source decoding matches paced supply and includes promised target spac
     /formula/,
   );
 });
+
+
+test("compact merchant payloads fit the 8192 input bound without inference", () => {
+  const provider = nearAiProvider(policy, {}, quote,
+    () => { throw Error("no credential read"); },
+    () => { throw Error("no inference"); });
+  for (const merchant of ["rex", "luna", "bolt"]) {
+    for (const facts of [shortage(), pending(shortage())]) {
+      const prepared = provider.prepare(context(facts, merchant));
+      const bound = nearAiInputBound(prepared.payload);
+      assert(bound <= 8192, `${merchant}: ${bound}`);
+      const body = JSON.parse(prepared.payload);
+      const state = JSON.parse(body.messages[1].content);
+      assert.equal(state.merchant_id, merchant);
+      assert.equal(state.stocks.length, 3);
+      assert(body.messages[0].content.includes("only incoming contains actual offers"));
+      assert(body.messages[0].content.includes("Favor affordable purchases"));
+    }
+  }
+});

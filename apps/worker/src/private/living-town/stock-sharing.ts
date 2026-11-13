@@ -325,9 +325,9 @@ const backupTarget = 3n,
           }
           const listing = seller.listings.find((l) => l.item_id === item);
 
-// Merchant trades use unlisted, available inventory.
-// Existing retail listings remain reserved for customers.
-if (available === 0n) {
+// Negotiated offers may include listed inventory, but seller approval
+// must release overlapping retail reservations before settlement.
+if (available === 0n && !listing?.active) {
   note(buyer.name, "no_free_stock_above_floor");
   continue;
 }
@@ -352,7 +352,7 @@ const choices: StockSharingQuantity[] = [];
 
 for (
   let q = 1n;
-  q <= min(4n, available, headroom);
+  q <= min(4n, potential, headroom);
   q++
 ) {
   const maxPrice = min(
@@ -363,11 +363,21 @@ for (
 
   if (lo > maxPrice) continue;
 
+  // When quantity overlaps a retail listing, require a seller-approved release.
+  const remaining = nonnegative(potential - q);
+  const listed = BigInt(si.listing_reserved[item]);
+  const listingRelease = listed > remaining && listing ? {
+    listingId: listing.listing_id,
+    expectedRevision: listing.revision,
+    currentQuantity: listed.toString(),
+    maxRemainingQuantity: remaining.toString(),
+  } : null;
+
   choices.push({
     quantity: q.toString(),
     minUnitPrice: lo.toString(),
     maxUnitPrice: maxPrice.toString(),
-    listingRelease: null,
+    listingRelease,
   });
 }
           if (!choices.length) {
@@ -484,8 +494,7 @@ for (
         ) {
           why.push("primary_no_longer_healthy_for_backup");
         }
-        if (BigInt(o.unit_price) > BigInt(cfg.base_price))
-          why.push("backup_price_above_base");
+        // Negotiated backup prices above base remain eligible up to max_price.
       }
       if (
         BigInt(buyer.ledger.gold.available) < goldFloors[o.buyer] ||

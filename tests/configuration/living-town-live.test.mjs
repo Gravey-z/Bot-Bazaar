@@ -129,6 +129,49 @@ test("browser validates identity, resumes from its last delivered cursor and fal
   await until(() => sources.length === 2);
   assert.equal(new URL(sources[1].url).searchParams.get("after"), cursor(3));
 });
+test("the latest three confirmed transactions survive busy history and stream updates", async (t) => {
+  const states = [], source = new Source();
+  let readCount = 0;
+  const confirmed = (n) => ({
+    ...event(n),
+    type: "transaction_confirmed",
+    source: "confirmed",
+    data: {
+      title: `Transaction ${n}`,
+      transaction_hash: String(n + 1).repeat(44),
+      receipt_id: s.block.header.hash,
+    },
+  });
+  const feed = new LivingTownLiveFeed(
+    identity,
+    "http://127.0.0.1:3011/api/events/stream",
+    async () => {
+      const start = readCount++ * 50 + 1;
+      const p = page(Array.from({ length: 50 }, (_, i) => start + i));
+      p.events = p.events.map((row, i) => start + i <= 4
+        ? { ...row, event: confirmed(start + i) } : row);
+      p.has_more = readCount < 5;
+      return p;
+    },
+    (state) => states.push(state),
+    () => source,
+    () => 0,
+    20,
+  );
+  t.after(() => feed.stop());
+  feed.start();
+  await until(() => readCount === 5 && states.at(-1)?.mode === "polling");
+  const transactions = () => states.at(-1).events.filter((e) => e.source === "confirmed");
+  assert.deepEqual(transactions().map((e) => e.data.title), ["Transaction 4", "Transaction 3", "Transaction 2"]);
+  source.send("ready", page([], undefined, 250));
+  for (let n = 251; n <= 850; n++) source.send("production_ready", event(n), cursor(n));
+  assert.equal(states.at(-1).events[0].event_id, event(850).event_id);
+  assert.equal(states.at(-1).events.length, 103);
+  assert.deepEqual(transactions().map((e) => e.data.title), ["Transaction 4", "Transaction 3", "Transaction 2"]);
+  source.send("transaction_confirmed", confirmed(5), cursor(851));
+  assert.deepEqual(transactions().map((e) => e.data.title), ["Transaction 5", "Transaction 4", "Transaction 3"]);
+});
+
 test("merchant economy SSE frames reach the spectator feed with receipt identity intact", async (t) => {
   const states = [],
     source = new Source();

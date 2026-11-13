@@ -24,6 +24,7 @@ export class LivingTownLiveFeed {
   private generation: string | null = null;
   private source: TownEventSource | null = null;
   private readonly rows = new Map<string, TownActivity>();
+  private readonly confirmedTransactions = new Map<string, TownActivity>();
   private mode: TownLiveState["mode"] = "connecting";
   private gap = false;
   private stopped = false;
@@ -46,9 +47,15 @@ export class LivingTownLiveFeed {
     private readonly pollMs = 3000,
   ) {}
   private emit(): void {
+    const recent = [...this.rows.values()].slice(-100).reverse();
+    const visible = new Set(recent.map((event) => event.event_id));
     if (!this.stopped)
       this.publish({
-        events: [...this.rows.values()].slice(-100).reverse(),
+        events: [
+          ...recent,
+          ...[...this.confirmedTransactions.values()].reverse()
+            .filter((event) => !visible.has(event.event_id)),
+        ],
         mode: this.mode,
         gap: this.gap,
       });
@@ -64,6 +71,15 @@ export class LivingTownLiveFeed {
     return page;
   }
   private append(event: TownActivity): void {
+    // Model decisions and readiness hints must not evict the latest transactions.
+    if (event.source === "confirmed" && "transaction_hash" in event.data && event.data.transaction_hash) {
+      const hash = event.data.transaction_hash;
+      const previous = this.confirmedTransactions.get(hash);
+      if (!previous || event.type === "transaction_confirmed")
+        this.confirmedTransactions.set(hash, event);
+      while (this.confirmedTransactions.size > 3)
+        this.confirmedTransactions.delete(this.confirmedTransactions.keys().next().value!);
+    }
     if (!this.rows.has(event.event_id)) {
       this.rows.set(event.event_id, event);
       while (this.rows.size > 512)

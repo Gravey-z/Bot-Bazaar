@@ -265,7 +265,7 @@ export class LivingTownMerchantPolicy {
       const quantity = (
         specialty
           ? min(12n, positive(held - reserved - 8n))
-          : min(100n, positive(held - reserved))
+          : min(100n, positive(held - reserved - 2n))
       ).toString();
       // Maintenance must never choose a new selling price.
       // Existing listings retain their price.
@@ -471,11 +471,16 @@ export class LivingTownMerchantPolicy {
       const slowSales = epoch >= 5n && own >= 4n && (retailSales.get(`${merchant}:${item}`) ?? 0n) === 0n;
       const minimum = merchant === "rex" && item === "crystal" ? 4n
         : merchant === "luna" && item === "herb" ? 3n : cfg.lo;
-      // Always anchor the target to the material's base price. Never follow
-      // the cheapest competitor down or compound another discount each tick.
+      // Compare active competing shelves while retaining price bands and cooldowns.
       const premium = scarcePeers || (own <= 2n && own > 0n) || strongDemand;
       const discount = !premium && !strongDemand && (overstock || slowSales);
       let target = cfg.price + (premium ? (scarcePeers && strongDemand ? 2n : 1n) : discount ? -1n : 0n);
+      const competitors = rows.filter(r => r.name !== merchant)
+        .flatMap(r => r.listings.filter(l => l.item_id === item && l.active && BigInt(l.remaining_quantity) > 0n));
+      if (!strongDemand && competitors.length > 0) {
+        const cheapest = competitors.reduce((price, l) => min(price, BigInt(l.unit_price)), cfg.hi);
+        target = min(target, cheapest);
+      }
       target = min(cfg.hi, target < minimum ? minimum : target);
       const current = BigInt(listing?.unit_price ?? cfg.price.toString());
       const history = input.pricingHistory?.find(p => p.merchant === merchant && p.item === item);
@@ -614,7 +619,7 @@ export class LivingTownMerchantPolicy {
       }
       // Offer every raw material, including non-specialty stock. Existing
       // listings reserve held units, so resize from held minus trade commitments,
-      // not from available. Retail shelves may sell out completely.
+      // not from available. Keep two non-specialty units free for future trades.
       const craftingRelease = action.kind === "set_listing" && action.reason === "release_inputs_before_crafting";
       if (input.fresh && input.historyComplete && !town.data.paused &&
         action.kind !== "complete_production" && action.kind !== "start_production" && !craftingRelease) {
@@ -629,7 +634,7 @@ export class LivingTownMerchantPolicy {
           const quantity = (
             specialty
               ? min(12n, positive(held - reserved - 8n))
-              : min(100n, positive(held - reserved))
+              : min(100n, positive(held - reserved - 2n))
           ).toString();
           if (!listing && quantity === "0") return [];
           const price =

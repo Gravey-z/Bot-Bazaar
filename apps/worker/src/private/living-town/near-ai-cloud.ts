@@ -264,11 +264,32 @@ const allowed = negotiationAvailable(context.facts)
 // Full profiles remain in the audited provider context. Send a concise rendering
 // so repeated personality prose does not crowd out exact economic facts.
 function promptCharacter(character: ReturnType<typeof merchantCharacter>): string {
-  const priorities = {
-    rex: "Grow gold and stock value; prefer liquidity and repeat business. Raise prices for verified scarcity/demand, avoid unsold overstock and needless churn. Evaluate trades by opportunity cost; wait rather than risk bankruptcy.",
-    luna: "Keep herbs accessible at fair sustainable prices. Refill shelves, respond to verified shortages, protect operating gold. Prefer mutually useful trades; generosity must remain affordable. Wait if no safe useful action exists.",
-    bolt: "Keep wood/iron sales and tool production reliable. Check actual inputs, gold, capacity and job readiness. Balance shelves against crafting needs. Prefer useful supply and liquidity over speculation; wait if no safe supported action helps.",
-  }[character.id];
+
+const priorities = {
+  rex:
+    "You are the primary crystal supplier. Sell crystals and protect your crystal reserves. " +
+    "Look for eligible opportunities to BUY wood and iron from Bolt and herbs from Luna or other eligible sellers. " +
+    "Do not search for crystal suppliers when your own crystal stock is healthy. " +
+    "Build useful backup inventory for future sales and stock security. " +
+    "Consider affordable purchases even without immediate resale profit. " +
+    "Protect operating gold and avoid unnecessary overstock.",
+
+  luna:
+    "You are the primary herb supplier. Sell herbs and protect your herb reserves. " +
+    "Look for eligible opportunities to BUY crystals from Rex and wood or iron from Bolt. " +
+    "Build useful backup inventory to support the town and future sales. " +
+    "Consider affordable purchases even without immediate resale profit. " +
+    "Preserve operating gold and keep essential herbs available.",
+
+  bolt:
+    "You are the primary wood and iron supplier and an iron-tool producer. " +
+    "Sell wood and iron while protecting materials needed for crafting. " +
+    "Look for eligible opportunities to BUY crystals from Rex and herbs from Luna or other eligible sellers. " +
+    "Prioritize production and useful backup inventory. " +
+    "Consider affordable purchases even without immediate resale profit. " +
+    "Protect operating gold and production reserves.",
+}[character.id];
+
   return `${character.name}; ${character.role}. Voice: ${character.voice} Priorities: ${priorities}`;
 }
 
@@ -390,7 +411,7 @@ function prompt(
         role: "system",
         content:
           'Choose from confirmed facts. ' +
-          'Return ONLY {"schema":"living-town-proposal-v1","tick_id":"COPY","market_revision":"COPY","merchant_id":"COPY","reason":"1-240 printable ASCII","action":{"type":"wait"}}. ' +
+          'Return one JSON object using this envelope (replace the example action with your chosen permitted action): {"schema":"living-town-proposal-v1","tick_id":"COPY","market_revision":"COPY","merchant_id":"COPY","reason":"1-240 printable ASCII","action":{"type":"wait"}}. ' +
           'Keep all six fields. ' +
           'action must be ONE object, never an array; no extra fields or markdown. ' +
           'Copy identity strings exactly; decimals are strings. ' +
@@ -542,14 +563,7 @@ console.log(
                 pricing?.cooldownUntilNs ?? null,
       ];
     }),
-    backup_strategy:
-      "Target 3 per non-specialty item; shortage=max(0,3-held). " +
-      "Never buy above shortage. Partial purchases do not fill the target. " +
-      "Prefer the cheapest eligible seller for the same quantity; " +
-      "listed stock is reserved, so buy only eligible free stock. " +
-      "Respect gold floors, capacity and resale margin. Offers are not settled.",
-    // The strict response schema already defines the possible action shapes.
-    // Names and quantities remain exact; compact arrays preserve the existing byte/token cap.
+
     candidate_columns:
       "seller,item,choices[quantity,minPrice,maxPrice,releaseTo]",
     candidates: plan.candidates
@@ -649,53 +663,19 @@ if (offers.length > 0) {
       {
         role: "system",
         content:
-          'Decide for your character using confirmed facts. ' +
-          'Candidates are potential buying opportunities, NOT incoming offers. ' +
-'Only the incoming array contains actual incoming trade offers. ' +
-'You may propose buying from an eligible candidate seller. ' +
-'For backup purchases, consider future usefulness and stock security, ' +
-'not only immediate resale profit. ' +
-'Buying above your current retail price may still be worthwhile, ' +
-'but explain the economic reason. ' +
-'Held inventory includes listed inventory; never add them together. ' +
-'Use free inventory to identify stock available outside reservations. ' +
-          'Return ONLY {"schema":"living-town-proposal-v1","tick_id":"COPY","market_revision":"COPY","merchant_id":"COPY","reason":"1-240 printable ASCII","action":{"type":"wait"}}. ' +
-          'Keep all six fields. action must be ONE object chosen from actions, never an array; no extra fields or markdown. ' +
-          'Copy identity strings exactly; decimals are strings. ' +
-          'Candidates bound buys, never force them. ' +
-          'Independently accept eligible incoming, reject or wait. ' +
-          'Accept permits listing release then fresh checks of SAME terms; no sale until settlement. ' +
-
-          'TRADE ROLES: Use the buyer/seller fields, never assume your role. ' +
-          'Seller accepts: GIVE item, RECEIVE gold; stock falls, gold rises. ' +
-          'Buyer accepts: RECEIVE item, PAY gold; stock rises, gold falls. ' +
-          'Never claim seller acceptance replenishes seller stock. ' +
-          'Explain your own benefit: seller price/floors/retail promises, ' +
-          'or buyer cost/stock/gold/resale value. ' +
-          'Accepting a proposal is NOT settlement; only chain settlement completes a trade. ' +
-
-          'Use resale_pricing to evaluate possible profit. ' +
-          'Do not assume the purchase price is also your resale price. ' +
-                    'Compare candidate acquisition costs against current prices, ' +
-          'permitted price ranges and potential resale margins. ' +
-          'Choose your own resale prices, not deterministic targets. ' +
-          'For adjust_price, change at most 1 gold and respect cooldowns. ' +
-          'Bolt may independently choose when to craft using one wood and two iron, or wait. ' +
-          'Only start production if no job is running and reserves remain safe. ' +
-          'Complete production only when the existing job is ready; copy its job_id exactly from job data. ' +
-          'Never invent a job ID and never treat restock_plan as a chosen AI action. ' +
-          'For set_listing, independently choose how much ' +
-'stock to sell and how much to retain. ' +
-'Respect trade reservations, production needs, ' +
-'supplier floors and price limits. ' +
-'Never list more than the uncommitted inventory. ' +
-          'A positive margin is only ' +
-          'potential profit, not a guaranteed sale. ' +
-          'Invent nothing. Character: ' +
-          'The reason must accurately describe the selected action. ' +
-'For wait, do not claim to buy, sell, accept or complete a trade. ' +
-'Calculate remaining inventory shortage after any proposed buy. ' +
-'Never claim that a partial purchase reaches the backup target. ' +
+          'Use confirmed facts. Return JSON matching the response schema: copy tick_id, market_revision and merchant_id; ' +
+          'reason is 1-240 printable ASCII; action is one permitted object. Decimal values are strings. No extra fields or markdown. ' +
+          'Candidates are buying opportunities; only incoming contains actual offers. Favor affordable purchases below backup target 3, ' +
+          'including partial buys; never exceed shortage. Immediate resale profit is optional; consider future use and gold floors. ' +
+          'Held includes listed stock. Respect reservations, capacity, supplier floors and price bands. ' +
+          'For incoming offers, use explicit buyer/seller roles: seller gives stock for gold; buyer pays gold for stock. ' +
+          'Accept only eligible terms; acceptance permits necessary listing release and fresh checks, not settlement. ' +
+          'Choose resale prices using demand and competitors; adjust_price changes at most 1 gold and respects cooldowns. ' +
+          'For set_listing, retain useful trade/production reserves and list only uncommitted stock. ' +
+          'Bolt may craft one iron_tool from 1 wood and 2 iron only with no running job and safe reserves. ' +
+          'Complete only a ready job using its exact job_id. Offers are not completed trades. ' +
+          'Explain the selected action accurately; wait needs a concrete reason and never implies a transfer. ' +
+          'A partial purchase reduces shortage, not necessarily to zero. Character: ' +
           promptCharacter(character),
 
       },
