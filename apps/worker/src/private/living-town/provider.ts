@@ -1,5 +1,6 @@
 import {
   canonicalLivingTownJson,
+  livingTownOffer,
   livingTownSnapshot,
   livingTownTown,
 } from "@bot-bazaar/chain";
@@ -430,12 +431,60 @@ if (estimatedTokens > maximumInferenceInputTokens) {
             this.budget!.invalidate("town:model-identity-unverified");
             throw new ProviderUnavailable("model_identity_unverified");
           }
-          let proposal: TownProposal;
-          try {
-            proposal = parseTownProposal(value);
-          } catch {
-            throw new ProviderUnavailable("schema_invalid");
-          }
+          
+let proposal: TownProposal;
+
+try {
+  proposal = parseTownProposal(value);
+} catch {
+  throw new ProviderUnavailable("schema_invalid");
+}
+
+// The AI chooses whether to accept and which offer.
+// The worker supplies the confirmed technical revision.
+
+if (proposal.action.type === "accept_trade") {
+  // Capture the narrowed action before entering the callback.
+  const action = proposal.action;
+
+  const offer = (context.facts.pendingOffers ?? [])
+    .map(livingTownOffer)
+    .find(
+      (o) =>
+        o.offer_id === action.offer_id &&
+        o.seller === context.merchant,
+    );
+
+
+  if (!offer) {
+    throw new ProviderUnavailable("incoming_offer_unavailable");
+  }
+
+  const modelRevision = proposal.action.expected_offer_revision;
+
+  proposal = {
+    ...proposal,
+    action: {
+      type: "accept_trade",
+      offer_id: offer.offer_id,
+      expected_offer_revision: offer.revision,
+    },
+  };
+
+  if (modelRevision !== offer.revision) {
+    console.log(
+      JSON.stringify({
+        role: "economic_runtime",
+        event: "merchant_offer_revision_corrected",
+        merchant: context.merchant,
+        offer_id: offer.offer_id,
+        model_revision: modelRevision,
+        confirmed_revision: offer.revision,
+      }),
+    );
+  }
+}
+
           const command = {
             sequence: (
               BigInt(

@@ -842,7 +842,9 @@ export class LivingTownSimulationAdapter {
           sourceMarkers = (await reader.getSourceState()).data;
           const supply = (["crystal", "wood", "herb", "iron"] as const)
             .some(item => this.supplyDue(town, sourceMarkers!, item));
-          const cleanupTurn = BigInt(town.data.epoch) % 3n === 0n;
+          const cleanupTurn = this.store.reactions.needsCleanup(
+            town.block_timestamp_ns,
+          );
           if (work && ((work.decision && work.role !== "cleanup") ||
               (!supply && (work.role !== "cleanup" || cleanupTurn))))
             return this.react(work, reader);
