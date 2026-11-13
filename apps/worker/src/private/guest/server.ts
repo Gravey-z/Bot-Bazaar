@@ -22,11 +22,21 @@ function equal(a: unknown, b: string): boolean {
   return typeof a === "string" && /^[a-f0-9]{64}$/.test(a) && a.length === b.length && timingSafeEqual(Buffer.from(a), Buffer.from(b));
 }
 export function createGuestServer(config: GuestConfig, store: GuestStore) {
-  const originUrl = new URL(config.origin);
-  const localHttp = originUrl.protocol === "http:" && ["127.0.0.1", "localhost", "[::1]"].includes(originUrl.hostname);
-  const sessionName = localHttp ? "bazaar-guest-local" : cookieName;
-  const sessionCookie = (raw: string, maxAge: number): string =>
-    `${sessionName}=${raw}; Path=/; Max-Age=${maxAge}; HttpOnly;${localHttp ? "" : " Secure;"} SameSite=Lax`;
+  const sessionSettings = (requestOrigin: string) => {
+  const url = new URL(requestOrigin);
+  const localHttp =
+    url.protocol === "http:" &&
+    ["127.0.0.1", "localhost", "[::1]"].includes(url.hostname);
+
+  const name = localHttp ? "bazaar-guest-local" : cookieName;
+
+  return {
+    name,
+    cookie: (raw: string, maxAge: number) =>
+      `${name}=${raw}; Path=/; Max-Age=${maxAge}; HttpOnly;` +
+      `${localHttp ? "" : " Secure;"} SameSite=Lax`,
+  };
+};
   const limits = new ReadLimits(config.boundary);
   const handler = async (req: IncomingMessage, res: ServerResponse): Promise<void> => {
     const reply = (status: number, value: unknown) => {
@@ -50,12 +60,33 @@ export function createGuestServer(config: GuestConfig, store: GuestStore) {
       const origin = req.headers.origin;
       // Same-origin fetch GETs may omit Origin. Cross-origin GETs and every
       // mutation must supply the single configured origin; no wildcard cookies.
-      if (origin !== config.origin && !(req.method === "GET" && origin === undefined && req.headers["sec-fetch-site"] === "same-origin"))
-        throw new GuestError(403, "guest_origin_denied");
-      if (origin === config.origin) {
-        res.setHeader("Access-Control-Allow-Origin", config.origin);
-        res.setHeader("Access-Control-Allow-Credentials", "true");
-      }
+      const allowedOrigins = new Set([
+  config.origin,
+  config.browserOrigin,
+]);
+
+const sameOriginGet =
+  req.method === "GET" &&
+  origin === undefined &&
+  req.headers["sec-fetch-site"] === "same-origin";
+
+if (
+  !sameOriginGet &&
+  (typeof origin !== "string" || !allowedOrigins.has(origin))
+) {
+  throw new GuestError(403, "guest_origin_denied");
+}
+
+const requestOrigin =
+  typeof origin === "string" ? origin : config.origin;
+
+const { name: sessionName, cookie: sessionCookie } =
+  sessionSettings(requestOrigin);
+
+if (typeof origin === "string" && allowedOrigins.has(origin)) {
+  res.setHeader("Access-Control-Allow-Origin", origin);
+  res.setHeader("Access-Control-Allow-Credentials", "true");
+}
       if (req.method === "OPTIONS") {
         if (!["GET", "POST"].includes(String(req.headers["access-control-request-method"])))
           throw new GuestError(405, "guest_method_not_allowed");
@@ -76,10 +107,27 @@ export function createGuestServer(config: GuestConfig, store: GuestStore) {
           const created = store.newSession(store.vault.hmac(`ip:${admission.address}`));
           raw = created.token; session = store.session(raw)!;
         }
-        res.setHeader("Set-Cookie", sessionCookie(raw!, Math.max(0, Math.floor((session.expires - Date.now()) / 1000))));
-        const csrf = store.vault.hmac(`csrf:${config.origin}:${session.hash}`);
-        reply(200, { identity: config.profile.identity, guest: store.publicGuest(session.guestId), csrfToken: csrf, expiresAt: session.expires,
-          notice: "Guest progress is temporary. Losing this browser session loses access." }); return;
+        res.setHeader(
+  "Set-Cookie",
+  sessionCookie(
+    raw!,
+    Math.max(0, Math.floor((session.expires - Date.now()) / 1000))
+  )
+);
+
+const csrf = store.vault.hmac(
+  `csrf:${config.origin}:${session.hash}`
+);
+
+reply(200, {
+  identity: config.profile.identity,
+  guest: store.publicGuest(session.guestId),
+  csrfToken: csrf,
+  expiresAt: session.expires,
+  notice:
+    "Guest progress is temporary. Losing this browser session loses access.",
+});
+return;
       }
       if (activityRoute && req.method === "GET") {
         if (!session?.guestId) throw new GuestError(401, "guest_session_required");

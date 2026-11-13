@@ -32,7 +32,17 @@ export function guestConfig(value: unknown) {
   guestCheck(![profile.identity.ownerId, profile.identity.operatorId, profile.public.contractId,
     ...Object.values(profile.identity.controllers)].includes(parent), "dedicated_guest_parent_required");
   const origin = r["frontend_origin"];
-  guestCheck(typeof origin === "string");
+guestCheck(typeof origin === "string");
+
+// Browser access is separate from the existing custody binding.
+const browserOrigin =
+  process.env["GUEST_BROWSER_ORIGIN"] ?? origin;
+
+guestCheck(
+  browserOrigin === origin ||
+  browserOrigin === "https://bot-bazaar.pages.dev",
+  "guest_browser_origin_invalid"
+);
   guestCheck(Array.isArray(r["trusted_proxy_ips"]) && r["trusted_proxy_ips"].every(v => typeof v === "string"));
   const boundary = parseBoundaryConfig({ WORKER_ALLOWED_ORIGINS: origin,
     WORKER_TRUSTED_PROXY_IPS: (r["trusted_proxy_ips"] as string[]).join(","),
@@ -57,7 +67,7 @@ export function guestConfig(value: unknown) {
   guestCheck(BigInt(funding) >= 10n ** 22n && BigInt(funding) <= 10n ** 23n);
   guestCheck(BigInt(feeReserve) >= 10n ** 21n && BigInt(feeReserve) <= 10n ** 23n);
   guestCheck(BigInt(dailyCap) >= BigInt(funding) + BigInt(feeReserve) && BigInt(dailyCap) <= BigInt(totalCap));
-  return Object.freeze({ profile, parent, boundary, directory, masterFile, funderFile, witnessFile, outbox, origin,
+  return Object.freeze({ profile, parent, boundary, directory, masterFile, funderFile, witnessFile, outbox, origin, browserOrigin,
     funding, feeReserve, totalCap, dailyCap,
     port: integer(r["port"], 1024, 65535), pollMs: integer(r["poll_ms"], 1000, 60000),
     sessionTtlMs: integer(r["session_ttl_seconds"], 3600, 604800) * 1000,
