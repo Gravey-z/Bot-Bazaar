@@ -536,18 +536,9 @@ export function resolveTownProposal(
     "listing violates supplier reserve",
   );
 
-  // Do not let an AI listing interfere with
-  // an active production workflow.
-  requireStorage(
-    row.job === null &&
-      step.kind !== "start_production" &&
-      step.kind !== "complete_production" &&
-      !(
-        step.kind === "set_listing" &&
-        step.reason === "release_inputs_before_crafting"
-      ),
-    "production takes priority",
-  );
+  // A running job is authoritative. A deterministic preference to craft
+  // cannot override an AI decision to release or reserve listed materials.
+  requireStorage(row.job === null, "running production job");
 
   const pricing = signals.pricing.find(
     (p) =>
@@ -637,27 +628,9 @@ export function resolveTownProposal(
     call,
   };
 }
-  if (a.type === "restock") {
-    const relevant =
-      step.kind === "start_production"
-        ? a.item_id === "iron_tool" && merchant === "bolt"
-        : step.kind === "complete_production"
-          ? merchant === "bolt" && a.item_id === "iron_tool"
-          : step.kind === "set_listing" || step.kind === "merchant_purchase"
-            ? step.item === a.item_id ||
-              (merchant === "bolt" &&
-                a.item_id === "iron_tool" &&
-                step.reason === "release_inputs_before_crafting")
-            : true;
-    if (!relevant) return no("policy_prioritizes_other_item");
-    return {
-      kind: step.kind === "wait" ? "no_op" : "command",
-      reason: step.reason,
-      proposal,
-      call:
-        policy.compile(input, merchant, step, identity, command)?.call ?? null,
-    };
-  }
+  // Historical deterministic restock proposals remain parseable for replay,
+  // but cannot authorize a new listing, purchase or production transaction.
+  if (a.type === "restock") return no("automatic_restock_disabled");
   if (a.type !== "adjust_price") return no("unsupported_action");
   if (town.data.paused) return no("paused");
   const row = input.merchants.find(
@@ -797,26 +770,18 @@ export function isTownProposalDelivery(
 }
 export function rulesTownProposal(
   context: TownProposalContext,
-  policy: LivingTownMerchantPolicy,
-  reason = "deterministic merchant policy",
-  wait = false,
+  _policy: LivingTownMerchantPolicy,
+  reason = "AI unavailable; no automatic business decision",
+  _wait = false,
 ): TownProposal {
-  const town = livingTownSnapshot(livingTownTown)(context.facts.town),
-    step = policy
-      .evaluate(context.facts)
-      .decisions.find((d) => d.merchant === context.merchant)!.action;
+  const town = livingTownSnapshot(livingTownTown)(context.facts.town);
   return parseTownProposal({
     schema: "living-town-proposal-v1",
     tick_id: context.tickId,
     market_revision: town.market_revision,
     merchant_id: context.merchant,
     reason,
-    action:
-      wait || step.kind === "wait"
-        ? { type: "wait" }
-        : {
-            type: "restock",
-            item_id: step.kind === "set_listing" ? step.item : "iron_tool",
-          },
+    // The fallback must never select an economic action without AI consent.
+    action: { type: "wait" },
   });
 }

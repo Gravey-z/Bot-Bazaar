@@ -377,8 +377,8 @@ if (checkOnly) {
         };
         return input;
       },
-      // Negotiated V2 reactions invoke AI separately; ordinary tick turns
-      // execute deterministic policy and do not need a 45-second AI window.
+      // Negotiated V2 reactions invoke AI separately; legacy tick turns
+      // submit only audited model decisions or wait.
       minimumTickWindowMs: authority && !store.negotiatedTrading ? 45000 : 10000,
       admission,
       ...(providerRunner ? { modelReady: () => providerRunner.canInvoke() } : {}),
@@ -392,6 +392,7 @@ if (checkOnly) {
     });
   });
   if (store.negotiatedTrading && !once) {
+    // Retain the durable worker name, but planMaintenance now queues raw supply only.
     planningWorkers.start({ name: "maintenance", intervalMs: 10000, tick: () => simulation.planMaintenance() });
     planningWorkers.start({ name: "merchant-ai", intervalMs: 5000, tick: () => simulation.planReactions() });
     if (authority && loadAiKey && providerRunner) {

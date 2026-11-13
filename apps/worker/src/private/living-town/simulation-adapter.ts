@@ -2,7 +2,6 @@ import {
   canonicalLivingTownJson,
   createLivingTownCall,
   livingTownSourceState,
-  livingTownListing,
   livingTownSnapshot,
   livingTownTown,
 } from "@bot-bazaar/chain";
@@ -131,17 +130,6 @@ export class LivingTownSimulationAdapter {
       (decision, lane, reader, command) =>
         this.refresh(decision as Decision, lane, reader, command),
     );
-  }
-  private shelfUpdates(input: MerchantPolicyInput): Set<string> {
-    const listings = input.merchants.flatMap(m => m.listings.map(livingTownListing));
-    return new Set(this.policy.evaluate(input).decisions.filter(d => {
-      if (d.action.kind !== "set_listing") return false;
-      const action = d.action;
-      const listing = listings.find(l => l.owner.kind === "merchant" &&
-        l.owner.merchant_id === d.merchant && l.item_id === action.item);
-      return !listing || listing.remaining_quantity !== action.quantity ||
-        listing.unit_price !== action.price;
-    }).map(d => d.merchant));
   }
   private supplyDue(
     town: Awaited<ReturnType<FinalizedLivingTownReader["getTown"]>>,
@@ -299,26 +287,9 @@ export class LivingTownSimulationAdapter {
     }
 
     if (decision.kind === "maintenance") {
-      requireStorage(lane === decision.merchant, "maintenance merchant mismatch");
-      const input = await this.facts(reader, undefined, true);
-      const step = this.policy.evaluate(input).decisions.find(d => d.merchant === decision.merchant)!.action;
-      if (step.kind === "wait") return null;
-      if (step.kind === "complete_production")
-        return this.policy.compile(input, decision.merchant, step, this.store.identity, command)?.call ?? null;
-      const now = await reader.getTown();
-      const maximum = input.stockSharingReaction ? BigInt(now.block_timestamp_ns) + 60000000000n
-        : step.kind === "set_listing" ? BigInt(now.block_timestamp_ns) + 120000000000n
-        : BigInt(now.data.genesis_time_ns) + (BigInt(now.data.epoch) + 1n) * 60000000000n;
-      const original = command as { sequence: string; config_version: string; valid_until_ns: string };
-      const boundedCommand = { ...original, valid_until_ns:
-        (BigInt(original.valid_until_ns) > maximum ? maximum : BigInt(original.valid_until_ns)).toString() };
-      const call = this.policy.compile(input, decision.merchant, step, this.store.identity, boundedCommand)?.call ?? null;
-      if (call?.method === "set_listing") {
-        const updates = this.policy.listingUpdates(input, decision.merchant);
-        if (updates.length > 1 && await this.adapters[decision.merchant].supportsListingBatch(reader))
-          return createLivingTownCall("batch_set_listings", { updates, command: boundedCommand });
-      }
-      return call;
+      // Phase 4: retire previously queued unsigned automatic merchant work.
+      // Never turn an old maintenance record into a fresh business decision.
+      return null;
     }
     requireStorage(
       decision.kind === "proposal" && lane === decision.merchant,
@@ -336,6 +307,10 @@ export class LivingTownSimulationAdapter {
       "confirmed merchant facts incomplete",
     );
     try {
+      // Only a recorded model decision may authorize merchant business activity.
+      // This also retires old unsigned deterministic restock proposals.
+      if (decision.origin !== "model_proposal" || !decision.inferenceRef)
+        return null;
       if (decision.tradeApproval) {
         requireStorage(
           decision.origin === "model_proposal" && !!decision.inferenceRef,
@@ -362,11 +337,6 @@ export class LivingTownSimulationAdapter {
         executionProposal, input, decision.tickId, decision.merchant,
         this.policy, this.store.identity, command, decision.offerExpiryNs,
       ).call;
-      if (resolved?.method === "set_listing" && decision.origin === "rules" && decision.proposal.action.type === "restock" && !decision.inferenceRef) {
-        const updates = this.policy.listingUpdates(input, decision.merchant);
-        if (updates.length > 1 && await this.adapters[decision.merchant].supportsListingBatch(reader))
-          return createLivingTownCall("batch_set_listings", { updates, command });
-      }
       return resolved;
     } catch {
       return null;
@@ -580,13 +550,8 @@ export class LivingTownSimulationAdapter {
         decision: { kind: "raw", item: source } });
     }
     if (!this.canPlan() || !input.fresh || !input.historyComplete) return { kind: "deferred" };
-    for (const { merchant, action } of this.policy.evaluate(input).decisions) {
-      if (action.kind === "wait") continue;
-      const id = sha256(canonicalLivingTownJson(["independent-maintenance-v1", this.store.identity, this.store.seed,
-        merchant, action, (BigInt(town.block_timestamp_ns) / 30000000000n).toString()]));
-      this.store.maintenance.enqueue({ id, lane: merchant, tick: town.data.epoch,
-        arrival: `merchant:${merchant}:maintenance:${id}`, decision: { kind: "maintenance", merchant } });
-    }
+    // Phase 4: the maintenance planner only schedules mechanical raw supply.
+    // Prices, listings, purchases and crafting require an audited AI proposal.
     return { kind: "planned" };
   }
   async planReactions(): Promise<unknown> {
@@ -814,19 +779,14 @@ export class LivingTownSimulationAdapter {
         if (!this.store.ticks.active()) {
           const active = this.store.reactions.active();
           const work = this.store.reactions.next(input, this.store.offers);
-          // Keep deterministic listings AND production eligible even when an
-          // expired offer is waiting for housekeeping. Every third epoch may
-          // service cleanup to avoid starving it under constant stock demand.
-          const maintenanceDue = this.policy.evaluate(input).decisions.some(d =>
-            d.action.kind === "set_listing" ||
-            d.action.kind === "start_production" ||
-            d.action.kind === "complete_production");
+          // Housekeeping is mechanical. No deterministic merchant action
+          // may take precedence over a validated AI reaction.
           sourceMarkers = (await reader.getSourceState()).data;
           const supply = (["crystal", "wood", "herb", "iron"] as const)
             .some(item => this.supplyDue(town, sourceMarkers!, item));
           const cleanupTurn = BigInt(town.data.epoch) % 3n === 0n;
           if (work && ((work.decision && work.role !== "cleanup") ||
-              (!supply && (!maintenanceDue || cleanupTurn))))
+              (!supply && (work.role !== "cleanup" || cleanupTurn))))
             return this.react(work, reader);
           if (
             active &&
@@ -871,24 +831,11 @@ export class LivingTownSimulationAdapter {
             BigInt(town.data.genesis_time_ns)) /
           (BigInt(this.scheduler.cadenceMs) * 1000000n)
         ).toString();
-        let required: Set<string> | undefined;
-        let shelves = new Set<string>();
-        if (!sourceTurn && this.options.skipIdleMerchantTurns) {
-          const input = maintenanceInput ?? await this.facts(reader);
-          if (!input.fresh || !input.historyComplete)
-            return { kind: "deferred" };
-          required = new Set(
-            this.policy
-              .evaluate(input)
-              .decisions.filter((d) => d.action.kind !== "wait")
-              .map((d) => d.merchant),
-          );
-          shelves = this.shelfUpdates(input);
-        }
-        for (const name of ["rex", "luna", "bolt"] as const)
-          if (!sourceTurn && (!required || required.has(name)))
-            add(`merchant:${name}:${shelves.has(name) ? "shelf:" : ""}${slot}`,
-              ["merchant", name, slot, ...(shelves.has(name) ? ["shelf"] : [])]);
+        // Schedule AI opportunities, not deterministic policy recommendations.
+        // Negotiated V2 merchants run through the independent AI reaction queue.
+        if (!sourceTurn && this.propose && !this.store.negotiatedTrading)
+          for (const name of ["rex", "luna", "bolt"] as const)
+            add(`merchant:${name}:${slot}`, ["merchant", name, slot]);
         if (!sourceTurn && this.assistant && !town.data.paused) {
           // One shared automatic opportunity per chain epoch, including no-ops.
           // Round robin is deterministic; policy changes cannot reset this allowance.
@@ -941,9 +888,6 @@ export class LivingTownSimulationAdapter {
         lane = arrival.split(":")[1] as ProposalMerchant;
         const input = maintenanceInput ?? await this.facts(reader);
         if (!input.fresh || !input.historyComplete) return { kind: "deferred" };
-        const step = this.policy
-          .evaluate(input)
-          .decisions.find((d) => d.merchant === lane)!.action;
         const command = {
           sequence: (
             BigInt(String(this.store.checkpoint(lane)["last_action_id"])) + 1n
@@ -969,18 +913,8 @@ export class LivingTownSimulationAdapter {
                 tick_id: tickId,
                 market_revision: town.market_revision,
                 merchant_id: lane,
-                reason: "deterministic merchant policy",
-                action:
-                  step.kind === "wait"
-                    ? { type: "wait" }
-                    : {
-                        type: "restock",
-                        item_id:
-                          step.kind === "set_listing" ||
-                          step.kind === "merchant_purchase"
-                            ? step.item
-                            : "iron_tool",
-                      },
+                reason: "AI unavailable; no automatic business decision",
+                action: { type: "wait" },
               };
           const delivery = isTownProposalDelivery(value) ? value : null;
           const proposal = parseTownProposal(
@@ -995,14 +929,10 @@ export class LivingTownSimulationAdapter {
               this.store.identity,
               command,
             );
-          if (
-            ["propose_trade", "accept_trade", "reject_trade"].includes(
-              proposal.action.type,
-            )
-          )
+          if (proposal.action.type !== "wait")
             requireStorage(
-              delivery?.origin === "model_proposal",
-              "negotiation requires an audited model delivery",
+              delivery?.origin === "model_proposal" && !!delivery.inferenceRef,
+              "merchant business action requires audited AI delivery",
             );
           decision = {
             kind: "proposal",

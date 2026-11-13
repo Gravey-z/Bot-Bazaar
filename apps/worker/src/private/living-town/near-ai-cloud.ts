@@ -291,8 +291,6 @@ function prompt(
     market_revision: object(context.facts.town)["market_revision"],
     merchant_id: context.merchant,
     merchant_trading_available: context.facts.merchantTrading === true,
-    restock_plan: signals.decisions.find((d) => d.merchant === context.merchant)
-      ?.action,
     
     pricing_columns:
       "item,basePrice,minPrice,maxPrice,cooldownUntilNs",
@@ -412,7 +410,7 @@ function prompt(
 'Keep essential supplier and production reserves. ' +
 'Choose prices within the permitted pricing bands. ' +
 'Avoid unnecessary listing updates. ' +
-          'Do not delegate an AI decision to restock_plan. ' +
+          'Independently choose among verified economic opportunities. ' +
           'For Bolt, independently compare production against waiting and selling. ' +
           'Start only the configured iron_tool recipe, using one wood and two iron, when free resources, reserves and the single job slot permit it. ' +
           'Complete only the confirmed running job when ready; copy the exact job_id from the input. ' +
@@ -668,6 +666,15 @@ if (offers.length > 0) {
         role: "system",
         content:
           'Decide for your character using confirmed facts. ' +
+          'Candidates are potential buying opportunities, NOT incoming offers. ' +
+'Only the incoming array contains actual incoming trade offers. ' +
+'You may propose buying from an eligible candidate seller. ' +
+'For backup purchases, consider future usefulness and stock security, ' +
+'not only immediate resale profit. ' +
+'Buying above your current retail price may still be worthwhile, ' +
+'but explain the economic reason. ' +
+'Held inventory includes listed inventory; never add them together. ' +
+'Use free inventory to identify stock available outside reservations. ' +
           'Return ONLY {"schema":"living-town-proposal-v1","tick_id":"COPY","market_revision":"COPY","merchant_id":"COPY","reason":"1-240 printable ASCII","action":{"type":"wait"}}. ' +
           'Keep all six fields. action must be ONE object chosen from actions, never an array; no extra fields or markdown. ' +
           'Copy identity strings exactly; decimals are strings. ' +
@@ -780,7 +787,7 @@ export function nearAiProvider(
   return {
     provider: "near-ai",
     model: nearAiModel,
-    promptVersion: "town-near-ai-v14-ai-production",
+    promptVersion: "town-near-ai-v15-ai-only",
     prepare: (context) => ({
       payload: prompt(context, policy),
       provider: "near-ai",

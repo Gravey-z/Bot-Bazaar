@@ -260,17 +260,16 @@ export class TownReactionRepository {
  */
   observeOpportunities(input: MerchantPolicyInput, candidates: readonly StockSharingCandidate[]): void {
     this.gate();
-    if (!input.fresh || !input.historyComplete || !input.negotiatedTrading || !candidates.length) return;
+    if (!input.fresh || !input.historyComplete || !input.negotiatedTrading) return;
     const town = livingTownSnapshot(livingTownTown)(input.town);
     if (town.data.paused) return;
     const now = BigInt(town.block_timestamp_ns);
     const reviewIntervalNs = 300_000_000_000n;
     this.write(() => {
       for (const merchant of names) {
-        // Stock-sharing candidates already account for target stock, reservations,
-        // peer supply and affordability. No candidate means no paid AI request.
+        // AI reviews prices, listings and crafting even without peer trades.
+        // Scheduling a review never selects or signs a business action.
         const eligible = candidates.filter(c => c.buyer === merchant).map(c => c.id).sort();
-        if (!eligible.length) continue;
         if (this.db.prepare("SELECT id FROM reaction_roots WHERE merchant=? AND state!='closed'").get(merchant))
           continue;
 
@@ -311,8 +310,8 @@ export class TownReactionRepository {
         }
         if (now - lastActivity < reviewIntervalNs) continue;
 
-        // A unique root is admitted only after the previous root's cooldown;
-        // the existing seller negotiation, AI budget and transaction journal remain authoritative.
+        // Admit a bounded AI review after cooldown. The model chooses trade,
+        // listing, production or wait; the backend still validates the choice.
         const id = sha256(canonicalLivingTownJson([
           this.deployment, "merchant-inventory-review-v1", merchant, town.block_timestamp_ns, eligible,
         ]));

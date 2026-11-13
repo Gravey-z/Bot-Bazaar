@@ -340,9 +340,7 @@ if (listing?.active) {
   lo = max(lo, BigInt(listing.unit_price));
 }
 
-const hi = primaryBuyer
-  ? BigInt(cfg.max_price)
-  : BigInt(cfg.base_price);
+const hi = BigInt(cfg.max_price);
 
 const goldHeadroom = nonnegative(
   1000000n -
