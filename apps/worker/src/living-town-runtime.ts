@@ -7,7 +7,6 @@ import { tmpdir } from "node:os";
 import { setTimeout as delay } from "node:timers/promises";
 import {
   LivingTownClient,
-  canonicalLivingTownJson,
 } from "@bot-bazaar/chain";
 import {
   parseTownRuntimeConfig,
@@ -481,7 +480,7 @@ if (checkOnly) {
       } catch (error) {
         if (error instanceof SharedMerchantFactsUnavailable) {
           failures = 0;
-          result = { kind: "deferred", reasons: ["shared_merchant_projection_not_ready"], diagnostic: error.reason };
+          result = { kind: "deferred", reasons: ["shared_merchant_projection_not_ready"], diagnostic: error.reason, diagnostic_details: error.details };
         } else {
           failures++;
           await atomicRuntimeJson(join(config.executionDir, "runtime-error.json"), {
@@ -526,7 +525,7 @@ if (checkOnly) {
         },
       );
       console.log(
-        canonicalLivingTownJson({ role: "economic_runtime", result }),
+        JSON.stringify({ role: "economic_runtime", result }),
       );
       if (!once && !stopping)
         await delay(

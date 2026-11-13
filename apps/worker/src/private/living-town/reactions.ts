@@ -123,16 +123,24 @@ export class TownReactionRepository {
   work(id: string): ReactionWork | null {
     const row = this.db
       .prepare(
-        "SELECT s.*,r.deadline_ns FROM reaction_steps s JOIN reaction_roots r ON r.id=s.root_id WHERE s.id=?",
+        "SELECT s.*,r.deadline_ns,r.offer_id FROM reaction_steps s JOIN reaction_roots r ON r.id=s.root_id WHERE s.id=?",
       )
       .get(id);
+    let deadline = row ? String(row.deadline_ns) : "0";
+    if (row && ["seller", "acceptance"].includes(String(row.role)) && row.offer_id != null) {
+      const saved = this.db.prepare("SELECT body FROM town_offer_commitments WHERE offer_id=?").get(row.offer_id);
+      if (saved) {
+        const offer = livingTownOffer(JSON.parse(String(saved.body)));
+        if (BigInt(offer.expires_at_ns) < BigInt(deadline)) deadline = offer.expires_at_ns;
+      }
+    }
     return row
       ? {
           id: String(row.id),
           rootId: String(row.root_id),
           merchant: row.merchant as ProposalMerchant,
           role: row.role as ReactionWork["role"],
-          deadlineNs: String(row.deadline_ns),
+          deadlineNs: deadline,
           decision:
             row.decision_json === null
               ? null
@@ -450,11 +458,7 @@ export class TownReactionRepository {
             return;
           }
           const sellerSeen = this.steps(id).some((s) => s.role === "seller");
-          if (
-            !sellerSeen &&
-            BigInt(root.deadline_ns as string) - now >= 45000000000n &&
-            Number(root.model_calls) < 6
-          ) {
+          if (!sellerSeen) {
             this.add(id, offer.seller, "seller");
             return;
           }
@@ -518,13 +522,13 @@ export class TownReactionRepository {
     });
     const row = this.db
       .prepare(
-        "SELECT s.id FROM reaction_steps s JOIN reaction_roots r ON r.id=s.root_id WHERE r.state='active' AND s.state!='completed' AND (? IS NULL OR r.merchant=?) ORDER BY CASE s.state WHEN 'decided' THEN 0 ELSE 1 END,s.rowid LIMIT 1",
+        "SELECT s.id FROM reaction_steps s JOIN reaction_roots r ON r.id=s.root_id WHERE r.state='active' AND s.state!='completed' AND (? IS NULL OR r.merchant=?) ORDER BY CASE s.role WHEN 'acceptance' THEN 0 WHEN 'seller' THEN 1 ELSE 2 END,CASE s.state WHEN 'decided' THEN 0 ELSE 1 END,s.rowid LIMIT 1",
       )
       .get(origin ?? null, origin ?? null);
     return row ? this.work(String(row.id)) : null;
   }
   decided(): ReactionWork | null {
-    const row = this.db.prepare("SELECT s.id FROM reaction_steps s JOIN reaction_roots r ON r.id=s.root_id WHERE s.state='decided' AND r.state='active' ORDER BY s.rowid LIMIT 1").get();
+    const row = this.db.prepare("SELECT s.id FROM reaction_steps s JOIN reaction_roots r ON r.id=s.root_id WHERE s.state='decided' AND r.state='active' ORDER BY CASE s.role WHEN 'acceptance' THEN 0 WHEN 'seller' THEN 1 ELSE 2 END,s.rowid LIMIT 1").get();
     return row ? this.work(String(row["id"])) : null;
   }
   private close(root: string, reason: string): void {
@@ -565,15 +569,18 @@ export class TownReactionRepository {
           : work.role === "seller"
             ? 45000000000n
             : 20000000000n;
-      if (!(
-        (Number(root.model_calls) < 6 || row.model_reserved === 1) &&
-        (work.role !== "buyer" ||
-          Number(root.model_calls) <= (row.model_reserved === 1 ? 5 : 4)) &&
-        Number(root.mutations) <=
-          (work.role === "buyer" ? 3 : work.role === "seller" ? 5 : 6) &&
-        BigInt(String(root.deadline_ns)) - BigInt(nowNs) >= reserve
-      ))
+      const remaining = BigInt(work.deadlineNs) - BigInt(nowNs);
+      const callsAvailable = (Number(root.model_calls) < 6 || row.model_reserved === 1) &&
+        (work.role !== "buyer" || Number(root.model_calls) <= (row.model_reserved === 1 ? 5 : 4));
+      const mutationsAvailable = Number(root.mutations) <= (work.role === "buyer" ? 3 : work.role === "seller" ? 5 : 6);
+      if (!callsAvailable || !mutationsAvailable || remaining < reserve) {
+        console.log(JSON.stringify({ role: "economic_runtime", event: "merchant_reaction_admission_declined",
+          merchant: work.merchant, reaction_role: work.role, root_id: work.rootId, step_id: work.id,
+          reason: remaining < reserve ? "reaction_time_exhausted" : !callsAvailable ? "reaction_ai_calls_exhausted" : "reaction_mutations_exhausted",
+          remaining_ms: (remaining / 1000000n).toString(), required_ms: (reserve / 1000000n).toString(),
+          model_calls: Number(root.model_calls), maximum_model_calls: 6, mutations: Number(root.mutations) }));
         return false;
+      }
       if (row.model_reserved === 1) return true;
       this.db
         .prepare(
@@ -683,6 +690,10 @@ export class TownReactionRepository {
       this.db
         .prepare("UPDATE reaction_roots SET offer_id=?,used_json=? WHERE id=?")
         .run(o.offer_id, JSON.stringify([o.buyer, o.seller]), w.rootId);
+      // Wake the recipient in the same commit as proposal confirmation.
+      // No later polling pass is needed to create this work.
+      if (!this.steps(w.rootId).some(step => step.role === "seller"))
+        this.add(w.rootId, o.seller, "seller");
     }
     const decision = w.decision;
     if (

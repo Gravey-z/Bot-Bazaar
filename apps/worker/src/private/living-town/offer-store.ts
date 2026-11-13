@@ -61,6 +61,20 @@ export class TownOfferRepository {
       .get(id);
     return row ? livingTownOffer(JSON.parse(String(row["body"]))) : null;
   }
+  /** Submission is distinct from a verified accepted offer and its bound trade. */
+  lifecycle(): Record<string, unknown>[] {
+    if (!this.enabled) return [];
+    return this.db.prepare(
+      "SELECT i.id,i.status,COALESCE(i.offer_id,json_extract(i.args_json,'$.offer_id')) AS offer_id,a.tx_hash " +
+      "FROM intents i LEFT JOIN attempts a ON a.intent_id=i.id WHERE i.method='accept_trade' ORDER BY i.rowid DESC LIMIT 16"
+    ).all().map(row => {
+      const offer = row.offer_id == null ? null : this.get(String(row.offer_id));
+      const settled = offer?.status === "accepted" && offer.trade_id !== null;
+      return { action_id: row.id, transaction_hash: row.tx_hash ?? null, transaction_status: row.status,
+        offer_id: row.offer_id ?? null, offer_status: offer?.status ?? "unobserved", trade_id: settled ? offer.trade_id : null,
+        state: settled ? "settled" : row.status === "failed" ? "acceptance_failed" : row.status === "confirmed" ? "settlement_unverified" : "acceptance_pending" };
+    });
+  }
   private put(value: LivingTownOffer): void {
     const old = this.get(value.offer_id);
     requireStorage(
@@ -122,7 +136,21 @@ export class TownOfferRepository {
           sameOfferTerms(o, current.data.offer),
         "missing pending offer requires authoritative terminal evidence",
       );
-      terminals.push(current.data.offer);
+      const terminal = current.data.offer;
+      if (terminal.status === "accepted") {
+        requireStorage(terminal.trade_id, "accepted offer missing settlement trade");
+        const trade = await reader.getTrade(terminal.trade_id);
+        requireStorage(trade.data.kind === "found", "accepted offer settlement trade unavailable");
+        const value = trade.data.value;
+        requireStorage(value.kind === "merchant_trade" && value.offer_id === terminal.offer_id &&
+          value.buyer.kind === "merchant" && value.buyer.merchant_id === terminal.buyer &&
+          value.seller.kind === "merchant" && value.seller.merchant_id === terminal.seller &&
+          value.item_id === terminal.item_id && value.quantity === terminal.quantity &&
+          value.unit_price === terminal.unit_price && value.total_price === terminal.total_price &&
+          value.settled_at_ns === terminal.closed_at_ns,
+          "accepted offer settlement trade terms mismatch");
+      }
+      terminals.push(terminal);
     }
     this.write(() => {
       for (const o of [...terminals, ...snapshot.offers]) this.put(o);
@@ -196,6 +224,10 @@ export class TownOfferRepository {
     const bound = (JSON.parse(String(binding["offers_json"])) as unknown[]).map(
       livingTownOffer,
     );
+    const intent = this.db.prepare("SELECT method FROM intents WHERE id=?").get(actionId);
+    if (intent?.method === "accept_trade")
+      requireStorage(o.kind === "trade_accepted" && o.offer.status === "accepted" &&
+        o.offer.trade_id === o.trade.trade_id, "acceptance confirmation requires verified settled trade");
     const offers = o.kind === "offers_expired" ? o.offers : [o.offer];
     for (const offer of offers) {
       if (o.kind !== "trade_proposed")

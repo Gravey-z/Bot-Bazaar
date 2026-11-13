@@ -389,7 +389,7 @@ export class LivingTownSimulationAdapter {
         const admitted = this.store.reactions.admitModel(work, town.block_timestamp_ns);
         if (!admitted) {
           failureReason = BigInt(town.block_timestamp_ns) >= BigInt(work.deadlineNs)
-            ? "reaction_window_expired" : "reaction_window_or_work_limit";
+            ? "reaction_window_expired" : "reaction_admission_declined_see_limits_log";
         }
         requireStorage(
           admitted,
@@ -578,6 +578,7 @@ export class LivingTownSimulationAdapter {
     return { thinking: [...this.thinking.keys()], completedReplies: this.replies.size,
       merchants: this.store.reactions.reviewStatus(),
       planningReservations: [...this.planningReservations.values()],
+      tradingLifecycle: this.store.offers.lifecycle(),
       maintenance: this.store.maintenance.counts(), separateWorkers: this.workerModeReady };
   }
   private canPlan(): boolean {
@@ -653,10 +654,16 @@ export class LivingTownSimulationAdapter {
       this.lastReviewStatus = encoded;
       console.log(JSON.stringify({ role: "economic_runtime", event: "merchant_ai_status", merchants: status }));
     }
-    for (const origin of ["rex", "luna", "bolt"] as const) {
-      const work = this.store.reactions.next(input, this.store.offers, origin);
-      if (!work || work.decision || this.replies.has(work.id) || this.thinking.has(work.merchant)) continue;
+    const urgentWork = (["rex", "luna", "bolt"] as const)
+      .map(origin => this.store.reactions.next(input, this.store.offers, origin))
+      .filter((work): work is ReactionWork => work !== null)
+      .sort((a, b) => Number(b.role === "seller" || b.role === "acceptance") - Number(a.role === "seller" || a.role === "acceptance"));
+    for (const work of urgentWork) {
+      if (work.decision || this.replies.has(work.id) || this.thinking.has(work.merchant)) continue;
       if (BigInt(work.deadlineNs) <= BigInt(town.block_timestamp_ns)) {
+        console.log(JSON.stringify({ role: "economic_runtime", event: "merchant_reaction_admission_declined",
+          merchant: work.merchant, reaction_role: work.role, root_id: work.rootId, step_id: work.id,
+          reason: "reaction_time_exhausted", remaining_ms: "0" }));
         this.store.reactions.decide(work, { kind: "no_op", reason: "reaction_window_expired" });
         continue;
       }
@@ -676,7 +683,7 @@ export class LivingTownSimulationAdapter {
       });
       const production = plan.decisions.some(d => d.merchant === work.merchant &&
         ["start_production", "complete_production"].includes(d.action.kind));
-      if (excluded.includes(work.merchant) || (work.role === "buyer" && (conflicts || (!opportunities.length && !production)))) {
+      if ((work.role !== "seller" && excluded.includes(work.merchant)) || (work.role === "buyer" && (conflicts || (!opportunities.length && !production)))) {
         console.log(JSON.stringify({ role: "economic_runtime", event: "merchant_inference_deferred",
           merchant: work.merchant, reason: conflicts ? "pending_trade_conflict" : "planning_reservation_or_no_candidate" }));
         continue;
@@ -716,6 +723,7 @@ export class LivingTownSimulationAdapter {
   }
   private housekeepingDeferrals = 0;
   private reactionPolls = 0;
+  private lastLifecycle = "";
   async poll(): Promise<SimulationPoll> {
     requireStorage(!this.busy, "simulation adapter already running");
     this.busy = true;
@@ -727,6 +735,12 @@ export class LivingTownSimulationAdapter {
       if (this.operations?.mode === "paused")
         return { kind: "blocked", reasons: ["operator_paused"] };
       let report = await this.runtime.recover();
+      const lifecycle = this.store.offers.lifecycle();
+      const lifecycleKey = JSON.stringify(lifecycle);
+      if (lifecycle.length && lifecycleKey !== this.lastLifecycle) {
+        this.lastLifecycle = lifecycleKey;
+        console.log(JSON.stringify({ role: "economic_runtime", event: "merchant_trade_lifecycle", acceptances: lifecycle }));
+      }
       if (this.operations?.getMode() === "paused")
         return { kind: "blocked", reasons: ["operator_paused"] };
       if (this.operations?.mode === "recovery_only") {

@@ -54,7 +54,13 @@ export class LivingTownWorkerGroup {
               (error.name === "SharedMerchantFactsUnavailable" ||
                 error.message ===
                   "Worker storage: verified V2 recovery required");
-            state.result = { kind: waiting ? "deferred" : "failed" };
+            const detail = error instanceof Error ? error as Error & { reason?: string; details?: unknown } : null;
+            state.result = { kind: waiting ? "deferred" : "failed",
+              diagnostic: detail?.reason ?? detail?.message ?? "worker_dependency_failed",
+              diagnostic_details: detail?.details ?? null };
+            if (detail?.name === "SharedMerchantFactsUnavailable")
+              console.warn(JSON.stringify({ role: "economic_runtime", event: "planning_projection_deferred",
+                worker: worker.name, ...state.result as Record<string, unknown> }));
             if (!waiting) {
               state.failures++;
               // Reporting failure must not become an unhandled rejection or stop

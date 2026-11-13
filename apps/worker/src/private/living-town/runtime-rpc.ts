@@ -2,13 +2,26 @@ import { setTimeout as delay } from "node:timers/promises";
 import type { RpcTransport } from "@bot-bazaar/chain";
 import { ChainRpcError, createRpcTransport } from "@bot-bazaar/chain";
 
+const providerPool = new Map<string, { rpc: RpcTransport; retryAt: number; failures: number; host: string; generation: number }>();
+const transports = new Map<string, RpcTransport>();
+
 /** Use approved Testnet fallbacks only for dependency failures, never RPC rejections. */
 export function resilientTownRpc(primary: string): RpcTransport {
-  const urls = [...new Set([new URL(primary).href, "https://test.rpc.fastnear.com/",
+  const normalized = new URL(primary).href;
+  const existing = transports.get(normalized);
+  if (existing) return existing;
+  const urls = [...new Set([normalized, "https://test.rpc.fastnear.com/",
     "https://archival-rpc.testnet.near.org/", "https://testnet-rpc.intea.rs/"])];
-  const providers = urls.map(url => ({ rpc: createRpcTransport(url), retryAt: 0, failures: 0, host: new URL(url).host }));
+  const providers = urls.map(url => {
+    let state = providerPool.get(url);
+    if (!state) {
+      state = { rpc: createRpcTransport(url), retryAt: 0, failures: 0, host: new URL(url).host, generation: 0 };
+      providerPool.set(url, state);
+    }
+    return state;
+  });
   let preferred = 0;
-  return async (method, params) => {
+  const transport: RpcTransport = async (method, params) => {
     let failure: unknown = new ChainRpcError("RATE_LIMITED");
     // Retry the primary after its cooldown. A transient outage must not leave
     // the whole runtime permanently attached to a slower archival fallback.
@@ -17,15 +30,20 @@ export function resilientTownRpc(primary: string): RpcTransport {
     for (const index of order) {
       const provider = providers[index]!;
       if (provider.retryAt > Date.now()) continue;
+      const generation = provider.generation;
       try {
         const result = await provider.rpc(method, params);
         preferred = index;
-        provider.failures = 0;
-        provider.retryAt = 0;
+        // A success from an older concurrent request cannot cancel a newer cooldown.
+        if (provider.generation === generation) {
+          provider.failures = 0;
+          provider.retryAt = 0;
+        }
         return result;
       } catch (error) {
         if (!(error instanceof ChainRpcError) ||
           !["RATE_LIMITED", "UNAVAILABLE", "UNAVAILABLE_OR_INVALID_RESPONSE"].includes(error.code)) throw error;
+        provider.generation++;
         provider.failures++;
         const cooldownMs = Math.min(60000, 15000 * 2 ** Math.min(provider.failures - 1, 2));
         provider.retryAt = Date.now() + cooldownMs;
@@ -40,6 +58,8 @@ export function resilientTownRpc(primary: string): RpcTransport {
     }
     throw failure;
   };
+  transports.set(normalized, transport);
+  return transport;
 }
 
 /** Immutable block-addressed reads are reusable; moving finality selectors are never cached. */
@@ -70,14 +90,19 @@ export function boundedTownRpc(
         method === "EXPERIMENTAL_genesis_config" ||
         ((method === "query" || method === "block") &&
           p?.["block_id"] !== undefined);
-      const key = JSON.stringify([method, params]),
+      const movingRead = method === "status" ||
+        (method === "block" && p?.["finality"] === "final");
+      const shareRead = immutable || movingRead;
+      const stable = (value: unknown): unknown => Array.isArray(value) ? value.map(stable)
+        : value && typeof value === "object" ? Object.fromEntries(Object.entries(value).sort(([a], [b]) => a.localeCompare(b)).map(([k, v]) => [k, stable(v)])) : value;
+      const key = JSON.stringify([method, stable(params)]),
         saved = cache.get(key);
       if (
         saved &&
         (immutable || (method === "status" && Date.now() - saved.at < 1000))
       )
         return structuredClone(saved.value);
-      const shared = immutable ? pendingReads.get(key) : undefined;
+      const shared = shareRead ? pendingReads.get(key) : undefined;
       if (shared) {
         release();
         return structuredClone(await shared);
@@ -98,9 +123,9 @@ export function boundedTownRpc(
       inFlight.add(settled);
       void settled.then(() => {
         inFlight.delete(settled);
-        if (immutable && pendingReads.get(key) === request) pendingReads.delete(key);
+        if (shareRead && pendingReads.get(key) === request) pendingReads.delete(key);
       });
-      if (immutable) pendingReads.set(key, request);
+      if (shareRead) pendingReads.set(key, request);
       if (readOnly) release();
       let value: unknown;
       try { value = await request; }
