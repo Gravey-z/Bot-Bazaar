@@ -57,7 +57,7 @@ const stop = async (): Promise<void> => {
   await provisioner.settled(); await cycle; store.close(); vault.close();
 };
 server.once("error", () => { console.error("Guest listener unavailable"); process.exitCode = 1; void stop(); });
-server.listen(config.port, "127.0.0.1", () => { void poll(); });
+server.listen(config.port, process.env["BAZAAR_CONTAINER_LISTEN"] === "true" ? "0.0.0.0" : "127.0.0.1", () => { void poll(); });
 process.once("SIGINT", () => { void stop(); }); process.once("SIGTERM", () => { void stop(); });
 // IPC allows the local launcher to request graceful shutdown on Windows too.
 const managedStop = (): void => {

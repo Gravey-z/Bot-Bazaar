@@ -35,5 +35,15 @@ COPY --chown=node:node scripts/omv7-reader.mjs scripts/omv7-reader-config.mjs /a
 USER node
 CMD ["node", "scripts/omv7-reader.mjs"]
 
+# Full V2 backend binaries. Private configuration and state are bind-mounted at runtime.
+FROM runtime AS omv-backend
+USER root
+RUN mkdir -p /app/config /app/apps/worker && chown node:node /app/config /app/apps/worker
+COPY --chown=node:node config/living-town-v1.json config/living-town-testnet.json /app/config/
+COPY --from=build --chown=node:node /out/dist /app/apps/worker/dist
+WORKDIR /app/apps/worker
+USER node
+CMD ["node", "dist/living-town.js", "--config", "/config/reader.json"]
+
 # Preserve the existing Dockerfile's default behavior for classic callers.
 FROM runtime AS legacy

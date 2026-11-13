@@ -181,6 +181,10 @@ const backupTarget = 3n,
   if (hasPending) checkPendingOfferReservations(town.data.npc_ledgers, pending);
   const committed = new Set(pending.flatMap((o) => [o.buyer, o.seller]));
   const used = new Set(reaction?.usedMerchants ?? []);
+  for (const merchant of input.planningReservedMerchants ?? []) {
+    requireStorage(merchants.includes(merchant), "invalid planning reservation");
+    committed.add(merchant);
+  }
   const windowStart = max(genesis, now - 300000000000n),
     demand: Record<Raw, bigint> = { crystal: 0n, wood: 0n, herb: 0n, iron: 0n };
   const seen = new Map<string, string>();

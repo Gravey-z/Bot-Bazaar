@@ -552,11 +552,32 @@ export class LivingTownSimulationAdapter {
   private workerModeReady = false;
   private workerTurn = 0;
   private readonly thinking = new Map<ProposalMerchant, Promise<void>>();
+  private readonly planningReservations = new Map<string, { rootId: string; merchants: ProposalMerchant[] }>();
+  private reservationsFor(rootId: string): ProposalMerchant[] {
+    const reserved = new Set<ProposalMerchant>();
+    for (const entry of this.planningReservations.values())
+      if (entry.rootId !== rootId) for (const merchant of entry.merchants) reserved.add(merchant);
+    // Saved, unexecuted decisions survive restart and keep their parties reserved.
+    for (const root of this.store.reactions.roots()) {
+      if (root.state === "closed" || String(root.id) === rootId) continue;
+      for (const step of this.store.reactions.steps(String(root.id))) {
+        if (step.state !== "decided" || !step.decision_json) continue;
+        const decision = JSON.parse(String(step.decision_json)) as { proposal?: TownProposal };
+        const action = decision.proposal?.action;
+        if (action?.type === "propose_trade") {
+          reserved.add(step.merchant as ProposalMerchant);
+          reserved.add(action.counterparty);
+        }
+      }
+    }
+    return [...reserved];
+  }
   private readonly replies = new Map<string, { work: ReactionWork; decision: Record<string, unknown> }>();
   private backgroundError: unknown;
   workerStatus(): unknown {
     return { thinking: [...this.thinking.keys()], completedReplies: this.replies.size,
       merchants: this.store.reactions.reviewStatus(),
+      planningReservations: [...this.planningReservations.values()],
       maintenance: this.store.maintenance.counts(), separateWorkers: this.workerModeReady };
   }
   private canPlan(): boolean {
@@ -609,6 +630,13 @@ export class LivingTownSimulationAdapter {
   async planReactions(): Promise<unknown> {
     if (this.backgroundError) { const error = this.backgroundError; this.backgroundError = undefined; throw error; }
     if (!this.canPlan()) return { kind: "deferred" };
+    for (const [id] of this.planningReservations) {
+      if (this.thinking.size && [...this.thinking.keys()].some(m => this.planningReservations.get(id)?.merchants[0] === m)) continue;
+      const work = this.store.reactions.work(id);
+      const step = work && this.store.reactions.steps(work.rootId).find(s => String(s.id) === id);
+      if (!work || !step || step.state === "completed" || this.store.reactions.root(work.rootId)?.state === "closed")
+        this.planningReservations.delete(id);
+    }
     for (const [id, reply] of this.replies) {
       const root = this.store.reactions.root(reply.work.rootId), current = this.store.reactions.work(id);
       if (root?.state === "active" && current && !current.decision)
@@ -633,14 +661,40 @@ export class LivingTownSimulationAdapter {
         continue;
       }
       if (!this.propose || (this.options.modelReady && !this.options.modelReady())) continue;
-      // Only the private planning worker may run inference. Replies remain
-      // unsigned durable decisions; the executor recompiles them from fresh facts.
+      // Refresh immediately before reserving parties and dispatching inference.
+      // Each loop iteration sees reservations installed by the earlier merchant.
+      const fresh = await this.planningFacts();
+      const freshTown = livingTownSnapshot(livingTownTown)(fresh.town);
+      if (!this.canPlan() || !fresh.fresh || !fresh.historyComplete) continue;
+      const excluded = this.reservationsFor(work.rootId);
+      const scoped = this.store.reactions.attach({ ...structuredClone(fresh), planningReservedMerchants: excluded }, work);
+      const plan = this.policy.evaluate(scoped);
+      const opportunities = plan.stockSharing?.candidates.filter(c => c.buyer === work.merchant) ?? [];
+      const conflicts = (fresh.pendingOffers ?? []).some(o => {
+        const offer = o as { buyer: string; seller: string };
+        return offer.buyer === work.merchant || offer.seller === work.merchant;
+      });
+      const production = plan.decisions.some(d => d.merchant === work.merchant &&
+        ["start_production", "complete_production"].includes(d.action.kind));
+      if (excluded.includes(work.merchant) || (work.role === "buyer" && (conflicts || (!opportunities.length && !production)))) {
+        console.log(JSON.stringify({ role: "economic_runtime", event: "merchant_inference_deferred",
+          merchant: work.merchant, reason: conflicts ? "pending_trade_conflict" : "planning_reservation_or_no_candidate" }));
+        continue;
+      }
+      const parties = [work.merchant, ...opportunities.map(c => c.seller)];
+      this.planningReservations.set(work.id, { rootId: work.rootId, merchants: [...new Set(parties)] });
       const promise = (async () => {
-        const scoped = this.store.reactions.attach(structuredClone(input), work);
-        if (!this.canPlan()) return;
-        const decision = await this.decideReaction(work, scoped, town);
-        if (decision) this.replies.set(work.id, { work, decision });
-      })().catch(error => { this.backgroundError = error; }).finally(() => { this.thinking.delete(work.merchant); });
+        if (!this.canPlan()) { this.planningReservations.delete(work.id); return; }
+        const decision = await this.decideReaction(work, scoped, freshTown);
+        if (decision) {
+          this.replies.set(work.id, { work, decision });
+          const proposal = (decision as { proposal?: TownProposal }).proposal;
+          if (proposal?.action.type === "propose_trade")
+            this.planningReservations.set(work.id, { rootId: work.rootId, merchants: [work.merchant, proposal.action.counterparty] });
+          else this.planningReservations.delete(work.id);
+        } else this.planningReservations.delete(work.id);
+      })().catch(error => { this.planningReservations.delete(work.id); this.backgroundError = error; })
+        .finally(() => { this.thinking.delete(work.merchant); });
       this.thinking.set(work.merchant, promise);
     }
     return { kind: "planned", thinking: [...this.thinking.keys()] };

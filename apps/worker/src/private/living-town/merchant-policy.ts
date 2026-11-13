@@ -54,6 +54,8 @@ export const townMerchantProfiles = Object.freeze({
   }),
 });
 export interface MerchantPolicyInput {
+  /** Trusted planning exclusions only; never supplied by model JSON. */
+  planningReservedMerchants?: readonly Merchant[];
   /** Trusted confirmed listing history from the execution journal. */
   pricingHistory?: readonly { merchant: Merchant; item: Raw; unitPrice: string; changedAtNs: string }[];
   activityCheckpoint?: {

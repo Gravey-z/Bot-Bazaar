@@ -316,7 +316,13 @@ export class TownReactionRepository {
           const fingerprint = purpose === "pricing"
             ? [facts, input.merchants.map(m => m.listings.map(livingTownListing).map(l =>
                 [l.item_id, l.remaining_quantity, l.unit_price, l.active]))]
-            : facts;
+            : [facts, this.db.prepare(
+                "SELECT offer_id,json_extract(body,'$.status') AS status,json_extract(body,'$.revision') AS revision " +
+                "FROM town_offer_commitments WHERE json_extract(body,'$.buyer') IN (SELECT value FROM json_each(?)) OR json_extract(body,'$.seller') IN (SELECT value FROM json_each(?)) ORDER BY rowid DESC LIMIT 16"
+              ).all(
+                JSON.stringify([merchant, ...candidates.filter(c => c.buyer === merchant).map(c => c.seller)]),
+                JSON.stringify([merchant, ...candidates.filter(c => c.buyer === merchant).map(c => c.seller)]),
+              ).map(row => [String(row.offer_id), String(row.status), String(row.revision)])];
           const baseId = sha256(canonicalLivingTownJson([this.deployment, "focused-review-v1", merchant, purpose, fingerprint]));
           let id = baseId;
           let previous = this.root(id);

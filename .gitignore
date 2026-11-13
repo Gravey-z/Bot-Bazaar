@@ -22,3 +22,14 @@ dist/
 
 /apps/web/public/living-town.json
 !/.env.v2.example
+
+/omv-private/
+
+# Local OMV and Cloudflare deployment files
+/cloudflare/
+/config/omv-gateway.conf
+/docs/omv-backend-compose.example.yml
+/docs/publishing/omv-image-publishing.md
+/scripts/prepare-omv-config.mjs
+/scripts/publish-cloudflare.ps1
+/scripts/publish-omv.ps1

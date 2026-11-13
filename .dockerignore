@@ -24,3 +24,6 @@ data
 backups
 deploy/omv7/data
 deploy/omv7/backups
+
+omv-private
+**/*private*.json

@@ -181,7 +181,7 @@ const server = createReadServer(
   (duration, status) => operations.record("api", duration, status >= 400),
   playerReceiptHandler(playerReceipts, config.boundary),
 );
-server.listen(config.port, "127.0.0.1");
+server.listen(config.port, process.env["BAZAAR_CONTAINER_LISTEN"] === "true" ? "0.0.0.0" : "127.0.0.1");
 let timer: NodeJS.Timeout | undefined;
 const poll = async (): Promise<void> => {
   if (stopping) return;
