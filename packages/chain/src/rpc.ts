@@ -23,6 +23,28 @@ function invalidTransactionReason(error: Record<string, unknown>): string | unde
     "InvalidNonce", "NonceTooLarge", "InvalidReceiverId", "NotEnoughBalance", "LackBalanceForState",
     "TransactionSizeExceeded", "StorageError", "ShardCongested", "ShardStuck", "ActionsValidation"]);
   const tag = typeof invalid === "string" ? invalid : Object.keys(object(invalid) ?? {})[0];
+  if (tag === "InvalidAccessKeyError") {
+  const nested = object(
+    object(invalid)?.["InvalidAccessKeyError"]
+  );
+
+  const reason = nested
+    ? Object.keys(nested)[0]
+    : undefined;
+
+  const allowedReasons = new Set([
+    "AccessKeyNotFound",
+    "ReceiverMismatch",
+    "MethodNameMismatch",
+    "RequiresFullAccess",
+    "NotEnoughAllowance",
+    "DepositWithFunctionCall",
+  ]);
+
+  if (reason && allowedReasons.has(reason)) {
+    return `InvalidAccessKeyError.${reason}`;
+  }
+}
   // Never retain arbitrary messages, account data, signed bytes or provider payloads.
   return tag && allowed.has(tag) ? tag : undefined;
 }

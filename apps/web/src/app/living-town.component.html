@@ -184,14 +184,6 @@
           (selection)="openLocation($event)"
         />
       </section>
-      <p
-        class="game-feedback"
-        [hidden]="!feedbackAnnouncement()"
-        aria-live="polite"
-        aria-atomic="true"
-      >
-        {{ feedbackAnnouncement() }}
-      </p>
       @if (soundMessage()) {
         <p class="game-message" role="status">{{ soundMessage() }}</p>
       }

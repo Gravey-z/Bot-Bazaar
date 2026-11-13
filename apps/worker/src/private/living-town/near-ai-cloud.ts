@@ -483,20 +483,24 @@ console.log(
       "individually. Your own specialty is managed separately. " +
       "Items below this target are potential purchasing priorities, " +
       "not automatic purchases.",
+
 backup_strategy:
   "Maintain a backup target of 3 units for each non-specialty " +
-  "material. Evaluate each material independently. " +
-  "Prioritize zero-stock materials when eligible suppliers exist. " +
-  "Prefer the largest eligible purchase that reaches the target " +
-  "without exceeding it: 0 held = buy 3, 1 = buy 2, " +
-  "2 = buy 1. Never exceed the target of 3. " +
-  "Smaller purchases are allowed when necessary. " +
-  "Compare purchase price, potential resale margin, gold " +
-  "reserves, inventory capacity and available suppliers. " +
-  "Customer demand is not required for initial backup stock. " +
-  "Do not split an eligible purchase unnecessarily. " +
-  "Prefer economically viable trades over waiting, but " +
-  "never invent opportunities or bypass safety rules.",
+  "material independently. Calculate the shortage exactly: " +
+  "shortage = max(0, 3 - current held quantity). " +
+  "If held is 0, buying 1 results in 1 held and 2 still missing. " +
+  "Buying 1 does NOT meet a target of 3. " +
+  "Prefer buying the full shortage when an eligible, affordable " +
+  "quantity is available and economically sensible. " +
+  "Smaller purchases are allowed when justified, but describe " +
+  "them as partial progress, never as reaching the target. " +
+  "Never purchase more than the shortage for backup purposes. " +
+  "Check gold reserves, available suppliers, inventory capacity, " +
+  "price and potential resale margin. " +
+  "If choosing wait, explain why no action is being taken. " +
+  "Never describe an unexecuted trade as a completed purchase. " +
+  "Distinguish incoming trade offers from available buying " +
+  "opportunities and identify buyer and seller correctly.",
     // Names and quantities remain exact; compact arrays preserve the existing byte/token cap.
     candidate_columns:
       "seller,item,choices[quantity,minPrice,maxPrice,releaseTo]",
@@ -662,6 +666,10 @@ if (offers.length > 0) {
           'A positive margin is only ' +
           'potential profit, not a guaranteed sale. ' +
           'Invent nothing. Character: ' +
+          'The reason must accurately describe the selected action. ' +
+'For wait, do not claim to buy, sell, accept or complete a trade. ' +
+'Calculate remaining inventory shortage after any proposed buy. ' +
+'Never claim that a partial purchase reaches the backup target. ' +
           promptCharacter(character),
 
       },
@@ -732,7 +740,7 @@ export function nearAiProvider(
   return {
     provider: "near-ai",
     model: nearAiModel,
-    promptVersion: "town-near-ai-v12-ai-pricing",
+    promptVersion: "town-near-ai-v13-trade-reasoning",
     prepare: (context) => ({
       payload: prompt(context, policy),
       provider: "near-ai",

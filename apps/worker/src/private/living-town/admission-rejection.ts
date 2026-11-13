@@ -240,6 +240,162 @@ export function isVerifiedMerchantBatchCommand(
 }
 
 
+const recoverableTownMethods = [
+  "set_listing",
+  "batch_set_listings",
+  "start_production",
+  "merchant_purchase",
+  "propose_trade",
+  "accept_trade",
+  "reject_trade",
+  "cancel_trade",
+  "expire_offers",
+  "allocate_raw_supply",
+  "sweep_merchant_treasury",
+  "assistant_reprice",
+] as const;
+
+export type RecoverableTownMethod =
+  (typeof recoverableTownMethods)[number];
+
+export type RecoverableTownLane =
+  | "rex"
+  | "luna"
+  | "bolt"
+  | "operator";
+
+const verifiedExpiredTownCommands = new WeakSet<object>();
+
+export interface ExpiredTownCommand {
+  kind: "expired_unapplied_town_command";
+  transactionHash: string;
+  method: RecoverableTownMethod;
+  lane: RecoverableTownLane;
+  signerId: string;
+  sequence: string;
+  checkpoint: {
+    hash: string;
+    height: string;
+    timestampNs: string;
+  };
+  keyNonce: string;
+  commandHighWater: string;
+}
+
+export async function verifyExpiredTownCommand(
+  original: PreparedTownCall,
+  reader: FinalizedLivingTownReader,
+  lane: RecoverableTownLane,
+  expectedSignerId: string,
+): Promise<ExpiredTownCommand> {
+  const method = original.call.method;
+
+  requireStorage(
+    recoverableTownMethods.some((allowed) => allowed === method),
+    "town method is not eligible for expiration recovery",
+  );
+
+  requireStorage(
+    original.signerId === expectedSignerId,
+    "town recovery signer mismatch",
+  );
+
+  requireStorage(
+    lane === "operator"
+      ? method === "allocate_raw_supply" ||
+          method === "sweep_merchant_treasury" ||
+          method === "assistant_reprice"
+      : method !== "allocate_raw_supply" &&
+          method !== "sweep_merchant_treasury" &&
+          method !== "assistant_reprice",
+    "town recovery method outside actor scope",
+  );
+
+  requireStorage(
+    "command" in original.call.args,
+    "town command missing",
+  );
+
+  const command = original.call.args.command;
+
+  requireStorage(
+    BigInt(reader.block.timestampNs) >
+      BigInt(command.valid_until_ns),
+    "town command has not expired on-chain",
+  );
+
+  const key = await reader.getAccessKey(
+    original.signerId,
+    original.publicKey,
+  );
+
+  requireStorage(
+    key.block_hash === reader.block.hash &&
+      BigInt(key.nonce) + 1n === BigInt(original.nonce),
+    "town access key nonce changed",
+  );
+
+  const permission = key.permission as {
+    FunctionCall?: {
+      receiver_id?: string;
+      method_names?: string[];
+    };
+  };
+
+  const access = permission.FunctionCall;
+
+  requireStorage(
+    access?.receiver_id === original.deployment.contract_id &&
+      Array.isArray(access.method_names) &&
+      (
+        access.method_names.length === 0 ||
+        access.method_names.includes(method)
+      ),
+    "town access key permission mismatch",
+  );
+
+  const principal =
+    lane === "operator"
+      ? original.signerId
+      : `merchant:${lane}`;
+
+  const checkpoint = await reader.getCommand(
+    principal,
+    command.sequence,
+  );
+
+  requireStorage(
+    checkpoint.block_height === reader.block.height &&
+      checkpoint.data.kind === "not_applied" &&
+      checkpoint.data.next_sequence === command.sequence &&
+      BigInt(checkpoint.data.high_water) ===
+        BigInt(command.sequence) - 1n,
+    "town command may have executed",
+  );
+
+  const evidence: ExpiredTownCommand = {
+    kind: "expired_unapplied_town_command",
+    transactionHash: original.transactionHash,
+    method: method as RecoverableTownMethod,
+    lane,
+    signerId: original.signerId,
+    sequence: command.sequence,
+    checkpoint: reader.block,
+    keyNonce: key.nonce,
+    commandHighWater: checkpoint.data.high_water,
+  };
+
+  verifiedExpiredTownCommands.add(evidence);
+  return Object.freeze(evidence);
+}
+
+export function isVerifiedExpiredTownCommand(
+  value: ExpiredTownCommand,
+): boolean {
+  return verifiedExpiredTownCommands.has(value);
+}
+
+
 const verified = new WeakSet<object>();
 
 export interface ExpiredAdmissionRejection {

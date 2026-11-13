@@ -55,13 +55,15 @@ import { tickSchema, TownTickRepository } from "./ticks.js";
 import {
   isVerifiedAdmissionRejection,
   isVerifiedExpiredUnappliedCommand,
-  isVerifiedMerchantBatchCommand
+  isVerifiedMerchantBatchCommand,
+  isVerifiedExpiredTownCommand
 } from "./admission-rejection.js";
 
 import type {
   ExpiredAdmissionRejection,
   ExpiredUnappliedCommand,
-  ExpiredMerchantBatchCommand
+  ExpiredMerchantBatchCommand,
+  ExpiredTownCommand
 } from "./admission-rejection.js";
 
 export const townLanes = ["rex", "luna", "bolt", "operator"] as const;
@@ -467,7 +469,7 @@ export class LivingTownExecutionStore {
   }[] {
     return this.db
       .prepare(
-        "SELECT a.signed_json FROM attempts a JOIN intents i ON i.id=a.intent_id WHERE i.status IN ('submitted','unknown','confirmed','failed') AND coalesce(json_extract(a.evidence_json,'$.kind'),'') NOT IN ('expired_admission_rejection','expired_unapplied_command','expired_unapplied_merchant_batch') ORDER BY a.rowid",
+        "SELECT a.signed_json FROM attempts a JOIN intents i ON i.id=a.intent_id WHERE i.status IN ('submitted','unknown','confirmed','failed') AND coalesce(json_extract(a.evidence_json,'$.kind'),'') NOT IN ('expired_admission_rejection','expired_unapplied_command','expired_unapplied_merchant_batch','expired_unapplied_town_command') ORDER BY a.rowid",
       )
       .all()
       .map((row) => {
@@ -508,6 +510,53 @@ export class LivingTownExecutionStore {
       this.terminal(actionId, "failed");
     });
   }
+
+retireExpiredTownCommand(
+  actionId: string,
+  evidence: ExpiredTownCommand,
+): void {
+  requireStorage(
+    isVerifiedExpiredTownCommand(evidence),
+    "verified town expiration evidence required",
+  );
+
+  this.write(() => {
+    const row = this.get(actionId);
+
+    requireStorage(
+      row?.["status"] === "unknown" &&
+        row["lane"] === evidence.lane &&
+        row["method"] === evidence.method &&
+        row["action_id"] === evidence.sequence &&
+        row["tx_hash"] === evidence.transactionHash,
+      "matching unknown town transaction required",
+    );
+
+    const now = Date.now();
+
+    this.db.prepare(`
+      UPDATE attempts
+      SET evidence_json = ?, updated_at = ?
+      WHERE intent_id = ?
+    `).run(
+      json(evidence),
+      now,
+      actionId,
+    );
+
+    this.db.prepare(`
+      UPDATE intents
+      SET status = 'failed', updated_at = ?
+      WHERE id = ?
+    `).run(
+      now,
+      actionId,
+    );
+
+    this.terminal(actionId, "failed");
+  });
+}
+
   retireExpiredMerchantBatch(
   actionId: string,
   evidence: ExpiredMerchantBatchCommand,
@@ -597,7 +646,7 @@ export class LivingTownExecutionStore {
   rejectedAdmissions(): string[] {
   return this.db
     .prepare(
-      "SELECT tx_hash FROM attempts WHERE json_extract(evidence_json,'$.kind') IN ('expired_admission_rejection','expired_unapplied_command','expired_unapplied_merchant_batch') ORDER BY rowid",
+      "SELECT tx_hash FROM attempts WHERE json_extract(evidence_json,'$.kind') IN ('expired_admission_rejection','expired_unapplied_command','expired_unapplied_merchant_batch','expired_unapplied_town_command') ORDER BY rowid",
     )
     .all()
     .map((r) => String(r["tx_hash"]));

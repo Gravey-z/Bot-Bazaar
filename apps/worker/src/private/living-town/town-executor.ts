@@ -22,8 +22,7 @@ import type { TownCall, PreparedTownCall } from "./town-chain.js";
 import { LivingTownExecutionStore, townLanes } from "./execution-store.js";
 import type { TownLane } from "./execution-store.js";
 import {
-  verifyExpiredUnappliedCommand,
-  verifyExpiredMerchantBatchCommand
+  verifyExpiredTownCommand
 } from "./admission-rejection.js";
 
 export interface TownWork {
@@ -220,25 +219,31 @@ export class DurableTownExecutor {
           
           } else {
             
-if (
-  lane === "operator" &&
-  p.call.method === "allocate_raw_supply"
-) {
+
+if ("command" in p.call.args) {
   try {
-    const evidence = await verifyExpiredUnappliedCommand(
+    const expectedSignerId =
+      lane === "operator"
+        ? this.store.identity.operatorId
+        : this.store.identity.controllers[lane];
+
+    const evidence = await verifyExpiredTownCommand(
       p,
       reader,
-      this.store.identity.operatorId,
+      lane,
+      expectedSignerId,
     );
 
-    this.store.retireExpiredUnappliedCommand(
+    this.store.retireExpiredTownCommand(
       actionId,
       evidence,
     );
 
     console.log(JSON.stringify({
       role: "economic_runtime",
-      event: "verified_expired_operator_allocation",
+      event: "verified_expired_town_command",
+      merchant: lane,
+      method: p.call.method,
       transactionHash: p.transactionHash,
       commandSequence: evidence.sequence,
       checkpointHeight: evidence.checkpoint.height,
@@ -246,7 +251,9 @@ if (
   } catch (error) {
     console.error(JSON.stringify({
       role: "economic_runtime",
-      event: "operator_allocation_recovery_pending",
+      event: "town_command_recovery_pending",
+      merchant: lane,
+      method: p.call.method,
       transactionHash: p.transactionHash,
       reason:
         error instanceof Error
@@ -256,57 +263,10 @@ if (
 
     reasons.push("unknown_town_receipt");
   }
+} else {
+  reasons.push("unknown_town_receipt");
 }
- else if (
-              (lane === "rex" ||
-                lane === "luna" ||
-                lane === "bolt") &&
-              p.call.method === "batch_set_listings"
-            ) {
-              try {
-                const evidence =
-                  await verifyExpiredMerchantBatchCommand(
-                    p,
-                    reader,
-                    lane,
-                    this.store.identity.controllers[lane],
-                  );
-
-                this.store.retireExpiredMerchantBatch(
-                  actionId,
-                  evidence,
-                );
-
-                console.log(
-                  JSON.stringify({
-                    role: "economic_runtime",
-                    event: "verified_expired_merchant_batch",
-                    merchant: lane,
-                    transactionHash: p.transactionHash,
-                    commandSequence: evidence.sequence,
-                    checkpointHeight: evidence.checkpoint.height,
-                  }),
-                );
-              } catch (error) {
-                console.error(
-                  JSON.stringify({
-                    role: "economic_runtime",
-                    event: "merchant_batch_recovery_pending",
-                    merchant: lane,
-                    transactionHash: p.transactionHash,
-                    reason:
-                      error instanceof Error
-                        ? error.message
-                        : "verification_unavailable",
-                  }),
-                );
-
-                reasons.push("unknown_town_receipt");
-              }
-            } else {
-              reasons.push("unknown_town_receipt");
-            }
-          }
+}
         } else {
           // Completion has no command checkpoint. If receipt lookup times out,
           // recover by retrying ONLY the already persisted bytes and original

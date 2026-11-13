@@ -1659,23 +1659,7 @@ footer a {
 .game-world app-town-game {
   height: 100%;
 }
-.game-feedback {
-  position: absolute;
-  bottom: 16px;
-  left: 24px;
-  z-index: 1;
-  max-width: min(65ch, calc(100% - 48px));
-  padding: 7px 12px;
-  border-radius: 5px;
-  background: #21362be6;
-  flex-shrink: 0;
-  margin: 0;
-  min-height: 17px;
-  font-size: 11px;
-  color: #d1d3b6;
-  text-align: center;
-  line-height: 1.5;
-}
+
 .game-shell :focus-visible,
 .wallet-dialog .connection-choices button:focus-visible {
   outline: 3px solid #ffdb8d;
@@ -2032,12 +2016,7 @@ footer a {
     width: 100%;
     padding: 0;
   }
-  .game-feedback {
-    font-size: 10px;
-    bottom: 16px;
-    left: 10px;
-    max-width: calc(100% - 20px);
-  }
+
   .game-shell .manager-drawer {
     inset: 8px 8px 8px auto;
     width: calc(100vw - 16px);

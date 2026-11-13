@@ -75,7 +75,7 @@ function methods(scope: RuntimeScope = "merchant"): readonly string[] {
                   ? customerRuntimeMethods
                   : runtimeMethods;
 }
-export const maximumRuntimeAllowance = 100_000_000_000_000_000_000_000n;
+export const maximumRuntimeAllowance = null;
 export const customerRuntimeMethods = [
   "fund_customer_budget",
   "settle_customer_purchase",
@@ -108,16 +108,13 @@ export function assertRuntimePermission(
     );
   }
   if (
-    !("allowance" in call) ||
-    typeof call.allowance !== "string" ||
-    call.allowance.length > maximumRuntimeAllowance.toString().length ||
-    !/^[1-9][0-9]*$/.test(call.allowance) ||
-    BigInt(call.allowance) > maximumRuntimeAllowance
-  ) {
-    throw new Error(
-      "Runtime key allowance must be positive, finite and at most 0.1 NEAR",
-    );
-  }
+  !("allowance" in call) ||
+  call.allowance !== null
+) {
+  throw new Error(
+    "Runtime key must have unlimited FunctionCall allowance",
+  );
+}
   if (
     !("method_names" in call) ||
     !Array.isArray(call.method_names) ||

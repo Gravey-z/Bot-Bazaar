@@ -461,8 +461,32 @@ export class TownChainAdapter {
         "town broadcast hash mismatch",
       );
       return { kind: "submitted", transactionHash: p.transactionHash };
-    } catch {
-      return { kind: "unknown", transactionHash: p.transactionHash };
-    }
+    
+} catch (error) {
+  const rpcError = error as {
+    code?: string;
+    rpcCause?: string;
+    transactionReason?: string;
+  };
+
+  console.error(JSON.stringify({
+    role: "economic_runtime",
+    event: "town_transaction_broadcast_failed",
+    merchant: this.lane,
+    method: p.call.method,
+    transactionHash: p.transactionHash,
+    signerId: p.signerId,
+    nonce: p.nonce,
+    errorCode: rpcError.code ?? "UNKNOWN",
+    rpcCause: rpcError.rpcCause ?? null,
+    transactionReason: rpcError.transactionReason ?? null,
+  }));
+
+  return {
+    kind: "unknown",
+    transactionHash: p.transactionHash,
+  };
+}
+
   }
 }
