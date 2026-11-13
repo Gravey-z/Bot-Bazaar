@@ -21,7 +21,7 @@
     </ul>
   </details>
   <details class="merchant-stock">
-    <summary>Stock &amp; reserves</summary>
+    <summary>Current stock &amp; reserves</summary>
     @if (e.stock.length) {
       <div
         class="stock-scroll"
@@ -110,7 +110,12 @@
   </details>
   <details class="merchant-decisions">
     <summary>Decision history</summary>
-    <p class="state-note">Latest five decisions. History is retained across restarts.</p>
+    <p class="state-note">
+  These are historical decisions, not live inventory reports.
+  Any stock quantities mentioned in an AI explanation describe
+  what the agent reported at that earlier time.
+  History is retained across restarts.
+</p>
     @if (e.activityGap) {
       <p class="state-note">Earlier activity may be unavailable.</p>
     }
@@ -126,8 +131,21 @@
             <small>{{ entry.origin }}</small
             ><span class="state-note">{{ entry.label }}</span>
           </div>
-          <time class="state-note" [attr.datetime]="entry.recordedAt">Recorded {{ entry.recordedLabel }}</time>
-          <p class="decision-reason">{{ entry.reason }}</p>
+          <time
+  class="state-note"
+  [attr.datetime]="entry.recordedAt"
+>
+  Recorded {{ entry.recordedLabel }}
+  · Block {{ entry.recordedBlock }}
+</time>
+
+<p class="decision-reason">
+  {{ entry.reason }}
+</p>
+
+<p class="state-note">
+  Historical AI explanation — not current inventory.
+</p>
           @if (entry.url) {
             <a [href]="entry.url" target="_blank" rel="noopener noreferrer"
               >Transaction</a

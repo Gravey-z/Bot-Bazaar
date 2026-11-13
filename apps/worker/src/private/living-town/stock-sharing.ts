@@ -419,12 +419,40 @@ for (
     candidates.length <= 16,
     "stock-sharing candidate bound exceeded",
   );
-  candidates.sort(
-    (a, b) =>
-      merchants.indexOf(a.buyer) - merchants.indexOf(b.buyer) ||
-      items.indexOf(a.item) - items.indexOf(b.item) ||
-      merchants.indexOf(a.seller) - merchants.indexOf(b.seller),
+  candidates.sort((a, b) => {
+  const buyerOrder =
+    merchants.indexOf(a.buyer) -
+    merchants.indexOf(b.buyer);
+
+  if (buyerOrder !== 0) return buyerOrder;
+
+  const itemOrder =
+    items.indexOf(a.item) -
+    items.indexOf(b.item);
+
+  if (itemOrder !== 0) return itemOrder;
+
+  const minPrice = (c: StockSharingCandidate) =>
+    c.quantityChoices.reduce(
+      (best, choice) => {
+        const price = BigInt(choice.minUnitPrice);
+        return price < best ? price : best;
+      },
+      BigInt(c.quantityChoices[0]!.minUnitPrice),
+    );
+
+  const priceA = minPrice(a);
+  const priceB = minPrice(b);
+
+  if (priceA !== priceB) {
+    return priceA < priceB ? -1 : 1;
+  }
+
+  return (
+    merchants.indexOf(a.seller) -
+    merchants.indexOf(b.seller)
   );
+});
   const pendingAssessments: StockSharingOfferAssessment[] = pending
     .map((o): StockSharingOfferAssessment => {
       const cfg = offerMaterialRules[o.item_id],
@@ -563,5 +591,26 @@ export function selectStockSharingTerms(
       BigInt(choice.unitPrice) <= BigInt(quantity.maxUnitPrice),
     "stock-sharing terms outside eligible range",
   );
+  const competingCandidates = plan.candidates.filter(
+  (other) =>
+    other.buyer === buyer &&
+    other.item === candidate.item &&
+    other.id !== candidate.id,
+);
+
+const cheaperSellerExists = competingCandidates.some(
+  (other) =>
+    other.quantityChoices.some(
+      (terms) =>
+        terms.quantity === choice.quantity &&
+        BigInt(terms.minUnitPrice) <
+          BigInt(quantity!.minUnitPrice),
+    ),
+);
+
+requireStorage(
+  !cheaperSellerExists,
+  "cheaper eligible seller exists for this quantity",
+);
   return { candidate, quantity };
 }

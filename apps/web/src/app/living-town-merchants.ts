@@ -51,16 +51,17 @@ export interface MerchantEconomyView {
     receipt: string | null;
   }[];
   decisions: {
-    id: string;
-    recordedAt: string;
-    recordedLabel: string;
-    label: string;
-    reason: string;
-    offerId: string | null;
-    origin: string;
-    url: string | null;
-    receipt: string | null;
-  }[];
+  id: string;
+  recordedAt: string;
+  recordedLabel: string;
+  recordedBlock: string;
+  label: string;
+  reason: string;
+  offerId: string | null;
+  origin: string;
+  url: string | null;
+  receipt: string | null;
+}[];
   sources: {
     id: string;
     text: string;
@@ -184,11 +185,20 @@ export function merchantEconomy(
                         ? "AI decision skipped"
                         : "No action";
       return {
-        id: e.event_id,
-        recordedAt: new Date(Number(BigInt(e.checkpoint.block_timestamp_ns) / 1000000n)).toISOString(),
-        recordedLabel: new Date(Number(BigInt(e.checkpoint.block_timestamp_ns) / 1000000n))
-          .toLocaleString(undefined, { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" }),
-        label,
+  id: e.event_id,
+  recordedAt: new Date(
+    Number(BigInt(e.checkpoint.block_timestamp_ns) / 1000000n)
+  ).toISOString(),
+  recordedLabel: new Date(
+    Number(BigInt(e.checkpoint.block_timestamp_ns) / 1000000n)
+  ).toLocaleString(undefined, {
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  }),
+  recordedBlock: e.checkpoint.block_height,
+  label,
         reason: fallback ? fallbackReasons[fallbackCode] ?? "The AI decision could not be used. The merchant followed the town's fallback rules."
           : d.reason === "deterministic merchant policy"
             ? d.outcome === "expired"

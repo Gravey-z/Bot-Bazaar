@@ -39,6 +39,22 @@ export type TownProposal = {
     | { type: "adjust_price"; item_id: string; unit_price: string }
     | { type: "restock"; item_id: string }
     | {
+    type: "start_production";
+    recipe_id: "iron_tool";
+    quantity: "1";
+  }
+| {
+    type: "complete_production";
+    job_id: string;
+  }
+| {
+    type: "set_listing";
+    item_id: string;
+    quantity: string;
+    unit_price: string;
+    reserve_quantity: string;
+  }
+    | {
         type: "propose_trade";
         counterparty: ProposalMerchant;
         side: "buy" | "sell";
@@ -82,6 +98,14 @@ function decimal(value: unknown, max = 18446744073709551615n): string {
   );
   return s;
 }
+function listingQuantity(value: unknown): string {
+  const parsed = parseU64(value);
+  requireStorage(
+    BigInt(parsed) <= 100n,
+    "listing quantity exceeds limit",
+  );
+  return parsed;
+}
 function member<T extends string>(v: unknown, values: readonly T[]): T {
   requireStorage(values.includes(v as T), "unsupported proposal value");
   return v as T;
@@ -124,6 +148,51 @@ export function parseTownProposal(value: unknown): TownProposal {
   } else if (type === "restock") {
     const a = obj(raw, ["type", "item_id"]);
     action = { type, item_id: member(a["item_id"], items) };
+    } else if (type === "set_listing") {
+  const a = obj(raw, [
+    "type",
+    "item_id",
+    "quantity",
+    "unit_price",
+    "reserve_quantity",
+  ]);
+
+  action = {
+    type,
+    item_id: member(a["item_id"], [
+      "crystal", "wood", "herb", "iron",
+    ]),
+    quantity: listingQuantity(a["quantity"]),
+    unit_price: decimal(a["unit_price"], 100n),
+    reserve_quantity: listingQuantity(
+      a["reserve_quantity"],
+    ),
+  };
+  } else if (type === "start_production") {
+  const a = obj(raw, [
+    "type",
+    "recipe_id",
+    "quantity",
+  ]);
+
+  requireStorage(
+    a["recipe_id"] === "iron_tool" &&
+      a["quantity"] === "1",
+    "unsupported production recipe",
+  );
+
+  action = {
+    type: "start_production",
+    recipe_id: "iron_tool",
+    quantity: "1",
+  };
+} else if (type === "complete_production") {
+  const a = obj(raw, ["type", "job_id"]);
+
+  action = {
+    type: "complete_production",
+    job_id: decimal(a["job_id"]),
+  };
   } else if (type === "propose_trade") {
     const a = obj(raw, [
       "type",
@@ -198,6 +267,31 @@ export const townProposalSchema = schemaObject({
         unit_price: integer,
       }),
       schemaObject({ type: { const: "restock" }, item_id: enumItem }),
+      schemaObject({
+  type: { const: "start_production" },
+  recipe_id: { const: "iron_tool" },
+  quantity: { const: "1" },
+}),
+schemaObject({
+  type: { const: "complete_production" },
+  job_id: integer,
+}),
+schemaObject({
+  type: { const: "set_listing" },
+  item_id: {
+    type: "string",
+    enum: ["crystal", "wood", "herb", "iron"],
+  },
+  quantity: {
+    type: "string",
+    pattern: "^(0|[1-9][0-9]{0,2})$(?![\\s\\S])",
+  },
+  unit_price: integer,
+  reserve_quantity: {
+    type: "string",
+    pattern: "^(0|[1-9][0-9]{0,2})$(?![\\s\\S])",
+  },
+}),
       schemaObject({
         type: { const: "propose_trade" },
         counterparty: enumMerchant,
@@ -338,7 +432,211 @@ export function resolveTownProposal(
       tradePhase: step.phase,
     };
   }
+  if (
+  a.type === "start_production" ||
+  a.type === "complete_production"
+) {
+  requireStorage(
+    merchant === "bolt",
+    "only Bolt may produce iron tools",
+  );
+
+  const compiled = policy.compileAiProduction(
+    input,
+    merchant,
+    a,
+    identity,
+    command,
+  );
+
+  requireStorage(
+    compiled !== null,
+    "production command unavailable",
+  );
+
+  return {
+    kind: "command",
+    reason:
+      a.type === "start_production"
+        ? "validated_ai_production_start"
+        : "validated_ai_production_completion",
+    proposal,
+    call: compiled.call,
+  };
+}
   const step = signals.decisions.find((d) => d.merchant === merchant)!.action;
+  if (a.type === "set_listing") {
+  requireStorage(!town.data.paused, "town paused");
+
+  const row = input.merchants.find(
+    (m) =>
+      (m.shop as {
+        data: {
+          owner: { merchant_id?: string };
+        };
+      }).data.owner.merchant_id === merchant,
+  );
+
+  requireStorage(row, "merchant shop missing");
+
+  const shop = row.shop as {
+    data: { shop_id: string };
+  };
+
+  const listing = row.listings.find(
+    (l) =>
+      (l as { item_id: string }).item_id === a.item_id,
+  ) as
+    | {
+        remaining_quantity: string;
+        unit_price: string;
+        revision: string;
+      }
+    | undefined;
+
+  const ledger = town.data.npc_ledgers.find(
+    (l) =>
+      l.actor.kind === "merchant" &&
+      l.actor.merchant_id === merchant,
+  );
+
+  requireStorage(ledger, "merchant ledger missing");
+
+  const item = a.item_id as
+    "crystal" | "wood" | "herb" | "iron";
+
+  const held = BigInt(ledger.inventory.held[item]);
+  const tradeReserved = BigInt(
+    ledger.inventory.trade_reserved[item],
+  );
+
+  const quantity = BigInt(a.quantity);
+  const reserve = BigInt(a.reserve_quantity);
+  const saleable = held - tradeReserved;
+
+  requireStorage(
+    saleable >= 0n &&
+      quantity + reserve <= saleable,
+    "listing exceeds available inventory",
+  );
+
+  // Preserve the configured supplier safety floor.
+  const supplierSignal = signals.scarcity.find(
+    (s) =>
+      s.item === item &&
+      s.supplier === merchant,
+  );
+
+  const minimumReserve = supplierSignal
+    ? BigInt(supplierSignal.floor)
+    : 0n;
+
+  requireStorage(
+    saleable - quantity >= minimumReserve,
+    "listing violates supplier reserve",
+  );
+
+  // Do not let an AI listing interfere with
+  // an active production workflow.
+  requireStorage(
+    row.job === null &&
+      step.kind !== "start_production" &&
+      step.kind !== "complete_production" &&
+      !(
+        step.kind === "set_listing" &&
+        step.reason === "release_inputs_before_crafting"
+      ),
+    "production takes priority",
+  );
+
+  const pricing = signals.pricing.find(
+    (p) =>
+      p.merchant === merchant &&
+      p.item === item,
+  );
+
+  requireStorage(
+    pricing !== undefined,
+    "listing price policy unavailable",
+  );
+
+  const price = BigInt(a.unit_price);
+
+  requireStorage(
+    price >= BigInt(pricing.minPrice) &&
+      price <= BigInt(pricing.maxPrice),
+    "listing price outside allowed range",
+  );
+
+  if (listing && listing.unit_price !== a.unit_price) {
+    const previous = BigInt(listing.unit_price);
+    const difference =
+      price > previous
+        ? price - previous
+        : previous - price;
+
+    requireStorage(
+      difference <= 1n,
+      "price change exceeds one gold",
+    );
+
+    requireStorage(
+      pricing.cooldownUntilNs === null ||
+        BigInt(town.block_timestamp_ns) >=
+          BigInt(pricing.cooldownUntilNs),
+      "price cooldown active",
+    );
+  }
+
+  if (
+    listing?.remaining_quantity === a.quantity &&
+    listing.unit_price === a.unit_price
+  ) {
+    return no("listing_unchanged");
+  }
+
+  if (!listing && quantity === 0n) {
+    return no("empty_new_listing");
+  }
+
+  // Reuse the established policy compiler's
+  // identity and deployment verification.
+  policy.compile(
+    input,
+    merchant,
+    step,
+    identity,
+    command,
+  );
+
+  const call = createLivingTownCall("set_listing", {
+    shop_id: shop.data.shop_id,
+    item_id: item,
+    quantity: a.quantity,
+    unit_price: a.unit_price,
+    expected_listing_revision:
+      listing?.revision ?? null,
+    command,
+  });
+
+  requireStorage(
+    call.args.command.config_version ===
+      town.deployment.config_version &&
+      BigInt(call.args.command.valid_until_ns) >
+        BigInt(town.block_timestamp_ns) &&
+      BigInt(call.args.command.valid_until_ns) <=
+        BigInt(town.block_timestamp_ns) +
+          120000000000n,
+    "listing command outside lifetime",
+  );
+
+  return {
+    kind: "command",
+    reason: "validated_ai_listing",
+    proposal,
+    call,
+  };
+}
   if (a.type === "restock") {
     const relevant =
       step.kind === "start_production"

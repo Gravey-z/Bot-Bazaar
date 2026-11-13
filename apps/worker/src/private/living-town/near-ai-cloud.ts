@@ -229,11 +229,32 @@ const schema = object(
   properties["market_revision"] = { type: "string", enum: [object(context.facts.town)["market_revision"]] };
   properties["merchant_id"] = { type: "string", enum: [context.merchant] };
   const action = object(properties["action"]);
-  const allowed = negotiationAvailable(context.facts)
-    ? (context.facts.pendingOffers ?? []).some(o => object(o)["seller"] === context.merchant)
-      ? ["wait", "accept_trade", "reject_trade"]
-      : ["wait", "restock", "adjust_price", "propose_trade"]
-    : ["wait", "restock", "adjust_price"];
+  const hasIncomingOffer =
+  (context.facts.pendingOffers ?? []).some(
+    o => object(o)["seller"] === context.merchant
+  );
+
+const productionActions =
+  context.merchant === "bolt"
+    ? ["start_production", "complete_production"]
+    : [];
+
+const allowed = negotiationAvailable(context.facts)
+  ? hasIncomingOffer
+    ? ["wait", "accept_trade", "reject_trade"]
+    : [
+        "wait",
+        "adjust_price",
+        "propose_trade",
+        "set_listing",
+        ...productionActions,
+      ]
+  : [
+      "wait",
+      "adjust_price",
+      "set_listing",
+      ...productionActions,
+    ];
   action["anyOf"] = (action["oneOf"] as ObjectValue[]).filter(branch =>
     allowed.includes(String(object(object(branch["properties"])["type"])["const"])));
   delete action["oneOf"];
@@ -309,6 +330,7 @@ function prompt(
         : (() => {
             const job = object(row.job);
             return {
+              job_id: job["job_id"],
               item: job["output_item"],
               quantity: job["output_quantity"],
               ready_at_ns: job["ready_at_ns"],
@@ -316,6 +338,38 @@ function prompt(
             };
           })(),
     now_ns: object(context.facts.town)["block_timestamp_ns"],
+    ...(context.merchant === "bolt" ? {
+      production_rules: { recipe_id: "iron_tool", recipe_version: "1", quantity: "1", wood: "1", iron: "2", minimum_gold_reserve: "60", maximum_running_jobs: 1 },
+    } : {}),
+    inventory: (() => {
+  const ledgers = object(
+    object(context.facts.town)["data"]
+  )["npc_ledgers"];
+
+  requireStorage(
+    Array.isArray(ledgers),
+    "merchant ledgers missing",
+  );
+
+  const ledger = ledgers
+    .map(object)
+    .find(
+      l =>
+        object(l["actor"])["merchant_id"] ===
+        context.merchant,
+    );
+
+  requireStorage(ledger, "merchant ledger missing");
+
+  const inventory = object(ledger["inventory"]);
+
+  return {
+    held: inventory["held"],
+    listing_reserved: inventory["listing_reserved"],
+    trade_reserved: inventory["trade_reserved"],
+    available: inventory["available"],
+  };
+})(),
     available_gold: (() => {
       const ledgers = object(object(context.facts.town)["data"])["npc_ledgers"];
       requireStorage(Array.isArray(ledgers), "merchant ledgers missing");
@@ -344,9 +398,24 @@ function prompt(
           'Copy identity strings exactly; decimals are strings. ' +
           'Replace action with one of: ' +
           '{"type":"wait"}, ' +
-          '{"type":"restock","item_id":"ITEM"}, ' +
-          '{"type":"adjust_price","item_id":"ITEM","unit_price":"PRICE"}. ' +
-          'Restock follows restock_plan. ' +
+          '{"type":"start_production","recipe_id":"iron_tool","quantity":"1"}, ' +
+          '{"type":"complete_production","job_id":"JOB_ID"}, ' +
+'{"type":"set_listing","item_id":"ITEM","quantity":"QTY","unit_price":"PRICE","reserve_quantity":"RESERVE"}, ' +
+'{"type":"adjust_price","item_id":"ITEM","unit_price":"PRICE"}. ' +
+'For set_listing, choose the selling quantity and ' +
+'the amount to keep for production or future trades. ' +
+'Use actual held inventory minus trade reservations. ' +
+'Existing listed stock is already included in held; ' +
+'do not subtract it twice. ' +
+'The proposed listing plus desired reserve must ' +
+'not exceed uncommitted stock. ' +
+'Keep essential supplier and production reserves. ' +
+'Choose prices within the permitted pricing bands. ' +
+'Avoid unnecessary listing updates. ' +
+          'Do not delegate an AI decision to restock_plan. ' +
+          'For Bolt, independently compare production against waiting and selling. ' +
+          'Start only the configured iron_tool recipe, using one wood and two iron, when free resources, reserves and the single job slot permit it. ' +
+          'Complete only the confirmed running job when ready; copy the exact job_id from the input. ' +
           'You independently decide whether to increase, decrease or ' +
           'keep your selling prices based on supply, demand, ' +
           'competition, inventory and your merchant personality. ' +
@@ -496,7 +565,17 @@ backup_strategy:
   "them as partial progress, never as reaching the target. " +
   "Never purchase more than the shortage for backup purposes. " +
   "Check gold reserves, available suppliers, inventory capacity, " +
-  "price and potential resale margin. " +
+"price and potential resale margin. " +
+"Before proposing a purchase, compare every eligible seller " +
+"for the same item and quantity. " +
+"Prefer the seller with the lowest minimum negotiated unit price. " +
+"Only compare candidates that have the requested quantity " +
+"available outside retail listing reservations. " +
+"Retail listing prices are not automatically executable " +
+"merchant-to-merchant prices. " +
+"Never select a more expensive eligible seller when a cheaper " +
+"eligible seller can provide the same quantity. " +
+"Explain the chosen supplier and proposed unit price. " +
   "If choosing wait, explain why no action is being taken. " +
   "Never describe an unexecuted trade as a completed purchase. " +
   "Distinguish incoming trade offers from available buying " +
@@ -556,6 +635,7 @@ backup_strategy:
       own.job === null
         ? null
         : [
+             object(own.job)["job_id"],
             object(own.job)["output_item"],
             object(own.job)["output_quantity"],
             object(own.job)["status"],
@@ -595,8 +675,18 @@ backup_strategy:
             quantity: "CHOOSE",
             unit_price: "CHOOSE",
           },
-          { type: "restock", item_id: "ITEM" },
-          { type: "adjust_price", item_id: "ITEM", unit_price: "CHOOSE" },
+          ...(context.merchant === "bolt" ? [
+            { type: "start_production", recipe_id: "iron_tool", quantity: "1" },
+            { type: "complete_production", job_id: "COPY" },
+          ] : []),
+{
+  type: "set_listing",
+  item_id: "ITEM",
+  quantity: "CHOOSE",
+  unit_price: "CHOOSE",
+  reserve_quantity: "CHOOSE",
+},
+{ type: "adjust_price", item_id: "ITEM", unit_price: "CHOOSE" },
         ],
   };
 
@@ -663,6 +753,15 @@ if (offers.length > 0) {
           'permitted price ranges and potential resale margins. ' +
           'Choose your own resale prices, not deterministic targets. ' +
           'For adjust_price, change at most 1 gold and respect cooldowns. ' +
+          'Bolt may independently choose when to craft using one wood and two iron, or wait. ' +
+          'Only start production if no job is running and reserves remain safe. ' +
+          'Complete production only when the existing job is ready; copy its job_id exactly from job data. ' +
+          'Never invent a job ID and never treat restock_plan as a chosen AI action. ' +
+          'For set_listing, independently choose how much ' +
+'stock to sell and how much to retain. ' +
+'Respect trade reservations, production needs, ' +
+'supplier floors and price limits. ' +
+'Never list more than the uncommitted inventory. ' +
           'A positive margin is only ' +
           'potential profit, not a guaranteed sale. ' +
           'Invent nothing. Character: ' +
@@ -740,7 +839,7 @@ export function nearAiProvider(
   return {
     provider: "near-ai",
     model: nearAiModel,
-    promptVersion: "town-near-ai-v13-trade-reasoning",
+    promptVersion: "town-near-ai-v14-ai-production",
     prepare: (context) => ({
       payload: prompt(context, policy),
       provider: "near-ai",

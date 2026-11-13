@@ -745,6 +745,112 @@ export class LivingTownMerchantPolicy {
     );
     return { merchant, signer, call };
   }
+  /** Independently validate the AI's explicit production choice. */
+  compileAiProduction(
+    input: MerchantPolicyInput,
+    merchant: Merchant,
+    choice:
+      | { type: "start_production"; recipe_id: "iron_tool"; quantity: "1" }
+      | { type: "complete_production"; job_id: string },
+    identityValue: unknown,
+    command: unknown,
+  ): CompiledMerchantStep {
+    requireStorage(
+      input.fresh && input.historyComplete && merchant === "bolt",
+      "AI production requires verified Bolt facts",
+    );
+    // Validate pinned shop/listing/job consistency before reading economic facts.
+    this.evaluate(input);
+    const identity = parseLivingTownIdentity(identityValue);
+    const town = livingTownSnapshot(livingTownTown)(input.town);
+    requireStorage(
+      canonicalLivingTownJson(identity.deployment) ===
+        canonicalLivingTownJson(town.deployment),
+      "AI production deployment mismatch",
+    );
+    const source = input.merchants.find((r) => {
+      const shop = livingTownSnapshot(livingTownShop)(r.shop);
+      return shop.data.owner.kind === "merchant" &&
+        shop.data.owner.merchant_id === "bolt";
+    });
+    requireStorage(source, "Bolt shop missing");
+    const shop = livingTownSnapshot(livingTownShop)(source.shop);
+    const ledger = town.data.npc_ledgers.find(
+      l => l.actor.kind === "merchant" && l.actor.merchant_id === "bolt",
+    );
+    requireStorage(ledger, "Bolt ledger missing");
+    const signer = identity.controllers.bolt;
+    requireStorage(
+      signer !== identity.operatorId &&
+      signer !== identity.ownerId &&
+      signer !== identity.deployment.contract_id,
+      "invalid Bolt signer",
+    );
+    const job = source.job === null ? null : livingTownProductionJob(source.job);
+    if (choice.type === "complete_production") {
+      requireStorage(
+        job !== null && job.status === "running" &&
+        job.job_id === choice.job_id &&
+        BigInt(job.ready_at_ns) <= BigInt(town.block_timestamp_ns),
+        "production job is not ready",
+      );
+      return {
+        merchant, signer,
+        call: createLivingTownCompletionCall({ job_id: job.job_id }),
+      };
+    }
+    requireStorage(!town.data.paused && job === null,
+      "cannot start production while paused or already crafting");
+    const inv = ledger.inventory;
+    requireStorage(
+      BigInt(inv.available.wood) >= 1n &&
+      BigInt(inv.available.iron) >= 2n,
+      "insufficient unreserved crafting inputs",
+    );
+    requireStorage(
+      BigInt(inv.held.wood) - BigInt(inv.trade_reserved.wood) - 1n >=
+        this.materials.wood.floor &&
+      BigInt(inv.held.iron) - BigInt(inv.trade_reserved.iron) - 2n >=
+        this.materials.iron.floor,
+      "crafting violates material safety floor",
+    );
+    requireStorage(BigInt(ledger.gold.available) >= 60n,
+      "gold reserve insufficient");
+    const replacementCost = this.materials.wood.price +
+      2n * this.materials.iron.price;
+    requireStorage(24n - replacementCost >= 4n,
+      "tool profit margin below floor");
+    requireStorage(
+      BigInt(inv.held.iron_tool) +
+      BigInt(inv.production_output_reserved.iron_tool) +
+      BigInt(inv.trade_inbound_reserved.iron_tool) < 1n,
+      "tool stock target already reached",
+    );
+    requireStorage(
+      BigInt(inv.held.iron_tool) +
+      BigInt(inv.production_output_reserved.iron_tool) +
+      BigInt(inv.trade_inbound_reserved.iron_tool) < 1000n,
+      "output capacity exceeded",
+    );
+    const call = createLivingTownCall("start_production", {
+      shop_id: shop.data.shop_id,
+      recipe_id: "iron_tool",
+      recipe_version: "1",
+      quantity: "1",
+      expected_shop_revision: shop.revision,
+      command,
+    });
+    requireStorage(
+      call.args.command.config_version === town.deployment.config_version &&
+      BigInt(call.args.command.valid_until_ns) >
+        BigInt(town.block_timestamp_ns) &&
+      BigInt(call.args.command.valid_until_ns) <=
+        BigInt(town.data.genesis_time_ns) +
+        (BigInt(town.data.epoch) + 1n) * 60000000000n,
+      "AI production command outside epoch",
+    );
+    return { merchant, signer, call };
+  }
   /** Compile only a freshly re-evaluated policy step, scoped to its merchant controller. */
   compile(
     input: MerchantPolicyInput,
