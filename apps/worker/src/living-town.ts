@@ -52,8 +52,8 @@ let stopping = false,
   running: Promise<void> | undefined;
 let backupCheckAt = 0,
   lastSyncDiagnosticAt = 0,
-  lastReportDiagnosticAt = 0,
-  rpcRetryAt = 0;
+  lastReportDiagnosticAt = 0;
+
 const cycle = (): Promise<void> => {
   if (running) return running;
 
@@ -62,9 +62,6 @@ const cycle = (): Promise<void> => {
     let failed = false;
 
     try {
-      if (Date.now() < rpcRetryAt) {
-        return;
-      }
 
       const initialSyncNeeded = !store.cursor() || store.town().stale;
 
@@ -96,14 +93,6 @@ if (config.activityInbox)
       );
     } catch (error) {
   failed = true;
-
-  if (
-    error instanceof Error &&
-    error.name === "ChainRpcError" &&
-    error.message === "Chain RPC: RATE_LIMITED"
-  ) {
-    rpcRetryAt = Date.now() + 30000;
-  }
 
   store.invalidate();
 
@@ -199,22 +188,10 @@ let lastViewDiagnostic = 0;
 const pollViews = async (): Promise<void> => {
   if (stopping) return;
 
-  if (Date.now() < rpcRetryAt) {
-    viewTimer = setTimeout(() => {
-      void pollViews();
-    }, 15000);
-    return;
-  }
   viewRunning = gameViews.sync(client).catch((error: unknown) => {
-  if (
-    error instanceof Error &&
-    error.name === "ChainRpcError" &&
-    error.message === "Chain RPC: RATE_LIMITED"
-  ) {
-    rpcRetryAt = Date.now() + 30000;
-  }
+  
     if (Date.now() - lastViewDiagnostic > 60000) {
-      console.error("Player display sync delayed; retained snapshots will be marked stale.");
+      console.error("Player display sync delayed; retained snapshots will be marked stale.", error);
       lastViewDiagnostic = Date.now();
     }
   });

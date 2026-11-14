@@ -18,7 +18,7 @@ import {
   townLanes,
 } from "./private/living-town/execution-store.js";
 import { RuntimeFacts } from "./private/living-town/runtime-facts.js";
-import { readSharedMerchantFacts, readSharedPlanningFacts, SharedMerchantFactsUnavailable } from "./private/living-town/shared-merchant-facts.js";
+import { readSharedMerchantFacts, createSharedPlanningReader, SharedMerchantFactsUnavailable } from "./private/living-town/shared-merchant-facts.js";
 import { RuntimeOwner } from "./private/living-town/runtime-owner.js";
 import { RuntimeBudget } from "./private/living-town/runtime-budget.js";
 import { LivingTownProviderRunner } from "./private/living-town/provider.js";
@@ -84,13 +84,37 @@ requireStorage(
   "check cannot enroll a budget/provider",
 );
 const config = parseTownRuntimeConfig(readBoundedFile(args[1]!, 32768));
+const sharedPlanningReader =
+  createSharedPlanningReader(
+    config.public.workerUrl,
+    config.identity,
+    2000,
+  );
 const operations = new TownOperations("simulation");
 const transport = resilientTownRpc(config.public.rpcUrl);
-const rpc = boundedTownRpc((method, params) =>
-  operations.measure("chain", () => transport(method, params)),
-  1200,
-  2,
+
+const rpcSpacingMs = 1200;
+const maxConcurrentReads = 2;
+
+const rpc = boundedTownRpc(
+  (method, params) =>
+    operations.measure(
+      "chain",
+      () => transport(method, params)
+    ),
+  rpcSpacingMs,
+  maxConcurrentReads,
 );
+
+console.log(JSON.stringify({
+  role: "economic_runtime",
+  event: "rpc_client_config",
+  endpoint: new URL(config.public.rpcUrl).host,
+  spacing_ms: rpcSpacingMs,
+  max_concurrent_reads: maxConcurrentReads,
+  shared_limiter: false,
+}));
+
 console.log(JSON.stringify({ role: "economic_runtime", event: "rpc_client_config",
   endpoint: new URL(config.public.rpcUrl).host, spacing_ms: 1200,
   max_concurrent_reads: 2, shared_limiter: false }));
@@ -392,7 +416,9 @@ if (checkOnly) {
       independentWorkers: store.negotiatedTrading && !once,
       planningCollect: async () => {
         owner.verify();
-        const view = await readSharedPlanningFacts(config.public.workerUrl, config.identity);
+
+        const view = await sharedPlanningReader();
+
         const input = facts.planningInput(view);
         input.externalPurchases = facts.purchasesAfter(store.reactions.cursor());
         input.pricingHistory = store.merchantPricingHistory();
@@ -419,7 +445,7 @@ if (checkOnly) {
   });
   if (store.negotiatedTrading && !once) {
     // Retain the durable worker name, but planMaintenance now queues raw supply only.
-    planningWorkers.start({ name: "maintenance", intervalMs: 10000, tick: () => simulation.planMaintenance() });
+    planningWorkers.start({ name: "maintenance", intervalMs: 15000, tick: () => simulation.planMaintenance() });
     planningWorkers.start({ name: "merchant-ai", intervalMs: 5000, tick: () => simulation.planReactions() });
     if (authority && loadAiKey && providerRunner) {
       let refreshedQuote: NearAiQuote | undefined;

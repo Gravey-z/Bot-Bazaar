@@ -627,8 +627,37 @@ export class LivingTownSimulationAdapter {
     // Only stock quantities/reserves are mechanical; pricing and trading use focused AI reviews.
     return { kind: "planned" };
   }
-  private lastReviewStatus = "";
-  async planReactions(): Promise<unknown> {
+private lastReviewStatus = "";
+private lastReactionDiagnosticAt = 0;
+private lastEconomicDiagnosticAt = 0;
+
+async planReactions(): Promise<unknown> {
+
+const diagnosticNow = Date.now();
+
+if (
+  diagnosticNow - this.lastReactionDiagnosticAt
+    >= 30_000
+) {
+  this.lastReactionDiagnosticAt = diagnosticNow;
+
+  console.log(JSON.stringify({
+    role: "economic_runtime",
+    event: "reaction_scheduler_diagnostics",
+
+    reactions:
+      this.store.reactions.reactionDiagnostics(),
+
+    thinking: [...this.thinking.keys()],
+
+    pending_replies: this.replies.size,
+
+    planning_reservations: [
+      ...this.planningReservations.values(),
+    ],
+  }));
+}
+
     if (this.backgroundError) { const error = this.backgroundError; this.backgroundError = undefined; throw error; }
     if (!this.canPlan()) return { kind: "deferred" };
     for (const [id] of this.planningReservations) {
@@ -645,9 +674,99 @@ export class LivingTownSimulationAdapter {
       this.replies.delete(id);
     }
     const input = await this.planningFacts(), town = livingTownSnapshot(livingTownTown)(input.town);
-    if (!this.canPlan() || !input.fresh || !input.historyComplete) return { kind: "deferred" };
-    this.store.reactions.observe(input);
-    this.store.reactions.observeOpportunities(input, this.policy.evaluate(input).stockSharing?.candidates ?? [], this.policy.evaluate(input).pricing);
+    if (
+  !this.canPlan() ||
+  !input.fresh ||
+  !input.historyComplete
+) {
+  console.warn(JSON.stringify({
+    role: "economic_runtime",
+    event: "merchant_planning_blocked",
+    can_plan: this.canPlan(),
+    fresh: input.fresh,
+    history_complete: input.historyComplete,
+    next_trade_id: town.data.next_trade_id,
+    market_revision: town.market_revision,
+  }));
+
+  return { kind: "deferred" };
+}
+    
+this.store.reactions.observe(input);
+
+const economicPlan = this.policy.evaluate(input);
+
+this.store.reactions.observeOpportunities(
+  input,
+  economicPlan.stockSharing?.candidates ?? [],
+  economicPlan.pricing
+);
+
+const reactionRoots = this.store.reactions.roots();
+
+console.log(JSON.stringify({
+  role: "economic_runtime",
+  event: "reaction_admission_result",
+  block_timestamp_ns: town.block_timestamp_ns,
+
+  total: reactionRoots.length,
+
+  queued: reactionRoots.filter(
+    root => root.state === "queued"
+  ).length,
+
+  active: reactionRoots.filter(
+    root => root.state === "active"
+  ).length,
+
+  closed: reactionRoots.filter(
+    root => root.state === "closed"
+  ).length,
+
+  recent: reactionRoots.slice(-6).map(root => ({
+    id: root.id,
+    merchant: root.merchant,
+    kind: root.kind,
+    state: root.state,
+    close_reason: root.close_reason,
+    created_ns: root.created_ns,
+    deadline_ns: root.deadline_ns,
+    model_calls: root.model_calls,
+  })),
+}));
+
+
+
+if (
+  economicPlan.stockSharing &&
+  Date.now() - this.lastEconomicDiagnosticAt >= 30_000
+) {
+  this.lastEconomicDiagnosticAt = Date.now();
+
+  console.log(JSON.stringify({
+    role: "economic_runtime",
+    event: "merchant_economic_opportunities",
+
+    merchants:
+      economicPlan.stockSharing.merchants.map(m => ({
+        merchant: m.merchant,
+        candidate_count: m.candidateIds.length,
+        reasons: m.reasons,
+      })),
+
+    candidates:
+      economicPlan.stockSharing.candidates.map(c => ({
+        buyer: c.buyer,
+        seller: c.seller,
+        item: c.item,
+        buyer_headroom: c.buyerHeadroom,
+        spendable_gold: c.buyerSpendableGold,
+        quantities: c.quantityChoices,
+      })),
+  }));
+}
+
+
     const status = this.store.reactions.reviewStatus();
     const encoded = canonicalLivingTownJson(status);
     if (encoded !== this.lastReviewStatus) {
@@ -658,6 +777,21 @@ export class LivingTownSimulationAdapter {
       .map(origin => this.store.reactions.next(input, this.store.offers, origin))
       .filter((work): work is ReactionWork => work !== null)
       .sort((a, b) => Number(b.role === "seller" || b.role === "acceptance") - Number(a.role === "seller" || a.role === "acceptance"));
+      console.log(JSON.stringify({
+  role: "economic_runtime",
+  event: "merchant_urgent_work",
+  count: urgentWork.length,
+  work: urgentWork.map(work => ({
+    merchant: work.merchant,
+    root_id: work.rootId,
+    step_id: work.id,
+    role: work.role,
+    deadline_ns: work.deadlineNs,
+    has_decision: !!work.decision,
+    already_thinking: this.thinking.has(work.merchant),
+    has_reply: this.replies.has(work.id),
+  })),
+}));
     for (const work of urgentWork) {
       if (work.decision || this.replies.has(work.id) || this.thinking.has(work.merchant)) continue;
       if (BigInt(work.deadlineNs) <= BigInt(town.block_timestamp_ns)) {
@@ -667,7 +801,25 @@ export class LivingTownSimulationAdapter {
         this.store.reactions.decide(work, { kind: "no_op", reason: "reaction_window_expired" });
         continue;
       }
-      if (!this.propose || (this.options.modelReady && !this.options.modelReady())) continue;
+
+const providerReady =
+  this.options.modelReady
+    ? this.options.modelReady()
+    : true;
+
+if (!this.propose || !providerReady) {
+  console.log(JSON.stringify({
+    role: "economic_runtime",
+    event: "merchant_model_not_ready",
+    merchant: work.merchant,
+    root_id: work.rootId,
+    step_id: work.id,
+    propose_available: !!this.propose,
+    model_ready: providerReady,
+  }));
+
+  continue;
+}
       // Refresh immediately before reserving parties and dispatching inference.
       // Each loop iteration sees reservations installed by the earlier merchant.
       const fresh = await this.planningFacts();
@@ -688,6 +840,18 @@ export class LivingTownSimulationAdapter {
           merchant: work.merchant, reason: conflicts ? "pending_trade_conflict" : "planning_reservation_or_no_candidate" }));
         continue;
       }
+      console.log(JSON.stringify({
+  role: "economic_runtime",
+  event: "merchant_inference_dispatch",
+  merchant: work.merchant,
+  root_id: work.rootId,
+  step_id: work.id,
+  reaction_role: work.role,
+  candidate_count: opportunities.length,
+  production_available: production,
+  excluded_merchants: excluded,
+  pending_trade_conflict: conflicts,
+}));
       const parties = [work.merchant, ...opportunities.map(c => c.seller)];
       this.planningReservations.set(work.id, { rootId: work.rootId, merchants: [...new Set(parties)] });
       const promise = (async () => {

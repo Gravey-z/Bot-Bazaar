@@ -3,6 +3,9 @@ import { canonicalLivingTownJson, livingTownMerchantContext, livingTownReadEnvel
 import type { FinalizedLivingTownReader } from "@bot-bazaar/chain";
 import { requireStorage } from "../storage/validation.js";
 
+const planningMaxAgeMs = 60_000;
+const executionMaxAgeMs = 30_000;
+
 export type SharedMerchantFacts = ReturnType<typeof livingTownMerchantContext>;
 export class SharedMerchantFactsUnavailable extends Error {
   constructor(readonly reason = "reader_unavailable", readonly details: Record<string, unknown> | null = null) { super("Shared merchant projection is unavailable, stale or behind the finalized state");
@@ -53,8 +56,15 @@ export async function readSharedMerchantFacts(
       runtime_block_timestamp_ms: now - Number(BigInt(town.block_timestamp_ns) / 1000000n),
       projection_block_timestamp_ms: now - Number(BigInt(envelope.snapshot.block_timestamp_ns) / 1000000n),
     };
-    for (const [field, age] of Object.entries(ages))
-      if (Math.abs(age) > 30000) differences.push({ field, projection: age, expected: "absolute age <= 30000 ms" });
+    for (const [field, age] of Object.entries(ages)) {
+  if (Math.abs(age) > executionMaxAgeMs) {
+    differences.push({
+      field,
+      projection: age,
+      expected: `absolute age <= ${executionMaxAgeMs} ms`,
+    });
+  }
+}
     details = { differences, ages_ms: ages,
       // Positive deltas mean the projection is behind; negative means it is ahead.
       projection_lag_blocks: (BigInt(town.block_height) - BigInt(envelope.snapshot.block_height)).toString(),
@@ -128,7 +138,13 @@ export async function readSharedPlanningFacts(workerUrl: string,
         if (actual !== expected) differences.push({ field: `${label}.${field}`, actual, expected });
       for (const [field, age] of [["observed_age_ms", now - Number(envelope.observed_at_ms)],
         ["block_age_ms", now - Number(BigInt(envelope.snapshot.block_timestamp_ns) / 1000000n)]] as const)
-        if (Math.abs(age) > 30000) differences.push({ field: `${label}.${field}`, actual: age, expected: "absolute age <= 30000 ms" });
+        if (Math.abs(age) > planningMaxAgeMs) {
+          differences.push({
+            field: `${label}.${field}`,
+            actual: age,
+            expected: `absolute age <= ${planningMaxAgeMs} ms`,
+          });
+        }
     }
     for (const field of ["market_revision", "event_sequence"] as const)
       if (town[field] !== contextEnvelope.snapshot[field]) differences.push({ field, actual: contextEnvelope.snapshot[field], expected: town[field] });
@@ -151,3 +167,47 @@ export async function readSharedPlanningFacts(workerUrl: string,
     throw new SharedMerchantFactsUnavailable("planning_projection_not_ready");
   }
 }
+
+export function createSharedPlanningReader(
+  workerUrl: string,
+  identity: import("@bot-bazaar/chain").LivingTownIdentity,
+  ttlMs = 2000,
+): () => Promise<SharedPlanningFacts> {
+  let cached: {
+    value: SharedPlanningFacts;
+    expiresAt: number;
+  } | undefined;
+
+  let pending:
+    Promise<SharedPlanningFacts> | undefined;
+
+  return async () => {
+    if (cached && Date.now() < cached.expiresAt) {
+      return structuredClone(cached.value);
+    }
+
+    if (pending) {
+      return structuredClone(await pending);
+    }
+
+    pending = readSharedPlanningFacts(
+      workerUrl,
+      identity,
+    ).then(value => {
+      cached = {
+        value,
+        expiresAt: Date.now() + ttlMs,
+      };
+
+      return value;
+    }).catch(error => {
+      cached = undefined;
+      throw error;
+    }).finally(() => {
+      pending = undefined;
+    });
+
+    return structuredClone(await pending);
+  };
+}
+

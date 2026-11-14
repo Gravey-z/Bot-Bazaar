@@ -57,6 +57,50 @@ export class TownReactionRepository {
   roots(): Row[] {
     return this.db.prepare("SELECT * FROM reaction_roots ORDER BY rowid").all();
   }
+
+
+reactionDiagnostics(): unknown[] {
+  const hasPurpose = this.db
+    .prepare("PRAGMA table_info(reaction_roots)")
+    .all()
+    .some(column => column["name"] === "purpose");
+
+  const purposeColumn = hasPurpose
+    ? "purpose"
+    : "NULL AS purpose";
+
+  const roots = this.db.prepare(`
+    SELECT
+      id,
+      merchant,
+      ${purposeColumn},
+      kind,
+      state,
+      offer_id,
+      created_ns,
+      deadline_ns,
+      model_calls,
+      mutations,
+      proposals
+    FROM reaction_roots
+    WHERE state != 'closed'
+    ORDER BY merchant, rowid
+  `).all();
+
+  return roots.map(root => ({
+    ...root,
+
+    steps: this.steps(String(root.id)).map(step => ({
+      id: step.id,
+      merchant: step.merchant,
+      role: step.role,
+      state: step.state,
+      model_reserved: step.model_reserved,
+    })),
+  }));
+}
+
+
   active(): Row | undefined {
     return this.db
       .prepare("SELECT * FROM reaction_roots WHERE state='active'")
@@ -332,35 +376,96 @@ export class TownReactionRepository {
                 JSON.stringify([merchant, ...candidates.filter(c => c.buyer === merchant).map(c => c.seller)]),
               ).map(row => [String(row.offer_id), String(row.status), String(row.revision)])];
           const baseId = sha256(canonicalLivingTownJson([this.deployment, "focused-review-v1", merchant, purpose, fingerprint]));
-          let id = baseId;
-          let previous = this.root(id);
-          if (previous) {
-            const shortage = purpose === "trading" && candidates.some(c => c.buyer === merchant && BigInt(c.buyerHeadroom) > 0n);
-            if (!shortage) {
-              if (this.reviewStates[merchant]?.state === "no_eligible_opportunity")
-                this.reviewStates[merchant] = { state: "opportunity_already_reviewed", message: "Opportunity already reviewed; waiting for changed facts." };
-              continue;
-            }
-            let retry = 1;
-            for (; retry <= 3; retry++) {
-              id = sha256(canonicalLivingTownJson([baseId, "shortage-reconsideration-v1", String(retry)]));
-              const attempted = this.root(id);
-              if (!attempted) break;
-              previous = attempted;
-            }
-            if (retry > 3) {
-              this.reviewStates[merchant] = { state: "reconsideration_limit_reached", message: "Three shortage reconsiderations used; waiting for changed opportunities." };
-              continue;
-            }
-            const next = BigInt(String(previous.created_ns)) + 60_000_000_000n;
-            if (now < next) {
-              this.reviewStates[merchant] = { state: "reconsideration_cooldown", message: "Stock shortage remains; waiting for the next review.", next_review_at_ns: next.toString(), retry: String(retry), maximum_retries: "3" };
-              continue;
-            }
-          }
-          this.db.prepare("INSERT INTO reaction_roots(id,merchant,kind,state,created_ns,deadline_ns) VALUES(?,?,'purchase','queued',?,?)")
-            .run(id, merchant, town.block_timestamp_ns, String(now + 600_000_000_000n));
-          if (purpose === "pricing") this.add(id, merchant, "followup");
+          
+let id = baseId;
+
+const previous = this.root(baseId);
+
+if (previous) {
+  // Allow unchanged opportunities to be reviewed
+  // periodically instead of permanently exhausting retries.
+  const reviewIntervalNs = 300_000_000_000n;
+
+  const latest = this.db.prepare(`
+    SELECT created_ns
+    FROM reaction_roots
+    WHERE merchant = ?
+      AND kind = 'purchase'
+    ORDER BY rowid DESC
+    LIMIT 1
+  `).get(merchant);
+
+  const lastReviewNs = BigInt(
+    String(latest?.["created_ns"] ?? previous.created_ns)
+  );
+
+  const nextReviewNs =
+    lastReviewNs + reviewIntervalNs;
+
+  if (now < nextReviewNs) {
+    this.reviewStates[merchant] = {
+      state: "reconsideration_cooldown",
+      message:
+        "Waiting for the next economic review.",
+      next_review_at_ns:
+        nextReviewNs.toString(),
+    };
+
+    continue;
+  }
+
+  const reviewWindow =
+    (now / reviewIntervalNs).toString();
+
+  id = sha256(canonicalLivingTownJson([
+    baseId,
+    "periodic-reconsideration-v1",
+    reviewWindow,
+  ]));
+
+  if (this.root(id)) {
+  const existing = this.root(id);
+
+  console.log(JSON.stringify({
+    role: "economic_runtime",
+    event: "merchant_review_duplicate",
+    merchant,
+    purpose,
+    base_id: baseId,
+    attempted_id: id,
+    existing_state: existing?.state ?? null,
+    close_reason: existing?.close_reason ?? null,
+    review_window: reviewWindow,
+  }));
+
+  continue;
+}
+}
+
+          
+this.db.prepare(`
+  INSERT INTO reaction_roots (
+    id,
+    merchant,
+    purpose,
+    kind,
+    state,
+    created_ns,
+    deadline_ns
+  )
+  VALUES (?, ?, ?, 'purchase', 'queued', ?, ?)
+`).run(
+  id,
+  merchant,
+  purpose,
+  town.block_timestamp_ns,
+  String(now + 600_000_000_000n)
+);
+
+if (purpose === "pricing") {
+  this.add(id, merchant, "followup");
+}
+
           this.reviewStates[merchant] = { state: "review_queued", message: `${purpose === "pricing" ? "Pricing" : "Trading"} review queued.`, root_id: id };
           break;
         }
@@ -531,13 +636,37 @@ export class TownReactionRepository {
     const row = this.db.prepare("SELECT s.id FROM reaction_steps s JOIN reaction_roots r ON r.id=s.root_id WHERE s.state='decided' AND r.state='active' ORDER BY CASE s.role WHEN 'acceptance' THEN 0 WHEN 'seller' THEN 1 ELSE 2 END,s.rowid LIMIT 1").get();
     return row ? this.work(String(row["id"])) : null;
   }
-  private close(root: string, reason: string): void {
-    this.db
-      .prepare(
-        "UPDATE reaction_roots SET state='closed',close_reason=? WHERE id=?",
-      )
-      .run(reason, root);
-  }
+
+private close(root: string, reason: string): void {
+  const previous = this.root(root);
+
+  this.db
+    .prepare(
+      "UPDATE reaction_roots SET state='closed',close_reason=? WHERE id=?",
+    )
+    .run(reason, root);
+
+  console.log(JSON.stringify({
+    role: "economic_runtime",
+    event: "merchant_reaction_closed",
+    root_id: root,
+    merchant: previous?.merchant ?? null,
+    previous_state: previous?.state ?? null,
+    reason,
+    created_ns: previous?.created_ns ?? null,
+    deadline_ns: previous?.deadline_ns ?? null,
+    model_calls: previous?.model_calls ?? null,
+    mutations: previous?.mutations ?? null,
+    offer_id: previous?.offer_id ?? null,
+    steps: this.steps(root).map(step => ({
+      id: step.id,
+      merchant: step.merchant,
+      role: step.role,
+      state: step.state,
+    })),
+  }));
+}
+
   attach(input: MerchantPolicyInput, work: ReactionWork): MerchantPolicyInput {
     const root = this.root(work.rootId);
     requireStorage(root?.state === "active", "active root required");

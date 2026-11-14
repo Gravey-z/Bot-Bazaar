@@ -110,6 +110,15 @@ export class RuntimeFacts {
     const trades = this.db.prepare("SELECT body FROM trades ORDER BY id").all()
       .map(row => JSON.parse(String(row["body"])) as Trade);
     const complete = String(cursor["next_trade"]) === view.town.data.next_trade_id;
+    if (!complete) {
+  console.warn(JSON.stringify({
+    role: "economic_runtime",
+    event: "trade_history_incomplete",
+    local_next_trade: String(cursor["next_trade"]),
+    blockchain_next_trade: view.town.data.next_trade_id,
+    locally_recorded_trades: trades.length,
+  }));
+}
     return { town: view.town, merchants: view.context.merchants, pendingOffers: view.context.pendingOffers,
       negotiatedTrading: view.context.negotiatedTrading, fresh: true, historyComplete: complete, trades,
       activityCheckpoint: { block_hash: view.blockHash, block_height: view.town.block_height,

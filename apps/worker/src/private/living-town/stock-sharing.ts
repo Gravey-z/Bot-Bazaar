@@ -106,8 +106,7 @@ function evaluate(input: MerchantPolicyInput): StockSharingPlan {
   const town = livingTownSnapshot(livingTownTown)(input.town),
     now = BigInt(town.block_timestamp_ns),
     genesis = BigInt(town.data.genesis_time_ns);
-const backupTarget = 3n,
-  backupCap = 7n,
+const backupCap = 7n,
   peerFloor = 2n;
   requireStorage(
     town.deployment.state_schema === "2" && input.negotiatedTrading === true,
@@ -276,16 +275,10 @@ const backupTarget = 3n,
             note(buyer.name, "restock_already_incoming");
             continue;
           }
-        } else if (
-  !signal.healthyForBackups &&
-  BigInt(inv.held[item]) > 0n
-) {
-  note(buyer.name, "primary_not_healthy_for_backup");
-  continue;
-}
+        }
         const target = primaryBuyer
   ? BigInt(cfg.target)
-  : min(backupTarget, backupCap);
+  : backupCap;
         const headroom = min(
           nonnegative(
             target -
@@ -491,14 +484,6 @@ for (
           min(BigInt(cfg.max_price), BigInt(cfg.base_price) + 1n)
         )
           why.push("emergency_price_below_donor_band");
-      } else {
-        if (
-          !signal.healthyForBackups &&
-          BigInt(bi.held[o.item_id]) > 0n
-        ) {
-          why.push("primary_no_longer_healthy_for_backup");
-        }
-        // Negotiated backup prices above base remain eligible up to max_price.
       }
       if (
         BigInt(buyer.ledger.gold.available) < goldFloors[o.buyer] ||

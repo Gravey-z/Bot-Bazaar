@@ -358,17 +358,127 @@ export class LivingTownExecutionStore {
       this.db.exec("PRAGMA foreign_keys=ON");
     }
   }
-  enableIndependentWorkers(): void {
-    requireStorage(!!this.mutationObserver, "verified witness required for worker migration");
-    if (this.db.prepare("SELECT name FROM sqlite_schema WHERE name='one_active_reaction_per_merchant'").get() &&
-      this.db.prepare("SELECT name FROM sqlite_schema WHERE name='town_work_queue'").get() &&
-      String(this.db.prepare("SELECT sql FROM sqlite_schema WHERE name='one_town_provider_pending'").get()?.["sql"]).includes("(merchant)")) return;
-    this.write(() => {
-      this.db.exec(townWorkQueueSchema);
-      this.db.exec("DROP INDEX IF EXISTS one_active_reaction; CREATE UNIQUE INDEX IF NOT EXISTS one_active_reaction_per_merchant ON reaction_roots(merchant) WHERE state='active'");
-      this.db.exec("DROP INDEX IF EXISTS one_town_provider_pending; CREATE UNIQUE INDEX one_town_provider_pending ON town_provider_attempts(merchant) WHERE status IN ('prepared','reserved','dispatched')");
-    });
+  
+enableIndependentWorkers(): void {
+  requireStorage(
+    !!this.mutationObserver,
+    "verified witness required for worker migration"
+  );
+
+  const hasReactionPurpose = this.db
+    .prepare("PRAGMA table_info(reaction_roots)")
+    .all()
+    .some(column => column["name"] === "purpose");
+
+  const hasMerchantIndex = !!this.db
+    .prepare(`
+      SELECT name FROM sqlite_schema
+      WHERE name = 'one_active_reaction_per_merchant'
+    `)
+    .get();
+
+  const hasWorkQueue = !!this.db
+    .prepare(`
+      SELECT name FROM sqlite_schema
+      WHERE name = 'town_work_queue'
+    `)
+    .get();
+
+  const hasProviderIndex = String(
+    this.db.prepare(`
+      SELECT sql FROM sqlite_schema
+      WHERE name = 'one_town_provider_pending'
+    `).get()?.["sql"] ?? ""
+  ).includes("(merchant)");
+
+  if (
+    hasReactionPurpose &&
+    hasMerchantIndex &&
+    hasWorkQueue &&
+    hasProviderIndex
+  ) return;
+
+  this.write(() => {
+    this.db.exec(townWorkQueueSchema);
+
+    if (!hasReactionPurpose) {
+      this.db.exec(`
+        ALTER TABLE reaction_roots
+        ADD COLUMN purpose TEXT NOT NULL
+        DEFAULT 'trading'
+        CHECK(purpose IN (
+          'trading',
+          'pricing',
+          'production',
+          'cleanup'
+        ));
+
+        UPDATE reaction_roots
+        SET purpose = 'cleanup'
+        WHERE kind = 'cleanup';
+
+        UPDATE reaction_roots
+        SET purpose = 'pricing'
+        WHERE kind = 'purchase'
+          AND offer_id IS NULL
+          AND NOT EXISTS (
+            SELECT 1 FROM reaction_purchases p
+            WHERE p.root_id = reaction_roots.id
+          )
+          AND EXISTS (
+            SELECT 1 FROM reaction_steps s
+            WHERE s.root_id = reaction_roots.id
+              AND s.role = 'followup'
+          )
+          AND NOT EXISTS (
+            SELECT 1 FROM reaction_steps s
+            WHERE s.root_id = reaction_roots.id
+              AND s.role IN (
+                'buyer',
+                'seller',
+                'acceptance',
+                'cleanup'
+              )
+          );
+      `);
+    }
+
+    this.db.exec(`
+      DROP INDEX IF EXISTS one_active_reaction;
+
+      CREATE UNIQUE INDEX IF NOT EXISTS
+        one_active_reaction_per_merchant
+      ON reaction_roots(merchant)
+      WHERE state = 'active';
+    `);
+
+    this.db.exec(`
+      DROP INDEX IF EXISTS one_town_provider_pending;
+
+      CREATE UNIQUE INDEX one_town_provider_pending
+      ON town_provider_attempts(merchant)
+      WHERE status IN (
+        'prepared',
+        'reserved',
+        'dispatched'
+      );
+    `);
+
+    requireStorage(
+      this.db.prepare("PRAGMA foreign_key_check")
+        .all().length === 0,
+      "worker migration foreign key check failed"
+    );
+  });
+
+  if (!hasReactionPurpose) {
+    console.log(JSON.stringify({
+      role: "economic_runtime",
+      event: "reaction_purpose_migration_completed",
+    }));
   }
+}
+
   get planningReady(): boolean { return this.ready && !this.stopped; }
   gate(): void {
     try {

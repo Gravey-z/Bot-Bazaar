@@ -519,7 +519,6 @@ console.log(
     reaction_role: context.facts.stockSharingReaction?.followUpOnly
       ? "followup_only"
       : "buyer_eligible",
-    backup_target: "3",
     candidates: plan.candidates
       .filter((c) => c.buyer === context.merchant)
       .map((c) => ({
@@ -565,7 +564,6 @@ console.log(
     ],
     peer_cap: "7",
     peer_floor: "2",
-    backup_target: "3",
         resale_pricing_columns:
       "item,basePrice,minAllowedPrice,maxAllowedPrice,currentOwnListingPrice,cooldownUntilNs",
 
@@ -695,7 +693,22 @@ if (offers.length > 0) {
         content:
           'Use confirmed facts. Return JSON matching the response schema: copy tick_id, market_revision and merchant_id; ' +
           'reason is 1-240 printable ASCII; action is one permitted object. Decimal values are strings. No extra fields or markdown. ' +
-          'Candidates are buying opportunities; only incoming contains actual offers. Favor affordable purchases below backup target 3, ' +
+          'Candidates are buying opportunities; only incoming contains actual offers.' +
+          "Candidates represent feasible purchasing opportunities, " +
+"not mandatory purchases. " +
+"Evaluate current inventory, recent demand, available gold, " +
+"market prices and future production needs. " +
+
+"Choose purchase quantities based on expected demand " +
+"and economic benefit rather than fixed stock targets. " +
+
+"Consider buying multiple units when demand justifies it. " +
+"Prefer profitable resale opportunities. " +
+"Do not purchase inventory solely because it is available. " +
+"Protect operating gold and avoid unnecessary overstock. " +
+
+"Only incoming offers represent existing trade offers. " +
+"Choose wait when no economically beneficial action exists. " +
           'including partial buys; never exceed shortage. Immediate resale profit is optional; consider future use and gold floors. ' +
           'Held includes listed stock. Respect reservations, capacity, supplier floors and price bands. ' +
           'For incoming offers, use explicit buyer/seller roles: seller gives stock for gold; buyer pays gold for stock. ' +
