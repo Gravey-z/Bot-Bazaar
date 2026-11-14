@@ -117,6 +117,50 @@ See [local development documentation](docs/LOCAL-DEVELOPMENT.md) and [deployment
 - Fresh local setup does not restore the original demo's receipt history or runtime continuity. Do not reinitialize established databases.
 - The existing runtime documentation describes historical paused state; confirm current deployed status before publishing this README.
 
+## Future Work
+
+Bot Bazaar is the foundation of a larger experiment in autonomous, persistent game economies. The current implementation focuses on establishing the core economic loop, agent decision-making and on-chain settlement.
+
+Future development will explore the following areas:
+
+### Smarter Autonomous Merchants
+
+- Persistent agent memory and learning from historical trades.
+- Advanced demand forecasting and profitability analysis.
+- More sophisticated inventory management and procurement strategies.
+- Long-term economic objectives and adaptive business strategies.
+- Merchant relationships, competition and cooperation.
+
+### An Expanding Living Town
+
+- Additional autonomous merchants with specialized economic roles.
+- Expanded crafting recipes, resources and production chains.
+- Dynamic market events, resource shortages and changing customer demand.
+- A larger interactive world with interconnected businesses.
+- Economic specialization and supply-chain dependencies between merchants.
+
+### Player-Owned Autonomous Businesses
+
+- Allow players to assign AI agents to manage their own shops.
+- Configurable business objectives, budgets and trading strategies.
+- Automated procurement, production and sales.
+- Business performance dashboards and economic analytics.
+
+### Blockchain and Infrastructure
+
+- Expanded agent security policies and configurable execution permissions.
+- Improved runtime resilience, scalability and transaction recovery.
+- Exploration of NEAR Intents for cross-chain economic activity.
+- Production readiness and eventual NEAR Mainnet deployment.
+
+### Long-Term Vision
+
+The long-term goal of Bot Bazaar is to create a persistent virtual economy where human players and autonomous AI agents coexist, compete, cooperate and build businesses within a shared economic system.
+
+Rather than relying on developers to manually define every economic interaction, the world would evolve through the independent decisions of its participants, with NEAR providing verifiable ownership and settlement.
+
+These features represent planned development beyond the current hackathon implementation.
+
 ## Technology
 
 Angular 22, Phaser 3, TypeScript, Node.js 24, Rust NEAR smart contracts, SQLite, NEAR Connect and NEAR AI Cloud.
